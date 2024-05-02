@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { crc16xmodem } from 'crc'
 import { bitState, computedCRC, getNullableValue, getPadding } from '../../src/shared/utils'
 
@@ -7,6 +8,7 @@ describe('Test shared utils', () => {
     const crc = crc16xmodem(buffer)
     expect(computedCRC(buffer)).toBe(crc)
   }),
+  
 
   test('bitState', () => {
     const number = 0b11001010

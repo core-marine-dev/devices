@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { AttEuler, Error, ErrorCode, Mode, attEuler } from '../../../../src/firmware/4-10-1/GNSSAttitude/AttEuler'
 import { SBFBodyData } from '../../../../src/shared/types'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../utils'

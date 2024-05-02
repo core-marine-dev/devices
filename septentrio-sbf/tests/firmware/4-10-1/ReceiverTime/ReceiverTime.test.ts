@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { ReceiverTime, SyncLevel, Synchronization, receiverTime } from '../../../../src/firmware/4-10-1/ReceiverTime/ReceiverTime'
 import { TypeData, TypedData, getTypedData } from '../../../utils'
 /* ReceiverTime -> Number: 5914 => "OnChange" interval: 1 second

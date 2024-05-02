@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { TypeData, getTypedData } from "./utils"
 
 describe('Test typed data', () => {

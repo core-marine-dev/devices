@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { ptvSupport } from '../../../../src/firmware/4-10-1/GNSSPositionVelocityTime/PVTSupport'
 /* PVTSupport -> Number: 4076 => "OnChange" interval: default PVT output rate
   This block contains various internal parameters that can be used for

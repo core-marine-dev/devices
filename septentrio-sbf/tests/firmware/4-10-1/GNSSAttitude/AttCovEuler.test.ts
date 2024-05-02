@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { AttCovEuler, Error, ErrorCode, attCovEuler } from "../../../../src/firmware/4-10-1/GNSSAttitude/AttCovEuler"
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from "../../../utils"
 /* AttCovEuler -> Number: 5939 => "OnChange" interval: default PVT output rate

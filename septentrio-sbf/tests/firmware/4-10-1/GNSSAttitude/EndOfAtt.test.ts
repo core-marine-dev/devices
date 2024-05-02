@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { endOfAtt } from '../../../../src/firmware/4-10-1/GNSSAttitude/EndOfAtt' 
 /* EndOfAtt -> Number: 5943 => "OnChange" interval: default PVT output rate
   This block marks the end of transmission of all GNSS-attitude related blocks 

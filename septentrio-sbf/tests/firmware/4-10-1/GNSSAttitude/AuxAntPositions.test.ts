@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../utils'
 import { Ambiguity, AuxAntPositionSub, AuxAntPositions, Error, auxAntPositions } from '../../../../src/firmware/4-10-1/GNSSAttitude/AuxAntPositions'
 
