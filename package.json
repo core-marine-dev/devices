@@ -35,16 +35,7 @@
   ],
   "type": "module",
   "main": "index.js",
-  "workspaces": [
-    "nmea-parser",
-    "nmea-parser-nodered",
-    "norsub-emru",
-    "norsub-emru-nodered",
-    "septentrio-sbf",
-    "septentrio-sbf-nodered",
-    "thelmabiotel-tblive",
-    "thelmabiotel-tblive-nodered"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "nmea-parser:lint": "npm run lint --workspace=@coremarine/nmea-parser",
     "nmea-parser:format": "npm run format --workspace=@coremarine/nmea-parser",

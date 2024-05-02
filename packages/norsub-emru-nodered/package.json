@@ -4,13 +4,13 @@
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-Red component to work with NorSub eMRU devices",
-  "homepage": "https://github.com/core-marine-dev/nr-norsub-emru#readme",
+  "homepage": "https://github.com/core-marine-dev/packages/norsub-emru-nodered#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/nr-norsub-emru.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git"
   },
   "bugs": {
-    "url": "https://github.com/core-marine-dev/nr-norsub-emru/issues"
+    "url": "https://github.com/core-marine-dev/devices/issues"
   },
   "keywords": [
     "node-red",

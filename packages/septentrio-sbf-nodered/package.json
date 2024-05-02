@@ -4,13 +4,13 @@
   "author": "CoreMarine",
   "license": "MIT",
   "description": "A group of Node-Red components to work with Septentrio SBF protocol",
-  "homepage": "https://github.com/core-marine-dev/nr-sbf-parser#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/septentrio-sbf-nodered#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/nr-sbf-parser.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git"
   },
   "bugs": {
-    "url": "https://github.com/core-marine-dev/nr-sbf-parser/issues"
+    "url": "https://github.com/core-marine-dev/devices/issues"
   },
   "keywords": [
     "node-red",

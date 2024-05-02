@@ -4,16 +4,13 @@
   "description": "Node-Red component to work with Thelma Biotel hydrophones TB-Live",
   "author": "CoreMarine",
   "license": "MIT",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/thelmabiotel-tblive-nodered#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/nr-tb-live.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git"
   },
   "bugs": {
-    "url": "https://github.com/core-marine-dev/nr-tb-live/issues"
-  },
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "url": "https://github.com/core-marine-dev/devices/issues"
   },
   "keywords": [
     "node-red",
@@ -24,7 +21,10 @@
     "accoustic",
     "inclinometer"
   ],
-  "homepage": "https://github.com/core-marine-dev/nr-tb-live#readme",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
     "@coremarine/tb-live": "^0.0.2"
   }
