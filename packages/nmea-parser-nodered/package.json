@@ -4,7 +4,7 @@
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-Red component to read NMEA 0183 sentences",
-  "homepage": "https://github.com/core-marine-dev/devices/nr-nmea-parser#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/nmea-parser-nodered#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"

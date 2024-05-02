@@ -4,7 +4,7 @@
   "description": "Library to work with eMRU devices of NorSub company",
   "author": "Core Marine",
   "license": "MIT",
-  "homepage": "https://github.com/core-marine-dev/devices/norsub-emru#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/norsub-emru#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"
