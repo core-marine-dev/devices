@@ -46,6 +46,15 @@
     "thelmabiotel-tblive-nodered"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "nmea-parser:lint": "npm run lint --workspace=@coremarine/nmea-parser",
+    "nmea-parser:format": "npm run format --workspace=@coremarine/nmea-parser",
+    "nmea-parser:build": "npm run build --workspace=@coremarine/nmea-parser",
+    "nmea-parser:test": "npm run test --workspace=@coremarine/nmea-parser",
+    "nmea-parser:coverage": "npm run test:coverage --workspace=@coremarine/nmea-parser"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.5.3",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.3"
   }
 }
