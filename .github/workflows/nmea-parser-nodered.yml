@@ -54,6 +54,6 @@ jobs:
         run: "npm run build:nmea-parser-nodered"
         
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/nmea-parser-parser"
+        run: "npm publish --access public --workspace=@coremarine/nr-parser-parser"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
