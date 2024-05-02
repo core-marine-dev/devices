@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  nodered:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 1880:1880
+    volumes:
+      # Node-Red working files
+      - ./tests/nodered/data:/data
+      - ./tests/nodered/tests:/tests
+      # Components
+      - ./package.json:/components/package.json
+      - ./src/:/components/src/
