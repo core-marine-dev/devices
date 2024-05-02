@@ -1,0 +1,51 @@
+{
+  "name": "@coremarine/devices",
+  "version": "0.0.1",
+  "private": true,
+  "author": "CoreMarine",
+  "description": "CoreMarine open source software devices (libraries, Node-RED components, etc)",
+  "license": "MIT",
+  "homepage": "https://github.com/core-marine-dev/devices#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "coremarine",
+    "core-marine",
+    "iot",
+    "iiot",
+    "hardware",
+    "devices",
+    "nodered",
+    "node-red",
+    "typescript",
+    "gnss",
+    "gps",
+    "imu",
+    "mru",
+    "nmea",
+    "nmea0183",
+    "hydrophone",
+    "acoustic",
+    "typescript"
+  ],
+  "type": "module",
+  "main": "index.js",
+  "workspaces": [
+    "nmea-parser",
+    "nmea-parser-nodered",
+    "norsub-emru",
+    "norsub-emru-nodered",
+    "septentrio-sbf",
+    "septentrio-sbf-nodered",
+    "thelmabiotel-tblive",
+    "thelmabiotel-tblive-nodered"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
