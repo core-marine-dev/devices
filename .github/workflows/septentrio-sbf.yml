@@ -1,12 +1,20 @@
-name: publish
+name: septentrio-sbf
 
-on: push
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - septentrio-sbf/**
 
 jobs:
   test:
     name: 🧪 Test
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
     steps:
       - name: 👍 Checkout
         uses: actions/checkout@v3
@@ -14,21 +22,21 @@ jobs:
       - name: ❇️ Setup node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
           cache: 'npm'
-
+          
       - name: 📥 Install Dependencies
         run: npm install
 
       - name: 🧑‍🔬 Tests
-        run: npm run test
+        run: "npm run test:septentrio-sbf"
 
   publish:
     name: 🚀 Publish
     runs-on: ubuntu-latest
     needs: test
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
       - name: 👍 Checkout
         uses: actions/checkout@v3
@@ -36,13 +44,16 @@ jobs:
       - name: ❇️ Setup node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
  
       - name: 📥 Install Dependencies
         run: npm install
-
+    
+      - name: 🛠️ Build
+        run: "npm run build:septentrio-sbf"
+        
       - name: 🚀 Publish to npm
-        run: npm publish --access public
+        run: "npm publish --access public --workspace=@coremarine/septentrio-sbf"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
