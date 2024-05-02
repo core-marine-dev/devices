@@ -29,7 +29,7 @@ jobs:
   #       run: npm install
 
   #     - name: 🧑‍🔬 Tests
-  #       run: "npm run test:septentrio-sbf-nodered"
+  #       run: "npm run septentrio-sbf-nodered:test"
 
   publish:
     name: 🚀 Publish
@@ -51,7 +51,7 @@ jobs:
         run: npm install
     
       - name: 🛠️ Build
-        run: "npm run build:septentrio-sbf-nodered"
+        run: "npm run septentrio-sbf-nodered:build"
         
       - name: 🚀 Publish to npm
         run: "npm publish --access public --workspace=@coremarine/septentrio-sbf-parser"
