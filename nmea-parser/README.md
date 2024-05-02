@@ -1,7 +1,7 @@
 # NMEA parser
 
 ![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nmea-parser)
-[![publish](https://github.com/core-marine-dev/nmea-parser/actions/workflows/publish.yml/badge.svg)](https://github.com/core-marine-dev/nmea-parser/actions/workflows/publish.yml)
+[![publish](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser.yml)
 ![npm](https://img.shields.io/npm/dy/%40coremarine/nmea-parser)
 
 **NMEA Parser** is a library to parse NMEA 0183 sentences.
