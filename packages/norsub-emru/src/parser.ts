@@ -11,20 +11,20 @@ export class NorsubParser {
   // Parser
   protected _parser: NMEAParser = new NMEAParser()
   // Memory - Buffer
-  get memory() { return this._parser.memory }
-  set memory(mem: boolean) { this._parser.memory = BooleanSchema.parse(mem) }
-  get bufferLimit() { return this._parser.bufferLimit }
-  set bufferLimit(limit: number) { this._parser.bufferLimit = NaturalSchema.parse(limit) }
+  get memory (): typeof this._parser.memory { return this._parser.memory }
+  set memory (mem: boolean) { this._parser.memory = BooleanSchema.parse(mem) }
+  get bufferLimit (): typeof this._parser.bufferLimit { return this._parser.bufferLimit }
+  set bufferLimit (limit: number) { this._parser.bufferLimit = NaturalSchema.parse(limit) }
 
-  constructor(memory: boolean = true, limit: number = MAX_CHARACTERS) {
+  constructor (memory: boolean = true, limit: number = MAX_CHARACTERS) {
     this.memory = memory
     this.bufferLimit = limit
     const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
     this.addProtocols({ file: NORSUB_FILE })
   }
 
-  private getStatusIndexes(fields: FieldParsed[]): number[] {
-    let indexes: number[] = []
+  private getStatusIndexes (fields: FieldParsed[]): number[] {
+    const indexes: number[] = []
     fields.forEach((field, index) => {
       if (field.name.includes('status')) {
         indexes.push(index)
@@ -33,7 +33,7 @@ export class NorsubParser {
     return indexes
   }
 
-  private addStatus(nmea: NMEASentence): NorsubSentence {
+  private addStatus (nmea: NMEASentence): NorsubSentence {
     const indexes: number[] = this.getStatusIndexes(nmea.fields)
     const numberOfIndex = indexes.length
     if (![1, 2].includes(numberOfIndex)) { return nmea }
@@ -49,12 +49,12 @@ export class NorsubParser {
       return sentence
     }
     // Status_A + Status_B
-    const [index_a, index_b] = indexes
-    const status_a = sentence.fields[index_a].data as number
-    const status_b = sentence.fields[index_b].data as number
-    const status = getStatus({ status_a, status_b })
+    const [indexA, indexB] = indexes
+    const statusA = sentence.fields[indexA].data as number
+    const statusB = sentence.fields[indexB].data as number
+    const status = getStatus({ status_a: statusA, status_b: statusB })
     if (status !== null) {
-      const statusNumber = getUint32(status_a, status_b)
+      const statusNumber = getUint32(statusA, statusB)
       sentence.data.push(statusNumber)
       sentence.fields.push({
         name: 'status',
@@ -66,7 +66,7 @@ export class NorsubParser {
     return sentence
   }
 
-  parseData(data: string): NorsubSentence[] {
+  parseData (data: string): NorsubSentence[] {
     const sentences = this._parser.parseData(data)
     if (sentences.length === 0) return sentences
     return sentences.map(sentence => {
@@ -77,11 +77,11 @@ export class NorsubParser {
     })
   }
 
-  addProtocols(protocols: ProtocolsInput): void { this._parser.addProtocols(protocols) }
-  
-  getProtocols(): ProtocolOutput[] { return this._parser.getProtocols() }
+  addProtocols (protocols: ProtocolsInput): void { this._parser.addProtocols(protocols) }
 
-  getSentence(id: string): Sentence { return this._parser.getSentence(id) }
+  getProtocols (): ProtocolOutput[] { return this._parser.getProtocols() }
 
-  getFakeSentenceByID(id: string): NMEALike | null { return this._parser.getFakeSentenceByID(id) }
+  getSentence (id: string): Sentence { return this._parser.getSentence(id) }
+
+  getFakeSentenceByID (id: string): NMEALike | null { return this._parser.getFakeSentenceByID(id) }
 }

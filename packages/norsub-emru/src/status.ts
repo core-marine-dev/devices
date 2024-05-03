@@ -1,7 +1,7 @@
-import { Uint32 } from "@coremarine/nmea-parser/lib/types"
-import { StatusInputSchema } from "./schemas"
-import { Status, StatusInput } from "./types"
-import { getBit, getUint32 } from "./utils"
+import { Uint32 } from '@coremarine/nmea-parser/lib/types'
+import { StatusInputSchema } from './schemas'
+import { Status, StatusInput } from './types'
+import { getBit, getUint32 } from './utils'
 
 /** STATUS
  * Bit - Parameter            - Description
@@ -49,7 +49,7 @@ const _getStatus = (input: Uint32): Status => {
       health: getBit(input, 3),
       synchronized: {
         time: getBit(input, 4),
-        clock: getBit(input, 5),
+        clock: getBit(input, 5)
       },
       cpu: getBit(input, 6)
     },
@@ -59,7 +59,7 @@ const _getStatus = (input: Uint32): Status => {
       limits: getBit(input, 9),
       environmental: {
         vibration: getBit(input, 10),
-        temperature: getBit(input, 11),
+        temperature: getBit(input, 11)
       }
     },
     algorithms: {
@@ -67,37 +67,37 @@ const _getStatus = (input: Uint32): Status => {
       health: getBit(input, 13),
       initialization: {
         observer: getBit(input, 14),
-        heading: getBit(input, 15),
+        heading: getBit(input, 15)
       },
       roll_pitch: {
         ok: getBit(input, 16),
-        health: getBit(input, 17),
+        health: getBit(input, 17)
       },
       heading: {
         ok: getBit(input, 18),
-        health: getBit(input, 19),
+        health: getBit(input, 19)
       },
       surge_sway: {
         ok: getBit(input, 20),
-        health: getBit(input, 21),
+        health: getBit(input, 21)
       },
       heave: {
         ok: getBit(input, 22),
-        health: getBit(input, 23),
+        health: getBit(input, 23)
       }
     },
     aiding: {
       received: {
         position: getBit(input, 24),
         velocity: getBit(input, 25),
-        heading: getBit(input, 26),
+        heading: getBit(input, 26)
       },
       valid: {
         position: getBit(input, 27),
         velocity: getBit(input, 28),
         heading: getBit(input, 29),
         vertical: getBit(input, 30),
-        horizontal: getBit(input, 31),
+        horizontal: getBit(input, 31)
       }
     }
   }
@@ -105,11 +105,11 @@ const _getStatus = (input: Uint32): Status => {
 
 export const getStatus = (input: StatusInput): Status | null => {
   if (!StatusInputSchema.safeParse(input).success) { return null }
-  const { status, status_a, status_b } = input
+  const { status, status_a: statusA, status_b: statusB } = input
   if (status !== undefined) { return _getStatus(status) }
-  if (status_a !== undefined && status_b !== undefined) {
-    const status_full = getUint32(status_a, status_b)
-    return _getStatus(status_full)
+  if (statusA !== undefined && statusB !== undefined) {
+    const statusFull = getUint32(statusA, statusB)
+    return _getStatus(statusFull)
   }
   return null
 }

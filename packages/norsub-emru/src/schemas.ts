@@ -5,7 +5,7 @@ import { BooleanSchema, Uint16Schema, Uint32Schema } from '@coremarine/nmea-pars
 export const StatusInputSchema = z.object({
   status: Uint32Schema.optional(),
   status_a: Uint16Schema.optional(),
-  status_b: Uint16Schema.optional() 
+  status_b: Uint16Schema.optional()
 })
 
 /** STATUS
@@ -46,16 +46,16 @@ export const StatusInputSchema = z.object({
 export const StatusSchema = z.object({
   main: z.object({
     ok: BooleanSchema,
-    health: BooleanSchema,
+    health: BooleanSchema
   }),
   system: z.object({
     ok: BooleanSchema,
     health: BooleanSchema,
     synchronized: z.object({
       time: BooleanSchema,
-      clock: BooleanSchema,
+      clock: BooleanSchema
     }),
-    cpu: BooleanSchema,
+    cpu: BooleanSchema
   }),
   sensor: z.object({
     ok: BooleanSchema,
@@ -63,7 +63,7 @@ export const StatusSchema = z.object({
     limits: BooleanSchema,
     environmental: z.object({
       vibration: BooleanSchema,
-      temperature: BooleanSchema,
+      temperature: BooleanSchema
     })
   }),
   algorithms: z.object({
@@ -75,33 +75,33 @@ export const StatusSchema = z.object({
     }),
     roll_pitch: z.object({
       ok: BooleanSchema,
-      health: BooleanSchema,
+      health: BooleanSchema
     }),
     heading: z.object({
       ok: BooleanSchema,
-      health: BooleanSchema,
+      health: BooleanSchema
     }),
     surge_sway: z.object({
       ok: BooleanSchema,
-      health: BooleanSchema,
+      health: BooleanSchema
     }),
     heave: z.object({
       ok: BooleanSchema,
-      health: BooleanSchema,
-    }),
+      health: BooleanSchema
+    })
   }),
   aiding: z.object({
     received: z.object({
       position: BooleanSchema,
       velocity: BooleanSchema,
-      heading: BooleanSchema,
+      heading: BooleanSchema
     }),
     valid: z.object({
       position: BooleanSchema,
       velocity: BooleanSchema,
       heading: BooleanSchema,
       vertical: BooleanSchema,
-      horizontal: BooleanSchema,
+      horizontal: BooleanSchema
     })
   })
 })
