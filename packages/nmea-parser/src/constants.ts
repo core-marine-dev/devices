@@ -15,7 +15,7 @@ export const NMEA_ID_LENGTH = 3
 export const NMEA_TALKER_LENGTH = 2
 export const NMEA_SENTENCE_LENGTH = NMEA_ID_LENGTH + NMEA_TALKER_LENGTH
 
-export const TALKERS = new Map<string, string>
+export const TALKERS = new Map<string, string>()
 TALKERS.set('AB', 'Independent AIS Base Station')
 TALKERS.set('AD', 'Dependent AIS Base Station')
 TALKERS.set('AG', 'Autopilot - General')
@@ -117,18 +117,19 @@ TALKERS.set('ZQ', 'Timekeeper - Quartz')
 TALKERS.set('ZV', 'Timekeeper - Radio Update, WWV or WWVH')
 
 export const TALKERS_SPECIAL = {
-  'P': 'Vendor specific',
-  'U': 'U# where \'#\' is a digit 0 …​ 9; User Configured',
+  P: 'Vendor specific',
+  U: 'U# where \'#\' is a digit 0 …​ 9; User Configured'
 }
 
-
 // GENERATE ASCII STRING
-export const CODE_A = 'A'.charCodeAt(0)
-export const CODE_Z = 'Z'.charCodeAt(0)
-export const CODE_a = 'a'.charCodeAt(0)
-export const CODE_z = 'z'.charCodeAt(0)
-export const CODE_0 = '0'.charCodeAt(0)
-export const CODE_9 = '9'.charCodeAt(0)
+export const CODE = {
+  A: 'A'.charCodeAt(0),
+  Z: 'Z'.charCodeAt(0),
+  a: 'a'.charCodeAt(0),
+  z: 'z'.charCodeAt(0),
+  0: '0'.charCodeAt(0),
+  9: '9'.charCodeAt(0)
+} as const
 
 // GENERATE NUMBERS
 export const UINT8_MAX = Uint8Array.from([0b1111_1111])[0]

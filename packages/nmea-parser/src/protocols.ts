@@ -1,4 +1,4 @@
-import fs  from 'node:fs'
+import fs from 'node:fs'
 import Path from 'node:path'
 import zodToJsonSchema from 'zod-to-json-schema'
 import yaml from 'js-yaml'
@@ -7,7 +7,7 @@ import { JSONSchemaInput, Protocol, ProtocolOutput, ProtocolsFile, StoredSentenc
 
 export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
 
-export const createJSONSchema = (input: JSONSchemaInput) => {
+export const createJSONSchema = (input: JSONSchemaInput): void => {
   const { path, filename } = JSONSchemaInputSchema.parse(input)
   const FILE = Path.join(path, filename)
   const CONTENT = JSON.stringify(jsonSchema, null, 2)
@@ -25,7 +25,7 @@ export const readProtocolsFile = (file: string): ProtocolsFile => {
   return readProtocolsString(content)
 }
 
-const getStoreSentencesFromProtocol = (protocol: Protocol) => {
+const getStoreSentencesFromProtocol = (protocol: Protocol): StoredSentences => {
   const { protocol: name, standard, version, sentences } = protocol
   const storedSentences: StoredSentences = new Map()
   sentences.forEach(element => {
@@ -49,15 +49,15 @@ export const getStoreSentences = ({ protocols }: ProtocolsFile): StoredSentences
 }
 
 export const getSentencesByProtocol = (storedSentences: StoredSentences): ProtocolOutput[] => {
-  const mapProtocols = new Map<string, ProtocolOutput>
+  const mapProtocols = new Map<string, ProtocolOutput>()
   storedSentences.forEach((value, key) => {
-    const mapKey = (value.protocol.version) ? `${value.protocol.name}_${value.protocol.version}` : value.protocol.name
+    const mapKey = (value.protocol.version !== undefined) ? `${value.protocol.name}_${value.protocol?.version}` : value.protocol.name
     const object = mapProtocols.get(mapKey) ?? {
       protocol: value.protocol.name,
-      version: value.protocol.version,
+      version: value.protocol?.version,
       sentences: [key]
     }
-    if (!object.sentences.includes(key)){
+    if (!object.sentences.includes(key)) {
       object.sentences.push(key)
     }
     mapProtocols.set(mapKey, object)

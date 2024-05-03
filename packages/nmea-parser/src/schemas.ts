@@ -6,7 +6,7 @@ export const StringArraySchema = z.array(StringSchema)
 export const BooleanSchema = z.boolean()
 export const NumberSchema = z.number()
 export const IntegerSchema = NumberSchema.int()
-export const Int8Schema =  IntegerSchema.min(INT8_MIN).max(INT8_MAX)
+export const Int8Schema = IntegerSchema.min(INT8_MIN).max(INT8_MAX)
 export const Int16Schema = IntegerSchema.min(INT16_MIN).max(INT16_MAX)
 export const Int32Schema = IntegerSchema.min(INT32_MIN).max(INT32_MAX)
 export const BigIntegerSchema = z.bigint()
@@ -40,7 +40,7 @@ export const FieldTypeSchema = z.union([
   z.literal('string'),
   // Boolean
   z.literal('bool'),
-  z.literal('boolean'),
+  z.literal('boolean')
 ])
 
 export const FieldSchema = z.object({
@@ -53,13 +53,13 @@ export const FieldSchema = z.object({
 export const FieldUnknownSchema = z.object({
   name: z.literal('unknown'),
   type: z.literal('string'),
-  data: StringSchema,
+  data: StringSchema
 })
 
 export const ProtocolSentenceSchema = z.object({
   sentence: StringSchema,
   fields: z.array(FieldSchema),
-  description: StringSchema.optional(),
+  description: StringSchema.optional()
 })
 
 export const VersionSchema = z.custom<`${number}.${number}.${number}`>(val => {
@@ -88,7 +88,7 @@ export const StoredSentenceSchema = z.object({
   protocol: z.object({
     name: StringSchema,
     standard: BooleanSchema,
-    version: VersionSchema.optional(),
+    version: VersionSchema.optional()
   }),
   fields: z.array(FieldSchema),
   description: StringSchema.optional()
@@ -109,7 +109,7 @@ export const NMEALikeSchema = StringSchema
 
 export const TalkerSchema = z.object({
   id: StringSchema,
-  description: StringSchema,
+  description: StringSchema
 })
 
 export const NMEAUnparsedSentenceSchema = z.object({
@@ -118,7 +118,6 @@ export const NMEAUnparsedSentenceSchema = z.object({
   checksum: NaturalSchema,
   data: StringArraySchema
 })
-
 
 export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({
   timestamp: NaturalSchema,
@@ -138,9 +137,8 @@ export const StoredSentenceDataSchema = StoredSentenceSchema.extend({
 
 export const NMEAUknownSentenceSchema = NMEAPreParsedSentenceSchema.extend({
   protocol: z.object({ name: z.literal('UNKNOWN') }),
-  fields: z.array(FieldUnknownSchema),
+  fields: z.array(FieldUnknownSchema)
 })
-
 
 export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
   timestamp: NaturalSchema,
