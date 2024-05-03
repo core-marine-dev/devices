@@ -5,7 +5,7 @@ import {
   VersionSchema, JSONSchemaInputSchema,
   StoredSentenceSchema, StoredSentencesSchema,
   NMEALikeSchema, NMEAUnparsedSentenceSchema, NMEAPreParsedSentenceSchema,
-  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema, FieldUnknownSchema, OutputSentenceSchema, TalkerSchema, IntegerSchema, Int8Schema, Int16Schema, Int32Schema, Uint8Schema, Uint16Schema, Uint32Schema, BigIntegerSchema, BigNaturalSchema, StoredSentenceDataSchema,
+  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema, FieldUnknownSchema, OutputSentenceSchema, TalkerSchema, IntegerSchema, Int8Schema, Int16Schema, Int32Schema, Uint8Schema, Uint16Schema, Uint32Schema, BigIntegerSchema, BigNaturalSchema, StoredSentenceDataSchema
 } from './schemas'
 // COMMONS
 export type Integer = z.infer<typeof IntegerSchema>
@@ -49,15 +49,15 @@ export type NMEASentence = z.infer<typeof NMEASentenceSchema>
 export type OutputSentence = z.infer<typeof OutputSentenceSchema>
 export type Sentence = null | OutputSentence
 // PARSER
-export type ProtocolOutput = {
-  protocol: string,
-  version?: string,
+export interface ProtocolOutput {
+  protocol: string
+  version?: string
   sentences: string[]
 }
 export interface NMEAParser {
-  parseData(data: string): NMEASentence[],
-  addProtocols(protocols: ProtocolsInput): void,
-  getProtocols(): ProtocolOutput[],
-  getSentence(id: string): Sentence,
-  getFakeSentenceByID(id: string): NMEALike | null
+  parseData: (data: string) => NMEASentence[]
+  addProtocols: (protocols: ProtocolsInput) => void
+  getProtocols: () => ProtocolOutput[]
+  getSentence: (id: string) => Sentence
+  getFakeSentenceByID: (id: string) => NMEALike | null
 }
