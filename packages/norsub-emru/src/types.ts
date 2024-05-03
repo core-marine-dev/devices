@@ -47,6 +47,6 @@ export type NorsubField = FieldParsed & { metadata?: object }
 export type NMEAWithoutFieldsData = Omit<NMEASentence, 'fields' | 'data'>
 
 export type NorsubSentence = NMEAWithoutFieldsData & {
-  fields: NorsubField[],
-  data: NorsubFieldData[],
+  fields: NorsubField[]
+  data: NorsubFieldData[]
 }
