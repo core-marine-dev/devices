@@ -1,6 +1,7 @@
 # Custom
 .idea
 .DS_Store
+packages/**/lib/
 
 # Logs
 logs
