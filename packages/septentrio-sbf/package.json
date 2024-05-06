@@ -22,20 +22,34 @@
     "binary",
     "protocol"
   ],
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "/dist"
   ],
   "scripts": {
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
-    "types": "mkdir node_modules/@types/gpstime && cp src/gpstime.d.ts node_modules/@types/gpstime/index.d.ts",
+    "lint": "ts-standard",
+    "format": "ts-standard --fix",
     "build": "tsc",
-    "start": "ts-node-dev ./src/index.ts"
+    "types": "mkdir node_modules/@types/gpstime && cp src/gpstime.d.ts node_modules/@types/gpstime/index.d.ts",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "crc": "^4.3.2",
     "gpstime": "^1.0.3"
+  },
+  "ts-standard": {
+    "ignore": [
+      "tests",
+      "vitest.config.ts",
+      "examples/*"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
   }
 }
