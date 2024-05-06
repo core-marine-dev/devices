@@ -1,0 +1,148 @@
+<!-- Definition -->
+<script type="text/javascript">
+  RED.nodes.registerType("septentrio-parser", {
+    // Category
+    category: "CoreMarine",
+    // UI
+    color: "#FB9313",
+    icon: "septentrio-icon-white.png",
+    label: function() {
+      const { name, firmware } = this;
+      return (name) ? name : firmware
+    },
+    paletteLabel: 'SBF parser',
+    labelStyle: function() { return (this.name) ? "node_label_italic" : "" },
+    align: 'left', // 'right'
+    // button: {
+    //   // toggle: "buttonState",
+    //   enabled: function() {
+    //     return !this.changed
+    //   },
+    //   visible: function() {
+    //     return this.hasButton
+    //   },
+    //   onclick: function() {}
+    // },
+    // Input - Outputs
+    inputs: 1,
+    outputs: 1,
+    inputLabels: 'SBF data',
+    outputLabels: 'Parsed data',
+    // Logic
+    defaults: {
+      name: { value: "" },
+      firmware: {
+        value: "4.10.1",
+        required: true,
+      },
+      memory: {
+        value: true,
+        required: true
+      }
+    },
+    // credentials: {},
+    oneditprepare: function() {
+      $("#node-input-firmware").typedInput({
+        types: [
+          {
+            value: "4.10.1",
+            options: ["4.10.1"]
+          }
+        ]
+      })
+    },
+    // oneditsave: function() {},
+    // oneditcancel: function() {},
+    // oneditdelete: function() {},
+    // oneditresize: function() {},
+    // onpaletteadd: function() {},
+    // onpaletteremove: function() {},
+  })
+</script>
+
+<!-- Edit dialog -->
+<script type="text/html" data-template-name="septentrio-parser">
+  <!-- Name -->
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="4.10.1">
+  </div>
+  <!-- Firmware -->
+  <div class="form-row">
+    <label for="node-input-firmware"><i class="fa fa-tag"></i> Firmware</label>
+    <input type="text" id="node-input-firmware" placeholder="4.10.1">
+  </div>
+  <!-- Memory -->
+  <div class="form-row">
+    <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
+    <input type="checkbox" id="node-input-memory">
+  </div>
+</script>
+
+<!-- Help text -->
+<script type="text/markdown" data-help-name="septentrio-parser">
+Parser for Septentrio SBF protocol
+
+### Input
+
+: command (addData | getData | setFirmware | getFirmware | setMemory | getMemory) : It should be one of these string to tell the parser what action to do
+
+: payload (buffer | string | boolean) : It depends on what `command` you put, it has a type or another
+
+### Output
+
+: payload (object[] | string | boolean) : It depends of the `command` input.
+
+: *firmware* (string) : If `command` = `getData` it gives the firmware too.
+
+### Details
+
+Septentrio parser translate SBF binary data into a JavaScript objects (one for each
+Septentrio frame).
+
+It has an API based on getters/setters where get/set three things:
+
+1. Septentrio data
+2. Parser Firmware
+3. Parser Memory
+
+> Setters don't produce any output.
+
+If you set something, input should have:
+
+- `command` -> Tell what do you want to set
+- `payload` -> Value
+
+If you get something, input shoul have:
+
+- `command` -> Tell what do you want to set
+
+#### Septentrio data
+
+| Input                                             | Output                                          |
+| :-----------------------------------------------: | :---------------------------------------------: |
+| { `command`: `"addData"`, `payload`: **buffer** } |                                                 |
+| { `command`: `"getData"` }                        | { payload: **object[]**, firmware: **string** } |
+
+#### Parser Firmware
+
+Parser could have different firmware versions to enable.
+
+| Input                                                  | Output                                          |
+| :----------------------------------------------------: | :---------------------------------------------: |
+| { `command`: `"setFirmware"`, `payload`: **string** }  |                                                 |
+| { `command`: `"getFirmware"` }                         | { payload: **string** }                         |
+
+#### Parser Memory
+
+It is enabled by default:
+
+- memory enabled: Every time you inject data, it's attached to the internal data.
+- memory disabled: Every time you inject data, it clears internal data and add new one.
+
+| Input                                                | Output                                          |
+| :--------------------------------------------------: | :---------------------------------------------: |
+| { `command`: `"setMemory"`, `payload`: **boolean** } |                                                 |
+| { `command`: `"getMemory"` }                         | { payload: **boolean** }                        |
+
+</script>

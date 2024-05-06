@@ -1,7 +1,9 @@
 # Custom
+.vscode
 .idea
 .DS_Store
-packages/**/lib/
+docs
+lib
 
 # Logs
 logs

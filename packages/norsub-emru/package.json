@@ -1,0 +1,54 @@
+{
+  "name": "@coremarine/norsub-emru",
+  "version": "1.0.2",
+  "description": "Library to work with eMRU devices of NorSub company",
+  "author": "Core Marine",
+  "license": "MIT",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/norsub-emru#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "mru",
+    "imu",
+    "norsub",
+    "norwegian subsea",
+    "iot",
+    "nmea",
+    "nmea-0183"
+  ],
+  "engines": {
+    "node": ">= 18"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "/lib"
+  ],
+  "scripts": {
+    "lint": "ts-standard",
+    "format": "ts-standard --fix",
+    "build": "tsc && cp -r ./src/norsub.yaml ./lib",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@coremarine/nmea-parser": "^1.6.3",
+    "zod": "^3.22.4"
+  },
+  "ts-standard": {
+    "ignore": [
+      "tests",
+      "vitest.config.ts"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  }
+}

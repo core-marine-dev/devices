@@ -1,7 +1,8 @@
 # Custom
+.vscode
 .idea
 .DS_Store
-packages/**/lib/
+.nvmrc
 
 # Logs
 logs
