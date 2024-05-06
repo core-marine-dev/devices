@@ -3,7 +3,7 @@ import Path from 'node:path'
 import zodToJsonSchema from 'zod-to-json-schema'
 import yaml from 'js-yaml'
 import { JSONSchemaInputSchema, ProtocolsFileSchema, StringSchema } from './schemas'
-import { JSONSchemaInput, Protocol, ProtocolOutput, ProtocolsFile, StoredSentence, StoredSentences } from './types'
+import type { JSONSchemaInput, Protocol, ProtocolOutput, ProtocolsFile, StoredSentence, StoredSentences } from './types'
 
 export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
 

@@ -1,5 +1,5 @@
 import { CODE, TALKERS, TALKERS_SPECIAL } from './constants'
-import { Talker } from './types'
+import type { Talker } from './types'
 
 export const numberToHexString = (num: number): string => num.toString(16)
 
