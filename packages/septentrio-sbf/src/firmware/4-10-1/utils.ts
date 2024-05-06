@@ -1,7 +1,7 @@
-import { GNSSSignal } from "./types";
+import type { GNSSSignal } from './types'
 /*
   GNSS signals have been used in the PVT computations.
-  If a bit i is set, the signal type having index i has been used. 
+  If a bit i is set, the signal type having index i has been used.
   The signal numbers are listed below. Bit 0 (GPS-C/A) is the LSB of SignalInfo.
 
   Signal Number | Signal Type | Constellation | Carrier frequency (MHz)   | RINEX V3.04 obs code
@@ -44,12 +44,12 @@ import { GNSSSignal } from "./types";
   34            | B2b         | BeiDou        | 1207.14                   | 7D
   35            | Reserved    |               |                           |
 
-  Field       | Type  | Do-Not-Use | RINEX satellitle code | Description 
+  Field       | Type  | Do-Not-Use | RINEX satellitle code | Description
   SVID or PRN | uint8 |          0 |                       | Satellite ID: The following ranges are deﬁned:
                                    | Gnn (nn = SVID)       | 1-37: PRN number of a GPS satellite
                                    | Rnn (nn = SVID-37)    | 38-61: Slot number of a GLONASS satellite with an offset of 37 (R01 to R24)
                                    |                       | 62: GLONASS satellite of which the slot number NA is not known
-                                   | Rnn (nn = SVID-38)    | 63-68: Slot number of a GLONASS satellite with an offset of 38 (R25 to R30) 
+                                   | Rnn (nn = SVID-38)    | 63-68: Slot number of a GLONASS satellite with an offset of 38 (R25 to R30)
                                    | Enn (nn = SVID-70)    | 71-106: PRN number of a GALILEO satellite with an offset of 70
                                    |                       | 107-119: L-Band (MSS) satellite. Corresponding NA satellite name can be found in the LBandBeams block.
                                    | Snn (nn = SVID-100)   | 120-140: PRN number of an SBAS satellite (S120 to S140)
@@ -59,24 +59,24 @@ import { GNSSSignal } from "./types";
                                    | Snn (nn = SVID-157)   | 198-215: PRN number of an SBAS satellite with an offset of 57 (S141 to S158)
                                    | Inn (nn = SVID-208)   | 216-222: PRN number of a NavIC/IRNSS satellite with an offset of 208 (I08 to I14)
                                    | Cnn (nn = SVID-182)   | 223-245: PRN number of a BeiDou satellite with an offset of 182 (C41 to C63)
-   FreqNr     | uint8 |          0 |                       | GLONASS frequency number, with an offset of 8. It ranges from 1 (corresponding to an actual frequency number of -7) 
+   FreqNr     | uint8 |          0 |                       | GLONASS frequency number, with an offset of 8. It ranges from 1 (corresponding to an actual frequency number of -7)
                                                            | to 21 (corresponding to an actual frequency number of 13).
-                                                           | 
+                                                           |
                                                            | For non-GLONASS satellites, FreqNr is reserved and must be ignored by the decoding software.
 */
 export const GNSSSignals: Record<number, GNSSSignal> = {
   0: { signal: 'L1CA', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode: '1C' },
-  1: { signal: 'L1P', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode:'1W' },
+  1: { signal: 'L1P', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode: '1W' },
   2: { signal: 'L2P', constellation: 'GPS', carrierFrequency: 1227.60, rinexCode: '2W' },
   3: { signal: 'L2C', constellation: 'GPS', carrierFrequency: 1227.60, rinexCode: '2L' },
   4: { signal: 'L5', constellation: 'GPS', carrierFrequency: 1176.45, rinexCode: '5Q' },
   5: { signal: 'L1C', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode: '1L' },
   6: { signal: 'L1CA', constellation: 'QZSS', carrierFrequency: 1575.42, rinexCode: '1C' },
   7: { signal: 'L2C', constellation: 'QZSS', carrierFrequency: 1227.60, rinexCode: '2L' },
-  8: { signal: 'L1CA',  constellation: 'GLONASS', carrierFrequency: 1602.00 /*+ (FreqNr - 8) * 9 / 16*/,  rinexCode: '1C' },
-  9: { signal: 'L1P', constellation: 'GLONASS', carrierFrequency: 1602.00 /*+ (FreqNr - 8) * 9 / 16*/, rinexCode: '1P' },
-  10: { signal: 'L2P', constellation: 'GLONASS', carrierFrequency: 1246.00 /*+ (FreqNr - 8) * 7 /16*/, rinexCode: '2P' },
-  11: { signal: 'L2CA', constellation: 'GLONASS', carrierFrequency: 1246.00 /*+ (FreqNr - 8) * 7 / 16*/, rinexCode: '2C' },
+  8: { signal: 'L1CA', constellation: 'GLONASS', carrierFrequency: 1602.00 /* + (FreqNr - 8) * 9 / 16 */, rinexCode: '1C' },
+  9: { signal: 'L1P', constellation: 'GLONASS', carrierFrequency: 1602.00 /* + (FreqNr - 8) * 9 / 16 */, rinexCode: '1P' },
+  10: { signal: 'L2P', constellation: 'GLONASS', carrierFrequency: 1246.00 /* + (FreqNr - 8) * 7 /16 */, rinexCode: '2P' },
+  11: { signal: 'L2CA', constellation: 'GLONASS', carrierFrequency: 1246.00 /* + (FreqNr - 8) * 7 / 16 */, rinexCode: '2C' },
   12: { signal: 'L3', constellation: 'GLONASS', carrierFrequency: 1202.025, rinexCode: '3Q' },
   13: { signal: 'B1C', constellation: 'BeiDou', carrierFrequency: 1575.42, rinexCode: '1P' },
   14: { signal: 'B2a', constellation: 'BeiDou', carrierFrequency: 1176.45, rinexCode: '5P' },
@@ -100,7 +100,7 @@ export const GNSSSignals: Record<number, GNSSSignal> = {
   32: { signal: 'L1C', constellation: 'QZSS', carrierFrequency: 1575.42, rinexCode: '1L' },
   33: { signal: 'L1S', constellation: 'QZSS', carrierFrequency: 1575.42, rinexCode: '1Z' },
   34: { signal: 'B2b', constellation: 'BeiDou', carrierFrequency: 1207.14, rinexCode: '7D' },
-  35: { signal: 'Reserved' },
+  35: { signal: 'Reserved' }
 }
 
-export const getGNSSSignal = (num: number): GNSSSignal | null => GNSSSignals[num] || null
+export const getGNSSSignal = (num: number): GNSSSignal | null => GNSSSignals[num] ?? null

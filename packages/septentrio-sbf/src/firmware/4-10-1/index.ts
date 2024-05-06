@@ -1,8 +1,8 @@
-import { UNKNOWN_SBF_BODY_DATA } from "../../shared/constants"
-import { SBFBodyData, SBFBodyDataMap, SBFBodyDataParser } from "../../shared/types"
-import { blocks as GNSSAttitude } from "./GNSSAttitude"
-import { blocks as GNSSPositionVelocityTime } from "./GNSSPositionVelocityTime"
-import { blocks as ReceiverTime } from "./ReceiverTime"
+import { UNKNOWN_SBF_BODY_DATA } from '../../shared/constants'
+import type { SBFBodyData, SBFBodyDataMap, SBFBodyDataParser } from '../../shared/types'
+import { blocks as GNSSAttitude } from './GNSSAttitude'
+import { blocks as GNSSPositionVelocityTime } from './GNSSPositionVelocityTime'
+import { blocks as ReceiverTime } from './ReceiverTime'
 // Blocks
 // Measurement
 // Navigation
@@ -23,11 +23,11 @@ import { blocks as ReceiverTime } from "./ReceiverTime"
 const blocks: SBFBodyDataMap = new Map([
   ...GNSSPositionVelocityTime,
   ...GNSSAttitude,
-  ...ReceiverTime,
+  ...ReceiverTime
 ])
 
 export const getSBFFrame: SBFBodyDataParser = (blockNumber: number, blockRevision: number, data: Buffer): SBFBodyData => {
   const parser = blocks.get(blockNumber)
-  if (parser) return parser(blockRevision, data)
+  if (parser != null) return parser(blockRevision, data)
   return UNKNOWN_SBF_BODY_DATA
 }

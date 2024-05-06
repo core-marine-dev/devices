@@ -1,4 +1,4 @@
-import { SBFBodyData } from "./types"
+import type { SBFBodyData } from './types'
 
 export const SYNC_FLAG_ASCII = '$@'
 export const SYNC_FLAG_DECIMAL = [36, 64]
@@ -51,5 +51,5 @@ export const BYTES_LENGTH = {
   UINT64: 8,
   // FLOAT
   FLOAT: 4,
-  DOUBLE: 8,
+  DOUBLE: 8
 }

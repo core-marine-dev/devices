@@ -1,5 +1,5 @@
-import { getFirmwares } from "./firmware"
-import { Parser } from "./parser"
+import { getFirmwares } from './firmware'
+import { Parser } from './parser'
 
 export {
   getFirmwares as availableFirmwares,

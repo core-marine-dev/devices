@@ -1,6 +1,6 @@
-export type GNSSSignal = {
-  signal: string,
-  constellation?: string,
-  carrierFrequency?: number,
+export interface GNSSSignal {
+  signal: string
+  constellation?: string
+  carrierFrequency?: number
   rinexCode?: string
 }

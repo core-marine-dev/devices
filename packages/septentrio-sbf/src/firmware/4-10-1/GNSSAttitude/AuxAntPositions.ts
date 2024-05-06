@@ -1,7 +1,7 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { Padding, SBFBodyData } from "../../../shared/types"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { Padding, SBFBodyData } from '../../../shared/types'
 /* AuxAntPositions -> Number: 5942 => "OnChange" interval: default PVT output rate
-  The AuxAntPositions block contains the relative position and velocity of the 
+  The AuxAntPositions block contains the relative position and velocity of the
   different antennas in a multi-antenna receiver.
   The coordinates are expressed in the local-level ENU reference frame.
 
@@ -14,7 +14,7 @@ import { Padding, SBFBodyData } from "../../../shared/types"
   SBLength              uint8                     Length of one sub-block in bytes
   AuxAntPositionSub[N]                            A succession of N AuxAntPositionSub sub-blocks
   Padding                uint                     Padding bytes
-  
+
   AuxAntPositionSub -----------------------------------------------------------
   Block fields           Type  Units  Do-Not-Use  Description
   NrSV                  uint8                255  Total number of satellites tracked by the antenna identified by the AuxAntID field and used in the attitude computation
@@ -63,7 +63,6 @@ const DELTA_NORTH_LENGTH = BYTES_LENGTH.DOUBLE
 const DELTA_UP_INDEX = DELTA_NORTH_INDEX + DELTA_NORTH_LENGTH
 const DELTA_UP_LENGTH = BYTES_LENGTH.DOUBLE
 
-
 const EAST_VEL_INDEX = DELTA_UP_INDEX + DELTA_UP_LENGTH
 const EAST_VEL_LENGTH = BYTES_LENGTH.DOUBLE
 const NORTH_VEL_INDEX = EAST_VEL_INDEX + EAST_VEL_LENGTH
@@ -87,36 +86,36 @@ export const enum Ambiguity {
   UNKNOWN = 'UNKNOWN'
 }
 
-export type AuxAntPositionSub = {
-  nrSV: number | null,
-  error: number,
-  ambiguityType: number | null,
-  auxAntID: number,
-  deltaEast: number | null,
-  deltaNorth: number | null,
-  deltaUp: number | null,
-  eastVel: number | null,
-  northVel: number | null,
-  upVel: number | null,
-  padding: Padding,
+export interface AuxAntPositionSub {
+  nrSV: number | null
+  error: number
+  ambiguityType: number | null
+  auxAntID: number
+  deltaEast: number | null
+  deltaNorth: number | null
+  deltaUp: number | null
+  eastVel: number | null
+  northVel: number | null
+  upVel: number | null
+  padding: Padding
   metadata: {
-    error: Error,
+    error: Error
     ambiguityType: Ambiguity
   }
 }
 
-export type AuxAntPositions = {
-  n: number,
-  sbLength: number,
-  auxAntPositionSub: AuxAntPositionSub[],
+export interface AuxAntPositions {
+  n: number
+  sbLength: number
+  auxAntPositionSub: AuxAntPositionSub[]
   padding: number | null
 }
 
 const DO_NOT_USE_UINT = 255
 const DO_NOT_USE_DOUBLE = -2.0 * Math.pow(10, 10)
 
-const getUInt = (uint: number) => (uint !== DO_NOT_USE_UINT) ? uint : null
-const getDouble = (double: number) => (double !== DO_NOT_USE_DOUBLE) ? double : null
+const getUInt = (uint: number): number | null => (uint !== DO_NOT_USE_UINT) ? uint : null
+const getDouble = (double: number): number | null => (double !== DO_NOT_USE_DOUBLE) ? double : null
 
 const getError = (error: number): Error => {
   switch (error) {
@@ -131,7 +130,7 @@ const getError = (error: number): Error => {
   return Error.UNKNOWN
 }
 
-const getAmbiguityType = (ambiguity: number): Ambiguity => {
+const getAmbiguityType = (ambiguity: number | null): Ambiguity => {
   switch (ambiguity) {
     case 0:
       return Ambiguity.FIXED
@@ -143,10 +142,12 @@ const getAmbiguityType = (ambiguity: number): Ambiguity => {
 
 const getAuxAntPositionSub = (data: Buffer): AuxAntPositionSub => {
   const PADDING_SUB_LENGTH = data.subarray(PADDING_SUB_INDEX).length
+  const error = data.readUIntLE(ERROR_INDEX, ERROR_LENGTH)
+  const ambiguityType = getUInt(data.readUIntLE(AMBIGUITY_TYPE_INDEX, AMBIGUITY_TYPE_LENGTH))
   const body: AuxAntPositionSub = {
     nrSV: getUInt(data.readUIntLE(NRSV_INDEX, NRSV_LENGTH)),
-    error: data.readUIntLE(ERROR_INDEX, ERROR_LENGTH),
-    ambiguityType: getUInt(data.readUIntLE(AMBIGUITY_TYPE_INDEX, AMBIGUITY_TYPE_LENGTH)),
+    error,
+    ambiguityType,
     auxAntID: data.readUIntLE(AUX_ANT_ID_INDEX, AUX_ANT_ID_LENGTH),
     deltaEast: getDouble(data.readDoubleLE(DELTA_EAST_INDEX)),
     deltaNorth: getDouble(data.readDoubleLE(DELTA_NORTH_INDEX)),
@@ -154,12 +155,15 @@ const getAuxAntPositionSub = (data: Buffer): AuxAntPositionSub => {
     eastVel: getDouble(data.readDoubleLE(EAST_VEL_INDEX)),
     northVel: getDouble(data.readDoubleLE(NORTH_VEL_INDEX)),
     upVel: getDouble(data.readDoubleLE(UP_VEL_INDEX)),
-    padding: (PADDING_SUB_LENGTH > 0) ? data.readUIntLE(PADDING_SUB_INDEX, PADDING_SUB_LENGTH): null,
-    metadata: {}
-  } as AuxAntPositionSub
+    padding: (PADDING_SUB_LENGTH > 0) ? data.readUIntLE(PADDING_SUB_INDEX, PADDING_SUB_LENGTH) : null,
+    metadata: {
+      error: getError(error),
+      ambiguityType: getAmbiguityType(ambiguityType)
+    }
+  }
   body.metadata = {
     error: getError(body.error),
-    ambiguityType: getAmbiguityType(body.ambiguityType as number)
+    ambiguityType: getAmbiguityType(body.ambiguityType)
   }
   if (body.error !== 0) {
     body.deltaEast = null
@@ -173,7 +177,7 @@ const getAuxAntPositionSub = (data: Buffer): AuxAntPositionSub => {
 }
 
 const getSubBodies = (antennas: number, length: number, data: Buffer): AuxAntPositionSub[] => {
-  let subBodies = [] as AuxAntPositionSub[]
+  const subBodies = [] as AuxAntPositionSub[]
   for (let index = 0; index < antennas; index++) {
     const start = (index * length)
     const end = start + length
@@ -184,16 +188,15 @@ const getSubBodies = (antennas: number, length: number, data: Buffer): AuxAntPos
   return subBodies
 }
 
-
 interface Response extends SBFBodyData {
-  body: AuxAntPositions
+  body: AuxAntPositions | { n: number }
 }
 
 export const auxAntPositions = (blockRevision: number, data: Buffer): Response => {
   const name = 'AuxAntPositions'
   // Check Antennas
   const antennas = data.readUIntLE(N_INDEX, N_LENGTH)
-  if (antennas < 1) return { name, body: { n: antennas } } as Response
+  if (antennas < 1) return { name, body: { n: antennas } }
   // Sub bodies
   const sbLength = data.readUIntLE(SBLENGTH_INDEX, SBLENGTH_LENGTH)
   const subBodiesStart = 2

@@ -1,4 +1,4 @@
-import { SBFBodyData } from "../../../shared/types"
+import type { SBFBodyData } from '../../../shared/types'
 /* PVTSupportA -> Number: 4079 => "OnChange" interval: default PVT output rate
   This block contains various internal parameters that can be used for
   maintenance and support.

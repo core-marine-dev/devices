@@ -1,8 +1,8 @@
-import { SBFBodyDataMap } from "../../../shared/types"
-import { attCovEuler } from "./AttCovEuler"
-import { attEuler } from "./AttEuler"
-import { auxAntPositions } from "./AuxAntPositions"
-import { endOfAtt } from "./EndOfAtt"
+import type { SBFBodyDataMap } from '../../../shared/types'
+import { attCovEuler } from './AttCovEuler'
+import { attEuler } from './AttEuler'
+import { auxAntPositions } from './AuxAntPositions'
+import { endOfAtt } from './EndOfAtt'
 
 const blocks: SBFBodyDataMap = new Map()
 // 5938 - AttEuler
