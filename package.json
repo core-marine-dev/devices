@@ -43,7 +43,7 @@
     "nmea-parser:format": "npm run format --workspace=@coremarine/nmea-parser",
     "nmea-parser:build": "npm run build --workspace=@coremarine/nmea-parser",
     "nmea-parser:test": "npm run test --workspace=@coremarine/nmea-parser",
-    "nmea-parser:coverage": "npm run test:coverage --workspace=@coremarine/nmea-parser",
+    "nmea-parser:test:coverage": "npm run test:coverage --workspace=@coremarine/nmea-parser",
     "nmea-parser-nodered:lint": "npm run lint --workspace=@coremarine/nr-nmea-parser",
     "nmea-parser-nodered:format": "npm run format --workspace=@coremarine/nr-nmea-parser",
     "nmea-parser-nodered:build": "npm run build --workspace=@coremarine/nr-nmea-parser",
@@ -87,11 +87,9 @@
     "mocha": "^10.4.0",
     "node-red": "^3.1.9",
     "node-red-node-test-helper": "^0.3.3",
+    "ts-standard": "^12.0.2",
     "typescript": "^5.4.5",
     "vitest": "^1.5.3"
-  },
-  "dependencies": {
-    "ts-standard": "^12.0.2"
   },
   "ts-standard": {
     "ignore": [
