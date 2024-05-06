@@ -1,0 +1,56 @@
+{
+  "name": "@coremarine/nmea-parser",
+  "version": "1.6.4",
+  "description": "Library to parse NMEA 0183 sentences",
+  "author": "CoreMarine",
+  "license": "ISC",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/nmea-parser#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "nmea",
+    "nmea0183",
+    "0183",
+    "gps",
+    "gnss"
+  ],
+  "engines": {
+    "node": ">= 18"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "lint": "ts-standard",
+    "format": "ts-standard --fix",
+    "build": "tsc && cp -r ./src/protocols ./lib",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "zod": "^3.22.4",
+    "zod-to-json-schema": "^3.22.3"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9"
+  },
+  "ts-standard": {
+    "ignore": [
+      "tests",
+      "vitest.config.ts"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  }
+}

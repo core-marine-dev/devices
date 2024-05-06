@@ -1,0 +1,46 @@
+{
+  "name": "@coremarine/nr-norsub-emru",
+  "version": "1.0.0",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "description": "Node-Red component to work with NorSub eMRU devices",
+  "homepage": "https://github.com/core-marine-dev/packages/norsub-emru-nodered#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "node-red",
+    "mru",
+    "imu",
+    "norsub",
+    "nmea",
+    "nmea0183",
+    "0183",
+    "parser"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "nmea-parser": "src/parser.js"
+    }
+  },
+  "main": "index.js",
+  "files": [
+    "src",
+    "examples"
+  ],
+  "scripts": {
+    "test": "mocha \"tests/**/*.test.js\""
+  },
+  "dependencies": {
+    "@coremarine/norsub-emru": "^1.0.1",
+    "zod": "^3.22.4"
+  }
+}

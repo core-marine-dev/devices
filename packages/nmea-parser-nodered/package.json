@@ -1,0 +1,46 @@
+{
+  "name": "@coremarine/nr-nmea-parser",
+  "version": "1.1.1",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "description": "Node-Red component to read NMEA 0183 sentences",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/nmea-parser-nodered#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "node-red",
+    "nmea",
+    "nmea0183",
+    "0183",
+    "gnss",
+    "gps",
+    "parser",
+    "protocol"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "nmea-parser": "src/parser.js"
+    }
+  },
+  "main": "index.js",
+  "files": [
+    "src",
+    "examples"
+  ],
+  "scripts": {
+    "test": "mocha \"tests/**/*.test.js\"",
+    "test:vitest": "vitest"
+  },
+  "dependencies": {
+    "@coremarine/nmea-parser": "^1.5.1"
+  }
+}

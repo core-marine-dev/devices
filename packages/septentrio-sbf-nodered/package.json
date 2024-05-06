@@ -1,0 +1,44 @@
+{
+  "name": "@coremarine/nr-sbf-parser",
+  "version": "1.0.2",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "description": "A group of Node-Red components to work with Septentrio SBF protocol",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/septentrio-sbf-nodered#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "node-red",
+    "sbf",
+    "septentrio",
+    "gnss",
+    "parser",
+    "binary",
+    "protocol"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "node-red": {
+    "version": ">=2.0.0",
+    "nodes": {
+      "septentrio-parser": "src/parser.js"
+    }
+  },
+  "main": "index.js",
+  "files": [
+    "src",
+    "examples"
+  ],
+  "scripts": {
+    "test": "mocha \"tests/**/*.test.js\""
+  },
+  "dependencies": {
+    "@coremarine/sbf-parser": "^1.0.0"
+  }
+}

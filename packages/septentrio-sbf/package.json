@@ -1,0 +1,55 @@
+{
+  "name": "@coremarine/sbf-parser",
+  "version": "1.0.2",
+  "author": "CoreMarine",
+  "description": "It is a library to parse SBF data. SBF is a private binary protocol of Septentrio trademark which uses in its GNSS devices",
+  "license": "MIT",
+  "homepage": "https://github.com/core-marine-dev/devices/packages/septentrio-sbf#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "coremarine",
+    "core-marine",
+    "septentrio",
+    "sbf",
+    "gnss",
+    "gps",
+    "binary",
+    "protocol"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "lint": "ts-standard",
+    "format": "ts-standard --fix",
+    "build": "tsc",
+    "types": "mkdir node_modules/@types/gpstime && cp src/gpstime.d.ts node_modules/@types/gpstime/index.d.ts",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "crc": "^4.3.2",
+    "gpstime": "^1.0.3"
+  },
+  "ts-standard": {
+    "ignore": [
+      "tests",
+      "vitest.config.ts",
+      "examples/*"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  }
+}

@@ -1,7 +1,16 @@
-# Custom
+# IDEs
+.vscode
 .idea
+
+# OSX
 .DS_Store
-packages/**/lib/
+
+# Node-Red
+.config.*.json
+.config.*.json.backup
+.flows*
+flows_cred.json
+tests/nodered/data/package.json
 
 # Logs
 logs

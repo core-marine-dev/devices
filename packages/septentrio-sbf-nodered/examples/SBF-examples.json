@@ -1,0 +1,919 @@
+[
+    {
+        "id": "f36c24c07453273d",
+        "type": "tab",
+        "label": "Examples of SBF",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "7a95d26d8636f7eb",
+        "type": "group",
+        "z": "f36c24c07453273d",
+        "name": "SBF - Regular example",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "19d2beac28046f13",
+            "53abd80f26792b4b",
+            "ccda5bb136054260",
+            "41db0d0750f3f612"
+        ],
+        "x": 34,
+        "y": 19,
+        "w": 492,
+        "h": 122
+    },
+    {
+        "id": "e00c904d04b34ea6",
+        "type": "group",
+        "z": "f36c24c07453273d",
+        "name": "SBF - Memory OFF",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "af902cad35290e2b",
+            "599342fb0d1ff910",
+            "5e291c1aa0e5f0f4",
+            "998679cdd22581c7",
+            "76dcdf2dc1e34841"
+        ],
+        "x": 34,
+        "y": 339,
+        "w": 652,
+        "h": 162
+    },
+    {
+        "id": "2d221b3fe54345df",
+        "type": "group",
+        "z": "f36c24c07453273d",
+        "name": "SBF - Memory ON",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "b459be092fba9c74",
+            "7a95891039f9cc89",
+            "7384a463cac50619",
+            "044519f6cecfe34a",
+            "4ffe6f259b1af496"
+        ],
+        "x": 34,
+        "y": 159,
+        "w": 652,
+        "h": 162,
+        "info": "If you have memory and add incomplete data, it would be stored inside parser.\nIf you add the missing data and then get data, you would have all the info."
+    },
+    {
+        "id": "e02a58cb1870a908",
+        "type": "group",
+        "z": "f36c24c07453273d",
+        "name": "SBF - Toggle Memory",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "90beb6a7e5b807d9",
+            "b436c67d96d24741",
+            "c5c9c375e9096b62",
+            "10b02f71df2eadf9",
+            "c767531cace053a3",
+            "fcdf75fd8346a3fa",
+            "df93fe1cede0a1f9",
+            "c2f64fd222a3d33d"
+        ],
+        "x": 714,
+        "y": 159,
+        "w": 712,
+        "h": 342,
+        "info": "If you have memory and add incomplete data, it would be stored inside parser.\nIf you add the missing data and then get data, you would have all the info."
+    },
+    {
+        "id": "bab99d1c0e6d6eb9",
+        "type": "group",
+        "z": "f36c24c07453273d",
+        "name": "SBF - Changing Firmware",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "06cf4d6e88747501",
+            "24e7654b56032665",
+            "756427128ccc43b3",
+            "31dc676ee8aefc4e",
+            "f4d3cc162e3b809c",
+            "fc5cc1bc38be30cd",
+            "182d3a8dfda0ef74",
+            "b059a88c8d5c1364",
+            "480a6ce6ad8c1e94",
+            "9010554dedebfc2d"
+        ],
+        "x": 34,
+        "y": 519,
+        "w": 812,
+        "h": 302,
+        "info": "If you have memory and add incomplete data, it would be stored inside parser.\nIf you add the missing data and then get data, you would have all the info."
+    },
+    {
+        "id": "19d2beac28046f13",
+        "type": "septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "7a95d26d8636f7eb",
+        "name": "SBF",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 290,
+        "y": 80,
+        "wires": [
+            [
+                "ccda5bb136054260"
+            ]
+        ]
+    },
+    {
+        "id": "53abd80f26792b4b",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "7a95d26d8636f7eb",
+        "name": "getData",
+        "props": [
+            {
+                "p": "command",
+                "v": "getData",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 100,
+        "wires": [
+            [
+                "19d2beac28046f13"
+            ]
+        ]
+    },
+    {
+        "id": "ccda5bb136054260",
+        "type": "debug",
+        "z": "f36c24c07453273d",
+        "g": "7a95d26d8636f7eb",
+        "name": "SBF",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 430,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "41db0d0750f3f612",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "7a95d26d8636f7eb",
+        "name": "addData",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[36,64,221,226,167,79,96,0,112,136,215,27,219,8,1,0,25,100,17,79,149,146,230,63,244,255,188,118,114,163,176,191,198,152,182,50,84,16,133,64,236,186,78,66,229,135,156,187,164,172,80,56,99,167,142,187,249,2,149,208,184,78,200,18,157,251,197,191,7,245,17,190,0,19,6,0,246,3,100,0,9,9,0,0,1,1,0,0,75,0,44,3,174,7,96,0]",
+        "payloadType": "bin",
+        "x": 140,
+        "y": 60,
+        "wires": [
+            [
+                "19d2beac28046f13"
+            ]
+        ]
+    },
+    {
+        "id": "af902cad35290e2b",
+        "type": "septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "e00c904d04b34ea6",
+        "name": "SBF Memory OFF",
+        "firmware": "4.10.1",
+        "memory": false,
+        "x": 330,
+        "y": 420,
+        "wires": [
+            [
+                "5e291c1aa0e5f0f4"
+            ]
+        ]
+    },
+    {
+        "id": "599342fb0d1ff910",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e00c904d04b34ea6",
+        "name": "getData",
+        "props": [
+            {
+                "p": "command",
+                "v": "getData",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 460,
+        "wires": [
+            [
+                "af902cad35290e2b"
+            ]
+        ]
+    },
+    {
+        "id": "5e291c1aa0e5f0f4",
+        "type": "debug",
+        "z": "f36c24c07453273d",
+        "g": "e00c904d04b34ea6",
+        "name": "SBF Memory OFF",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "998679cdd22581c7",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e00c904d04b34ea6",
+        "name": "addData1",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[36,64,221,226,167,79,96,0,112,136,215,27,219,8,1,0,25,100,17,79,149,146,230,63,244,255,188,118,114,163,176,191,198,152,182,50,84,16,133,64,236,186,78,66,229,135,156,187,164,172,80,56,99,167,142,187,249,2,149,208,184,78,200,18,157,251,197,191,7,245,17,190,0,19,6,0,246,3]",
+        "payloadType": "bin",
+        "x": 140,
+        "y": 380,
+        "wires": [
+            [
+                "af902cad35290e2b"
+            ]
+        ]
+    },
+    {
+        "id": "76dcdf2dc1e34841",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e00c904d04b34ea6",
+        "name": "addData2",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[100,0,9,9,0,0,1,1,0,0,75,0,44,3,174,7,96,0]",
+        "payloadType": "bin",
+        "x": 140,
+        "y": 420,
+        "wires": [
+            [
+                "af902cad35290e2b"
+            ]
+        ]
+    },
+    {
+        "id": "b459be092fba9c74",
+        "type": "septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "2d221b3fe54345df",
+        "name": "SBF Memory ON",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "7384a463cac50619"
+            ]
+        ]
+    },
+    {
+        "id": "7a95891039f9cc89",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "2d221b3fe54345df",
+        "name": "getData",
+        "props": [
+            {
+                "p": "command",
+                "v": "getData",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 280,
+        "wires": [
+            [
+                "b459be092fba9c74"
+            ]
+        ]
+    },
+    {
+        "id": "7384a463cac50619",
+        "type": "debug",
+        "z": "f36c24c07453273d",
+        "g": "2d221b3fe54345df",
+        "name": "SBF Memory ON",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "044519f6cecfe34a",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "2d221b3fe54345df",
+        "name": "addData1",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[36,64,221,226,167,79,96,0,112,136,215,27,219,8,1,0,25,100,17,79,149,146,230,63,244,255,188,118,114,163,176,191,198,152,182,50,84,16,133,64,236,186,78,66,229,135,156,187,164,172,80,56,99,167,142,187,249,2,149,208,184,78,200,18,157,251,197,191,7,245,17,190,0,19,6,0,246,3]",
+        "payloadType": "bin",
+        "x": 140,
+        "y": 200,
+        "wires": [
+            [
+                "b459be092fba9c74"
+            ]
+        ]
+    },
+    {
+        "id": "4ffe6f259b1af496",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "2d221b3fe54345df",
+        "name": "addData2",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[100,0,9,9,0,0,1,1,0,0,75,0,44,3,174,7,96,0]",
+        "payloadType": "bin",
+        "x": 140,
+        "y": 240,
+        "wires": [
+            [
+                "b459be092fba9c74"
+            ]
+        ]
+    },
+    {
+        "id": "90beb6a7e5b807d9",
+        "type": "septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "Toggle SBF memory",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 1040,
+        "y": 320,
+        "wires": [
+            [
+                "c5c9c375e9096b62"
+            ]
+        ]
+    },
+    {
+        "id": "b436c67d96d24741",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "getData",
+        "props": [
+            {
+                "p": "command",
+                "v": "getData",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 850,
+        "y": 460,
+        "wires": [
+            [
+                "90beb6a7e5b807d9"
+            ]
+        ]
+    },
+    {
+        "id": "c5c9c375e9096b62",
+        "type": "debug",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "Toggle SBF memory",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1280,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "10b02f71df2eadf9",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "addData1",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[36,64,221,226,167,79,96,0,112,136,215,27,219,8,1,0,25,100,17,79,149,146,230,63,244,255,188,118,114,163,176,191,198,152,182,50,84,16,133,64,236,186,78,66,229,135,156,187,164,172,80,56,99,167,142,187,249,2,149,208,184,78,200,18,157,251,197,191,7,245,17,190,0,19,6,0,246,3]",
+        "payloadType": "bin",
+        "x": 840,
+        "y": 380,
+        "wires": [
+            [
+                "90beb6a7e5b807d9"
+            ]
+        ]
+    },
+    {
+        "id": "c767531cace053a3",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "addData2",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[100,0,9,9,0,0,1,1,0,0,75,0,44,3,174,7,96,0]",
+        "payloadType": "bin",
+        "x": 840,
+        "y": 420,
+        "wires": [
+            [
+                "90beb6a7e5b807d9"
+            ]
+        ]
+    },
+    {
+        "id": "fcdf75fd8346a3fa",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "Memory ON",
+        "props": [
+            {
+                "p": "command",
+                "v": "setMemory",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 830,
+        "y": 200,
+        "wires": [
+            [
+                "90beb6a7e5b807d9"
+            ]
+        ]
+    },
+    {
+        "id": "df93fe1cede0a1f9",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "Memory OFF",
+        "props": [
+            {
+                "p": "command",
+                "v": "setMemory",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 830,
+        "y": 240,
+        "wires": [
+            [
+                "90beb6a7e5b807d9"
+            ]
+        ]
+    },
+    {
+        "id": "c2f64fd222a3d33d",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "Ask Memory",
+        "props": [
+            {
+                "p": "command",
+                "v": "getMemory",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 830,
+        "y": 280,
+        "wires": [
+            [
+                "90beb6a7e5b807d9"
+            ]
+        ]
+    },
+    {
+        "id": "06cf4d6e88747501",
+        "type": "septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "Changing SBF firmware",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 430,
+        "y": 680,
+        "wires": [
+            [
+                "756427128ccc43b3"
+            ]
+        ]
+    },
+    {
+        "id": "24e7654b56032665",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "getData",
+        "props": [
+            {
+                "p": "command",
+                "v": "getData",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 780,
+        "wires": [
+            [
+                "06cf4d6e88747501"
+            ]
+        ]
+    },
+    {
+        "id": "756427128ccc43b3",
+        "type": "debug",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "Changing SBF firmware",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 690,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "31dc676ee8aefc4e",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "addData1",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[36,64,221,226,167,79,96,0,112,136,215,27,219,8,1,0,25,100,17,79,149,146,230,63,244,255,188,118,114,163,176,191,198,152,182,50,84,16,133,64,236,186,78,66,229,135,156,187,164,172,80,56,99,167,142,187,249,2,149,208,184,78,200,18,157,251,197,191,7,245,17,190,0,19,6,0,246,3]",
+        "payloadType": "bin",
+        "x": 220,
+        "y": 700,
+        "wires": [
+            [
+                "06cf4d6e88747501"
+            ]
+        ]
+    },
+    {
+        "id": "f4d3cc162e3b809c",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "addData2",
+        "props": [
+            {
+                "p": "command",
+                "v": "addData",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[100,0,9,9,0,0,1,1,0,0,75,0,44,3,174,7,96,0]",
+        "payloadType": "bin",
+        "x": 220,
+        "y": 740,
+        "wires": [
+            [
+                "06cf4d6e88747501"
+            ]
+        ]
+    },
+    {
+        "id": "fc5cc1bc38be30cd",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "Firmware not supported",
+        "props": [
+            {
+                "p": "command",
+                "v": "setFirmware",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "3.9.4",
+        "payloadType": "str",
+        "x": 180,
+        "y": 560,
+        "wires": [
+            [
+                "06cf4d6e88747501"
+            ]
+        ]
+    },
+    {
+        "id": "182d3a8dfda0ef74",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "Firmware supported",
+        "props": [
+            {
+                "p": "command",
+                "v": "setFirmware",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "4.10.1",
+        "payloadType": "str",
+        "x": 190,
+        "y": 600,
+        "wires": [
+            [
+                "06cf4d6e88747501"
+            ]
+        ]
+    },
+    {
+        "id": "b059a88c8d5c1364",
+        "type": "inject",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "Ask Firmware",
+        "props": [
+            {
+                "p": "command",
+                "v": "getFirmware",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 640,
+        "wires": [
+            [
+                "06cf4d6e88747501"
+            ]
+        ]
+    },
+    {
+        "id": "480a6ce6ad8c1e94",
+        "type": "catch",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "SBF Errors",
+        "scope": null,
+        "uncaught": false,
+        "x": 560,
+        "y": 640,
+        "wires": [
+            [
+                "9010554dedebfc2d"
+            ]
+        ]
+    },
+    {
+        "id": "9010554dedebfc2d",
+        "type": "debug",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "SBF Errors",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 640,
+        "wires": []
+    }
+]
