@@ -1,9 +1,9 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { SBFBodyData } from "../../../shared/types"
-import { getPadding } from "../../../shared/utils"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { SBFBodyData } from '../../../shared/types'
+import { getPadding } from '../../../shared/utils'
 /* DOP -> Number: 4001 => "OnChange" interval: default PVT output rate
-  This block contains both Dilution of Precision (DOP) values and SBAS 
-  protection levels. The DOP values result from a trace of the unit position 
+  This block contains both Dilution of Precision (DOP) values and SBAS
+  protection levels. The DOP values result from a trace of the unit position
   variance-covariance matrices:
 
     Position Dilution of Precision:   PDOP = sqrt(Qxx + Qyy + Qzz)
@@ -11,33 +11,33 @@ import { getPadding } from "../../../shared/utils"
     Horizontal Dilution of Precision: HDOP = sqrt(Qλλ + Qϕϕ)
     Vertical Dilution of Precision:   VDOP = sqrt(Qhh)
 
-  In these equations, the matrix Q is the inverse of the unweighted normal 
-  matrix used for the computation of the position. The normal matrix equals the 
-  product of the geometry matrix A with its transpose (At A). The term 
-  "unweighted" implies that the DOP factor only addresses the effect of the 
+  In these equations, the matrix Q is the inverse of the unweighted normal
+  matrix used for the computation of the position. The normal matrix equals the
+  product of the geometry matrix A with its transpose (At A). The term
+  "unweighted" implies that the DOP factor only addresses the effect of the
   geometric factors on the quality of the position.
 
-  The DOP values can be used to interpret the current constellation geometry. 
-  This is an important parameter for the quality of the position ﬁx: the DOP 
-  parameter is the propagation factor of the pseudorange variance. For example, 
-  if an error of 5 m is present in the pseudorange, it will propagate into the 
-  horizontal plane with a factor expressed by the HDOP. Hence a low DOP value 
-  indicates that the satellites used for the position ﬁx result in a low 
-  multiplication of the systematic ranging errors. A value of six (6) for the 
-  PDOP is generally considered as the maximum value allowed for an acceptable 
+  The DOP values can be used to interpret the current constellation geometry.
+  This is an important parameter for the quality of the position ﬁx: the DOP
+  parameter is the propagation factor of the pseudorange variance. For example,
+  if an error of 5 m is present in the pseudorange, it will propagate into the
+  horizontal plane with a factor expressed by the HDOP. Hence a low DOP value
+  indicates that the satellites used for the position ﬁx result in a low
+  multiplication of the systematic ranging errors. A value of six (6) for the
+  PDOP is generally considered as the maximum value allowed for an acceptable
   position computation.
 
-  The horizontal and vertical protection levels (HPL and VPL) indicate the 
-  integrity of the computed horizontal and vertical position components as per 
-  the DO 229 speciﬁcation. In SBAS-aided PVT mode (see the Mode ﬁeld of the 
-  PVTCartesian SBF block), HPL and VPL are based upon the error estimates 
-  provided by SBAS. Otherwise they are based upon internal position-mode 
+  The horizontal and vertical protection levels (HPL and VPL) indicate the
+  integrity of the computed horizontal and vertical position components as per
+  the DO 229 speciﬁcation. In SBAS-aided PVT mode (see the Mode ﬁeld of the
+  PVTCartesian SBF block), HPL and VPL are based upon the error estimates
+  provided by SBAS. Otherwise they are based upon internal position-mode
   dependent error estimates.
 
   EndOfAtt -------------------------------------------------------------
   Block fields     Type  Units Do-Not-Use  Description
-  NrSV            uint8                 0  Total number of satellites used in the DOP computation, 
-                                           or 0 if the DOP information is not available 
+  NrSV            uint8                 0  Total number of satellites used in the DOP computation,
+                                           or 0 if the DOP information is not available
                                            (in that case, the xDOP ﬁelds are all set to 0)
   Reserved        uint8                    Reserved for future use, to be ignored by decoding software
   PDOP           uint16   0.01          0  If 0, PDOP not available, otherwise divide by 100 to obtain PDOP.
@@ -71,17 +71,17 @@ const VPL_LENGTH = BYTES_LENGTH.FLOAT
 const PADDING_INDEX = VPL_INDEX + VPL_LENGTH
 
 const DO_NOT_USE = -2 * Math.pow(10, 10)
-const getData = (data: number) => (data !== DO_NOT_USE) ? data : null
+const getData = (data: number): number | null => (data !== DO_NOT_USE) ? data : null
 
-export type DOP = {
-  nrSV: number,
-  reserved: number,
-  pDOP: number,
-  tDOP: number,
-  hDOP: number,
-  vDOP: number,
-  hpl: number | null,
-  vpl: number | null,
+export interface DOP {
+  nrSV: number
+  reserved: number
+  pDOP: number
+  tDOP: number
+  hDOP: number
+  vDOP: number
+  hpl: number | null
+  vpl: number | null
   padding: number | null
 }
 
@@ -101,7 +101,7 @@ export const dop = (blockRevision: number, data: Buffer): Response => {
     vDOP: data.readUIntLE(VDOP_INDEX, VDOP_LENGTH) / 100,
     hpl: getData(data.readFloatLE(HPL_INDEX)),
     vpl: getData(data.readFloatLE(VPL_INDEX)),
-    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
+    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH)
   }
   return { name, body }
 }

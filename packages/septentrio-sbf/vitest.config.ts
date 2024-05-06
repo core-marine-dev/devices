@@ -7,7 +7,9 @@ export default defineConfig({
       exclude: [
         '**/*/constants.ts',
         '**/*/types.ts',
-        'lib/*'
+        'lib/*',
+        'examples/*',
+        'src/gpstime.d.ts'
       ]
     }
   },

@@ -1,15 +1,15 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { Padding, SBFBodyData } from "../../../shared/types"
-import { bitState, getPadding } from "../../../shared/utils"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { Padding, SBFBodyData } from '../../../shared/types'
+import { bitState, getPadding } from '../../../shared/utils'
 /* ReceiverTime -> Number: 5914 => "OnChange" interval: 1 second
-  The ReceiverTime block provides the current time with a 1-second resolution 
+  The ReceiverTime block provides the current time with a 1-second resolution
   in the receiver time scale and UTC.
-  
-  The level of synchronization of the receiver time with the satellite system 
+
+  The level of synchronization of the receiver time with the satellite system
   time is provided in the SyncLevel ﬁeld.
 
-  UTC time is provided if the UTC parameters have been received from at least 
-  one GNSS satellite. If the UTC time is not available, the corresponding 
+  UTC time is provided if the UTC parameters have been received from at least
+  one GNSS satellite. If the UTC time is not available, the corresponding
   ﬁelds are set to their Do-Not-Use value.
 
   ReceiverTime ----------------------------------------------------------------
@@ -57,7 +57,7 @@ const SYNC_LEVEL_LENGTH = BYTES_LENGTH.UINT8
 const PADDING_INDEX = SYNC_LEVEL_INDEX + SYNC_LEVEL_LENGTH
 
 const DO_NOT_USE = -128
-const getTimeData = (data: number) => (data !== DO_NOT_USE) ? data : null
+const getTimeData = (data: number): number | null => (data !== DO_NOT_USE) ? data : null
 
 export const enum Synchronization {
   FULL = 'FULL',
@@ -66,13 +66,13 @@ export const enum Synchronization {
   UNKNOWN = 'UNKNOWN'
 }
 
-export type SyncLevel = {
-  synchronization: Synchronization,
-  wnSet: boolean,
-  towSet: boolean,
-  finetime: boolean,
-  reserved1: boolean,
-  reserved2: boolean,
+export interface SyncLevel {
+  synchronization: Synchronization
+  wnSet: boolean
+  towSet: boolean
+  finetime: boolean
+  reserved1: boolean
+  reserved2: boolean
   reserved3: number
 }
 
@@ -87,26 +87,26 @@ const getSyncLevel = (syncLevel: number): SyncLevel => {
     reserved3: (syncLevel & 0b11100000) >>> 5
   }
   const sync = [response.wnSet, response.towSet, response.finetime]
-  if (sync.every(e => e ===  true)) {
+  if (sync.every(e => e)) {
     response.synchronization = Synchronization.FULL
   } else {
-    response.synchronization = (sync.every(e => e === false)) ? Synchronization.NONE : Synchronization.NOT_FULL
+    response.synchronization = (sync.every(e => !e)) ? Synchronization.NONE : Synchronization.NOT_FULL
   }
   return response
 }
 
-export type ReceiverTime = {
-  utcYear: number | null,
-  utcMonth: number | null,
-  utcDay: number | null,
-  utcHour: number | null,
-  utcMin: number | null,
-  utcSec: number | null,
-  deltaLS: number | null,
-  syncLevel: number,
-  padding: Padding,
+export interface ReceiverTime {
+  utcYear: number | null
+  utcMonth: number | null
+  utcDay: number | null
+  utcHour: number | null
+  utcMin: number | null
+  utcSec: number | null
+  deltaLS: number | null
+  syncLevel: number
+  padding: Padding
   metadata: {
-    syncLeveL: SyncLevel,
+    syncLeveL: SyncLevel
   }
 }
 
@@ -117,18 +117,20 @@ interface Response extends SBFBodyData {
 export const receiverTime = (blockRevision: number, data: Buffer): Response => {
   const name = 'ReceiverTime'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
+  const syncLevel = data.readUIntLE(SYNC_LEVEL_INDEX, SYNC_LEVEL_LENGTH)
   const body: ReceiverTime = {
-    utcYear:  getTimeData(data.readIntLE(UTC_YEAR_INDEX, UTC_YEAR_LENGTH)),
+    utcYear: getTimeData(data.readIntLE(UTC_YEAR_INDEX, UTC_YEAR_LENGTH)),
     utcMonth: getTimeData(data.readIntLE(UTC_MONTH_INDEX, UTC_MONTH_LENGTH)),
-    utcDay:   getTimeData(data.readIntLE(UTC_DAY_INDEX, UTC_DAY_LENGTH)),
-    utcHour:  getTimeData(data.readIntLE(UTC_HOUR_INDEX, UTC_HOUR_LENGTH)),
-    utcMin:   getTimeData(data.readIntLE(UTC_MIN_INDEX, UTC_MIN_LENGTH)),
-    utcSec:   getTimeData(data.readIntLE(UTC_SEC_INDEX, UTC_SEC_LENGTH)),
-    deltaLS:  getTimeData(data.readIntLE(DELTA_LS_INDEX, DELTA_LS_LENGTH)),
-    syncLevel: data.readUIntLE(SYNC_LEVEL_INDEX, SYNC_LEVEL_LENGTH),
+    utcDay: getTimeData(data.readIntLE(UTC_DAY_INDEX, UTC_DAY_LENGTH)),
+    utcHour: getTimeData(data.readIntLE(UTC_HOUR_INDEX, UTC_HOUR_LENGTH)),
+    utcMin: getTimeData(data.readIntLE(UTC_MIN_INDEX, UTC_MIN_LENGTH)),
+    utcSec: getTimeData(data.readIntLE(UTC_SEC_INDEX, UTC_SEC_LENGTH)),
+    deltaLS: getTimeData(data.readIntLE(DELTA_LS_INDEX, DELTA_LS_LENGTH)),
+    syncLevel,
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-    metadata: {}
-  } as ReceiverTime
-  body.metadata.syncLeveL = getSyncLevel(body.syncLevel)
+    metadata: {
+      syncLeveL: getSyncLevel(syncLevel)
+    }
+  }
   return { name, body }
 }

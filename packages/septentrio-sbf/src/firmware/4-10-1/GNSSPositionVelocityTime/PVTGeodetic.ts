@@ -1,33 +1,33 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { Padding, SBFBodyData } from "../../../shared/types"
-import { bitState, getNullableValue, getPadding } from "../../../shared/utils"
-import { GNSSSignal } from "../types"
-import { getGNSSSignal } from "../utils"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { Padding, SBFBodyData } from '../../../shared/types'
+import { bitState, getNullableValue, getPadding } from '../../../shared/utils'
+import type { GNSSSignal } from '../types'
+import { getGNSSSignal } from '../utils'
 /* PVTGeodetic -> Number: 4007 => "OnChange" interval: default PVT output rate
-  This block contains the GNSS-based position, velocity and time (PVT) solution 
-  at the timespeciﬁed in the TOW and WNc ﬁelds. The time of applicability is 
+  This block contains the GNSS-based position, velocity and time (PVT) solution
+  at the timespeciﬁed in the TOW and WNc ﬁelds. The time of applicability is
   speciﬁed in the receiver time frame.
 
-  The computed position (ϕ,λ,h) and velocity (vn , ve , vu ) are reported in an 
-  ellipsoidal coordinate system using the datum indicated in the Datum ﬁeld. 
-  The velocity vector is expressed relative to the local-level Cartesian coordinate 
-  frame with north-, east-, up-unit vectors. The position is that of the marker. 
+  The computed position (ϕ,λ,h) and velocity (vn , ve , vu ) are reported in an
+  ellipsoidal coordinate system using the datum indicated in the Datum ﬁeld.
+  The velocity vector is expressed relative to the local-level Cartesian coordinate
+  frame with north-, east-, up-unit vectors. The position is that of the marker.
   The ARP-to-marker offset is set through the command setAntennaOffset.
 
   The PVT solution is also available in Cartesian form in the PVTCartesian block.
 
-  The variance-covariance information associated with the reported PVT solution 
+  The variance-covariance information associated with the reported PVT solution
   can be found in the PosCovGeodetic and VelCovGeodetic blocks.
 
-  If no PVT solution is available, the Error ﬁeld indicates the cause of the 
-  unavailability and all ﬁelds after the Error ﬁeld are set to their 
+  If no PVT solution is available, the Error ﬁeld indicates the cause of the
+  unavailability and all ﬁelds after the Error ﬁeld are set to their
   respective Do-Not-Use values.
 
   EndOfAtt -------------------------------------------------------------
   Block fields     Type  Units Do-Not-Use  Description
   Mode            uint8                    Bit ﬁeld indicating the GNSS PVT mode, as follows:
                                             Bits 0-3: type of PVT solution:
-                                              0: No GNSS PVT available (the Error ﬁeld indicates the cause of the 
+                                              0: No GNSS PVT available (the Error ﬁeld indicates the cause of the
                                                  absence of the PVT solution)
                                               1: Stand-Alone PVT
                                               2: Differential PVT
@@ -40,7 +40,7 @@ import { getGNSSSignal } from "../utils"
                                              10: Precise Point Positioning (PPP)
                                              12: Reserved
                                             Bits 4-5: Reserved
-                                            Bit    6: Set if the user has entered the command setPVTMode, Static, auto 
+                                            Bit    6: Set if the user has entered the command setPVTMode, Static, auto
                                                       and the receiver is still in the process of determining its ﬁxed position.
                                             Bit 7:    2D/3D ﬂag: set in 2D mode (height assumed constant and not computed).
   Error           uint8                    PVT error code. The following values are deﬁned:
@@ -62,13 +62,13 @@ import { getGNSSSignal } from "../utils"
   Vn            float32    1 m  −2 * 10¹⁰  Velocity in the North direction
   Ve            float32    1 m  −2 * 10¹⁰  Velocity in the East direction
   Vu            float32    1 m  −2 * 10¹⁰  Velocity in the ’Up’ direction
-  COG           float32  1 deg  −2 * 10¹⁰  Course over ground: this is deﬁned as the angle of the vehicle with respect 
-                                           to the local level North, ranging from 0 to 360, and increasing towards east. 
+  COG           float32  1 deg  −2 * 10¹⁰  Course over ground: this is deﬁned as the angle of the vehicle with respect
+                                           to the local level North, ranging from 0 to 360, and increasing towards east.
                                            Set to the Do-Not-Use value when the speed is lower than 0.1m/s.
-  RxClkBias     float64   1 ms  −2 * 10¹⁰  Receiver clock bias relative to the GNSS system time reported in the 
-                                           TimeSystem ﬁeld. Positive when the receiver time is ahead of the system time. 
+  RxClkBias     float64   1 ms  −2 * 10¹⁰  Receiver clock bias relative to the GNSS system time reported in the
+                                           TimeSystem ﬁeld. Positive when the receiver time is ahead of the system time.
                                            To transfer the receiver time to the system time, use: tGPS/GST = trx - RxClkBias
-  RxClkDrift    float32  1 ppm  −2 * 10¹⁰  Receiver clock drift relative to the GNSS system time (relative frequency error). 
+  RxClkDrift    float32  1 ppm  −2 * 10¹⁰  Receiver clock drift relative to the GNSS system time (relative frequency error).
                                            Positive when the receiver clock runs faster than the system time.
   TimeSystem      uint8               255  Time system of which the offset is provided in this sub-block:
                                              0: GPS time
@@ -96,12 +96,12 @@ import { getGNSSSignal } from "../utils"
                                              Bit 4:    set if DO229 Precision Approach mode is active
                                              Bits 5-7: Reserved
   ReferenceID    uint16             65535  This ﬁeld indicates the reference ID of the differential information used.
-                                           In case of DGPS or RTK operation, this ﬁeld is to be interpreted as the 
-                                           base station identiﬁer. In SBAS operation, this ﬁeld is to be interpreted 
-                                           as the PRN of the geostationary satellite used (from 120 to 158). If multiple 
+                                           In case of DGPS or RTK operation, this ﬁeld is to be interpreted as the
+                                           base station identiﬁer. In SBAS operation, this ﬁeld is to be interpreted
+                                           as the PRN of the geostationary satellite used (from 120 to 158). If multiple
                                            base stations or multiple geostationary satellites are used the value is set to 65534.
-  MeanCorrAge    uint16  0.01 seg   65535  In case of DGPS or RTK, this ﬁeld is the mean age of the differential corrections. 
-                                           In case of SBAS operation, this ﬁeld is the mean age of the ’fast corrections’ 
+  MeanCorrAge    uint16  0.01 seg   65535  In case of DGPS or RTK, this ﬁeld is the mean age of the differential corrections.
+                                           In case of SBAS operation, this ﬁeld is the mean age of the ’fast corrections’
                                            provided by the SBAS satellites.
   SignalInfo     uint32                 0  Bit ﬁeld indicating the type of GNSS signals having been used in the PVT
                                            computations. If a bit i is set, the signal type having index i has been
@@ -147,12 +147,12 @@ import { getGNSSSignal } from "../utils"
                                            34            | B2b         | BeiDou        | 1207.14                   | 7D
                                            35            | Reserved    |               |                           |
 
-                                           Field       | Type  | Do-Not-Use | RINEX satellitle code | Description 
+                                           Field       | Type  | Do-Not-Use | RINEX satellitle code | Description
                                            SVID or PRN | uint8 |          0 |                       | Satellite ID: The following ranges are deﬁned:
                                                                             | Gnn (nn = SVID)       | 1-37: PRN number of a GPS satellite
                                                                             | Rnn (nn = SVID-37)    | 38-61: Slot number of a GLONASS satellite with an offset of 37 (R01 to R24)
                                                                             |                       | 62: GLONASS satellite of which the slot number NA is not known
-                                                                            | Rnn (nn = SVID-38)    | 63-68: Slot number of a GLONASS satellite with an offset of 38 (R25 to R30) 
+                                                                            | Rnn (nn = SVID-38)    | 63-68: Slot number of a GLONASS satellite with an offset of 38 (R25 to R30)
                                                                             | Enn (nn = SVID-70)    | 71-106: PRN number of a GALILEO satellite with an offset of 70
                                                                             |                       | 107-119: L-Band (MSS) satellite. Corresponding NA satellite name can be found in the LBandBeams block.
                                                                             | Snn (nn = SVID-100)   | 120-140: PRN number of an SBAS satellite (S120 to S140)
@@ -162,9 +162,9 @@ import { getGNSSSignal } from "../utils"
                                                                             | Snn (nn = SVID-157)   | 198-215: PRN number of an SBAS satellite with an offset of 57 (S141 to S158)
                                                                             | Inn (nn = SVID-208)   | 216-222: PRN number of a NavIC/IRNSS satellite with an offset of 208 (I08 to I14)
                                                                             | Cnn (nn = SVID-182)   | 223-245: PRN number of a BeiDou satellite with an offset of 182 (C41 to C63)
-                                            FreqNr     | uint8 |          0 |                       | GLONASS frequency number, with an offset of 8. It ranges from 1 (corresponding to an actual frequency number of -7) 
+                                            FreqNr     | uint8 |          0 |                       | GLONASS frequency number, with an offset of 8. It ranges from 1 (corresponding to an actual frequency number of -7)
                                                                                                     | to 21 (corresponding to an actual frequency number of 13).
-                                                                                                    | 
+                                                                                                    |
                                                                                                     | For non-GLONASS satellites, FreqNr is reserved and must be ignored by the decoding software.
   AlertFlag       uint8                 0  Bit ﬁeld indicating integrity related information:
                                              Bits 0-1: RAIM integrity ﬂag:
@@ -186,7 +186,6 @@ Rev 1 PPPInfo    uint16  1 sec          0  Bit ﬁeld containing PPP-related inf
                                                            1: Manual seed
                                                            2: Seeded from DGPS
                                                            3: Seeded from RTKFixed
-
 
 Rev 2 Latency    uint16  0.0001 s   65535  Time elapsed between the time of applicability of the position ﬁx and the generation of this SBF block by the receiver. This time includes the receiver processing time, but not the communication latency.
 Rev 2 HAccuracy  uint16    0.01 m   65535  2DRMS horizontal accuracy: twice the root-mean-square of the horizontal distance error. The horizontal distance between the true position and the computed position is expected to be lower than HAccuracy with a probability of at least 95%. The value is clipped to 65534=655.34m
@@ -249,7 +248,6 @@ const REFERENCEID_LENGTH = BYTES_LENGTH.UINT16
 const MEANCORRAGE_INDEX = REFERENCEID_INDEX + REFERENCEID_LENGTH
 const MEANCORRAGE_LENGTH = BYTES_LENGTH.UINT16
 
-
 const SIGNALINFO_INDEX = MEANCORRAGE_INDEX + MEANCORRAGE_LENGTH
 const SIGNALINFO_LENGTH = BYTES_LENGTH.UINT32
 
@@ -297,15 +295,15 @@ export const PVTSolution: Record<number, string> = {
   7: 'MOVING_RTK_FIXED',
   8: 'MOVING_RTK_FLOAT',
   10: 'PPP',
-  12: 'RESERVED',
+  12: 'RESERVED'
 }
-const getPVTSolution = (num: number): string => PVTSolution[num] || 'UNKNOWN'
+const getPVTSolution = (num: keyof typeof PVTSolution): string => PVTSolution[num] ?? 'UNKNOWN'
 
-export type Mode = {
+export interface Mode {
   pvtSolution: string
-  reserved45: number,
-  determiningPosition: boolean,
-  flag2D3D: boolean,
+  reserved45: number
+  determiningPosition: boolean
+  flag2D3D: boolean
 }
 
 const getMode = (mode: number): Mode => ({
@@ -326,18 +324,18 @@ export const ErrorPVT: Record<number, string> = {
   7: 'POSITION_OUTPUT_PROHIBITED_DUE_TO_EXPORT_LAWS',
   8: 'NOT_ENOUGH_DIFFERENTIAL_CORRECTIONS',
   9: 'BASESTATION_COORDINATES_UNAVAILABLE',
-  10: 'AMBIGUITIES_NOT_FIXED_AND_USER_REQUESTED_RTK_FIXED',
+  10: 'AMBIGUITIES_NOT_FIXED_AND_USER_REQUESTED_RTK_FIXED'
 }
-const getErrorPVT = (num: number): string => ErrorPVT[num] || 'UNKNOWN'
+const getErrorPVT = (num: keyof typeof ErrorPVT): string => ErrorPVT[num] ?? 'UNKNOWN'
 
 export const TimeSystem: Record<number, string> = {
   0: 'GPS',
   1: 'Galileo',
   3: 'GLONASS',
   4: 'BeiDou',
-  5: 'QZSS',
+  5: 'QZSS'
 }
-const getTimesystem = (num: number): string => TimeSystem[num] || 'UNKNOWN'
+const getTimesystem = (num: number): string => TimeSystem[num] ?? 'UNKNOWN'
 
 export const Datum: Record<number, string> = {
   0: 'WGS84/ITRS',
@@ -349,17 +347,17 @@ export const Datum: Record<number, string> = {
   34: 'GDA94(2010)',
   35: 'GDA2020',
   250: 'First user-deﬁned datum',
-  251: 'Second user-deﬁned datum',
+  251: 'Second user-deﬁned datum'
 }
-const getDatum = (num: number): string => Datum[num] || 'UNKNOWN'
+const getDatum = (num: keyof typeof Datum): string => Datum[num] ?? 'UNKNOWN'
 
-export type WACorrInfo = {
-  clockCorrection: boolean,
-  rangeCorrection: boolean,
-  ionosphericInformation: boolean,
-  orbitAccuracy: boolean,
-  DO229: boolean,
-  reserved: number,
+export interface WACorrInfo {
+  clockCorrection: boolean
+  rangeCorrection: boolean
+  ionosphericInformation: boolean
+  orbitAccuracy: boolean
+  DO229: boolean
+  reserved: number
 }
 const getWACorrInfo = (num: number): WACorrInfo => ({
   clockCorrection: bitState(num, 0),
@@ -374,7 +372,7 @@ export type SignalInfo = Record<number, GNSSSignal>
 
 const getSignalInfo = (signalInfo: number): SignalInfo => {
   const response: Record<number, GNSSSignal> = {}
-  for (let bit = 0; bit < 32; bit++){
+  for (let bit = 0; bit < 32; bit++) {
     if (bitState(signalInfo, bit)) {
       const signal = getGNSSSignal(bit)
       if (signal !== null) {
@@ -389,16 +387,16 @@ export const RAIMIntegrityFlag: Record<number, string> = {
   0: 'RAIM_NOT_ACTIVE',
   1: 'RAIM_SUCCESSFULL',
   2: 'RAIM_FAILED',
-  3: 'RESERVED',
+  3: 'RESERVED'
 }
-const getRAIMIntegrityFlag = (num: number): string => RAIMIntegrityFlag[num] || 'UNKNOWN'
+const getRAIMIntegrityFlag = (num: keyof typeof RAIMIntegrityFlag): string => RAIMIntegrityFlag[num] ?? 'UNKNOWN'
 
-export type AlertFlag = {
-  raimIntegrityFlag: string,
-  galileoIntegrityFailed: boolean,
-  galileoIonosphericStorm: boolean,
-  reserved4: boolean,
-  reserved57: number,
+export interface AlertFlag {
+  raimIntegrityFlag: string
+  galileoIntegrityFailed: boolean
+  galileoIonosphericStorm: boolean
+  reserved4: boolean
+  reserved57: number
 }
 const getAlertFlag = (num: number): AlertFlag => ({
   raimIntegrityFlag: getRAIMIntegrityFlag(num & 0b0000_0011),
@@ -409,42 +407,42 @@ const getAlertFlag = (num: number): AlertFlag => ({
 })
 
 export interface MetadataRev0 {
-  mode: Mode,
-  error: string,
-  timesytem: string | null,
-  datum: string | null,
-  waCorrInfo: WACorrInfo | null,
-  signalInfo: SignalInfo | null,
+  mode: Mode
+  error: string
+  timesytem: string | null
+  datum: string | null
+  waCorrInfo: WACorrInfo | null
+  signalInfo: SignalInfo | null
   alertFlag: AlertFlag | null
 }
 
 export interface PVTGeodeticRev0 {
   revision: number
-  mode: number,
-  error: number,
-  latitude: number | null,
-  longitude: number | null,
-  height: number | null,
-  undulation: number | null,
-  vn: number | null,
-  ve: number | null,
-  vu: number | null,
-  cog: number | null,
-  rxClkBias: number | null,
-  rxClkDrift: number | null,
-  timeSystem: number | null,
-  datum: number | null,
-  nrSV: number | null,
-  waCorrInfo: number | null,
-  referenceID: number | null,
-  meanCorrAge: number | null,
-  signalInfo: number | null,
-  alertFlag: number | null,
-  padding: Padding,
+  mode: number
+  error: number
+  latitude: number | null
+  longitude: number | null
+  height: number | null
+  undulation: number | null
+  vn: number | null
+  ve: number | null
+  vu: number | null
+  cog: number | null
+  rxClkBias: number | null
+  rxClkDrift: number | null
+  timeSystem: number | null
+  datum: number | null
+  nrSV: number | null
+  waCorrInfo: number | null
+  referenceID: number | null
+  meanCorrAge: number | null
+  signalInfo: number | null
+  alertFlag: number | null
+  padding: Padding
   metadata: MetadataRev0
 }
 
-type MetadataRev0Input = {  mode: number, error: number, timeSystem: number | null, datum: number | null, waCorrInfo: number | null, signalInfo: number | null, alertFlag: number | null }
+interface MetadataRev0Input { mode: number, error: number, timeSystem: number | null, datum: number | null, waCorrInfo: number | null, signalInfo: number | null, alertFlag: number | null }
 
 const getMetadaRev0 = (input: MetadataRev0Input): MetadataRev0 => ({
   mode: getMode(input.mode),
@@ -453,14 +451,32 @@ const getMetadaRev0 = (input: MetadataRev0Input): MetadataRev0 => ({
   datum: getNullableValue(input.datum, getDatum),
   waCorrInfo: getNullableValue(input.waCorrInfo, getWACorrInfo),
   signalInfo: getNullableValue(input.signalInfo, getSignalInfo),
-  alertFlag: getNullableValue(input.alertFlag, getAlertFlag),
+  alertFlag: getNullableValue(input.alertFlag, getAlertFlag)
 })
 
 const getRev0 = (data: Buffer): PVTGeodeticRev0 => {
+  const mode = data.readUIntLE(MODE_INDEX, MODE_LENGTH)
+  const error = data.readUIntLE(ERROR_INDEX, ERROR_LENGTH)
+  const timeSystem = getData(data.readUIntLE(TIMESYSTEM_INDEX, TIMESYSTEM_LENGTH), 'UINT8')
+  const datum = getData(data.readUIntLE(DATUM_INDEX, DATUM_LENGTH), 'UINT8')
+  const waCorrInfo = getData(data.readUIntLE(WACORRINFO_INDEX, WACORRINFO_LENGTH), 'UINT32')
+  const signalInfo = getData(data.readUIntLE(SIGNALINFO_INDEX, SIGNALINFO_LENGTH), 'UINT32')
+  const alertFlag = getData(data.readUIntLE(ALERTFLAG_INDEX, ALERTFLAG_LENGTH), 'UINT32')
+
+  const input: MetadataRev0Input = {
+    mode,
+    error,
+    timeSystem,
+    datum,
+    waCorrInfo,
+    signalInfo,
+    alertFlag
+  }
+
   const body: PVTGeodeticRev0 = {
     revision: 0,
-    mode: data.readUIntLE(MODE_INDEX, MODE_LENGTH),
-    error: data.readUIntLE(ERROR_INDEX, ERROR_LENGTH),
+    mode,
+    error,
     latitude: getData(data.readDoubleLE(LATITUDE_INDEX), 'FLOAT'),
     longitude: getData(data.readDoubleLE(LONGITUDE_INDEX), 'FLOAT'),
     height: getData(data.readDoubleLE(HEIGHT_INDEX), 'FLOAT'),
@@ -471,19 +487,17 @@ const getRev0 = (data: Buffer): PVTGeodeticRev0 => {
     cog: getData(data.readFloatLE(COG_INDEX), 'FLOAT'),
     rxClkBias: getData(data.readDoubleLE(RXCLKBIAS_INDEX), 'FLOAT'),
     rxClkDrift: getData(data.readFloatLE(RXCLKDRIFT_INDEX), 'FLOAT'),
-    timeSystem: getData(data.readUIntLE(TIMESYSTEM_INDEX, TIMESYSTEM_LENGTH), 'UINT8'),
-    datum: getData(data.readUIntLE(DATUM_INDEX, DATUM_LENGTH), 'UINT8'),
+    timeSystem,
+    datum,
     nrSV: getData(data.readUIntLE(NRSV_INDEX, NRSV_LENGTH), 'UINT8'),
-    waCorrInfo: getData(data.readUIntLE(WACORRINFO_INDEX, WACORRINFO_LENGTH), 'UINT32'),
+    waCorrInfo,
     referenceID: getData(data.readUIntLE(REFERENCEID_INDEX, REFERENCEID_LENGTH), 'UINT16'),
     meanCorrAge: getData(data.readUIntLE(MEANCORRAGE_INDEX, MEANCORRAGE_LENGTH), 'UINT16'),
-    signalInfo: getData(data.readUIntLE(SIGNALINFO_INDEX, SIGNALINFO_LENGTH), 'UINT32'),
-    alertFlag: getData(data.readUIntLE(ALERTFLAG_INDEX, ALERTFLAG_LENGTH), 'UINT32'),
+    signalInfo,
+    alertFlag,
     padding: null,
-    metadata: {}
-  } as PVTGeodeticRev0
-  const input: MetadataRev0Input = { mode: body.mode, error: body.error, timeSystem: body.timeSystem as number, datum: body.datum as number, waCorrInfo: body.waCorrInfo, signalInfo: body.signalInfo, alertFlag: body.alertFlag }
-  body.metadata = getMetadaRev0(input)
+    metadata: getMetadaRev0(input)
+  }
   return body
 }
 // PVTGeodetic Revision 1 -----------------------------------------------------
@@ -491,13 +505,13 @@ export const LastSeed: Record<number, string> = {
   0: 'NOT_SEEDED',
   1: 'MANUAL_SEED',
   2: 'DGPS_SEED',
-  3: 'RTK_FIXED_SEED',
+  3: 'RTK_FIXED_SEED'
 }
-const getLastSeed = (num: number): string => LastSeed[num] || 'UNKNOWN'
+const getLastSeed = (num: keyof typeof LastSeed): string => LastSeed[num] ?? 'UNKNOWN'
 
-export type PPPInfo = {
-  ageLastSeed: number,
-  reserved: boolean,
+export interface PPPInfo {
+  ageLastSeed: number
+  reserved: boolean
   lastSeed: string
 }
 
@@ -512,18 +526,19 @@ export interface MetadataRev1 extends MetadataRev0 {
 }
 
 export interface PVTGeodeticRev1 extends PVTGeodeticRev0 {
-  nrBases: number | null,
-  pppInfo: number | null,
+  nrBases: number | null
+  pppInfo: number | null
   metadata: MetadataRev1
 }
 
 const getRev1 = (data: Buffer, rev0: PVTGeodeticRev0): PVTGeodeticRev1 => {
+  // @ts-expect-error it will be completed on the next line
   const body: PVTGeodeticRev1 = {
     ...rev0,
     revision: 1,
     nrBases: getData(data.readUIntLE(REV1_NRBASES_INDEX, REV1_NRBASES_LENGTH), 'UINT32'),
-    pppInfo: getData(data.readUIntLE(REV1_PPPINFO_INDEX, REV1_PPPINFO_LENGTH), 'UINT32'),
-  } as PVTGeodeticRev1
+    pppInfo: getData(data.readUIntLE(REV1_PPPINFO_INDEX, REV1_PPPINFO_LENGTH), 'UINT32')
+  }
   body.metadata.pppInfo = getNullableValue(body.pppInfo, getPPPInfo)
   return body
 }
@@ -531,16 +546,16 @@ const getRev1 = (data: Buffer, rev0: PVTGeodeticRev0): PVTGeodeticRev1 => {
 export const ARPPosition: Record<number, string> = {
   0: 'Unknown',
   1: 'ARP-to-marker offset is zero',
-  2: 'ARP-to-marker offset is not zero',
+  2: 'ARP-to-marker offset is not zero'
 }
-const getARPPosition = (num: number): string => ARPPosition[num] || 'UNKNOWN'
+const getARPPosition = (num: keyof typeof ARPPosition): string => ARPPosition[num] ?? 'UNKNOWN'
 
-export type Misc = {
-  baselinePointingBasestationARP: boolean,
-  phaseCenterOffsetCompensated: boolean,
-  propietary2: boolean,
-  propietary3: boolean,
-  propietary45: number,
+export interface Misc {
+  baselinePointingBasestationARP: boolean
+  phaseCenterOffsetCompensated: boolean
+  propietary2: boolean
+  propietary3: boolean
+  propietary45: number
   arpPosition: string
 }
 const getMisc = (misc: number): Misc => ({
@@ -549,7 +564,7 @@ const getMisc = (misc: number): Misc => ({
   propietary2: bitState(misc, 2),
   propietary3: bitState(misc, 3),
   propietary45: (misc & 0b0011_0000) >>> 4,
-  arpPosition: getARPPosition((misc & 0b1100_0000) >>> 6),
+  arpPosition: getARPPosition((misc & 0b1100_0000) >>> 6)
 })
 
 export interface MetadataRev2 extends MetadataRev1 {
@@ -557,14 +572,15 @@ export interface MetadataRev2 extends MetadataRev1 {
 }
 
 export interface PVTGeodeticRev2 extends PVTGeodeticRev1 {
-  latency: number | null,
-  hAccuracy: number | null,
-  vAccuracy: number | null,
-  misc: number,
+  latency: number | null
+  hAccuracy: number | null
+  vAccuracy: number | null
+  misc: number
   metadata: MetadataRev2
 }
 
 const getRev2 = (data: Buffer, rev1: PVTGeodeticRev1): PVTGeodeticRev2 => {
+  // @ts-expect-error it will be completed on the next line
   const body: PVTGeodeticRev2 = {
     ...rev1,
     revision: 2,
@@ -572,7 +588,7 @@ const getRev2 = (data: Buffer, rev1: PVTGeodeticRev1): PVTGeodeticRev2 => {
     hAccuracy: getData(data.readUIntLE(REV2_HACCURACY_INDEX, REV2_HACCURACY_LENGTH), 'UINT16'),
     vAccuracy: getData(data.readUIntLE(REV2_VACCURACY_INDEX, REV2_VACCURACY_LENGTH), 'UINT16'),
     misc: data.readUIntLE(REV2_MISC_INDEX, REV2_MISC_LENGTH)
-  } as PVTGeodeticRev2
+  }
   body.metadata.misc = getMisc(body.misc)
   return body
 }

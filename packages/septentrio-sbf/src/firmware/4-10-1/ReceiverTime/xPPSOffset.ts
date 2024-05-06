@@ -1,16 +1,16 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { Padding, SBFBodyData } from "../../../shared/types"
-import { getPadding } from "../../../shared/utils"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { Padding, SBFBodyData } from '../../../shared/types'
+import { getPadding } from '../../../shared/utils'
 /* xPPSOffset -> Number: 5911 => "OnChange" interval: PPS rate
-  The xPPSOffset block contains the offset between the true xPPS pulse and 
+  The xPPSOffset block contains the offset between the true xPPS pulse and
   the actual pulse output by the receiver. It is output right after each xPPS pulse.
 
-  On receivers with more than one independent PPS outputs, this block always 
+  On receivers with more than one independent PPS outputs, this block always
   refers to the ﬁrst PPS output.
 
   xPPSOffset ----------------------------------------------------------------
   Block fields  Type        Units  Do-Not-Use  Description
-  SyncAge      uint8          sec              Age of the last synchronization to system time. 
+  SyncAge      uint8          sec              Age of the last synchronization to system time.
                                                The xPPS pulse is regularly resynchronized with system time.
                                                This ﬁeld indicates the number of seconds elapsed since the last resynchronization.
                                                SyncAge is constrained to the 0-255s range.
@@ -60,13 +60,13 @@ const getTimeScale = (timeScale: number): TimeScale => {
   return TimeScale.UNKNOWN
 }
 
-export type xPPSOffset = {
-  syncAge: number,
-  timeScale: number,
-  offset: number,
-  padding: Padding,
+export interface xPPSOffset {
+  syncAge: number
+  timeScale: number
+  offset: number
+  padding: Padding
   metadata: {
-    timeScale: TimeScale,
+    timeScale: TimeScale
   }
 }
 
@@ -77,13 +77,16 @@ interface Response extends SBFBodyData {
 export const xppsOffset = (blockRevision: number, data: Buffer): Response => {
   const name = 'xPPSOffset'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
+  const timeScale = data.readUIntLE(TIME_SCALE_INDEX, TIME_SCALE_LENGTH)
   const body: xPPSOffset = {
     syncAge: data.readUIntLE(SYNC_AGE_INDEX, SYNC_AGE_LENGTH),
-    timeScale: data.readUIntLE(TIME_SCALE_INDEX, TIME_SCALE_LENGTH),
+    timeScale,
     offset: data.readFloatLE(OFFSET_INDEX),
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-    metadata: {}
-  } as xPPSOffset
+    metadata: {
+      timeScale: getTimeScale(timeScale)
+    }
+  }
   body.metadata.timeScale = getTimeScale(body.timeScale)
   if (body.metadata.timeScale === TimeScale.RECEIVER) {
     body.syncAge = 0

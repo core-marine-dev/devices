@@ -1,12 +1,12 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { Padding, SBFBodyData } from "../../../shared/types"
-import { bitState, getPadding } from "../../../shared/utils"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { Padding, SBFBodyData } from '../../../shared/types'
+import { bitState, getPadding } from '../../../shared/utils'
 /* AttCovEuler -> Number: 5939 => "OnChange" interval: default PVT output rate
-  This block contains the elements of the symmetric variance-covariance matrix 
+  This block contains the elements of the symmetric variance-covariance matrix
   of the attitude angles reported in the AttEuler block
 
-  This variance-covariance matrix contains an indication of the accuracy of the 
-  estimated parameters (see diagonal elements) and the correlation between 
+  This variance-covariance matrix contains an indication of the accuracy of the
+  estimated parameters (see diagonal elements) and the correlation between
   these estimates (see off-diagonal elements).
 
   In case the receiver is in heading and pitch mode only, only the heading and pitch
@@ -76,16 +76,16 @@ const getErrorCode = (error: number): ErrorCode => {
   switch (error) {
     case 0: return ErrorCode.NO
     case 1: return ErrorCode.MEASUREMENTS
-    case 2: 
+    case 2:
     case 3: return ErrorCode.RESERVED
   }
   return ErrorCode.UNKNOWN
 }
 
-export type Error = {
-  mainAux1Baseline: ErrorCode,
-  mainAux2Baseline: ErrorCode,
-  reserved: number,
+export interface Error {
+  mainAux1Baseline: ErrorCode
+  mainAux2Baseline: ErrorCode
+  reserved: number
   notRequestedAttitude: boolean
 }
 
@@ -97,29 +97,28 @@ const getError = (error: number): Error => {
   return {
     mainAux1Baseline: getErrorCode(main1),
     mainAux2Baseline: getErrorCode(main2),
-    reserved: reserved,
+    reserved,
     notRequestedAttitude
   }
 }
 
 const DO_NOT_USE_DATA = -2 * Math.pow(10, 10)
-const getData = (data: number) => (data !== DO_NOT_USE_DATA) ? data : null
+const getData = (data: number): number | null => (data !== DO_NOT_USE_DATA) ? data : null
 
-export type AttCovEuler = {
-  reserved: number,
-  error: number,
-  covHeadHead: number | null,
-  covPitchPitch: number | null,
-  covRollRoll: number | null,
-  covHeadPitch: number | null,
-  covHeadRoll: number | null,
-  covPitchRoll: number | null,
-  padding: Padding,
+export interface AttCovEuler {
+  reserved: number
+  error: number
+  covHeadHead: number | null
+  covPitchPitch: number | null
+  covRollRoll: number | null
+  covHeadPitch: number | null
+  covHeadRoll: number | null
+  covPitchRoll: number | null
+  padding: Padding
   metadata: {
-    error: Error,
+    error: Error
   }
 }
-
 
 interface Response extends SBFBodyData {
   body: AttCovEuler
@@ -128,9 +127,10 @@ interface Response extends SBFBodyData {
 export const attCovEuler = (blockRevision: number, data: Buffer): Response => {
   const name = 'AttCovEuler'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
+  const error = data.readUIntLE(ERROR_INDEX, ERROR_LENGTH)
   const body: AttCovEuler = {
     reserved: data.readUIntLE(RESERVED_INDEX, RESERVED_LENGTH),
-    error: data.readUIntLE(ERROR_INDEX, ERROR_LENGTH),
+    error,
     covHeadHead: getData(data.readFloatLE(COV_HEAD_HEAD_INDEX)),
     covPitchPitch: getData(data.readFloatLE(COV_PITCH_PITCH_INDEX)),
     covRollRoll: getData(data.readFloatLE(COV_ROLL_ROLL_INDEX)),
@@ -138,8 +138,7 @@ export const attCovEuler = (blockRevision: number, data: Buffer): Response => {
     covHeadRoll: getData(data.readFloatLE(COV_HEAD_ROLL_INDEX)),
     covPitchRoll: getData(data.readFloatLE(COV_PITCH_ROLL_INDEX)),
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-    metadata: {}
-  } as AttCovEuler
-  body.metadata.error = getError(body.error)
+    metadata: { error: getError(error) }
+  }
   return { name, body }
 }

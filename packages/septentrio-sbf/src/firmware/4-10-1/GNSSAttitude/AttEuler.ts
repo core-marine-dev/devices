@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from "../../../shared/constants"
-import { Padding, SBFBodyData } from "../../../shared/types"
-import { bitState, getPadding } from "../../../shared/utils"
+import { BYTES_LENGTH } from '../../../shared/constants'
+import type { Padding, SBFBodyData } from '../../../shared/types'
+import { bitState, getPadding } from '../../../shared/utils'
 /* AttEuler -> Number: 5938 => "OnChange" interval: default PVT output rate
   The AttEuler block contains the Euler angles (pitch, roll and heading)
   at the time speciﬁed in the TOW and WNc ﬁelds (in the receiver time frame).
@@ -79,16 +79,16 @@ const getErrorCode = (error: number): ErrorCode => {
   switch (error) {
     case 0: return ErrorCode.NO
     case 1: return ErrorCode.MEASUREMENTS
-    case 2: 
+    case 2:
     case 3: return ErrorCode.RESERVED
   }
   return ErrorCode.UNKNOWN
 }
 
-export type Error = {
-  mainAux1Baseline: ErrorCode,
-  mainAux2Baseline: ErrorCode,
-  reserved: number,
+export interface Error {
+  mainAux1Baseline: ErrorCode
+  mainAux2Baseline: ErrorCode
+  reserved: number
   notRequestedAttitude: boolean
 }
 
@@ -100,7 +100,7 @@ const getError = (error: number): Error => {
   return {
     mainAux1Baseline: getErrorCode(main1),
     mainAux2Baseline: getErrorCode(main2),
-    reserved: reserved,
+    reserved,
     notRequestedAttitude
   }
 }
@@ -126,28 +126,28 @@ const getMode = (mode: number): Mode => {
 }
 
 const DO_NOT_USE_SATELLITES = 255
-const getSatellites = (satellites: number) => (satellites !== DO_NOT_USE_SATELLITES) ? satellites : null
+const getSatellites = (satellites: number): number | null => (satellites !== DO_NOT_USE_SATELLITES) ? satellites : null
 
 const DO_NOT_USE_DATA = -2 * Math.pow(10, 10)
-const getData = (data: number) => (data !== DO_NOT_USE_DATA) ? data : null
+const getData = (data: number): number | null => (data !== DO_NOT_USE_DATA) ? data : null
 
-export type AttEulerMetadata = {
-  error: Error,
+export interface AttEulerMetadata {
+  error: Error
   mode: Mode
 }
 
-export type AttEuler = {
-  nrSV: number | null,
-  error: number,
-  mode: number,
-  reserved: number,
-  roll: number | null,
-  pitch: number | null,
-  heading: number | null,
-  pitchDot: number | null,
-  rollDot: number | null,
-  headingDot: number | null,
-  padding: Padding,
+export interface AttEuler {
+  nrSV: number | null
+  error: number
+  mode: number
+  reserved: number
+  roll: number | null
+  pitch: number | null
+  heading: number | null
+  pitchDot: number | null
+  rollDot: number | null
+  headingDot: number | null
+  padding: Padding
   metadata: AttEulerMetadata
 }
 
@@ -158,10 +158,12 @@ interface Response extends SBFBodyData {
 export const attEuler = (blockRevision: number, data: Buffer): Response => {
   const name = 'AttEuler'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
+  const error = data.readUIntLE(ERROR_INDEX, ERROR_LENGTH)
+  const mode = data.readUIntLE(MODE_INDEX, MODE_LENGTH)
   const body: AttEuler = {
     nrSV: getSatellites(data.readUIntLE(NRSV_INDEX, NRSV_LENGTH)),
-    error: data.readUIntLE(ERROR_INDEX, ERROR_LENGTH),
-    mode: data.readUIntLE(MODE_INDEX, MODE_LENGTH),
+    error,
+    mode,
     reserved: data.readUIntLE(RESERVED_INDEX, RESERVED_LENGTH),
     heading: getData(data.readFloatLE(HEADING_INDEX)),
     pitch: getData(data.readFloatLE(PITCH_INDEX)),
@@ -170,9 +172,10 @@ export const attEuler = (blockRevision: number, data: Buffer): Response => {
     rollDot: getData(data.readFloatLE(ROLL_DOT_INDEX)),
     headingDot: getData(data.readFloatLE(HEADING_DOT_INDEX)),
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-    metadata: {}
-  } as AttEuler
-  body.metadata.error = getError(body.error)
-  body.metadata.mode = getMode(body.mode)
+    metadata: {
+      error: getError(error),
+      mode: getMode(mode)
+    }
+  }
   return { name, body }
 }
