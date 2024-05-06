@@ -45,5 +45,10 @@
       "tests",
       "vitest.config.ts"
     ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
   }
 }
