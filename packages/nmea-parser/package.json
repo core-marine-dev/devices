@@ -44,7 +44,7 @@
   },
   "ts-standard": {
     "ignore": [
-      "tests/*",
+      "tests",
       "vitest.config.ts"
     ]
   }

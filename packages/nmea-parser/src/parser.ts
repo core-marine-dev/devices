@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from './constants'
 import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from './schemas'
-import { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentence, StoredSentences } from './types'
+import type { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentences } from './types'
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols'
 import { generateSentenceFromModel, getFakeSentence, getNMEAUnparsedSentence } from './sentences'
 import { getTalker } from './utils'
@@ -127,22 +127,22 @@ export class Parser implements NMEAParser {
   }
 
   private getKnownFrame (preparsed: NMEAPreParsed): NMEAKnownSentence | null {
-    const storedSentence = this._sentences.get(preparsed.sentence) as StoredSentence
+    const storedSentence = this._sentences.get(preparsed.sentence)
+    if (storedSentence === undefined) return null
     // Bad known frame
     if (storedSentence.fields.length !== preparsed.data.length) {
       console.debug(`Invalid ${preparsed.sentence} sentence -> it has to have ${storedSentence.fields.length} fields but it contains ${preparsed.data.length}`)
       return null
     }
     try {
-      const knownSentence = { ...preparsed, ...storedSentence, data: [] as Data[] }
+      // @ts-expect-error the sentence will be completed with the foreach
+      const knownSentence: NMEAKnownSentence = { ...preparsed, ...storedSentence, data: [] as Data[] }
       preparsed.data.forEach((value, index) => {
         const type = knownSentence.fields[index].type
         const data = this.getField(value, type)
-        // @ts-expect-error
         knownSentence.fields[index].data = data
         knownSentence.data.push(data)
       })
-      // @ts-expect-error
       return knownSentence
     } catch (error) {
       if (error instanceof Error) {
