@@ -34,7 +34,7 @@
     "format": "ts-standard --fix",
     "build": "tsc && cp -r ./src/norsub.yaml ./lib",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@coremarine/nmea-parser": "^1.6.3",
@@ -42,7 +42,7 @@
   },
   "ts-standard": {
     "ignore": [
-      "tests/*",
+      "tests",
       "vitest.config.ts"
     ]
   }
