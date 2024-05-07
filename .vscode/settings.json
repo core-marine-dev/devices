@@ -1,0 +1,4 @@
+{
+  "standard.enable": true,
+  "standard.engine": "ts-standard"
+}
