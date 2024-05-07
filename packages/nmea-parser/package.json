@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Library to parse NMEA 0183 sentences",
   "author": "CoreMarine",
   "license": "ISC",
@@ -38,6 +38,9 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">= 18"
+  },
   "scripts": {
     "build": "tsup && cp -r ./src/protocols ./lib",
     "lint": "ts-standard",
