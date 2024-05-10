@@ -1,7 +1,9 @@
 import { readdirSync } from 'node:fs'
 import Path from 'node:path'
+import * as v from 'valibot'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from './constants'
-import { BooleanSchema, NMEALikeSchema, NaturalSchema, ProtocolsInputSchema, StringSchema } from './schemas'
+import { BooleanSchema, NMEALikeSchema, ProtocolsInputSchema, StringSchema } from './schemas'
+import { UnsignedIntegerSchema } from '@schemasjs/zod-numbers'
 import type { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentences } from './types'
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols'
 import { generateSentenceFromModel, getFakeSentence, getNMEAUnparsedSentence } from './sentences'
@@ -11,11 +13,11 @@ export class Parser implements NMEAParser {
   // Memory - Buffer
   protected _memory: boolean = true
   get memory (): typeof this._memory { return this._memory }
-  set memory (mem: boolean) { this._memory = BooleanSchema.parse(mem) }
+  set memory (mem: boolean) { this._memory = v.parse(BooleanSchema, mem) }
   protected _buffer: string = ''
   protected _bufferLength: number = MAX_CHARACTERS
   get bufferLimit (): typeof this._bufferLength { return this._bufferLength }
-  set bufferLimit (limit: number) { this._bufferLength = NaturalSchema.parse(limit) }
+  set bufferLimit (limit: number) { this._bufferLength = UnsignedIntegerSchema.parse(limit) }
   // Sentences
   protected _sentences: StoredSentences = new Map()
   // get sentences() { return this._sentences }
@@ -48,7 +50,7 @@ export class Parser implements NMEAParser {
   }
 
   getSentence (id: string): Sentence {
-    if (!StringSchema.safeParse(id).success || id.length < NMEA_ID_LENGTH) { return null }
+    if (!v.is(StringSchema, id) || id.length < NMEA_ID_LENGTH) { return null }
     const aux = this._sentences.get(id) ?? null
     if (aux !== null) { return aux }
     const [talk, sent] = [id.slice(0, id.length - NMEA_ID_LENGTH), id.slice(-NMEA_ID_LENGTH)]
@@ -59,12 +61,11 @@ export class Parser implements NMEAParser {
   }
 
   addProtocols (input: ProtocolsInput): void {
-    const parsed = ProtocolsInputSchema.safeParse(input)
-    if (!parsed.success) {
-      const error = parsed.error
-      console.error('Invalid protocols to add')
+    if (!v.is(ProtocolsInputSchema, input)) {
+      const error = 'Parser: invalid protocols to parse'
       console.error(error)
-      throw error
+      console.error(input)
+      throw new Error(error)
     }
     const { protocols } = this.readProtocols(input)
     // Get sentences for new protocols
@@ -78,7 +79,7 @@ export class Parser implements NMEAParser {
   }
 
   getFakeSentenceByID (id: string): NMEALike | null {
-    if (!StringSchema.safeParse(id).success || id.length < NMEA_ID_LENGTH) { return null }
+    if (!v.is(StringSchema, id) || id.length < NMEA_ID_LENGTH) { return null }
     const aux = this._sentences.get(id) ?? null
     if (aux !== null) { return generateSentenceFromModel(aux) }
     // const [_, sent] = [id.slice(0, id.length - NMEA_ID_LENGTH), id.slice(-NMEA_ID_LENGTH)]
@@ -90,9 +91,8 @@ export class Parser implements NMEAParser {
   }
 
   parseData (text: string): NMEASentence[] {
-    const parsed = StringSchema.safeParse(text)
-    if (!parsed.success) return []
-    const data = (this.memory) ? this._buffer + parsed.data : parsed.data
+    if (!v.is(StringSchema, text)) return []
+    const data = (this.memory) ? this._buffer + text : text
     return this.getFrames(data)
   }
 
@@ -212,14 +212,13 @@ export class Parser implements NMEAParser {
       }
 
       const possibleFrame = text.slice(start, end + END_FLAG_LENGTH)
-      const parsed = NMEALikeSchema.safeParse(possibleFrame)
 
-      if (!parsed.success) {
+      if (!v.is(NMEALikeSchema, possibleFrame)) {
         pivot = start + START_FLAG_LENGTH
         continue
       }
 
-      const frame = this.getFrame(parsed.data, timestamp)
+      const frame = this.getFrame(possibleFrame, timestamp)
       if (frame === null) {
         pivot = start + START_FLAG_LENGTH
         continue
