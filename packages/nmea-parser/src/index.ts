@@ -1,3 +1,1 @@
-import { Parser } from './parser'
-
-export { Parser as NMEAParser }
+export { Parser as NMEAParser } from './parser'

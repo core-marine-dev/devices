@@ -1,3 +1,4 @@
+import * as v from 'valibot'
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG, START_FLAG_LENGTH } from './constants'
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from './schemas'
@@ -6,9 +7,9 @@ import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
 // GET NMEA SENTENCE
 export const isNMEAFrame = (text: string): boolean => {
   // Not valid NMEA like
-  const parsed = NMEALikeSchema.safeParse(text)
+  const parsed = v.safeParse(NMEALikeSchema, text)
   if (!parsed.success) {
-    console.debug(`Error parsing frame -> ${parsed.error.message}`)
+    console.debug(`Error parsing frame -> ${parsed.issues[0].message}`)
     return false
   }
   // More than one START Flag
@@ -17,7 +18,7 @@ export const isNMEAFrame = (text: string): boolean => {
     return false
   }
   // Not enough characters
-  const { data } = parsed
+  const { output: data } = parsed
   if (data.length < MINIMAL_LENGTH) {
     console.debug('Invalid NMEA line -> it doesn\'t contain any data')
     return false
@@ -49,19 +50,19 @@ export const getNMEAUnparsedSentence = (text: string): NMEAUnparsedSentence | nu
   const [info, cs] = raw.slice(1, -END_FLAG_LENGTH).split(DELIMITER)
   const checksum = stringChecksumToNumber(cs)
   const [sentence, ...data] = info.split(SEPARATOR)
-  const parsed = NMEAUnparsedSentenceSchema.safeParse({ raw, sentence, checksum, data })
-  if (parsed.success) { return parsed.data }
+  const parsed = v.safeParse(NMEAUnparsedSentenceSchema, { raw, sentence, checksum, data })
+  if (parsed.success) { return parsed.output }
   console.debug(`Error parsing sentence -> ${raw}`)
-  console.debug(parsed.error)
+  console.debug(parsed.issues[0].message)
   return null
 }
 
 export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence => {
   const fields: FieldUnknown[] = sentence.data.map(value => ({ name: 'unknown', type: 'string', data: value }))
   const unknowFrame = { ...sentence, protocol: { name: 'UNKNOWN' }, fields }
-  const parsed = NMEAUknownSentenceSchema.safeParse(unknowFrame)
-  if (parsed.success) return parsed.data
-  throw new Error(parsed.error.message)
+  const parsed = v.safeParse(NMEAUknownSentenceSchema, unknowFrame)
+  if (parsed.success) return parsed.output
+  throw new Error(parsed.issues[0].message)
 }
 
 // TESTING - GENERATE
