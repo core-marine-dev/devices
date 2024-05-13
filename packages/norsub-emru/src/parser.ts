@@ -1,20 +1,21 @@
 import path from 'node:path'
-import { NMEAParser } from '@coremarine/nmea-parser'
-import { FieldParsed, NMEALike, NMEASentence, ProtocolOutput, ProtocolsInput, Sentence } from '@coremarine/nmea-parser/lib/types'
-import { BooleanSchema, NaturalSchema } from '@coremarine/nmea-parser/lib/schemas'
-import { MAX_CHARACTERS } from '@coremarine/nmea-parser/lib/constants'
+import * as v from 'valibot'
+import { MAX_CHARACTERS, NMEAParser } from '@coremarine/nmea-parser'
+import type { FieldParsed, NMEALike, NMEASentence, ProtocolOutput, ProtocolsInput, Sentence } from '@coremarine/nmea-parser'
 import { getUint32 } from './utils'
 import { getStatus } from './status'
 import { NorsubSentence } from './types'
+import { BooleanSchema } from './schemas'
+import { UnsignedIntegerSchema } from '@schemasjs/valibot-numbers'
 
 export class NorsubParser {
   // Parser
   protected _parser: NMEAParser = new NMEAParser()
   // Memory - Buffer
   get memory (): typeof this._parser.memory { return this._parser.memory }
-  set memory (mem: boolean) { this._parser.memory = BooleanSchema.parse(mem) }
+  set memory (mem: boolean) { this._parser.memory = v.parse(BooleanSchema, mem) }
   get bufferLimit (): typeof this._parser.bufferLimit { return this._parser.bufferLimit }
-  set bufferLimit (limit: number) { this._parser.bufferLimit = NaturalSchema.parse(limit) }
+  set bufferLimit (limit: number) { this._parser.bufferLimit = v.parse(UnsignedIntegerSchema, limit) }
 
   constructor (memory: boolean = true, limit: number = MAX_CHARACTERS) {
     this.memory = memory
@@ -26,7 +27,7 @@ export class NorsubParser {
   private getStatusIndexes (fields: FieldParsed[]): number[] {
     const indexes: number[] = []
     fields.forEach((field, index) => {
-      if (field.name.includes('status')) {
+      if (field.name.includes('status') === true) {
         indexes.push(index)
       }
     })
@@ -81,7 +82,7 @@ export class NorsubParser {
 
   getProtocols (): ProtocolOutput[] { return this._parser.getProtocols() }
 
-  getSentence (id: string): Sentence { return this._parser.getSentence(id) }
+  getSentence (id: string): Sentence { return this._parser.getSentence(id) as Sentence }
 
-  getFakeSentenceByID (id: string): NMEALike | null { return this._parser.getFakeSentenceByID(id) }
+  getFakeSentenceByID (id: string): NMEALike { return this._parser.getFakeSentenceByID(id) as NMEALike }
 }
