@@ -1,5 +1,5 @@
-import type { SBFBodyData } from '../../../shared/types'
-import { getPadding } from '../../../shared/utils'
+import type { SBFBodyData } from '../../../types'
+import { getPadding } from '../../../utils'
 /* EndOfAtt -> Number: 5943 => "OnChange" interval: default PVT output rate
   This block marks the end of transmission of all GNSS-attitude related blocks
   belonging to the same epoch.

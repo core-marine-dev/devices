@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { ReceiverTime, SyncLevel, Synchronization, receiverTime } from '../../../../src/firmware/4-10-1/ReceiverTime/ReceiverTime'
-import { TypeData, TypedData, getTypedData } from '../../../utils'
+import { TypeData, TypedData, getTypedData } from '../../../testUtils'
 /* ReceiverTime -> Number: 5914 => "OnChange" interval: 1 second
   The ReceiverTime block provides the current time with a 1-second resolution 
   in the receiver time scale and UTC.

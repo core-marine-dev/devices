@@ -1,5 +1,5 @@
-import { UNKNOWN_SBF_BODY_DATA } from '../../shared/constants'
-import type { SBFBodyData, SBFBodyDataMap, SBFBodyDataParser } from '../../shared/types'
+import { UNKNOWN_SBF_BODY_DATA } from '../../constants'
+import type { SBFBodyData, SBFBodyDataMap, SBFBodyDataParser } from '../../types'
 import { blocks as GNSSAttitude } from './GNSSAttitude'
 import { blocks as GNSSPositionVelocityTime } from './GNSSPositionVelocityTime'
 import { blocks as ReceiverTime } from './ReceiverTime'

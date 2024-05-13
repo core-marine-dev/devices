@@ -1,81 +1,51 @@
 import { describe, test, expect } from 'vitest'
-import { TypeData, getTypedData } from "./utils"
+import { crc16xmodem } from 'crc'
+import { bitState, computedCRC, getNullableValue, getPadding } from '../src/utils'
 
-describe('Test typed data', () => {
-  const num = -945645646.84546464646456465
+describe('Test shared utils', () => {
+  test('computedCRC', () => {
+    const buffer = Buffer.from([0, 1, 2, 3, 4])
+    const crc = crc16xmodem(buffer)
+    expect(computedCRC(buffer)).toBe(crc)
+  }),
   
-  test('int8', () => {
-    const data = getTypedData(num, TypeData.INT8)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readInt8())
+
+  test('bitState', () => {
+    const number = 0b11001010
+    expect(bitState(number, 0)).toBeFalsy()
+    expect(bitState(number, 1)).toBeTruthy()
+    expect(bitState(number, 2)).toBeFalsy()
+    expect(bitState(number, 3)).toBeTruthy()
+    expect(bitState(number, 4)).toBeFalsy()
+    expect(bitState(number, 5)).toBeFalsy()
+    expect(bitState(number, 6)).toBeTruthy()
+    expect(bitState(number, 7)).toBeTruthy()
+  }),
+
+  test('getPadding', () => {
+    const buffer = Buffer.from([0, 1, 2, 3, 4])
+    let index = 0
+    let length = 0
+    for (let index = 0; index < buffer.byteLength; index ++) {
+      const subLength = buffer.byteLength - index
+      for (let length = 0; length < subLength; length++) {
+        const result = getPadding(buffer, index, length)
+        if (length === 0) {
+          expect(result).toBeNull()
+        } else {
+          expect(result).toBe(buffer.readUIntLE(index, length))
+        }
+      }
     }
-  })
-  test('int16', () => {
-    const data = getTypedData(num, TypeData.INT16)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readInt16LE())
-    }
-  })
-  test('int32', () => {
-    const data = getTypedData(num, TypeData.INT32)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readInt32LE())
-    }
-    // expect(data).toBe(null)
-  })
-  test('int64', () => {
-    const data = getTypedData(num, TypeData.INT64)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readBigInt64LE())
-    }
-    // expect(data).toBe(null)
-  })
-  test('uint8', () => {
-    const data = getTypedData(num, TypeData.UINT8)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readUInt8())
-    }
-  })
-  test('uint16', () => {
-    const data = getTypedData(num, TypeData.UINT16)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readUInt16LE())
-    }
-  })
-  test('uint32', () => {
-    const data = getTypedData(num, TypeData.UINT32)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readUInt32LE())
-    }
-    // expect(data).toBe(null)
-  })
-  test('uint64', () => {
-    const data = getTypedData(num, TypeData.UINT64)
-    // if (data !== null) {
-    //   const { number, buffer } = data
-    //   expect(number).toBe(buffer.readBigUInt64LE())
-    // }
-    expect(data).toBe(null)
-  })
-  test('float', () => {
-    const data = getTypedData(num, TypeData.FLOAT)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readFloatLE())
-    }
-  })
-  test('double', () => {
-    const data = getTypedData(num, TypeData.DOUBLE)
-    if (data !== null) {
-      const { number, buffer } = data
-      expect(number).toBe(buffer.readDoubleLE())
-    }
+  }),
+
+  test('getNullableValue', () => {
+    let value: any = null
+    const callback = (e: string) => e.toUpperCase()
+    let result = getNullableValue(value, callback)
+    expect(result).toBeNull()
+    value = 'hello there'
+    result = getNullableValue(value, callback)
+    expect(result).toBe(value.toUpperCase())
   })
 })
