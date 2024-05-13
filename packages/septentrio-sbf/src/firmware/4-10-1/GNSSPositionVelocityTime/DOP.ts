@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from '../../../shared/constants'
-import type { SBFBodyData } from '../../../shared/types'
-import { getPadding } from '../../../shared/utils'
+import { BYTES_LENGTH } from '../../../constants'
+import type { SBFBodyData } from '../../../types'
+import { getPadding } from '../../../utils'
 /* DOP -> Number: 4001 => "OnChange" interval: default PVT output rate
   This block contains both Dilution of Precision (DOP) values and SBAS
   protection levels. The DOP values result from a trace of the unit position

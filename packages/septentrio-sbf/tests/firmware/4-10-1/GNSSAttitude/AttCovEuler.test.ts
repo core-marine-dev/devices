@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { AttCovEuler, Error, ErrorCode, attCovEuler } from "../../../../src/firmware/4-10-1/GNSSAttitude/AttCovEuler"
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from "../../../utils"
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from "../../../testUtils"
 /* AttCovEuler -> Number: 5939 => "OnChange" interval: default PVT output rate
 This block contains the elements of the symmetric variance-covariance matrix 
 of the attitude angles reported in the AttEuler block

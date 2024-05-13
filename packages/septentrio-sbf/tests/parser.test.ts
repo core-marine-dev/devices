@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import { Parser } from '../src/parser'
-import { CRC_INDEX, LENGTH_INDEX, TOW_INDEX, TWO_BYTES_MAX } from '../src/shared/constants'
-import { Firmware, SBFFrame, SBFResponse } from '../src/shared/types'
+import { CRC_INDEX, LENGTH_INDEX, TOW_INDEX, TWO_BYTES_MAX } from '../src/constants'
+import { Firmware, SBFFrame, SBFResponse } from '../src/types'
 
 describe('Testing Parser', () => {
   const getSampleFrame = (): { frame: SBFFrame, buffer: Buffer } => {

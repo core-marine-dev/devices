@@ -1,5 +1,5 @@
-import type { Padding, SBFBodyData } from '../../../shared/types'
-import { getPadding } from '../../../shared/utils'
+import type { Padding, SBFBodyData } from '../../../types'
+import { getPadding } from '../../../utils'
 /* EndOfPVT -> Number: 5921 => "OnChange" interval: default PVT output rate
   This block marks the end of transmission of all PVT related blocks
   belonging to the same epoch.

@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { TimeScale, xPPSOffset, xppsOffset } from '../../../../src/firmware/4-10-1/ReceiverTime/xPPSOffset'
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../utils'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 
 /* xPPSOffset -> Number: 5911 => "OnChange" interval: PPS rate
   The xPPSOffset block contains the offset between the true xPPS pulse and 
