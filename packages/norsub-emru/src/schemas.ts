@@ -1,11 +1,12 @@
-import { z } from 'zod'
-import { BooleanSchema, Uint16Schema, Uint32Schema } from '@coremarine/nmea-parser/lib/schemas'
+import * as v from 'valibot'
+import { Uint16Schema, Uint32Schema } from '@schemasjs/valibot-numbers'
 
+export const BooleanSchema = v.boolean()
 // STATUS
-export const StatusInputSchema = z.object({
-  status: Uint32Schema.optional(),
-  status_a: Uint16Schema.optional(),
-  status_b: Uint16Schema.optional()
+export const StatusInputSchema = v.object({
+  status: v.optional(Uint32Schema),
+  status_a: v.optional(Uint16Schema),
+  status_b: v.optional(Uint16Schema)
 })
 
 /** STATUS
@@ -43,60 +44,60 @@ export const StatusInputSchema = z.object({
  *  30 - AID_VERTICAL_VALID   - 1 = vertical position is valid and used in the observer.
  *  31 - AID_HORIZONTAL_VALID - 1 = horizontal position is valid and used in the observer.
 **/
-export const StatusSchema = z.object({
-  main: z.object({
+export const StatusSchema = v.object({
+  main: v.object({
     ok: BooleanSchema,
     health: BooleanSchema
   }),
-  system: z.object({
+  system: v.object({
     ok: BooleanSchema,
     health: BooleanSchema,
-    synchronized: z.object({
+    synchronized: v.object({
       time: BooleanSchema,
       clock: BooleanSchema
     }),
     cpu: BooleanSchema
   }),
-  sensor: z.object({
+  sensor: v.object({
     ok: BooleanSchema,
     health: BooleanSchema,
     limits: BooleanSchema,
-    environmental: z.object({
+    environmental: v.object({
       vibration: BooleanSchema,
       temperature: BooleanSchema
     })
   }),
-  algorithms: z.object({
+  algorithms: v.object({
     ok: BooleanSchema,
     health: BooleanSchema,
-    initialization: z.object({
+    initialization: v.object({
       observer: BooleanSchema,
       heading: BooleanSchema
     }),
-    roll_pitch: z.object({
+    roll_pitch: v.object({
       ok: BooleanSchema,
       health: BooleanSchema
     }),
-    heading: z.object({
+    heading: v.object({
       ok: BooleanSchema,
       health: BooleanSchema
     }),
-    surge_sway: z.object({
+    surge_sway: v.object({
       ok: BooleanSchema,
       health: BooleanSchema
     }),
-    heave: z.object({
+    heave: v.object({
       ok: BooleanSchema,
       health: BooleanSchema
     })
   }),
-  aiding: z.object({
-    received: z.object({
+  aiding: v.object({
+    received: v.object({
       position: BooleanSchema,
       velocity: BooleanSchema,
       heading: BooleanSchema
     }),
-    valid: z.object({
+    valid: v.object({
       position: BooleanSchema,
       velocity: BooleanSchema,
       heading: BooleanSchema,
