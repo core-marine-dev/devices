@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest'
-
+import * as v from 'valibot'
+import type { ProtocolOutput, Sentence } from '@coremarine/nmea-parser'
 import { NorsubParser } from '../src'
-import { ProtocolOutput, Sentence } from '@coremarine/nmea-parser/lib/types'
 import { StatusSchema } from '../src/schemas'
 
 const PROTOCOLS = ['NMEA', 'GYROCOMPAS1', 'NORSUB', 'NORSUB2', 'NORSUB6', 'NORSUB7', 'NORSUB7b', 'NORSUB8', 'NORSUB PRDID', 'Tokimek PTVG', 'RDI ADCP', 'SMCA', 'SMCC']
@@ -34,7 +34,7 @@ describe('Parser', () => {
               const norsub = parsed[0]
               if (norsub.sentence.includes('PNORSUB')) {
                 const statusField = (norsub.fields.slice(-1))[0].metadata
-                expect(StatusSchema.safeParse(statusField).success).toBeTruthy()
+                expect(v.is(StatusSchema, statusField)).toBeTruthy()
               }
             }
           }
