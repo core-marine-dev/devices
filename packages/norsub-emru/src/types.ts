@@ -1,6 +1,6 @@
 import * as v from 'valibot'
-import { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser/lib/types'
 import { StatusInputSchema, StatusSchema } from './schemas'
+import type { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser'
 
 /** STATUS
  * Bit - Parameter            - Description

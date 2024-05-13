@@ -27,7 +27,7 @@ export class NorsubParser {
   private getStatusIndexes (fields: FieldParsed[]): number[] {
     const indexes: number[] = []
     fields.forEach((field, index) => {
-      if (field.name.includes('status') === true) {
+      if (field.name.includes('status')) {
         indexes.push(index)
       }
     })
@@ -82,7 +82,7 @@ export class NorsubParser {
 
   getProtocols (): ProtocolOutput[] { return this._parser.getProtocols() }
 
-  getSentence (id: string): Sentence { return this._parser.getSentence(id) as Sentence }
+  getSentence (id: string): Sentence { return this._parser.getSentence(id) }
 
   getFakeSentenceByID (id: string): NMEALike { return this._parser.getFakeSentenceByID(id) as NMEALike }
 }
