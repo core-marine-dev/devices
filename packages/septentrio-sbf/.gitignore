@@ -2,6 +2,9 @@
 .vscode
 .idea
 .DS_Store
+docs
+examples
+samples
 
 # Logs
 logs
