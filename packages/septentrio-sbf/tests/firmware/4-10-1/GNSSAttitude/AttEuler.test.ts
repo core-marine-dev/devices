@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import { AttEuler, Error, ErrorCode, Mode, attEuler } from '../../../../src/firmware/4-10-1/GNSSAttitude/AttEuler'
-import { SBFBodyData } from '../../../../src/shared/types'
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../utils'
+import { SBFBodyData } from '../../../../src/types'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 /* AttEuler -> Number: 5938 => "OnChange" interval: default PVT output rate
 The AttEuler block contains the Euler angles (pitch, roll and heading)
 at the time speciﬁed in the TOW and WNc ﬁelds (in the receiver time frame).

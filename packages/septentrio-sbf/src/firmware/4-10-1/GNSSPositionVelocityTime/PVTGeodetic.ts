@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from '../../../shared/constants'
-import type { Padding, SBFBodyData } from '../../../shared/types'
-import { bitState, getNullableValue, getPadding } from '../../../shared/utils'
+import { BYTES_LENGTH } from '../../../constants'
+import type { Padding, SBFBodyData } from '../../../types'
+import { bitState, getNullableValue, getPadding } from '../../../utils'
 import type { GNSSSignal } from '../types'
 import { getGNSSSignal } from '../utils'
 /* PVTGeodetic -> Number: 4007 => "OnChange" interval: default PVT output rate

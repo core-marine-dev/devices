@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from '../../../shared/constants'
-import type { Padding, SBFBodyData } from '../../../shared/types'
-import { bitState, getPadding } from '../../../shared/utils'
+import { BYTES_LENGTH } from '../../../constants'
+import type { Padding, SBFBodyData } from '../../../types'
+import { bitState, getPadding } from '../../../utils'
 /* ReceiverTime -> Number: 5914 => "OnChange" interval: 1 second
   The ReceiverTime block provides the current time with a 1-second resolution
   in the receiver time scale and UTC.

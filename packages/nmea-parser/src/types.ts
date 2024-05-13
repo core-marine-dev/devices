@@ -1,52 +1,39 @@
-import type { z } from 'zod'
+import { Input, Output } from 'valibot'
 import type {
   FieldTypeSchema, FieldSchema,
   ProtocolSchema, ProtocolsFileSchema, ProtocolSentenceSchema,
   VersionSchema, JSONSchemaInputSchema,
   StoredSentenceSchema, StoredSentencesSchema,
   NMEALikeSchema, NMEAUnparsedSentenceSchema, NMEAPreParsedSentenceSchema,
-  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema, FieldUnknownSchema, OutputSentenceSchema, TalkerSchema, IntegerSchema, Int8Schema, Int16Schema, Int32Schema, Uint8Schema, Uint16Schema, Uint32Schema, BigIntegerSchema, BigNaturalSchema, StoredSentenceDataSchema
+  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema, FieldUnknownSchema, OutputSentenceSchema, TalkerSchema, StoredSentenceDataSchema
 } from './schemas'
 // COMMONS
-export type Integer = z.infer<typeof IntegerSchema>
-export type Int8 = z.infer<typeof Int8Schema>
-export type Int16 = z.infer<typeof Int16Schema>
-export type Int32 = z.infer<typeof Int32Schema>
-export type BigInteger = z.infer<typeof BigIntegerSchema>
-// export type Int64 = z.infer<typeof Int64Schema>
-export type Natural = z.infer<typeof IntegerSchema>
-export type Uint8 = z.infer<typeof Uint8Schema>
-export type Uint16 = z.infer<typeof Uint16Schema>
-export type Uint32 = z.infer<typeof Uint32Schema>
-export type BigNatural = z.infer<typeof BigNaturalSchema>
-// export type Uint64 = z.infer<typeof Uint64Schema>
-
 // PROTOCOLS
-export type FieldType = z.infer<typeof FieldTypeSchema>
-export type Field = z.infer<typeof FieldSchema>
-export type FieldUnknown = z.infer<typeof FieldUnknownSchema>
-export type ProtocolSentence = z.infer<typeof ProtocolSentenceSchema>
-export type Version = z.infer<typeof VersionSchema>
-export type Protocol = z.infer<typeof ProtocolSchema>
-export type ProtocolsFile = z.infer<typeof ProtocolsFileSchema>
-export type ProtocolsInput = z.infer<typeof ProtocolsInputSchema>
-export type StoredSentence = z.infer<typeof StoredSentenceSchema>
-export type StoredSentences = z.infer<typeof StoredSentencesSchema>
+export type FieldType = Input<typeof FieldTypeSchema>
+export type Field = Input<typeof FieldSchema>
+export type FieldUnknown = Input<typeof FieldUnknownSchema>
+export type ProtocolSentence = Input<typeof ProtocolSentenceSchema>
+export type Version = Input<typeof VersionSchema>
+export type Protocol = Output<typeof ProtocolSchema>
+export type ProtocolsFile = Output<typeof ProtocolsFileSchema>
+export type ProtocolsInput = Output<typeof ProtocolsInputSchema>
+export type StoredSentence = Input<typeof StoredSentenceSchema>
+export type StoredSentences = Input<typeof StoredSentencesSchema>
 export type ParserSentences = Record<string, StoredSentence>
 // JSON Schema
-export type JSONSchemaInput = z.infer<typeof JSONSchemaInputSchema>
+export type JSONSchemaInput = Input<typeof JSONSchemaInputSchema>
 // SENTENCES
-export type NMEALike = z.infer<typeof NMEALikeSchema>
-export type Talker = z.infer<typeof TalkerSchema>
-export type NMEAUnparsedSentence = z.infer<typeof NMEAUnparsedSentenceSchema>
-export type NMEAPreParsed = z.infer<typeof NMEAPreParsedSentenceSchema>
-export type Data = z.infer<typeof DataSchema>
-export type FieldParsed = z.infer<typeof FieldParsedSchema>
-export type StoredSentenceData = z.infer<typeof StoredSentenceDataSchema>
-export type NMEAUknownSentence = z.infer<typeof NMEAUknownSentenceSchema>
-export type NMEAKnownSentence = z.infer<typeof NMEAKnownSentenceSchema>
-export type NMEASentence = z.infer<typeof NMEASentenceSchema>
-export type OutputSentence = z.infer<typeof OutputSentenceSchema>
+export type NMEALike = Input<typeof NMEALikeSchema>
+export type Talker = Input<typeof TalkerSchema>
+export type NMEAUnparsedSentence = Input<typeof NMEAUnparsedSentenceSchema>
+export type NMEAPreParsed = Input<typeof NMEAPreParsedSentenceSchema>
+export type Data = Input<typeof DataSchema>
+export type FieldParsed = Input<typeof FieldParsedSchema>
+export type StoredSentenceData = Input<typeof StoredSentenceDataSchema>
+export type NMEAUknownSentence = Input<typeof NMEAUknownSentenceSchema>
+export type NMEAKnownSentence = Input<typeof NMEAKnownSentenceSchema>
+export type NMEASentence = Input<typeof NMEASentenceSchema>
+export type OutputSentence = Input<typeof OutputSentenceSchema>
 export type Sentence = null | OutputSentence
 // PARSER
 export interface ProtocolOutput {

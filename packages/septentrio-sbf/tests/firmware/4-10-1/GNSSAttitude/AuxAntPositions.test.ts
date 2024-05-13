@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../utils'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 import { Ambiguity, AuxAntPositionSub, AuxAntPositions, Error, auxAntPositions } from '../../../../src/firmware/4-10-1/GNSSAttitude/AuxAntPositions'
 
 /* AuxAntPositions -> Number: 5942 => "OnChange" interval: default PVT output rate

@@ -1,5 +1,5 @@
-export type TypedData = {
-  number: number,
+export interface TypedData {
+  number: number
   buffer: Buffer
 }
 

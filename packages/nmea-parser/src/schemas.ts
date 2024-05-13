@@ -1,155 +1,181 @@
-import { z } from 'zod'
-import { DELIMITER, END_FLAG, INT16_MAX, INT16_MIN, INT32_MAX, INT32_MIN, INT8_MAX, INT8_MIN, SEPARATOR, START_FLAG, UINT16_MAX, UINT32_MAX, UINT8_MAX } from './constants'
+import * as v from 'valibot'
+import { DELIMITER, DIRNAME, END_FLAG, SEPARATOR, START_FLAG } from './constants'
+
 // COMMONS
-export const StringSchema = z.string()
-export const StringArraySchema = z.array(StringSchema)
-export const BooleanSchema = z.boolean()
-export const NumberSchema = z.number()
-export const IntegerSchema = NumberSchema.int()
-export const Int8Schema = IntegerSchema.min(INT8_MIN).max(INT8_MAX)
-export const Int16Schema = IntegerSchema.min(INT16_MIN).max(INT16_MAX)
-export const Int32Schema = IntegerSchema.min(INT32_MIN).max(INT32_MAX)
-export const BigIntegerSchema = z.bigint()
-// export const Int64Schema = IntegerSchema.min(INT64_MIN).max(INT64_MAX)
-export const NaturalSchema = IntegerSchema.nonnegative()
-export const Uint8Schema = NaturalSchema.max(UINT8_MAX)
-export const Uint16Schema = NaturalSchema.max(UINT16_MAX)
-export const Uint32Schema = NaturalSchema.max(UINT32_MAX)
-export const BigNaturalSchema = BigIntegerSchema.positive()
-// export const Uint64Schema = NaturalSchema.max(UINT64_MAX)
+export const StringSchema = v.string()
+export const StringArraySchema = v.array(StringSchema)
+export const BooleanSchema = v.boolean()
+export const NumberSchema = v.number()
+export const UnsignedIntegerSchema = v.number([v.integer(), v.minValue(0)])
 
 // PROTOCOLS
-export const FieldTypeSchema = z.union([
+export const FieldTypeSchema = v.union([
   // Numbers
-  z.literal('char'), z.literal('uint8'),
-  z.literal('signed char'), z.literal('int8'),
+  v.literal('char'), v.literal('uint8'),
+  v.literal('signed char'), v.literal('int8'),
 
-  z.literal('unsigned short'), z.literal('uint16'),
-  z.literal('short'), z.literal('int16'),
+  v.literal('unsigned short'), v.literal('uint16'),
+  v.literal('short'), v.literal('int16'),
 
-  z.literal('unsigned int'), z.literal('uint32'),
-  z.literal('int'), z.literal('int32'),
+  v.literal('unsigned int'), v.literal('uint32'),
+  v.literal('int'), v.literal('int32'),
 
-  // z.literal('unsigned long'), z.literal('uint64'),
-  // z.literal('long'), z.literal('int64'),
+  // v.literal('unsigned long'), v.literal('uint64'),
+  // v.literal('long'), v.literal('int64'),
 
-  z.literal('float'), z.literal('float32'),
-  z.literal('double'), z.literal('float64'), z.literal('number'),
+  v.literal('float'), v.literal('float32'),
+  v.literal('double'), v.literal('float64'), v.literal('number'),
 
   // Strings
-  z.literal('string'),
+  v.literal('string'),
   // Boolean
-  z.literal('bool'),
-  z.literal('boolean')
+  v.literal('bool'),
+  v.literal('boolean')
 ])
 
-export const FieldSchema = z.object({
+export const FieldSchema = v.object({
   name: StringSchema,
   type: FieldTypeSchema,
-  units: StringSchema.optional(),
-  note: StringSchema.optional()
+  units: v.optional(StringSchema),
+  note: v.optional(StringSchema)
 })
 
-export const FieldUnknownSchema = z.object({
-  name: z.literal('unknown'),
-  type: z.literal('string'),
+export const FieldUnknownSchema = v.object({
+  name: v.literal('unknown'),
+  type: v.literal('string'),
   data: StringSchema
 })
 
-export const ProtocolSentenceSchema = z.object({
+export const ProtocolSentenceSchema = v.object({
   sentence: StringSchema,
-  fields: z.array(FieldSchema),
-  description: StringSchema.optional()
+  fields: v.array(FieldSchema),
+  description: v.optional(StringSchema)
 })
 
-export const VersionSchema = z.custom<`${number}.${number}.${number}`>(val => {
-  const fields = z.string().parse(val).split('.')
-  if (fields.length > 3) return false
-  return fields.every(field => NaturalSchema.safeParse(parseInt(field)).success)
-})
+const maxThreeFields = v.custom((val: string) => val.split('.').length < 4, 'VersionSchema: more than 3 fields')
+const validMajor = v.custom((val: string) => {
+  const major = Number(val.split('.')[0])
+  return !Number.isNaN(major) && major > 0
+}, 'VersionSchema: Invalid major')
+const validMinor = v.custom((val: string) => {
+  const fields = val.split('.')
+  if (fields.length < 2) return true
+  const minor = Number(fields[1])
+  return !Number.isNaN(minor) && minor > 0
+}, 'VersionSchema: Invalid major')
+const validPatch = v.custom((val: string) => {
+  const fields = val.split('.')
+  if (fields.length < 3) return true
+  const patch = Number.parseInt(fields[2])
+  return !Number.isNaN(patch) && patch > 0
+}, 'VersionSchema: Invalid patch')
 
-export const ProtocolSchema = z.object({
+export const VersionSchema = v.special<`${number}.${number}.${number}`>(
+  val => v.safeParse(StringSchema, val).success,
+  [maxThreeFields, validMajor, validMinor, validPatch] as v.Pipe<`${number}.${number}.${number}`>
+)
+
+export const ProtocolSchema = v.object({
   protocol: StringSchema,
-  version: VersionSchema.optional(),
-  standard: BooleanSchema.default(false),
-  sentences: z.array(ProtocolSentenceSchema)
+  version: v.optional(VersionSchema),
+  standard: v.optional(BooleanSchema, false),
+  sentences: v.array(ProtocolSentenceSchema)
 })
 
-export const ProtocolsFileSchema = z.object({ protocols: z.array(ProtocolSchema) })
+export const ProtocolsFileSchema = v.object({ protocols: v.array(ProtocolSchema) })
 
-export const ProtocolsInputSchema = z.object({
-  file: StringSchema.optional(),
-  content: StringSchema.optional(),
-  protocols: z.array(ProtocolSchema).optional()
+export const ProtocolsInputSchema = v.object({
+  file: v.optional(StringSchema),
+  content: v.optional(StringSchema),
+  protocols: v.optional(v.array(ProtocolSchema))
 })
 
-export const StoredSentenceSchema = z.object({
+export const StoredSentenceSchema = v.object({
   sentence: StringSchema,
-  protocol: z.object({
+  protocol: v.object({
     name: StringSchema,
-    standard: BooleanSchema,
-    version: VersionSchema.optional()
+    standard: v.optional(BooleanSchema, false),
+    version: v.optional(VersionSchema)
   }),
-  fields: z.array(FieldSchema),
-  description: StringSchema.optional()
+  fields: v.array(FieldSchema),
+  description: v.optional(StringSchema)
 })
 
-export const StoredSentencesSchema = z.map(StringSchema, StoredSentenceSchema)
+export const StoredSentencesSchema = v.map(StringSchema, StoredSentenceSchema)
 
-export const JSONSchemaInputSchema = z.object({
-  path: StringSchema.default(__dirname),
-  filename: StringSchema.default('nmea_protocols_schema.json')
+export const JSONSchemaInputSchema = v.object({
+  path: v.optional(StringSchema, DIRNAME),
+  filename: v.optional(StringSchema, 'nmea_protocols_schema.json')
 })
 // SENTENCES
-export const NMEALikeSchema = StringSchema
-  .startsWith(START_FLAG)
-  .includes(SEPARATOR)
-  .includes(DELIMITER)
-  .endsWith(END_FLAG)
+export const NMEALikeSchema = v.string([
+  v.startsWith(START_FLAG),
+  v.includes(SEPARATOR),
+  v.includes(DELIMITER),
+  v.endsWith(END_FLAG)
+])
 
-export const TalkerSchema = z.object({
+export const TalkerSchema = v.object({
   id: StringSchema,
   description: StringSchema
 })
 
-export const NMEAUnparsedSentenceSchema = z.object({
+export const NMEAUnparsedSentenceSchema = v.object({
   raw: StringSchema,
   sentence: StringSchema,
-  checksum: NaturalSchema,
+  checksum: UnsignedIntegerSchema,
   data: StringArraySchema
 })
 
-export const NMEAPreParsedSentenceSchema = NMEAUnparsedSentenceSchema.extend({
-  timestamp: NaturalSchema,
-  talker: TalkerSchema.nullable().default(null)
-})
+export const NMEAPreParsedSentenceSchema = v.merge([
+  NMEAUnparsedSentenceSchema,
+  v.object({
+    timestamp: UnsignedIntegerSchema,
+    talker: v.optional(v.nullable(TalkerSchema), null)
+  })
+])
 
-export const DataSchema = z.union([StringSchema, NumberSchema, BooleanSchema]).nullable()
+export const DataSchema = v.nullable(v.union([StringSchema, NumberSchema, BooleanSchema]))
 
-export const FieldParsedSchema = FieldSchema.extend({
-  data: DataSchema
-})
+export const FieldParsedSchema = v.merge([
+  FieldSchema,
+  v.object({
+    data: DataSchema
+  })
+])
 
-export const StoredSentenceDataSchema = StoredSentenceSchema.extend({
-  fields: z.array(FieldParsedSchema),
-  data: z.array(DataSchema)
-})
+export const StoredSentenceDataSchema = v.merge([
+  StoredSentenceSchema,
+  v.object({
+    fields: v.array(FieldParsedSchema),
+    data: v.array(DataSchema)
+  })
+])
 
-export const NMEAUknownSentenceSchema = NMEAPreParsedSentenceSchema.extend({
-  protocol: z.object({ name: z.literal('UNKNOWN') }),
-  fields: z.array(FieldUnknownSchema)
-})
+export const NMEAUknownSentenceSchema = v.merge([
+  NMEAPreParsedSentenceSchema,
+  v.object({
+    protocol: v.object({ name: v.literal('UNKNOWN') }),
+    fields: v.array(FieldUnknownSchema)
+  })
+])
 
-export const NMEAKnownSentenceSchema = StoredSentenceDataSchema.extend({
-  timestamp: NaturalSchema,
-  talker: TalkerSchema.nullable().default(null),
-  checksum: NaturalSchema,
-  fields: z.array(FieldParsedSchema),
-  data: z.array(DataSchema)
-})
+export const NMEAKnownSentenceSchema = v.merge([
+  StoredSentenceDataSchema,
+  v.object({
+    timestamp: UnsignedIntegerSchema,
+    talker: v.optional(v.nullable(TalkerSchema), null),
+    checksum: UnsignedIntegerSchema,
+    fields: v.array(FieldParsedSchema),
+    data: v.array(DataSchema)
+  })
+])
 
-export const NMEASentenceSchema = z.union([NMEAKnownSentenceSchema, NMEAUknownSentenceSchema])
+export const NMEASentenceSchema = v.union([NMEAKnownSentenceSchema, NMEAUknownSentenceSchema])
 
-export const OutputSentenceSchema = StoredSentenceSchema.extend({
-  talker: TalkerSchema.optional()
-})
+export const OutputSentenceSchema = v.merge([
+  StoredSentenceSchema,
+  v.object({
+    talker: v.optional(TalkerSchema)
+  })
+])

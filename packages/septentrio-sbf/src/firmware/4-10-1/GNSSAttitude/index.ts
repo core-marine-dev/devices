@@ -1,4 +1,4 @@
-import type { SBFBodyDataMap } from '../../../shared/types'
+import type { SBFBodyDataMap } from '../../../types'
 import { attCovEuler } from './AttCovEuler'
 import { attEuler } from './AttEuler'
 import { auxAntPositions } from './AuxAntPositions'

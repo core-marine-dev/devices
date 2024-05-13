@@ -1,4 +1,4 @@
-import type { SBFBodyDataMap } from '../../../shared/types'
+import type { SBFBodyDataMap } from '../../../types'
 import { dop } from './DOP'
 import { endOfPVT } from './EndOfPVT'
 import { ptvSupport } from './PVTSupport'

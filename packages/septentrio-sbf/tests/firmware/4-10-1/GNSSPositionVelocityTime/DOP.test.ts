@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { DOP, dop } from '../../../../src/firmware/4-10-1/GNSSPositionVelocityTime/DOP'
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../utils'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 /* DOP -> Number: 4001 => "OnChange" interval: default PVT output rate
   This block contains both Dilution of Precision (DOP) values and SBAS 
   protection levels. The DOP values result from a trace of the unit position 

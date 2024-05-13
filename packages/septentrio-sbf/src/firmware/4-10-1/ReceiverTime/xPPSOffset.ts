@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from '../../../shared/constants'
-import type { Padding, SBFBodyData } from '../../../shared/types'
-import { getPadding } from '../../../shared/utils'
+import { BYTES_LENGTH } from '../../../constants'
+import type { Padding, SBFBodyData } from '../../../types'
+import { getPadding } from '../../../utils'
 /* xPPSOffset -> Number: 5911 => "OnChange" interval: PPS rate
   The xPPSOffset block contains the offset between the true xPPS pulse and
   the actual pulse output by the receiver. It is output right after each xPPS pulse.

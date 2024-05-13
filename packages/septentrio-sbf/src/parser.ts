@@ -10,9 +10,10 @@ import {
   LENGTH_LENGTH,
   MINIMAL_FRAME_LENGTH,
   SYNC_FLAG_BUFFER, TIME_LENGTH, TOW_INDEX, TOW_LENGTH, TWO_BYTES_MAX, WNC_INDEX, WNC_LENGTH
-} from './shared/constants'
-import type { Firmware, SBFBodyData, SBFBodyDataParser, SBFHeader, SBFID, SBFParser, SBFParsingStatus, SBFResponse, SBFTime } from './shared/types'
-import { computedCRC } from './shared/utils'
+} from './constants'
+import type { Firmware, SBFBodyData, SBFBodyDataParser, SBFHeader, SBFID, SBFParser, SBFResponse, SBFTime } from './types'
+import { SBFParsingStatus } from './types'
+import { computedCRC } from './utils'
 import { getFirmareParser, getFirmwares, isAvailableFirmware, throwFirmwareError } from './firmware'
 import { wnTowToGpsTimestamp } from 'gpstime'
 
@@ -35,7 +36,7 @@ export class Parser implements SBFParser {
   protected _frames: SBFResponse[] = []
   // Firmware
   protected _firmware: Firmware = '4.10.1'
-  protected _parser: SBFBodyDataParser
+  protected _parser: SBFBodyDataParser = getFirmareParser(this._firmware) as SBFBodyDataParser
   get firmware (): typeof this._firmware { return this._firmware }
   set firmware (fw: Firmware) {
     if (typeof fw !== 'string') throw new Error('firmware has to be a string')

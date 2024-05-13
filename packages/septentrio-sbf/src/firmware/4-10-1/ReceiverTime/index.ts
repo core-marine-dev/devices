@@ -1,4 +1,4 @@
-import type { SBFBodyDataMap } from '../../../shared/types'
+import type { SBFBodyDataMap } from '../../../types'
 import { receiverTime } from './ReceiverTime'
 import { xppsOffset } from './xPPSOffset'
 
