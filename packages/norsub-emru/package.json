@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/norsub-emru",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "description": "Library to work with eMRU devices of NorSub company",
   "author": "Core Marine",
   "license": "MIT",
@@ -32,13 +32,16 @@
   "scripts": {
     "lint": "ts-standard",
     "format": "ts-standard --fix",
-    "build": "tsc && cp -r ./src/norsub.yaml ./lib",
+    "build": "tsc && cp -r ./src/norsub.yaml ./dist",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@coremarine/nmea-parser": "^1.6.3",
-    "zod": "^3.22.4"
+    "@coremarine/nmea-parser": "1.6.9"
+  },
+  "peerDependencies": {
+    "@schemasjs/valibot-numbers": "^1.0.8",
+    "valibot": "0.30.0"
   },
   "ts-standard": {
     "ignore": [
