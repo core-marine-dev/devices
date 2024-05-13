@@ -1,4 +1,5 @@
-import { Uint32 } from '@coremarine/nmea-parser/lib/types'
+import { Uint32 } from '@schemasjs/valibot-numbers'
+import * as v from 'valibot'
 import { StatusInputSchema } from './schemas'
 import { Status, StatusInput } from './types'
 import { getBit, getUint32 } from './utils'
@@ -104,7 +105,7 @@ const _getStatus = (input: Uint32): Status => {
 }
 
 export const getStatus = (input: StatusInput): Status | null => {
-  if (!StatusInputSchema.safeParse(input).success) { return null }
+  if (!v.is(StatusInputSchema, input)) { return null }
   const { status, status_a: statusA, status_b: statusB } = input
   if (status !== undefined) { return _getStatus(status) }
   if (statusA !== undefined && statusB !== undefined) {

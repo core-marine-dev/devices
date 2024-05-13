@@ -1,6 +1,6 @@
-import { z } from 'zod'
-import { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser/lib/types'
+import * as v from 'valibot'
 import { StatusInputSchema, StatusSchema } from './schemas'
+import type { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser'
 
 /** STATUS
  * Bit - Parameter            - Description
@@ -37,8 +37,8 @@ import { StatusInputSchema, StatusSchema } from './schemas'
  *  30 - AID_VERTICAL_VALID   - 1 = vertical position is valid and used in the observer.
  *  31 - AID_HORIZONTAL_VALID - 1 = horizontal position is valid and used in the observer.
 **/
-export type Status = z.infer<typeof StatusSchema>
-export type StatusInput = z.infer<typeof StatusInputSchema>
+export type Status = v.Input<typeof StatusSchema>
+export type StatusInput = v.Input<typeof StatusInputSchema>
 
 export type NorsubFieldData = Data | Status
 

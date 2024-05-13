@@ -1,8 +1,9 @@
 import { test, expect } from 'vitest'
+import * as v from 'valibot'
 import { Status } from '../src/types'
 import { getStatus } from '../src/status'
 import { StatusSchema } from '../src/schemas'
-import { Uint16, Uint32 } from '@coremarine/nmea-parser/lib/types'
+import { Uint16, Uint32 } from '@schemasjs/valibot-numbers'
 
 /** STATUS
  * Bit - Parameter            - Description
@@ -77,7 +78,7 @@ test('get Status from status full', () => {
   }
   const result = getStatus({ status })
   expect(result).not.toBeNull()
-  expect(StatusSchema.safeParse(result).success).toBeTruthy()
+  expect(v.is(StatusSchema, result)).toBeTruthy()
   expect(result).toEqual(expected)
 })
 
