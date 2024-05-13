@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from '../../../shared/constants'
-import type { Padding, SBFBodyData } from '../../../shared/types'
-import { bitState, getPadding } from '../../../shared/utils'
+import { BYTES_LENGTH } from '../../../constants'
+import type { Padding, SBFBodyData } from '../../../types'
+import { bitState, getPadding } from '../../../utils'
 /* AttCovEuler -> Number: 5939 => "OnChange" interval: default PVT output rate
   This block contains the elements of the symmetric variance-covariance matrix
   of the attitude angles reported in the AttEuler block

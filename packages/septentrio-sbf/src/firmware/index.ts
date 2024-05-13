@@ -1,4 +1,4 @@
-import type { Firmware, SBFBodyDataParser } from '../shared/types'
+import type { Firmware, SBFBodyDataParser } from '../types'
 import { getSBFFrame as getSBFFrame_4_10_1 } from './4-10-1'
 
 // Firmwares

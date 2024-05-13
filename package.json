@@ -80,8 +80,11 @@
     "thelmabiotel-tblive-nodered:test": "npm run test --workspace=@coremarine/nr-tb-live",
     "thelmabiotel-tblive-nodered:test:coverage": "npm run test:coverage --workspace=@coremarine/nr-tb-live"
   },
+  "peerDependencies": {
+    "valibot": "0.30.0"
+  },
   "devDependencies": {
-    "@types/node": "^20.12.10",
+    "@types/node": "20.12.10",
     "@vitest/coverage-v8": "1.6.0",
     "chai": "5.1.0",
     "deep-equal-in-any-order": "2.0.6",

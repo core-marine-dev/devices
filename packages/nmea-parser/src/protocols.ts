@@ -1,26 +1,29 @@
+
 import fs from 'node:fs'
-import Path from 'node:path'
-import zodToJsonSchema from 'zod-to-json-schema'
+import * as v from 'valibot'
+// import Path from 'node:path'
+// import zodToJsonSchema from 'zod-to-json-schema'
 import yaml from 'js-yaml'
-import { JSONSchemaInputSchema, ProtocolsFileSchema, StringSchema } from './schemas'
-import type { JSONSchemaInput, Protocol, ProtocolOutput, ProtocolsFile, StoredSentence, StoredSentences } from './types'
+import { ProtocolsFileSchema, StringSchema } from './schemas'
+import type { Protocol, ProtocolOutput, ProtocolsFile, StoredSentence, StoredSentences } from './types'
 
-export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
+// export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
+// export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
 
-export const createJSONSchema = (input: JSONSchemaInput): void => {
-  const { path, filename } = JSONSchemaInputSchema.parse(input)
-  const FILE = Path.join(path, filename)
-  const CONTENT = JSON.stringify(jsonSchema, null, 2)
-  fs.writeFileSync(FILE, CONTENT)
-}
+// export const createJSONSchema = (input: JSONSchemaInput): void => {
+//   const { path, filename } = JSONSchemaInputSchema.parse(input)
+//   const FILE = Path.join(path, filename)
+//   const CONTENT = JSON.stringify(jsonSchema, null, 2)
+//   fs.writeFileSync(FILE, CONTENT)
+// }
 
 export const readProtocolsString = (content: string): ProtocolsFile => {
   const fileData = yaml.load(content)
-  return ProtocolsFileSchema.parse(fileData)
+  return v.parse(ProtocolsFileSchema, fileData)
 }
 
 export const readProtocolsFile = (file: string): ProtocolsFile => {
-  const filename = StringSchema.parse(file)
+  const filename = v.parse(StringSchema, file)
   const content = fs.readFileSync(filename, 'utf-8')
   return readProtocolsString(content)
 }

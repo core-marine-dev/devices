@@ -1,6 +1,6 @@
-import { BYTES_LENGTH } from '../../../shared/constants'
-import type { Padding, SBFBodyData } from '../../../shared/types'
-import { bitState, getPadding } from '../../../shared/utils'
+import { BYTES_LENGTH } from '../../../constants'
+import type { Padding, SBFBodyData } from '../../../types'
+import { bitState, getPadding } from '../../../utils'
 /* AttEuler -> Number: 5938 => "OnChange" interval: default PVT output rate
   The AttEuler block contains the Euler angles (pitch, roll and heading)
   at the time speciﬁed in the TOW and WNc ﬁelds (in the receiver time frame).

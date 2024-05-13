@@ -95,7 +95,7 @@ protocols:
             units: m
           # 13
           - name: age_of_differential_gps_data
-            type: float64
+            type: uint32
             units: sec
             note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
           # 14
