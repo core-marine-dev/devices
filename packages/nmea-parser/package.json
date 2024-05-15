@@ -54,7 +54,7 @@
     "js-yaml": "4.1.0"
   },
   "peerDependencies": {
-    "valibot": "^0.30.0"
+    "valibot": ">=0.30.0"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9"
