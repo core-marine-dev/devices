@@ -1,5 +1,5 @@
 {
-  "name": "@coremarine/nr-tb-live",
+  "name": "@coremarine/thelmabiotel-tblive-nodered",
   "version": "1.0.0",
   "description": "Node-Red component to work with Thelma Biotel hydrophones TB-Live",
   "author": "CoreMarine",
@@ -26,6 +26,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@coremarine/tb-live": "^0.0.2"
+    "@coremarine/thelmabiotel-tblive": "^0.0.1"
+  },
+  "peerDependencies": {
+    "valibot": ">=0.30.0"
   }
 }
