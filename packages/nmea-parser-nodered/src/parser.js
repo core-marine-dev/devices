@@ -1,8 +1,7 @@
-const { z } = require('zod')
 const { NMEAParser: Parser } = require('@coremarine/nmea-parser')
 
-const isString = value => z.string().safeParse(value).success
-const isBoolean = value => z.boolean().safeParse(value).success
+const isString = value => typeof value === 'string' || value instanceof String
+const isBoolean = value => typeof value === 'boolean' || value instanceof Boolean
 const isNullOrUndefined = value => value === null || value === undefined
 
 const setParser = (parser, { memory, file }) => {
@@ -24,26 +23,26 @@ const getMemory = (parser, memory) => {
       // Memory set
       if (command === 'set') {
         if (!isBoolean(payload)) {
-          return "memory.payload should be boolean"
+          return 'memory.payload should be boolean'
         }
         parser.memory = payload
         return {
-            memory: parser.memory,
-            characters: parser.bufferLimit
+          memory: parser.memory,
+          characters: parser.bufferLimit
         }
       }
       // Memory get
-      if (command ==='get') {
+      if (command === 'get') {
         return {
           memory: parser.memory,
           characters: parser.bufferLimit
         }
       }
     }
-    return "memory.command should be \"get\" or \"set\""
+    return 'memory.command should be "get" or "set"'
   }
   // Invalid value
-  return "invalid memory input"
+  return 'invalid memory input'
 }
 
 const getProtocols = (parser, _protocols) => {
@@ -63,11 +62,10 @@ const getProtocols = (parser, _protocols) => {
         return parser.getProtocols()
       }
     }
-    return "protocols.command should be \"get\" or \"set\""
+    return 'protocols.command should be "get" or "set"'
   }
   // Invalid value
-  return "invalid protocols input"
-
+  return 'invalid protocols input'
 }
 
 const getSentence = (parser, sentence) => {
@@ -78,7 +76,7 @@ const getSentence = (parser, sentence) => {
     return parser.getSentence(sentence)
   }
   // Invalid sentence
-  return "sentence must be a string"
+  return 'sentence must be a string'
 }
 
 const getFake = (parser, id) => {
@@ -89,7 +87,7 @@ const getFake = (parser, id) => {
     return parser.getFakeSentenceByID(id)
   }
   // Invalid sentence
-  return "sentence id must be a string"
+  return 'sentence id must be a string'
 }
 
 const getPayload = (parser, payload) => {
@@ -100,7 +98,7 @@ const getPayload = (parser, payload) => {
     return parser.parseData(payload)
   }
   // Invalid payload
-  return "payload must be an ASCII string"
+  return 'payload must be an ASCII string'
 }
 
 const cleanUndefineds = (msg) => {
@@ -111,9 +109,9 @@ const cleanUndefineds = (msg) => {
   })
 }
 
-module.exports = function(RED) {
+module.exports = function (RED) {
   // Component
-  function NMEAParser(config) {
+  function NMEAParser (config) {
     RED.nodes.createNode(this, config)
     const node = this
     Object.assign(node, config)
@@ -149,10 +147,10 @@ module.exports = function(RED) {
         error = err
       } finally {
         // Finish
-        if (done) { (error === null ) ? done() : done(error) }
+        if (done) { (error === null) ? done() : done(error) }
       }
     })
   }
   // Register
-  RED.nodes.registerType('nmea-parser', NMEAParser)
+  RED.nodes.registerType('cma-nmea-parser', NMEAParser)
 }

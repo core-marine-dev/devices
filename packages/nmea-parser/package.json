@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser",
-  "version": "1.6.9",
+  "version": "1.6.10",
   "description": "Library to parse NMEA 0183 sentences",
   "author": "CoreMarine",
   "license": "ISC",
@@ -51,11 +51,10 @@
   "dependencies": {
     "@gcornut/valibot-json-schema": "^0.0.28",
     "@schemasjs/valibot-numbers": "^1.0.7",
-    "@schemasjs/zod-numbers": "^1.0.2",
     "js-yaml": "4.1.0"
   },
   "peerDependencies": {
-    "valibot": "^0.30.0"
+    "valibot": ">=0.30.0"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9"
