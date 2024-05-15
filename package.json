@@ -80,9 +80,6 @@
     "thelmabiotel-tblive-nodered:test": "npm run test --workspace=@coremarine/thelmabiotel-tblive-nodered",
     "thelmabiotel-tblive-nodered:test:coverage": "npm run test:coverage --workspace=@coremarine/thelmabiotel-tblive-nodered"
   },
-  "peerDependencies": {
-    "valibot": "0.30.0"
-  },
   "devDependencies": {
     "@types/node": "20.12.10",
     "@vitest/coverage-v8": "1.6.0",
@@ -95,6 +92,9 @@
     "tsup": "8.0.2",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
+  },
+  "peerDependencies": {
+    "valibot": ">=0.30.0"
   },
   "ts-standard": {
     "ignore": [
