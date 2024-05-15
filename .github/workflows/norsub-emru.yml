@@ -28,6 +28,9 @@ jobs:
       - name: 📥 Install Dependencies
         run: npm install
 
+      - name: 🛠️ Build monorepo deps
+        run: "npm run nmea-parser:build"
+
       - name: 🧑‍🔬 Tests
         run: "npm run norsub-emru:test"
 
@@ -49,6 +52,9 @@ jobs:
  
       - name: 📥 Install Dependencies
         run: npm install
+
+      - name: 🛠️ Build monorepo deps
+        run: "npm run nmea-parser:build"
     
       - name: 🛠️ Build
         run: "npm run norsub-emru:build"
