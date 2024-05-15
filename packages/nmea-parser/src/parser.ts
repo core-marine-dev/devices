@@ -2,8 +2,7 @@ import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import * as v from 'valibot'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from './constants'
-import { BooleanSchema, NMEALikeSchema, ProtocolsInputSchema, StringSchema } from './schemas'
-import { UnsignedIntegerSchema } from '@schemasjs/zod-numbers'
+import { BooleanSchema, NMEALikeSchema, ProtocolsInputSchema, StringSchema, UnsignedIntegerSchema } from './schemas'
 import type { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentences } from './types'
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols'
 import { generateSentenceFromModel, getFakeSentence, getNMEAUnparsedSentence } from './sentences'
@@ -17,7 +16,7 @@ export class Parser implements NMEAParser {
   protected _buffer: string = ''
   protected _bufferLength: number = MAX_CHARACTERS
   get bufferLimit (): typeof this._bufferLength { return this._bufferLength }
-  set bufferLimit (limit: number) { this._bufferLength = UnsignedIntegerSchema.parse(limit) }
+  set bufferLimit (limit: number) { this._bufferLength = v.parse(UnsignedIntegerSchema, limit) }
   // Sentences
   protected _sentences: StoredSentences = new Map()
   // get sentences() { return this._sentences }
