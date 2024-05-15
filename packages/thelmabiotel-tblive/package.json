@@ -48,9 +48,11 @@
     "test": "vitest",
     "test:coverage": "vitest --coverage"
   },
-  "peerDependencies": {
-    "valibot": "^0.30.0",
+  "dependencies": {
     "@schemasjs/valibot-numbers": "^1.0.8"
+  },
+  "peerDependencies": {
+    "valibot": ">=0.30.0"
   },
   "ts-standard": {
     "ignore": [
