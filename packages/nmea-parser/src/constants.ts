@@ -1,6 +1,14 @@
 import { fileURLToPath } from 'node:url'
 // DIR
-export const DIRNAME = fileURLToPath(import.meta.url)
+const getDirname = (): string => {
+  try {
+    return fileURLToPath(import.meta.url)
+  } catch (error) {
+    return __dirname
+  }
+}
+
+export const DIRNAME = getDirname()
 // NMEA
 export const START_FLAG = '$'
 export const SEPARATOR = ','
