@@ -1,7 +1,7 @@
 import { readdirSync } from 'node:fs'
 import Path from 'node:path'
 import * as v from 'valibot'
-import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from './constants'
+import { DIRNAME, END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from './constants'
 import { BooleanSchema, NMEALikeSchema, ProtocolsInputSchema, StringSchema, UnsignedIntegerSchema } from './schemas'
 import type { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentences } from './types'
 import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols'
@@ -29,7 +29,7 @@ export class Parser implements NMEAParser {
   }
 
   private readInternalProtocols (): void {
-    const folder = Path.join(__dirname, 'protocols')
+    const folder = Path.join(DIRNAME, 'protocols')
     const files = readdirSync(folder, { encoding: 'utf-8' })
     files.forEach(file => {
       const absoluteFile = Path.join(folder, file)

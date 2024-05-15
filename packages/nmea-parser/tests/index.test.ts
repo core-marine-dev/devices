@@ -2,13 +2,13 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import * as v from 'valibot'
-import { NMEAParser as Parser } from '../src'
+import { DIRNAME, NMEAParser as Parser } from '../src'
 import { generateSentenceFromModel, getFakeSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEALikeSchema, NMEAUknownSentenceSchema } from '../src/schemas'
 import { readProtocolsFile } from '../src/protocols'
 import { Protocol } from '../src/types'
 
-const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
+const NORSUB_FILE = path.join(DIRNAME, 'norsub.yaml')
 
 describe('Parser', () => {
   test('Default constructor', () => {

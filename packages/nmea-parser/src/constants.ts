@@ -2,9 +2,9 @@ import { fileURLToPath } from 'node:url'
 // DIR
 const getDirname = (): string => {
   try {
-    return fileURLToPath(import.meta.url)
-  } catch (error) {
     return __dirname
+  } catch (error) {
+    return fileURLToPath(import.meta.url)
   }
 }
 
