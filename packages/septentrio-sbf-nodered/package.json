@@ -1,5 +1,5 @@
 {
-  "name": "@coremarine/nr-sbf-parser",
+  "name": "@coremarine/septentrio-sbf-nodered",
   "version": "1.0.2",
   "author": "CoreMarine",
   "license": "MIT",
@@ -39,6 +39,6 @@
     "test": "mocha \"tests/**/*.test.js\""
   },
   "dependencies": {
-    "@coremarine/sbf-parser": "^1.0.0"
+    "@coremarine/septentrio-sbf": "^1.0.0"
   }
 }

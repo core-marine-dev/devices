@@ -2,8 +2,8 @@ const v = require('valibot')
 const { TBLive: Parser } = require('@coremarine/tb-live')
 const { ReceiverSchema, EmitterSchema } = require('@coremarine/tb-live/lib/schemas')
 
-const isString = value => v.safeParse(v.string(), value).success
-const isBoolean = value => v.safeParse(v.boolean(), value).success
+const isString = value => v.is(v.string(), value)
+const isBoolean = value => v.is(v.boolean(), value)
 const isNullOrUndefined = value => value === null || value === undefined
 
 const setParser = (parser, config) => {

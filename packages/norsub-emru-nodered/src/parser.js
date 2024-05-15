@@ -1,8 +1,7 @@
-const { z } = require('zod')
 const { NorsubParser: Parser } = require('@coremarine/norsub-emru')
 
-const isString = value => z.string().safeParse(value).success
-const isBoolean = value => z.boolean().safeParse(value).success
+const isString = value => typeof value === 'string' || value instanceof String
+const isBoolean = value => typeof value === 'boolean' || value instanceof Boolean
 const isNullOrUndefined = value => value === null || value === undefined
 
 const setParser = (parser, { memory, file }) => {
