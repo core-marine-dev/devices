@@ -51,7 +51,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@coremarine/nmea-parser": "1.6.9",
+    "@coremarine/nmea-parser": ">=1.6.11",
     "@schemasjs/valibot-numbers": "^1.0.8"
   },
   "peerDependencies": {
