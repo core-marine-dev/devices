@@ -8,7 +8,7 @@ import { NMEAKnownSentenceSchema, NMEALikeSchema, NMEAUknownSentenceSchema } fro
 import { readProtocolsFile } from '../src/protocols'
 import { Protocol } from '../src/types'
 
-const NORSUB_FILE = path.join(DIRNAME, 'norsub.yaml')
+const NORSUB_FILE = path.join(DIRNAME, '..', 'tests', 'norsub.yaml')
 
 describe('Parser', () => {
   test('Default constructor', () => {
