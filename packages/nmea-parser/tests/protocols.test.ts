@@ -1,13 +1,12 @@
-import fs from 'node:fs'
 import path from 'node:path'
 import * as v from 'valibot'
 import { describe, test, expect } from 'vitest'
 import { Protocol, StoredSentence } from '../src/types'
 import { getStoreSentences, readProtocolsFile, readProtocolsString } from '../src/protocols' 
 import { ProtocolSchema } from '../src/schemas'
-import { DIRNAME } from '../src'
+import { PROTOCOLS } from './norsub'
 
-const PROTOCOLS_FILE = path.join(DIRNAME, '..', 'tests', 'norsub.yaml')
+const PROTOCOLS_FILE = path.join(__dirname, '..', 'protocols', 'norsub.yaml')
 const EXPECTED_PROTOCOLS: Protocol[] = [
   {
     protocol: 'NORSUB8',
@@ -232,7 +231,8 @@ describe('Protocols File to StoredSentences', () => {
 
 describe('Protocols content to StoredSentences', () => {
   test('Happy path', () => {
-    const content = fs.readFileSync(PROTOCOLS_FILE, 'utf-8')
+    // const content = fs.readFileSync(PROTOCOLS_FILE, 'utf-8')
+    const content = JSON.stringify(PROTOCOLS)
     const { protocols } = readProtocolsString(content)
     const sentences = getStoreSentences({ protocols })
     Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {

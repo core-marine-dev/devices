@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser",
-  "version": "1.6.13",
+  "version": "1.6.14",
   "description": "Library to parse NMEA 0183 sentences",
   "author": "CoreMarine",
   "license": "ISC",
@@ -42,10 +42,11 @@
     "node": ">= 18"
   },
   "scripts": {
-    "build": "tsup && cp -r ./src/protocols ./dist",
+    "protocols": "node yaml-to-json.js ./protocols/nmea.yaml ./src/nmea.ts && node yaml-to-json.js ./protocols/norsub.yaml ./tests/norsub.ts",
+    "build": "npm run protocols && npm run format && tsup",
     "lint": "ts-standard",
     "format": "ts-standard --fix",
-    "test": "vitest",
+    "test": "npm run protocols && vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
@@ -63,7 +64,8 @@
     "ignore": [
       "tests",
       "vitest.config.ts",
-      "tsup.config.ts"
+      "tsup.config.ts",
+      "yaml-to-json.js"
     ]
   },
   "eslintConfig": {
