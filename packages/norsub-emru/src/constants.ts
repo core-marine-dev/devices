@@ -1,16 +1,3 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-// DIR
-export const DIRNAME = ((): string => {
-  try {
-    // CJS
-    return __dirname
-  } catch (error) {
-    // ESM
-    const filename = fileURLToPath(import.meta.url)
-    return path.dirname(filename)
-  }
-})()
 // GENERATE NUMBERS
 export const UINT8_MAX = Uint8Array.from([0b1111_1111])[0]
 export const UINT16_MAX = Uint16Array.from([0b1111_1111_1111_1111])[0]

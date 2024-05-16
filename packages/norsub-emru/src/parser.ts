@@ -1,13 +1,12 @@
-import path from 'node:path'
 import * as v from 'valibot'
-import { MAX_CHARACTERS, NMEAParser } from '@coremarine/nmea-parser'
+import { MAX_CHARACTERS, NMEAParser, ProtocolsInputSchema } from '@coremarine/nmea-parser'
 import type { FieldParsed, NMEALike, NMEASentence, ProtocolOutput, ProtocolsInput, Sentence } from '@coremarine/nmea-parser'
 import { getUint32 } from './utils'
 import { getStatus } from './status'
 import { NorsubSentence } from './types'
 import { BooleanSchema } from './schemas'
 import { UnsignedIntegerSchema } from '@schemasjs/valibot-numbers'
-import { DIRNAME } from './constants'
+import { PROTOCOLS } from './norsub'
 
 export class NorsubParser {
   // Parser
@@ -21,8 +20,8 @@ export class NorsubParser {
   constructor (memory: boolean = true, limit: number = MAX_CHARACTERS) {
     this.memory = memory
     this.bufferLimit = limit
-    const NORSUB_FILE = path.join(DIRNAME, 'norsub.yaml')
-    this.addProtocols({ file: NORSUB_FILE })
+    const parsed = v.parse(ProtocolsInputSchema, PROTOCOLS)
+    this.addProtocols(parsed)
   }
 
   private getStatusIndexes (fields: FieldParsed[]): number[] {
