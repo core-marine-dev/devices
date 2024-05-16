@@ -5,8 +5,9 @@ import { describe, test, expect } from 'vitest'
 import { Protocol, StoredSentence } from '../src/types'
 import { getStoreSentences, readProtocolsFile, readProtocolsString } from '../src/protocols' 
 import { ProtocolSchema } from '../src/schemas'
+import { DIRNAME } from '../src'
 
-const PROTOCOLS_FILE = path.join(__dirname, 'norsub.yaml')
+const PROTOCOLS_FILE = path.join(DIRNAME, '..', 'tests', 'norsub.yaml')
 const EXPECTED_PROTOCOLS: Protocol[] = [
   {
     protocol: 'NORSUB8',
