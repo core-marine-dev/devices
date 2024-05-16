@@ -64,7 +64,8 @@
     "ignore": [
       "tests",
       "vitest.config.ts",
-      "tsup.config.ts"
+      "tsup.config.ts",
+      "yaml-to-json.js"
     ]
   },
   "eslintConfig": {
