@@ -7,6 +7,7 @@ import { getStatus } from './status'
 import { NorsubSentence } from './types'
 import { BooleanSchema } from './schemas'
 import { UnsignedIntegerSchema } from '@schemasjs/valibot-numbers'
+import { DIRNAME } from './constants'
 
 export class NorsubParser {
   // Parser
@@ -20,7 +21,7 @@ export class NorsubParser {
   constructor (memory: boolean = true, limit: number = MAX_CHARACTERS) {
     this.memory = memory
     this.bufferLimit = limit
-    const NORSUB_FILE = path.join(__dirname, 'norsub.yaml')
+    const NORSUB_FILE = path.join(DIRNAME, 'norsub.yaml')
     this.addProtocols({ file: NORSUB_FILE })
   }
 
