@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { DELIMITER, DIRNAME, END_FLAG, SEPARATOR, START_FLAG } from './constants'
+import { DELIMITER, END_FLAG, SEPARATOR, START_FLAG } from './constants'
 
 // COMMONS
 export const StringSchema = v.string()
@@ -104,7 +104,7 @@ export const StoredSentenceSchema = v.object({
 export const StoredSentencesSchema = v.map(StringSchema, StoredSentenceSchema)
 
 export const JSONSchemaInputSchema = v.object({
-  path: v.optional(StringSchema, DIRNAME),
+  path: v.optional(StringSchema),
   filename: v.optional(StringSchema, 'nmea_protocols_schema.json')
 })
 // SENTENCES
