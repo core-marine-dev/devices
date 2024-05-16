@@ -1,14 +1,16 @@
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 // DIR
-const getDirname = (): string => {
+export const DIRNAME = ((): string => {
   try {
-    return fileURLToPath(import.meta.url)
-  } catch (error) {
+    // CJS
     return __dirname
+  } catch (error) {
+    // ESM
+    const filename = fileURLToPath(import.meta.url)
+    return path.dirname(filename)
   }
-}
-
-export const DIRNAME = getDirname()
+})()
 // NMEA
 export const START_FLAG = '$'
 export const SEPARATOR = ','
