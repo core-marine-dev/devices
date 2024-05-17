@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/norsub-emru",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Library to work with eMRU devices of NorSub company",
   "author": "Core Marine",
   "license": "MIT",
@@ -45,7 +45,7 @@
   },
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/norsub.yaml ./src/norsub.ts",
-    "build": "npm run protocols && npm run format && tsc",
+    "build": "npm run protocols && npm run format && tsup",
     "lint": "ts-standard",
     "format": "ts-standard --fix",
     "test": "npm run protocols && vitest",
