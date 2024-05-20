@@ -1,10 +1,10 @@
-# nr-nmea-parser
+# NMEA-Parser-NodeRED
 
-![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nr-nmea-parser)
-[![publish](https://github.com/core-marine-dev/nr-nmea-parser/actions/workflows/publish.yml/badge.svg)](https://github.com/core-marine-dev/nr-nmea-parser/actions/workflows/publish.yml)
-![npm](https://img.shields.io/npm/dy/%40coremarine/nr-nmea-parser)
+![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nmea-parser-nodered)
+[![publish](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser-nodered.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser-nodered.yml)
+![npm](https://img.shields.io/npm/dy/%40coremarine/nmea-parser-nodered)
 
-Node-Red component to read NMEA 0183 sentences. It is a wrapper of [@coremarine/nmea-parser](https://github.com/core-marine-dev/nmea-parser) (check it docs).
+Node-Red component to read NMEA 0183 sentences. It is a wrapper of [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (check it docs).
 
 ## Input
 
@@ -38,7 +38,7 @@ Each input proerty would be responded in the same output property
 NMEA parser translate NMEA ASCII string data into a JavaScript objects (one for each
 NMEA 0183 sentence). Each time it receives data from payload input, it gives the parsed sentences to payload output.
 
-It just a wrapper of the npm library [@coremarine/nmea-parser](https://github.com/core-marine-dev/nmea-parser) (take a look on it).
+It just a wrapper of the npm library [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (take a look on it).
 
 To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
 
@@ -84,9 +84,9 @@ If you just want to know what are the known or supported sentences, you just nee
 If you want to know if a sentence is known / supported, you need to send the sentence id.
 Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
 
-|         Input          |              Output             |
-| :--------------------: | :-----------------------------: |
-| `sentence`: **string** | `sentence`: **object** | `null` |
+|         Input          |              Output              |
+| :--------------------: | :------------------------------: |
+| `sentence`: **string** | `sentence`: **object** \| `null` |
 
 ### Fake
 
@@ -94,6 +94,6 @@ If you want to get a NMEA-like sentence, maybe just to do some tests, you need t
 Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
 This fake sentence is correct in terms of NMEA requirements but each field has garbage.
 
-|       Input        |            Output           |
-| :----------------: | :-------------------------: |
-| `fake`: **string** | `fake`: **string** | `null` |
+|       Input        |            Output            |
+| :----------------: | :--------------------------: |
+| `fake`: **string** | `fake`: **string** \| `null` |
