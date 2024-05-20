@@ -19,60 +19,60 @@ export type FLAGS = typeof FLAGS_LISTENING | typeof FLAGS_COMMAND
 export type Data = boolean | string | number
 export type Type = typeof FIELD_TYPE[number]
 export interface Field {
-  name: string,
-  type: Type,
-  units?: string,
-  data: Data,
+  name: string
+  type: Type
+  units?: string
+  data: Data
   metadata?: any
 }
 
 export interface Frame {
-  name: string,
-  raw: string,
-  error?: string | object,
-  data?: Data[],
-  fields?: Field[],
+  name: string
+  raw: string
+  error?: string | object
+  data?: Data[]
+  fields?: Field[]
   metadata?: any
 }
 
 export interface ParsedFrame {
-  frame: Frame | null,
+  frame: Frame | null
   remainder: string
 }
 
 export interface FirmwareFrame extends Frame {
-  firmware: Firmware,
-  mode: Mode,
+  firmware: Firmware
+  mode: Mode
   errorFirmware?: string
 }
 
 export interface ParsingFrame {
   mode: Mode
-  index: number,
-  flag: FLAG,
-  last: boolean,
+  index: number
+  flag: FLAG
+  last: boolean
 }
 
 export interface ListeningParsingFrame extends ParsingFrame {
   mode: 'listening'
-  flag: typeof FLAGS_LISTENING[number],
+  flag: typeof FLAGS_LISTENING[number]
 }
 
 export interface CommandParsingFrame {
   mode: 'command'
-  index: number,
-  flag: typeof FLAGS_COMMAND[number],
-  last: boolean,
+  index: number
+  flag: typeof FLAGS_COMMAND[number]
+  last: boolean
 }
 
 export interface OutputFrame extends FirmwareFrame {
-  timestamp: number,
+  timestamp: number
   errorReceiver?: string
 }
 
 export interface ParserOutput {
-  frames: FirmwareFrame[],
-  nonparsed: string,
+  frames: FirmwareFrame[]
+  nonparsed: string
   firmwareChange: boolean
 }
 
@@ -81,13 +81,13 @@ export type MapModeParser = Map<Mode, Parser>
 export type MapFirmwareParser = Map<Firmware, Parser>
 
 export interface LineData {
-  raw: number,
+  raw: number
   angle: {
-    raw: number,
+    raw: number
     degrees: number
-  },
+  }
   deviation: {
-    raw: number,
+    raw: number
     degrees: number
   }
 }
@@ -95,31 +95,31 @@ export interface LineData {
 export type SignalQuality = 'weak' | 'regular' | 'strong'
 
 export interface LineSNR {
-  raw: number,
+  raw: number
   signal: SignalQuality
 }
 
 export interface LineTemperature {
-  raw: number,
+  raw: number
   degrees: number
 }
 
 export interface ListeningEmitterFrame extends Frame {
   metadata: {
-    receiver: SerialNumber,
+    receiver: SerialNumber
     sample: {
-      timestamp: Uint16,
-      emitter: SerialNumber,
-      frequency: Frequency,
-      protocol: string,
+      timestamp: Uint16
+      emitter: SerialNumber
+      frequency: Frequency
+      protocol: string
       angle: {
-        avg: Int8,
+        avg: Int8
         std: Int8
-      },
+      }
       snr: {
-        value: Uint8,
+        value: Uint8
         signal: 'weak' | 'regular' | 'strong'
-      },
+      }
       message?: number
     }
   }
@@ -127,20 +127,20 @@ export interface ListeningEmitterFrame extends Frame {
 
 export interface ListeningReceiverFrame extends Frame {
   metadata: {
-    receiver: SerialNumber,
+    receiver: SerialNumber
     sample: {
-      timestamp: Uint16,
-      frequency?: Frequency,
-      log: string,
-      temperature: Int16,
+      timestamp: Uint16
+      frequency?: Frequency
+      log: string
+      temperature: Int16
       noise: {
-        average: Int8,
-        peak: Int8,
+        average: Int8
+        peak: Int8
         snr?: {
-          value: Uint8,
+          value: Uint8
           signal: 'weak' | 'regular' | 'strong'
         }
-      },
+      }
       message?: number
     }
   }
@@ -168,24 +168,24 @@ export interface CommandFrequencyFrame extends Frame {
 
 export interface CommandTimestampFrame extends Frame {
   metadata: {
-    timestamp: number,
+    timestamp: number
     date: string
   }
 }
 
 export interface CommandLogIntervalFrame extends Frame {
   metadata: {
-    logInterval: keyof typeof LOG_INTERVALS,
+    logInterval: keyof typeof LOG_INTERVALS
     time: typeof LOG_INTERVALS[keyof typeof LOG_INTERVALS]
   }
 }
 
 export interface CommandProtocolsFrame extends Frame {
   metadata: {
-    lm: keyof typeof PROTOCOLS,
-    channel: typeof PROTOCOLS[keyof typeof PROTOCOLS]['channel'],
+    lm: keyof typeof PROTOCOLS
+    channel: typeof PROTOCOLS[keyof typeof PROTOCOLS]['channel']
     protocols: {
-      id: typeof PROTOCOLS[keyof typeof PROTOCOLS]['id'],
+      id: typeof PROTOCOLS[keyof typeof PROTOCOLS]['id']
       data: typeof PROTOCOLS[keyof typeof PROTOCOLS]['data']
     }
   }

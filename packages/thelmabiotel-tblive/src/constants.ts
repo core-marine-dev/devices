@@ -60,25 +60,25 @@ export const PROTOCOLS = {
   '07': { channel: 'single', id: ['OPi'], data: ['OPs'] },
   '08': { channel: 'single', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
   // Dual Channel
-  '30': { channel: 'dual', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
-  '31': { channel: 'dual', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
-  '32': { channel: 'dual', id: ['R01M'], data: ['S64K'] },
-  '33': { channel: 'dual', id: ['R01M'], data: [] },
-  '34': { channel: 'dual', id: [], data: ['S64K'] },
-  '35': { channel: 'dual', id: [], data: ['HS256'] },
-  '36': { channel: 'dual', id: [], data: ['DS256'] },
-  '37': { channel: 'dual', id: ['OPi'], data: ['OPs'] },
-  '38': { channel: 'dual', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
+  30: { channel: 'dual', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
+  31: { channel: 'dual', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
+  32: { channel: 'dual', id: ['R01M'], data: ['S64K'] },
+  33: { channel: 'dual', id: ['R01M'], data: [] },
+  34: { channel: 'dual', id: [], data: ['S64K'] },
+  35: { channel: 'dual', id: [], data: ['HS256'] },
+  36: { channel: 'dual', id: [], data: ['DS256'] },
+  37: { channel: 'dual', id: ['OPi'], data: ['OPs'] },
+  38: { channel: 'dual', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
   // Triple Channel
-  '60': { channel: 'triple', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
-  '61': { channel: 'triple', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
-  '62': { channel: 'triple', id: ['R01M'], data: ['S64K'] },
-  '63': { channel: 'triple', id: ['R01M'], data: [] },
-  '64': { channel: 'triple', id: [], data: ['S64K'] },
-  '65': { channel: 'triple', id: [], data: ['HS256'] },
-  '66': { channel: 'triple', id: [], data: ['DS256'] },
-  '67': { channel: 'triple', id: ['OPi'], data: ['OPs'] },
-  '68': { channel: 'triple', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] }
+  60: { channel: 'triple', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
+  61: { channel: 'triple', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
+  62: { channel: 'triple', id: ['R01M'], data: ['S64K'] },
+  63: { channel: 'triple', id: ['R01M'], data: [] },
+  64: { channel: 'triple', id: [], data: ['S64K'] },
+  65: { channel: 'triple', id: [], data: ['HS256'] },
+  66: { channel: 'triple', id: [], data: ['DS256'] },
+  67: { channel: 'triple', id: ['OPi'], data: ['OPs'] },
+  68: { channel: 'triple', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] }
 } as const
 
 export const TIMESTAMP_START = 'UT='
@@ -89,29 +89,29 @@ export const API_START = 'In Command Mode'
 export const API_END = 'L is Luhn\'s verification number.'
 export const API_TYPICAL_CONTENT = `In Command Mode
 Read values
-  SN?	-	-	->	TBR serial number
-  FV?	-	-	->	Firmware version
-  FC?	-	-	->	Listening freq. in kHz
-  LM?	-	-	->	Listening Mode. Determines active protocols
-  LI?	-	-	->	TBR sensor log interval (00=never,01=once every 5 min,02=10 min,03=30 min, 04=1 hour, 05=2 hours, 06=12 hours, 07=24 hours)
-  UT?	-	-	->	Current UNIX timestamp (UTC)
+  SN? ---> TBR serial number
+  FV? ---> Firmware version
+  FC? ---> Listening freq. in kHz
+  LM? ---> Listening Mode. Determines active protocols
+  LI? ---> TBR sensor log interval (00=never,01=once every 5 min,02=10 min,03=30 min, 04=1 hour, 05=2 hours, 06=12 hours, 07=24 hours)
+  UT? ---> Current UNIX timestamp (UTC)
 Set values
-  FC=69	-	->	Set freq. channel (base frequency)
-  LM=01	-	-	->	Listening Mode. Sets active protocols.
-  LI=00	-	->	Set TBR sensor log interval (00=never,01=once every 5 min,02=10 min,03=30 min, 04=1 hour, 05=2 hours, 06=12 hours, 07=24 hours)
-  UT=1234567890	->	Set UNIX timestamp (UTC)
+  FC=69 --> Set freq. channel (base frequency)
+  LM=01 --> Listening Mode. Sets active protocols.
+  LI=00 --> Set TBR sensor log interval (00=never,01=once every 5 min,02=10 min,03=30 min, 04=1 hour, 05=2 hours, 06=12 hours, 07=24 hours)
+  UT=1234567890 -> Set UNIX timestamp (UTC)
 Actions
-  EX!	-	-	->	Exit command mode and resume listening for signals
-  RR!	-	-	->	Restart TBR
-  FS!	-	-	->	Warning: Restores factory settings and deletes all tag detections and TBR sensor logs from flash memory
-  UF!	-	-	->	Warning: Puts TBR in bootloader mode. Firmware must be written after activating this action
+  EX! ---> Exit command mode and resume listening for signals
+  RR! ---> Restart TBR
+  FS! ---> Warning: Restores factory settings and deletes all tag detections and TBR sensor logs from flash memory
+  UF! ---> Warning: Puts TBR in bootloader mode. Firmware must be written after activating this action
 
 In Listening mode
 Note: Minimum 1 ms betwee
 n input characters
-  TBRC		->	 Enter Command Mode
-  (+)			->	 Sync Time
-  (+)XXXXXXXXXL	->	 Sync and set new time (UTC) with the least significant digit being 10 seconds. L is Luhn's verification number.`
+  TBRC --> Enter Command Mode
+  (+)  --> Sync Time
+  (+)XXXXXXXXXL -> Sync and set new time (UTC) with the least significant digit being 10 seconds. L is Luhn's verification number.`
 
 export const RESTART_DEVICE = 'RR!'
 export const FACTORY_RESET = 'FS!'

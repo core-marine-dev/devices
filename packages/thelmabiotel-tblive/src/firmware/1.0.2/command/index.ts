@@ -132,9 +132,9 @@ export const commands = {
   'RR!': restart,
   'FS!': factoryReset,
   'UF!': upgradeFirmware,
-  'LIVECM': commandModeON,
-  'TBRC': commandModeON,
-  'EX!': commandModeOFF,
+  LIVECM: commandModeON,
+  TBRC: commandModeON,
+  'EX!': commandModeOFF
 }
 
 export const parse = (input: string, flag: typeof FLAGS_COMMAND[number]): ParsedFrame => {
