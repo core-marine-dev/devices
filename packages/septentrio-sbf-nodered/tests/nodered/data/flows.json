@@ -18,10 +18,10 @@
             "color": "#000000"
         },
         "nodes": [
-            "19d2beac28046f13",
             "53abd80f26792b4b",
             "ccda5bb136054260",
-            "41db0d0750f3f612"
+            "41db0d0750f3f612",
+            "04b52a9b893ea082"
         ],
         "x": 34,
         "y": 19,
@@ -39,11 +39,11 @@
             "color": "#000000"
         },
         "nodes": [
-            "af902cad35290e2b",
             "599342fb0d1ff910",
             "5e291c1aa0e5f0f4",
             "998679cdd22581c7",
-            "76dcdf2dc1e34841"
+            "76dcdf2dc1e34841",
+            "af9d2a7e8a72e0c6"
         ],
         "x": 34,
         "y": 339,
@@ -61,11 +61,11 @@
             "color": "#000000"
         },
         "nodes": [
-            "b459be092fba9c74",
             "7a95891039f9cc89",
             "7384a463cac50619",
             "044519f6cecfe34a",
-            "4ffe6f259b1af496"
+            "4ffe6f259b1af496",
+            "d284c8b474585973"
         ],
         "x": 34,
         "y": 159,
@@ -84,14 +84,14 @@
             "color": "#000000"
         },
         "nodes": [
-            "90beb6a7e5b807d9",
             "b436c67d96d24741",
             "c5c9c375e9096b62",
             "10b02f71df2eadf9",
             "c767531cace053a3",
             "fcdf75fd8346a3fa",
             "df93fe1cede0a1f9",
-            "c2f64fd222a3d33d"
+            "c2f64fd222a3d33d",
+            "266bbdfcb717fe6d"
         ],
         "x": 714,
         "y": 159,
@@ -110,7 +110,6 @@
             "color": "#000000"
         },
         "nodes": [
-            "06cf4d6e88747501",
             "24e7654b56032665",
             "756427128ccc43b3",
             "31dc676ee8aefc4e",
@@ -119,29 +118,14 @@
             "182d3a8dfda0ef74",
             "b059a88c8d5c1364",
             "480a6ce6ad8c1e94",
-            "9010554dedebfc2d"
+            "9010554dedebfc2d",
+            "3c3af37b2a3c209d"
         ],
         "x": 34,
         "y": 519,
         "w": 812,
         "h": 302,
         "info": "If you have memory and add incomplete data, it would be stored inside parser.\nIf you add the missing data and then get data, you would have all the info."
-    },
-    {
-        "id": "19d2beac28046f13",
-        "type": "septentrio-parser",
-        "z": "f36c24c07453273d",
-        "g": "7a95d26d8636f7eb",
-        "name": "SBF",
-        "firmware": "4.10.1",
-        "memory": true,
-        "x": 290,
-        "y": 80,
-        "wires": [
-            [
-                "ccda5bb136054260"
-            ]
-        ]
     },
     {
         "id": "53abd80f26792b4b",
@@ -165,7 +149,7 @@
         "y": 100,
         "wires": [
             [
-                "19d2beac28046f13"
+                "04b52a9b893ea082"
             ]
         ]
     },
@@ -214,23 +198,7 @@
         "y": 60,
         "wires": [
             [
-                "19d2beac28046f13"
-            ]
-        ]
-    },
-    {
-        "id": "af902cad35290e2b",
-        "type": "septentrio-parser",
-        "z": "f36c24c07453273d",
-        "g": "e00c904d04b34ea6",
-        "name": "SBF Memory OFF",
-        "firmware": "4.10.1",
-        "memory": false,
-        "x": 330,
-        "y": 420,
-        "wires": [
-            [
-                "5e291c1aa0e5f0f4"
+                "04b52a9b893ea082"
             ]
         ]
     },
@@ -256,7 +224,7 @@
         "y": 460,
         "wires": [
             [
-                "af902cad35290e2b"
+                "af9d2a7e8a72e0c6"
             ]
         ]
     },
@@ -305,7 +273,7 @@
         "y": 380,
         "wires": [
             [
-                "af902cad35290e2b"
+                "af9d2a7e8a72e0c6"
             ]
         ]
     },
@@ -336,23 +304,7 @@
         "y": 420,
         "wires": [
             [
-                "af902cad35290e2b"
-            ]
-        ]
-    },
-    {
-        "id": "b459be092fba9c74",
-        "type": "septentrio-parser",
-        "z": "f36c24c07453273d",
-        "g": "2d221b3fe54345df",
-        "name": "SBF Memory ON",
-        "firmware": "4.10.1",
-        "memory": true,
-        "x": 330,
-        "y": 240,
-        "wires": [
-            [
-                "7384a463cac50619"
+                "af9d2a7e8a72e0c6"
             ]
         ]
     },
@@ -378,7 +330,7 @@
         "y": 280,
         "wires": [
             [
-                "b459be092fba9c74"
+                "d284c8b474585973"
             ]
         ]
     },
@@ -427,7 +379,7 @@
         "y": 200,
         "wires": [
             [
-                "b459be092fba9c74"
+                "d284c8b474585973"
             ]
         ]
     },
@@ -458,23 +410,7 @@
         "y": 240,
         "wires": [
             [
-                "b459be092fba9c74"
-            ]
-        ]
-    },
-    {
-        "id": "90beb6a7e5b807d9",
-        "type": "septentrio-parser",
-        "z": "f36c24c07453273d",
-        "g": "e02a58cb1870a908",
-        "name": "Toggle SBF memory",
-        "firmware": "4.10.1",
-        "memory": true,
-        "x": 1040,
-        "y": 320,
-        "wires": [
-            [
-                "c5c9c375e9096b62"
+                "d284c8b474585973"
             ]
         ]
     },
@@ -500,7 +436,7 @@
         "y": 460,
         "wires": [
             [
-                "90beb6a7e5b807d9"
+                "266bbdfcb717fe6d"
             ]
         ]
     },
@@ -549,7 +485,7 @@
         "y": 380,
         "wires": [
             [
-                "90beb6a7e5b807d9"
+                "266bbdfcb717fe6d"
             ]
         ]
     },
@@ -580,7 +516,7 @@
         "y": 420,
         "wires": [
             [
-                "90beb6a7e5b807d9"
+                "266bbdfcb717fe6d"
             ]
         ]
     },
@@ -611,7 +547,7 @@
         "y": 200,
         "wires": [
             [
-                "90beb6a7e5b807d9"
+                "266bbdfcb717fe6d"
             ]
         ]
     },
@@ -642,7 +578,7 @@
         "y": 240,
         "wires": [
             [
-                "90beb6a7e5b807d9"
+                "266bbdfcb717fe6d"
             ]
         ]
     },
@@ -668,23 +604,7 @@
         "y": 280,
         "wires": [
             [
-                "90beb6a7e5b807d9"
-            ]
-        ]
-    },
-    {
-        "id": "06cf4d6e88747501",
-        "type": "septentrio-parser",
-        "z": "f36c24c07453273d",
-        "g": "bab99d1c0e6d6eb9",
-        "name": "Changing SBF firmware",
-        "firmware": "4.10.1",
-        "memory": true,
-        "x": 430,
-        "y": 680,
-        "wires": [
-            [
-                "756427128ccc43b3"
+                "266bbdfcb717fe6d"
             ]
         ]
     },
@@ -710,7 +630,7 @@
         "y": 780,
         "wires": [
             [
-                "06cf4d6e88747501"
+                "3c3af37b2a3c209d"
             ]
         ]
     },
@@ -759,7 +679,7 @@
         "y": 700,
         "wires": [
             [
-                "06cf4d6e88747501"
+                "3c3af37b2a3c209d"
             ]
         ]
     },
@@ -790,7 +710,7 @@
         "y": 740,
         "wires": [
             [
-                "06cf4d6e88747501"
+                "3c3af37b2a3c209d"
             ]
         ]
     },
@@ -821,7 +741,7 @@
         "y": 560,
         "wires": [
             [
-                "06cf4d6e88747501"
+                "3c3af37b2a3c209d"
             ]
         ]
     },
@@ -852,7 +772,7 @@
         "y": 600,
         "wires": [
             [
-                "06cf4d6e88747501"
+                "3c3af37b2a3c209d"
             ]
         ]
     },
@@ -878,7 +798,7 @@
         "y": 640,
         "wires": [
             [
-                "06cf4d6e88747501"
+                "3c3af37b2a3c209d"
             ]
         ]
     },
@@ -888,7 +808,7 @@
         "z": "f36c24c07453273d",
         "g": "bab99d1c0e6d6eb9",
         "name": "SBF Errors",
-        "scope": null,
+        "scope": "group",
         "uncaught": false,
         "x": 560,
         "y": 640,
@@ -915,5 +835,85 @@
         "x": 730,
         "y": 640,
         "wires": []
+    },
+    {
+        "id": "04b52a9b893ea082",
+        "type": "cma-septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "7a95d26d8636f7eb",
+        "name": "",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 290,
+        "y": 80,
+        "wires": [
+            [
+                "ccda5bb136054260"
+            ]
+        ]
+    },
+    {
+        "id": "af9d2a7e8a72e0c6",
+        "type": "cma-septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "e00c904d04b34ea6",
+        "name": "SBF Memory OFF",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 330,
+        "y": 420,
+        "wires": [
+            [
+                "5e291c1aa0e5f0f4"
+            ]
+        ]
+    },
+    {
+        "id": "d284c8b474585973",
+        "type": "cma-septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "2d221b3fe54345df",
+        "name": "SBF Memory ON",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 330,
+        "y": 240,
+        "wires": [
+            [
+                "7384a463cac50619"
+            ]
+        ]
+    },
+    {
+        "id": "266bbdfcb717fe6d",
+        "type": "cma-septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "e02a58cb1870a908",
+        "name": "Toggle SBF memory",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 1040,
+        "y": 320,
+        "wires": [
+            [
+                "c5c9c375e9096b62"
+            ]
+        ]
+    },
+    {
+        "id": "3c3af37b2a3c209d",
+        "type": "cma-septentrio-parser",
+        "z": "f36c24c07453273d",
+        "g": "bab99d1c0e6d6eb9",
+        "name": "Changing SBF firmware",
+        "firmware": "4.10.1",
+        "memory": true,
+        "x": 430,
+        "y": 680,
+        "wires": [
+            [
+                "756427128ccc43b3"
+            ]
+        ]
     }
 ]
