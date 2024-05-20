@@ -8,8 +8,7 @@ export default defineConfig({
         '**/*/constants.ts',
         '**/*/types.ts',
         'dist/*',
-        'examples/*',
-        'src/gpstime.d.ts'
+        'gpstime.d.ts'
       ]
     }
   }

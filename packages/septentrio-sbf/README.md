@@ -70,7 +70,7 @@ This is important
 First of all, import the parser
 
 ```typescript
-import { SBFParser } from 'sbf-parser'
+import { SBFParser } from '@coremarine/septentrio-sbf'
 ```
 
 ### 2. Creating an instance
@@ -87,7 +87,7 @@ SBFParser([firmware: Firmware = '4.10.1', memory: boolean = false])
     To know supported firmwares just consult with
 
     ```typescript
-    import { availableFirmwares } from 'sbf-parser'
+    import { availableFirmwares } from '@coremarine/septentrio-sbf'
     const firmwares = availableFirmwares()
     ```
 
