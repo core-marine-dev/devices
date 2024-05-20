@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - norsub-emru-nodered/**
+      - packages/norsub-emru-nodered/**
 
 jobs:
   # test:
