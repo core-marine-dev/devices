@@ -9,8 +9,8 @@ export class TBLive {
   protected _buffer: string = ''
 
   protected _firmware: Firmware
-  get firmware(): Firmware { return this._firmware }
-  set firmware(fw: Firmware) {
+  get firmware (): Firmware { return this._firmware }
+  set firmware (fw: Firmware) {
     this._firmware = v.parse(FirmwareSchema, fw)
     const parser = firmwareParser.get(this.firmware)
     if (parser !== undefined) {
@@ -21,18 +21,18 @@ export class TBLive {
     }
   }
 
-  get firmwares(): typeof FIRMWARES_AVAILABLE { return FIRMWARES_AVAILABLE }
+  get firmwares (): typeof FIRMWARES_AVAILABLE { return FIRMWARES_AVAILABLE }
 
   protected _receiver: Receiver | null = null
-  get receiver(): Receiver | null { return (this._receiver !== null) ? { ...this._receiver } : null }
-  set receiver(receiver: Receiver) {
+  get receiver (): Receiver | null { return (this._receiver !== null) ? { ...this._receiver } : null }
+  set receiver (receiver: Receiver) {
     this._receiver = v.parse(ReceiverSchema, receiver)
     if (this._receiver.firmware !== this._firmware) {
       this._firmware = this._receiver.firmware
     }
   }
 
-  constructor(firmware: Firmware = '1.0.1', receiver: Receiver | null = null) {
+  constructor (firmware: Firmware = '1.0.1', receiver: Receiver | null = null) {
     this._firmware = v.parse(FirmwareSchema, firmware)
     const parser = firmwareParser.get(this._firmware)
     if (parser === undefined) throw new Error(`Firmware ${firmware} is not supported`)
@@ -43,7 +43,7 @@ export class TBLive {
     }
   }
 
-  protected checkEmitters(emitter: string, frequency: number, emitters: Emitter[]): string {
+  protected checkEmitters (emitter: string, frequency: number, emitters: Emitter[]): string {
     for (const _emitter of emitters) {
       if (_emitter.serialNumber === emitter) {
         return (_emitter.frequency === frequency) ? '' : `Invalid Emitter Frequency ${frequency} -> Valid ${_emitter.frequency}`
@@ -52,7 +52,7 @@ export class TBLive {
     return `Invalid Emitter Serial Number ${emitter} -> Valid emitters are ${emitters.map(em => em.serialNumber).toString()}`
   }
 
-  protected checkReceiver(frame: FirmwareFrame): string {
+  protected checkReceiver (frame: FirmwareFrame): string {
     if (this._receiver === null) return ''
     if (['emitter', 'receiver', 'ping', 'serial number'].every(name => frame.name !== name)) return ''
     const receiverSerialNumber: SerialNumber = this._receiver.serialNumber
@@ -81,7 +81,7 @@ export class TBLive {
     return this.checkEmitters(sampleEmitter, frameFrequency, emitters)
   }
 
-  protected getNewFirmwareChange(): void {
+  protected getNewFirmwareChange (): void {
     // Check there is a new firmware change
     const nextFirmwareChangeIndex = this._buffer.indexOf(FIRMWARE_START, FIRMWARE_START.length)
     if (nextFirmwareChangeIndex === -1) {
@@ -104,9 +104,9 @@ export class TBLive {
     this.getNewFirmwareChange()
   }
 
-  addData(data: string): void { this._buffer += v.parse(StringSchema, data) }
+  addData (data: string): void { this._buffer += v.parse(StringSchema, data) }
 
-  parseData(data: string = ''): OutputFrame[] {
+  parseData (data: string = ''): OutputFrame[] {
     if (v.parse(StringSchema, data).length > 0) {
       this.addData(data)
     }

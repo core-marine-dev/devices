@@ -53,7 +53,7 @@ export const parseFirmware = (text: string): CommandFirmwareFrame | Frame => {
   const { patch, error: errorPatch } = getPatch(patchText)
   if (errorPatch !== undefined) { return { name, raw: text, error: errorPatch } }
   // Get Firmware
-  const fw = `${major}.${minor}.${patch}`
+  const fw = `${major as string}.${minor as string}.${patch as string}`
   const endIndex = text.indexOf(fw) + fw.length
   const raw = text.slice(FIRMWARE_START.length, endIndex)
   const parsed = v.safeParse(FirmwareSchema, fw)

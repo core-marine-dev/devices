@@ -112,14 +112,14 @@ export const parser: Parser = (input: string) => {
     const { frame, remainder } = (mode === 'listening')
       ? listeningFrame(nonparsed, flag as typeof FLAGS_LISTENING[number])
       : commandFrame(nonparsed, flag as typeof FLAGS_COMMAND[number])
-    
+
     nonparsed = remainder
     if (frame !== null) {
       frames.push({ ...frame, firmware: '1.0.2', mode })
       if (mode === 'command' && frame.name === 'firmware') {
         firmwareChange = true
         break
-    }
+      }
     }
     if (last) {
       break
