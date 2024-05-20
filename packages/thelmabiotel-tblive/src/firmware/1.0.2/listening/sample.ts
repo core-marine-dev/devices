@@ -66,7 +66,7 @@ export const emitter = (elements: string[]): Omit<ListeningEmitterFrame, 'raw'> 
         protocol,
         angle: {
           avg: line.angle.degrees,
-          std: line.deviation.degrees,
+          std: line.deviation.degrees
         },
         snr: {
           value: signal.raw,

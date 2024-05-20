@@ -7,9 +7,9 @@ export default defineConfig({
       exclude: [
         '**/*/constants.ts',
         '**/*/types.ts',
-        'lib/*',
-        'nodered/**/*'
+        'dist/*',
+        'tsup.config.ts'
       ]
     }
-  },
+  }
 })

@@ -31,7 +31,6 @@ export const FirmwareSchema = v.string([
 
 export const ModeSchema = v.picklist(MODES, 'Mode: It should be "listening" or "command" or "update"')
 
-
 export const EmitterSchema = v.object({
   serialNumber: SerialNumberSchema,
   frequency: FrequencySchema
@@ -52,8 +51,8 @@ export const ReceiverSchema = v.object(
     v.forward(
       v.custom(
         ({ emitters }) => ((emitters === undefined)
-          ? true :
-          new Set(emitters.map(emitter => emitter.serialNumber)).size === emitters.length),
+          ? true
+          : new Set(emitters.map(emitter => emitter.serialNumber)).size === emitters.length),
         'Receiver: All emitters serial number should be different between them'
       ),
       ['emitters']
