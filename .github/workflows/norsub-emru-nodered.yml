@@ -54,6 +54,6 @@ jobs:
         run: "npm run norsub-emru-nodered:build"
         
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/nr-norsub-emru"
+        run: "npm publish --access public --workspace=@coremarine/norsub-emru-nodered"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
