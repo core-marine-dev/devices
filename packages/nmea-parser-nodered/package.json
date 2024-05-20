@@ -28,7 +28,7 @@
   "node-red": {
     "version": ">=3.0.0",
     "nodes": {
-      "nmea-parser": "src/parser.js"
+      "cma-nmea-parser": "src/parser.js"
     }
   },
   "main": "index.js",
@@ -37,10 +37,11 @@
     "examples"
   ],
   "scripts": {
+    "docker": "sh manual_tests.sh",
     "test": "mocha \"tests/**/*.test.js\"",
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/nmea-parser": "^1.6.9"
+    "@coremarine/nmea-parser": ">=1.6.14"
   }
 }
