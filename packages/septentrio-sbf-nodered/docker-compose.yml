@@ -1,0 +1,19 @@
+# version: '3'
+name: nmea-parser
+
+services:
+  nodered:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 1880:1880
+    volumes:
+      # Node-Red working files
+      - ./tests/nodered/data:/data
+      - ./tests/nodered/tests:/tests
+      # Components
+      # - ./package.json:/components/package.json
+      # - ./src/:/components/src/
+      # - ./package.json:/data/node_modules/@coremarine/nmea-parser-nodered/package.json
+      # - ./src/:/data/node_modules/@coremarine/nmea-parser-nodered/src/
