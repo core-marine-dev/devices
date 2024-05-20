@@ -7,7 +7,6 @@ export default defineConfig({
       exclude: [
         '**/*/constants.ts',
         '**/*/types.ts',
-        'lib/*',
         'dist/*',
         'yaml-to-json.js'
       ]
