@@ -1,7 +1,7 @@
 import { defineWorkspace } from 'vitest/config'
 
 export default defineWorkspace([
-  'nmea-parser/*',
+  'packages/**/*',
   // 'nmea-parser-nodered/*',
   // 'norsub-emru/*',
   // 'norsub-emru-nodered/*',

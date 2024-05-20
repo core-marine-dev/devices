@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - septentrio-sbf/**
+      - packages/septentrio-sbf/**
 
 jobs:
   test:
@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: 👍 Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: 👍 Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
@@ -54,6 +54,6 @@ jobs:
         run: "npm run septentrio-sbf:build"
         
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/sbf-parser"
+        run: "npm publish --access public --workspace=@coremarine/septentrio-sbf"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
