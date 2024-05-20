@@ -32,8 +32,6 @@ export const parseSample = (raw: string): Frame | ListeningEmitterFrame | Listen
  *     8 | uint32 | Number of strings sent since power up
 */
 
-
-
 // Sample: $1000042,0000002202,615,S64K,1285,0,24,69,11\r
 export const emitter = (elements: string[]): Omit<ListeningEmitterFrame, 'raw'> => {
   const name = 'emitter'

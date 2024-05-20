@@ -29,7 +29,7 @@ export const getFramesIndexListening = (text: string): ListeningParsingFrame | n
       if (a.index > b.index) return 1
       return 0
     })
-  
+
   if (frames.length > 1) return { ...frames[0], last: false, mode }
   if (frames.length === 1) {
     const sampleFirstIndex = text.indexOf(SAMPLE_START)
@@ -113,14 +113,14 @@ export const parser: Parser = (input: string) => {
     const { frame, remainder } = (mode === 'listening')
       ? listeningFrame(nonparsed, flag as typeof FLAGS_LISTENING[number])
       : commandFrame(nonparsed, flag as typeof FLAGS_COMMAND[number])
-    
+
     nonparsed = remainder
     if (frame !== null) {
       frames.push({ ...frame, firmware: '1.0.1', mode })
       if (mode === 'command' && frame.name === 'firmware') {
         firmwareChange = true
         break
-    }
+      }
     }
     if (last) {
       break

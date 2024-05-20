@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - thelmabiotel-tblive-nodered/**
+      - packages/thelmabiotel-tblive-nodered/**
 
 jobs:
   # test:
@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: 👍 Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
@@ -50,10 +50,10 @@ jobs:
       - name: 📥 Install Dependencies
         run: npm install
     
-      - name: 🛠️ Build
-        run: "npm run thelmabiotel-tblive-nodered:build"
+      # - name: 🛠️ Build
+      #   run: "npm run thelmabiotel-tblive-nodered:build"
         
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/thelmabiotel-tblive-parser"
+        run: "npm publish --access public --workspace=@coremarine/thelmabiotel-tblive-nodered"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

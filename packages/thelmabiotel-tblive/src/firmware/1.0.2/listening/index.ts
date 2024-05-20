@@ -37,7 +37,7 @@ type ClockClosure = (text: string) => ParsedFrame
 export const clock = (operation: 'round' | 'set'): ClockClosure => {
   const data = (operation === 'round') ? CLOCK_ROUND : CLOCK_SET
 
-  const parseFrame = (text:string): ParsedFrame => (
+  const parseFrame = (text: string): ParsedFrame => (
     { frame: parseClock(data, operation), remainder: text.slice(data.length) }
   )
 
