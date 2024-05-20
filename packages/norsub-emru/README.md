@@ -4,9 +4,9 @@
 [![publish](https://github.com/core-marine-dev/norsub-emru/actions/workflows/publish.yml/badge.svg)](https://github.com/core-marine-dev/norsub-emru/actions/workflows/publish.yml)
 ![npm](https://img.shields.io/npm/dy/%40coremarine/norsub-emru)
 
-Library to read NMEA-like sentences of Norsub eMRU devices. It works same as [NMEA-Parser library](https://github.com/core-marine-dev/nmea-parser/) and it has the same API. The only nuance is it gives metadata of the device status if the sentence bring that info.
+Library to read NMEA-like sentences of Norsub eMRU devices. It works same as [NMEA-Parser library](https://www.npmjs.com/package/@coremarine/nmea-parser) and it has the same API. The only nuance is it gives metadata of the device status if the sentence bring that info.
 
-To understand how it works, please look the info of [NMEA-Parser library](https://github.com/core-marine-dev/nmea-parser/).
+To understand how it works, please look the info of [NMEA-Parser library](https://www.npmjs.com/package/@coremarine/nmea-parser).
 
 The complete output with metadata it is shown below.
 
