@@ -1,4 +1,5 @@
-version: '3'
+# version: '3'
+name: norsub-emru
 
 services:
   nodered:
@@ -12,5 +13,7 @@ services:
       - ./tests/nodered/data:/data
       - ./tests/nodered/tests:/tests
       # Components
-      - ./package.json:/components/package.json
-      - ./src/:/components/src/
+      # - ./package.json:/components/package.json
+      # - ./src/:/components/src/
+      # - ./package.json:/data/node_modules/@coremarine/nmea-parser-nodered/package.json
+      # - ./src/:/data/node_modules/@coremarine/nmea-parser-nodered/src/

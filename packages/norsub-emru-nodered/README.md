@@ -1,8 +1,8 @@
-# nr-norsub-emru
+# Norsub-eMRU-NodeRED
 
-![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nr-norsub-emru)
-[![publish](https://github.com/core-marine-dev/nr-norsub-emru/actions/workflows/publish.yml/badge.svg)](https://github.com/core-marine-dev/nr-norsub-emru/actions/workflows/publish.yml)
-![npm](https://img.shields.io/npm/dy/%40coremarine/nr-norsub-emru)
+![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/norsub-emru-nodered)
+[![publish](https://github.com/core-marine-dev/devices/actions/workflows/norsub-emru-nodered.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/norsub-emru-nodered.yml)
+![npm](https://img.shields.io/npm/dy/%40coremarine/norsub-emru-nodered)
 
 Node-Red component for the [Norsub-eMRU library](https://github.com/core-marine-dev/norsub-emru) to read NorSub NMEA propietary protocols and NMEA 0183 sentences. It is a wrapper of [@coremarine/norsub-emru](https://github.com/core-marine-dev/norsub-emru) (check it docs).
 
@@ -84,9 +84,9 @@ If you just want to know what are the known or supported sentences, you just nee
 If you want to know if a sentence is known / supported, you need to send the sentence id.
 Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
 
-|         Input          |              Output             |
-| :--------------------: | :-----------------------------: |
-| `sentence`: **string** | `sentence`: **object** | `null` |
+|         Input          |              Output              |
+| :--------------------: | :------------------------------: |
+| `sentence`: **string** | `sentence`: **object** \| `null` |
 
 ### Fake
 
@@ -94,6 +94,6 @@ If you want to get a NMEA-like sentence, maybe just to do some tests, you need t
 Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
 This fake sentence is correct in terms of NMEA requirements but each field has garbage.
 
-|       Input        |            Output           |
-| :----------------: | :-------------------------: |
-| `fake`: **string** | `fake`: **string** | `null` |
+|       Input        |            Output            |
+| :----------------: | :--------------------------: |
+| `fake`: **string** | `fake`: **string** \| `null` |
