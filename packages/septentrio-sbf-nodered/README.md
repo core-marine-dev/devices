@@ -1,14 +1,14 @@
-# @coremarine/nr-sbf-parser
+# Septentrio-SBF-NodeRED
 
 SBF parser component for Septentrio binary protocol.
 
 ## Installation
 
-Install via the Palette Manager or cli -> `@coremarine/nr-sbf-parser`
+Install via the Palette Manager or cli -> `@coremarine/septentrio-sbf-nodered`
 
 ## Usage
 
-This component is just a wrap of the library [@coremarine/sbf-parser](https://github.com/core-marine-dev/sbf-parser), so please check its info to understand how works the pipes.
+This component is just a wrap of the library [@coremarine/septentrio-sbf](https://www.npmjs.com/package/@coremarine/septentrio-sbf), so please check its info to understand how works the pipes.
 
 The component needs two properties to work:
 
