@@ -1,10 +1,10 @@
 {
   "name": "@coremarine/norsub-emru",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Library to work with eMRU devices of NorSub company",
   "author": "Core Marine",
   "license": "MIT",
-  "homepage": "https://github.com/core-marine-dev/devices/packages/norsub-emru#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/norsub-emru",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"
@@ -22,8 +22,8 @@
     "nmea-0183"
   ],
   "type": "module",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
