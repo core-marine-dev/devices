@@ -8,7 +8,7 @@
     icon: "cma-logo-blue.png",
     label: function() {
       const { name, firmware } = this;
-      return name || firmware
+      return (firmware) ? `SBF ${firmware}`: name;
     },
     paletteLabel: 'SBF parser',
     labelStyle: function() { return (this.name) ? "node_label_italic" : "" },

@@ -3,8 +3,8 @@
   "version": "1.6.14",
   "description": "Library to parse NMEA 0183 sentences",
   "author": "CoreMarine",
-  "license": "ISC",
-  "homepage": "https://github.com/core-marine-dev/devices/packages/nmea-parser#readme",
+  "license": "MIT",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/nmea-parser",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"
