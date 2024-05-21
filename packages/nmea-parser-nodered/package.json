@@ -1,10 +1,10 @@
 {
   "name": "@coremarine/nmea-parser-nodered",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-Red component to read NMEA 0183 sentences",
-  "homepage": "https://github.com/core-marine-dev/devices/packages/nmea-parser-nodered#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/nmea-parser-nodered",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"
