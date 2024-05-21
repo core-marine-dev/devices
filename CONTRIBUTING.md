@@ -28,6 +28,10 @@ The whole repository it is an opinionated monorepository:
 1. Create well-tested and battle tested TypeScript library.
 2. Create a NodeRED wrapper / compoment which uses that library.
 
+Always you have to create a custom branch and make pull requests to `dev` branch. Once the branch is merged, you should remove it.
+
+New packages will be publish when a pull request into `main` branch is accepted.
+
 ### How to create a TypeScript library
 
 1. Copy the `template-library` folder inside packages and paste as a new folder
@@ -49,6 +53,7 @@ The whole repository it is an opinionated monorepository:
     3. Change all TODO:
 6. Document your library -> Modify `README.md` (`packages/<your-library>/README.md`)
 7. Start with your library by coding in `src` and testing in `tests`
+8. Link your new library in the global / monorepo README
 
 ### How to create a NodeRED component
 
@@ -72,3 +77,4 @@ The whole repository it is an opinionated monorepository:
 7. Add component dependencies to package `Dockerfile` file
 8. Rename project into package `docker-compose.yml` file
 9. Start with your library by coding in `src` and testing in `tests` and seeing results with docker (all files there has a minimal scaffolding to start working on it).
+10. Link your new library in the global / monorepo README
