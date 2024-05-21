@@ -51,7 +51,7 @@ jobs:
         run: npm install
     
       - name: 🛠️ Build
-        run: "npm run thelmabiotel-tblive:test"
+        run: "npm run thelmabiotel-tblive:build"
         
       - name: 🚀 Publish to npm
         run: "npm publish --access public --workspace=@coremarine/thelmabiotel-tblive"
