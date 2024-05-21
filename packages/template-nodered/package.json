@@ -1,0 +1,41 @@
+{
+  "name": "@coremarine/TODO:-nodered",
+  "private": true,
+  "version": "0.0.1",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "description": "TODO:",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/TODO:-nodered",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "TODO:"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "node-red": {
+    "version": ">=3.0.0",
+    "nodes": {
+      "cma-TODO:": "src/parser.js"
+    }
+  },
+  "main": "index.js",
+  "files": [
+    "src",
+    "examples"
+  ],
+  "scripts": {
+    "docker": "sh manual_tests.sh",
+    "test": "mocha \"tests/**/*.test.js\"",
+    "test:vitest": "vitest"
+  },
+  "dependencies": {
+    "@coremarine/TODO:": ">=TODO:"
+  }
+}
