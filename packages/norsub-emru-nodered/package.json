@@ -1,10 +1,10 @@
 {
   "name": "@coremarine/norsub-emru-nodered",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-Red component to work with NorSub eMRU devices",
-  "homepage": "https://github.com/core-marine-dev/packages/norsub-emru-nodered#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/norsub-emru-nodered",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"
