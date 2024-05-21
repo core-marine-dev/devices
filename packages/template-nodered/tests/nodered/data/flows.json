@@ -1,0 +1,1482 @@
+[
+    {
+        "id": "86f1271d07a48b44",
+        "type": "tab",
+        "label": "NMEA Parser Examples",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c6173b4100b89d67",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Memory API",
+        "style": {
+            "label": true,
+            "color": "#000000",
+            "stroke": "#000000"
+        },
+        "nodes": [
+            "de261a7c3f50bbf0",
+            "a9bf8d69eb284777",
+            "ad0a91f034562096",
+            "bd6316d49443a80f",
+            "967eb861d987b29f",
+            "e1b9690ac78ec5b7",
+            "6b5fe8e3d0c0eb8f",
+            "351231a9423cfb3a"
+        ],
+        "x": 34,
+        "y": 459,
+        "w": 772,
+        "h": 282
+    },
+    {
+        "id": "53b0d00e97623318",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Protocols API",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "2fe2bdeabd247e22",
+            "3afa552110c23ef1",
+            "bf2a96cea47ba3ad",
+            "d4ebce20546db205",
+            "f11c402c73a2594d",
+            "269e1a1de526763c",
+            "b13e30fe957edae5",
+            "a41dbddd012c9d6a",
+            "5417d129493270f5",
+            "91ce8e2a79b6c65d",
+            "7473b39722cc3634",
+            "c3a91838c98f0364",
+            "2065967e9d991a8c",
+            "4cfda5d7ffa6635c",
+            "5303b60c2825a26b",
+            "18ace2ab075396cd",
+            "b0d3ea9162bcf883",
+            "a799a18c3051b088",
+            "65db0fa7479e8788",
+            "46be7d75ba4d2ef6",
+            "0cce10fed1bdcec9",
+            "aa1b07c82bf53b77",
+            "038c4848ce89add9",
+            "c5fe5021f12d4858"
+        ],
+        "x": 34,
+        "y": 759,
+        "w": 872,
+        "h": 482
+    },
+    {
+        "id": "dc5b2f693b2e96ea",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Sentence API",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "498115cc86e91fe0",
+            "bf14cc613f0600be",
+            "b9e07f8aa72b23ea",
+            "07a3d42569a07962",
+            "786045250c7cc8df",
+            "d4a975743249b0f2",
+            "ceb18e21cc0d89b1"
+        ],
+        "x": 34,
+        "y": 1259,
+        "w": 792,
+        "h": 242
+    },
+    {
+        "id": "9283b11f486aa6af",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Flow Errors",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "3dcdbb2ff53d1ac2",
+            "cd7a546b03381262"
+        ],
+        "x": 34,
+        "y": 19,
+        "w": 352,
+        "h": 82
+    },
+    {
+        "id": "fa79e06be881de74",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Examples",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "90c7ca5349d43283",
+            "eaa03f0bec292507",
+            "b813bdb71d0159a5",
+            "85d2882bbc1cd92a",
+            "dc93f536316883f8",
+            "bf1bf2211a0a99f4",
+            "0386967af97e8c2b",
+            "dbd393817b992915",
+            "d51965f52ed5458a",
+            "0d643452dedfda51",
+            "bab379433f7607f5",
+            "cd19a759b4514bb4",
+            "65878cad1b303cfb",
+            "10afdc0003c65cf3"
+        ],
+        "x": 34,
+        "y": 119,
+        "w": 1232,
+        "h": 322
+    },
+    {
+        "id": "6dc737be34668f3e",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Fake API",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "826783ad34641686",
+            "8375f8aa145326b9",
+            "4d51478913d0f4c9",
+            "3c95ecbee73cfb3d",
+            "faa36dbc52418799"
+        ],
+        "x": 34,
+        "y": 1519,
+        "w": 732,
+        "h": 162
+    },
+    {
+        "id": "2fe2bdeabd247e22",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols GET",
+        "props": [
+            {
+                "p": "protocols",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 840,
+        "wires": [
+            [
+                "0cce10fed1bdcec9"
+            ]
+        ]
+    },
+    {
+        "id": "de261a7c3f50bbf0",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "MEMORY - API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "memory",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 680,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "498115cc86e91fe0",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "Sentence GET AAM standard",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "AAM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 1300,
+        "wires": [
+            [
+                "ceb18e21cc0d89b1"
+            ]
+        ]
+    },
+    {
+        "id": "3dcdbb2ff53d1ac2",
+        "type": "catch",
+        "z": "86f1271d07a48b44",
+        "g": "9283b11f486aa6af",
+        "name": "ERRORS",
+        "scope": null,
+        "uncaught": false,
+        "x": 120,
+        "y": 60,
+        "wires": [
+            [
+                "cd7a546b03381262"
+            ]
+        ]
+    },
+    {
+        "id": "cd7a546b03381262",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "9283b11f486aa6af",
+        "name": "ERRORS",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 280,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "a9bf8d69eb284777",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Memory GET",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 500,
+        "wires": [
+            [
+                "351231a9423cfb3a"
+            ]
+        ]
+    },
+    {
+        "id": "ad0a91f034562096",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Memory SET true",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 580,
+        "wires": [
+            [
+                "351231a9423cfb3a"
+            ]
+        ]
+    },
+    {
+        "id": "bd6316d49443a80f",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Memory SET false",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":false}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 540,
+        "wires": [
+            [
+                "351231a9423cfb3a"
+            ]
+        ]
+    },
+    {
+        "id": "967eb861d987b29f",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Memory SET invalid",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":{\"hello\":\"world\"}}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 620,
+        "wires": [
+            [
+                "351231a9423cfb3a"
+            ]
+        ]
+    },
+    {
+        "id": "e1b9690ac78ec5b7",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Memory invalid API",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"comand\":\"set\",\"payload\":{\"hello\":\"world\"}}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 700,
+        "wires": [
+            [
+                "351231a9423cfb3a"
+            ]
+        ]
+    },
+    {
+        "id": "6b5fe8e3d0c0eb8f",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Memory invalid command",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"sett\",\"payload\":true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 660,
+        "wires": [
+            [
+                "351231a9423cfb3a"
+            ]
+        ]
+    },
+    {
+        "id": "3afa552110c23ef1",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "PROTOCOLS file - Edit Dialog",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "protocols",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "bf2a96cea47ba3ad",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols SET",
+        "props": [
+            {
+                "p": "protocols",
+                "v": "{\"command\":\"set\",\"file\":\"/tests/norsub.yaml\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 960,
+        "wires": [
+            [
+                "aa1b07c82bf53b77"
+            ]
+        ]
+    },
+    {
+        "id": "d4ebce20546db205",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "PROTOCOLS file path - API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "protocols",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 920,
+        "wires": []
+    },
+    {
+        "id": "f11c402c73a2594d",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols GET",
+        "props": [
+            {
+                "p": "protocols",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 920,
+        "wires": [
+            [
+                "aa1b07c82bf53b77"
+            ]
+        ]
+    },
+    {
+        "id": "269e1a1de526763c",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "PROTOCOLS file content - API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "protocols",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 1040,
+        "wires": []
+    },
+    {
+        "id": "b13e30fe957edae5",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols GET",
+        "props": [
+            {
+                "p": "protocols",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 1040,
+        "wires": [
+            [
+                "038c4848ce89add9"
+            ]
+        ]
+    },
+    {
+        "id": "a41dbddd012c9d6a",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols file",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "/tests/norsub.yaml",
+        "payloadType": "str",
+        "x": 170,
+        "y": 1080,
+        "wires": [
+            [
+                "5417d129493270f5"
+            ]
+        ]
+    },
+    {
+        "id": "5417d129493270f5",
+        "type": "file in",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 340,
+        "y": 1080,
+        "wires": [
+            [
+                "91ce8e2a79b6c65d"
+            ]
+        ]
+    },
+    {
+        "id": "91ce8e2a79b6c65d",
+        "type": "change",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "file content",
+        "rules": [
+            {
+                "t": "set",
+                "p": "protocols.command",
+                "pt": "msg",
+                "to": "set",
+                "tot": "str"
+            },
+            {
+                "t": "move",
+                "p": "payload",
+                "pt": "msg",
+                "to": "protocols.content",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 510,
+        "y": 1080,
+        "wires": [
+            [
+                "038c4848ce89add9"
+            ]
+        ]
+    },
+    {
+        "id": "7473b39722cc3634",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "PROTOCOLS protocols - API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "protocols",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 1160,
+        "wires": []
+    },
+    {
+        "id": "c3a91838c98f0364",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols GET",
+        "props": [
+            {
+                "p": "protocols",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 1160,
+        "wires": [
+            [
+                "c5fe5021f12d4858"
+            ]
+        ]
+    },
+    {
+        "id": "2065967e9d991a8c",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Protocols file",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "/tests/norsub.yaml",
+        "payloadType": "str",
+        "x": 170,
+        "y": 1200,
+        "wires": [
+            [
+                "4cfda5d7ffa6635c"
+            ]
+        ]
+    },
+    {
+        "id": "4cfda5d7ffa6635c",
+        "type": "file in",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 340,
+        "y": 1200,
+        "wires": [
+            [
+                "5303b60c2825a26b"
+            ]
+        ]
+    },
+    {
+        "id": "5303b60c2825a26b",
+        "type": "yaml",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "property": "payload",
+        "name": "",
+        "x": 490,
+        "y": 1200,
+        "wires": [
+            [
+                "18ace2ab075396cd"
+            ]
+        ]
+    },
+    {
+        "id": "18ace2ab075396cd",
+        "type": "change",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "protocols object",
+        "rules": [
+            {
+                "t": "set",
+                "p": "protocols.command",
+                "pt": "msg",
+                "to": "set",
+                "tot": "str"
+            },
+            {
+                "t": "move",
+                "p": "payload.protocols",
+                "pt": "msg",
+                "to": "protocols.protocols",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 660,
+        "y": 1200,
+        "wires": [
+            [
+                "c5fe5021f12d4858"
+            ]
+        ]
+    },
+    {
+        "id": "bf14cc613f0600be",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "Sentence GET AAM GPS",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "GPAAM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 250,
+        "y": 1340,
+        "wires": [
+            [
+                "ceb18e21cc0d89b1"
+            ]
+        ]
+    },
+    {
+        "id": "b9e07f8aa72b23ea",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "Sentence GET AAM Galileo",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "GAAAM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 1380,
+        "wires": [
+            [
+                "ceb18e21cc0d89b1"
+            ]
+        ]
+    },
+    {
+        "id": "07a3d42569a07962",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "Sentence GET AAM Unknown talker",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "XXAAM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 1420,
+        "wires": [
+            [
+                "ceb18e21cc0d89b1"
+            ]
+        ]
+    },
+    {
+        "id": "786045250c7cc8df",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "SENTENCE - API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "sentence",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 690,
+        "y": 1380,
+        "wires": []
+    },
+    {
+        "id": "b0d3ea9162bcf883",
+        "type": "comment",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Feed parser with File Path - Edit dialog",
+        "info": "",
+        "x": 210,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "a799a18c3051b088",
+        "type": "comment",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Feed parser with File Path - API",
+        "info": "",
+        "x": 190,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "65db0fa7479e8788",
+        "type": "comment",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Feed parser with File Content - API",
+        "info": "",
+        "x": 200,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "46be7d75ba4d2ef6",
+        "type": "comment",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Feed parser with File Parsed - API",
+        "info": "",
+        "x": 200,
+        "y": 1120,
+        "wires": []
+    },
+    {
+        "id": "d4a975743249b0f2",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "SENTENCE Unknown",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "XXXXX",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 1460,
+        "wires": [
+            [
+                "ceb18e21cc0d89b1"
+            ]
+        ]
+    },
+    {
+        "id": "90c7ca5349d43283",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "1 sentence",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "$XXAAM,xy5f7kze5kk,fuz9v8nzwh,0.3979531228542328,0.033725704223103836,0dw3qj5rrnoa*00",
+        "payloadType": "str",
+        "x": 500,
+        "y": 240,
+        "wires": [
+            [
+                "eaa03f0bec292507"
+            ]
+        ]
+    },
+    {
+        "id": "eaa03f0bec292507",
+        "type": "function",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Attach CRLF",
+        "func": "const payload = msg.payload + '\\r\\n'\n\nreturn { payload }\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 260,
+        "wires": [
+            [
+                "10afdc0003c65cf3"
+            ]
+        ]
+    },
+    {
+        "id": "b813bdb71d0159a5",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Multiple sentences once",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "/tests/samples.txt",
+        "payloadType": "str",
+        "x": 180,
+        "y": 360,
+        "wires": [
+            [
+                "85d2882bbc1cd92a"
+            ]
+        ]
+    },
+    {
+        "id": "85d2882bbc1cd92a",
+        "type": "file in",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "ascii",
+        "allProps": false,
+        "x": 440,
+        "y": 360,
+        "wires": [
+            [
+                "dc93f536316883f8"
+            ]
+        ]
+    },
+    {
+        "id": "dc93f536316883f8",
+        "type": "function",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Attach CRLF to each line",
+        "func": "/** @type {Buffer}*/\nconst buffer = msg.payload\n\nconst ascii = buffer.toString('ascii').replaceAll('\\n', '\\r\\n')\n\nreturn { payload: ascii }\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 360,
+        "wires": [
+            [
+                "10afdc0003c65cf3"
+            ]
+        ]
+    },
+    {
+        "id": "bf1bf2211a0a99f4",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Sentences",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "{\t    \"memory\": msg.memory,\t    \"protocols\": msg.protocols,\t    \"sentence\": msg.sentence,\t    \"payload\": msg.payload\t}",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1150,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "0386967af97e8c2b",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Multiple sentences one-by-one",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "/tests/samples.txt",
+        "payloadType": "str",
+        "x": 210,
+        "y": 400,
+        "wires": [
+            [
+                "dbd393817b992915"
+            ]
+        ]
+    },
+    {
+        "id": "dbd393817b992915",
+        "type": "file in",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "read file lines",
+        "filename": "payload",
+        "filenameType": "msg",
+        "format": "lines",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "ascii",
+        "allProps": false,
+        "x": 450,
+        "y": 400,
+        "wires": [
+            [
+                "d51965f52ed5458a"
+            ]
+        ]
+    },
+    {
+        "id": "d51965f52ed5458a",
+        "type": "function",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Attach CRLF to line",
+        "func": "\nreturn { payload: msg.payload + '\\r\\n' }",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 670,
+        "y": 400,
+        "wires": [
+            [
+                "10afdc0003c65cf3"
+            ]
+        ]
+    },
+    {
+        "id": "0d643452dedfda51",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Memory ON",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 710,
+        "y": 200,
+        "wires": [
+            [
+                "10afdc0003c65cf3"
+            ]
+        ]
+    },
+    {
+        "id": "bab379433f7607f5",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Memory OFF",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":false}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 710,
+        "y": 160,
+        "wires": [
+            [
+                "10afdc0003c65cf3"
+            ]
+        ]
+    },
+    {
+        "id": "cd19a759b4514bb4",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "1/2 sentence",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "$XXAAM,xy5f7kze5kk,fuz9v8nzwh,0.3979531228",
+        "payloadType": "str",
+        "x": 510,
+        "y": 280,
+        "wires": [
+            [
+                "eaa03f0bec292507"
+            ]
+        ]
+    },
+    {
+        "id": "65878cad1b303cfb",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "2/2 sentence",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "542328,0.033725704223103836,0dw3qj5rrnoa*00",
+        "payloadType": "str",
+        "x": 510,
+        "y": 320,
+        "wires": [
+            [
+                "eaa03f0bec292507"
+            ]
+        ]
+    },
+    {
+        "id": "826783ad34641686",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "6dc737be34668f3e",
+        "name": "GET Fake Sentence AAM",
+        "props": [
+            {
+                "p": "fake",
+                "v": "AAM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1560,
+        "wires": [
+            [
+                "faa36dbc52418799"
+            ]
+        ]
+    },
+    {
+        "id": "8375f8aa145326b9",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "6dc737be34668f3e",
+        "name": "FAKE - API",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "fake",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 1600,
+        "wires": []
+    },
+    {
+        "id": "4d51478913d0f4c9",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "6dc737be34668f3e",
+        "name": "GET Fake Sentence GPAAM",
+        "props": [
+            {
+                "p": "fake",
+                "v": "GPAAM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1600,
+        "wires": [
+            [
+                "faa36dbc52418799"
+            ]
+        ]
+    },
+    {
+        "id": "3c95ecbee73cfb3d",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "6dc737be34668f3e",
+        "name": "GET Fake Sentence XXX",
+        "props": [
+            {
+                "p": "fake",
+                "v": "XXX",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1640,
+        "wires": [
+            [
+                "faa36dbc52418799"
+            ]
+        ]
+    },
+    {
+        "id": "10afdc0003c65cf3",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "",
+        "memory": true,
+        "file": "",
+        "x": 870,
+        "y": 280,
+        "wires": [
+            [
+                "bf1bf2211a0a99f4"
+            ]
+        ]
+    },
+    {
+        "id": "351231a9423cfb3a",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "c6173b4100b89d67",
+        "name": "Changing parser memory",
+        "memory": true,
+        "file": "",
+        "x": 450,
+        "y": 600,
+        "wires": [
+            [
+                "de261a7c3f50bbf0"
+            ]
+        ]
+    },
+    {
+        "id": "0cce10fed1bdcec9",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Parser fed through file - Edit Dialog",
+        "memory": true,
+        "file": "",
+        "x": 420,
+        "y": 840,
+        "wires": [
+            [
+                "3afa552110c23ef1"
+            ]
+        ]
+    },
+    {
+        "id": "aa1b07c82bf53b77",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Parser fed through file path - API",
+        "memory": true,
+        "file": "",
+        "x": 410,
+        "y": 920,
+        "wires": [
+            [
+                "d4ebce20546db205"
+            ]
+        ]
+    },
+    {
+        "id": "038c4848ce89add9",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Parser fed through file content - API",
+        "memory": true,
+        "file": "",
+        "x": 420,
+        "y": 1040,
+        "wires": [
+            [
+                "269e1a1de526763c"
+            ]
+        ]
+    },
+    {
+        "id": "c5fe5021f12d4858",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "53b0d00e97623318",
+        "name": "Parser fed through protocols - API",
+        "memory": true,
+        "file": "",
+        "x": 420,
+        "y": 1160,
+        "wires": [
+            [
+                "7473b39722cc3634"
+            ]
+        ]
+    },
+    {
+        "id": "ceb18e21cc0d89b1",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "dc5b2f693b2e96ea",
+        "name": "Sentence API",
+        "memory": true,
+        "file": "",
+        "x": 480,
+        "y": 1380,
+        "wires": [
+            [
+                "786045250c7cc8df"
+            ]
+        ]
+    },
+    {
+        "id": "faa36dbc52418799",
+        "type": "cma-nmea-parser",
+        "z": "86f1271d07a48b44",
+        "g": "6dc737be34668f3e",
+        "name": "Fake Sentence API",
+        "memory": true,
+        "file": "",
+        "x": 450,
+        "y": 1600,
+        "wires": [
+            [
+                "8375f8aa145326b9"
+            ]
+        ]
+    }
+]
