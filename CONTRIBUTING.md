@@ -34,7 +34,7 @@ New packages will be publish when a pull request into `main` branch is accepted.
 
 ### How to create a TypeScript library
 
-1. Copy the `template-library` folder inside packages and paste as a new folder
+1. Copy the `library` folder inside `templates` and paste as a new folder inside `packages` -> `packages/<your-library>`
 2. Look for the keyword `TODO:` in your IDE / Editor inside that folder, this is a hint to places you need to setup.
 3. Setup npm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
     1. `name` to `@coremarine/<your-library>`
@@ -48,16 +48,15 @@ New packages will be publish when a pull request into `main` branch is accepted.
     4. `test`
     5. `test:coverage`
 5. Setup CI/CD (Github Actions)
-    1. Go to `.github/workflows` folder
-    2. Copy `template-library.yml` file and paste as a new yml file `<your-library>.yml`
-    3. Change all TODO:
+    1. Copy `library.yml` file inside `templates` and paste as a new yml file `<your-library>.yml` inside `.github/workflows` folder
+    2. Change all TODO:
 6. Document your library -> Modify `README.md` (`packages/<your-library>/README.md`)
 7. Start with your library by coding in `src` and testing in `tests`
 8. Link your new library in the global / monorepo README
 
 ### How to create a NodeRED component
 
-1. Copy the `template-nodered` folder inside packages and paste as a new folder ending with `-nodered` -> `packages/<your-library>-nodered`
+1. Copy the `nodered` folder inside `templates` and paste as a new folder ending with `-nodered` inside `packages` -> `packages/<your-library>-nodered`
 2. Look for the keyword `TODO:` in your IDE / Editor inside that folder, this is a hint to places you need to setup.
 3. Setup npm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
     1. `name` to `@coremarine/<your-library>`
@@ -70,9 +69,8 @@ New packages will be publish when a pull request into `main` branch is accepted.
     1. `nodered:docker`
     2. `nodered:test`
 5. Setup CI/CD (Github Actions)
-    1. Go to `.github/workflows` folder
-    2. Copy `template-nodered.yml` file and paste as a new yml file `<your-library>-nodered.yml`
-    3. Change all TODO:
+    1. Copy `nodered.yml` file inside `templates` and paste as a new yml file `<your-library>-nodered.yml` inside `.github/workflows` folder
+    2. Change all TODO:
 6. Document your library -> Modify `README.md` (`packages/<your-library>-nodered/README.md`)
 7. Add component dependencies to package `Dockerfile` file
 8. Rename project into package `docker-compose.yml` file
