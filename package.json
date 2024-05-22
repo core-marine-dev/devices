@@ -60,6 +60,13 @@
     "septentrio-sbf:coverage": "npm run test:coverage --workspace=@coremarine/septentrio-sbf",
     "septentrio-sbf:nodered:docker": "npm run docker --workspace=@coremarine/septentrio-sbf-nodered",
     "septentrio-sbf:nodered:test": "npm run test --workspace=@coremarine/septentrio-sbf-nodered",
+    "sbg-ecom:lint": "npm run lint --workspace=@coremarine/sbg-ecom",
+    "sbg-ecom:format": "npm run format --workspace=@coremarine/sbg-ecom",
+    "sbg-ecom:build": "npm run build --workspace=@coremarine/sbg-ecom",
+    "sbg-ecom:test": "npm run test --workspace=@coremarine/sbg-ecom",
+    "sbg-ecom:coverage": "npm run test:coverage --workspace=@coremarine/sbg-ecom",
+    "sbg-ecom:nodered:docker": "npm run docker --workspace=@coremarine/sbg-ecom-nodered",
+    "sbg-ecom:nodered:test": "npm run test --workspace=@coremarine/sbg-ecom-nodered",
     "thelmabiotel-tblive:lint": "npm run lint --workspace=@coremarine/thelmabiotel-tblive",
     "thelmabiotel-tblive:format": "npm run format --workspace=@coremarine/thelmabiotel-tblive",
     "thelmabiotel-tblive:build": "npm run build --workspace=@coremarine/thelmabiotel-tblive",
@@ -86,7 +93,8 @@
   },
   "ts-standard": {
     "ignore": [
-      "vitest.workspace.ts"
+      "vitest.workspace.ts",
+      "templates"
     ]
   }
 }
