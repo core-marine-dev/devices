@@ -11,7 +11,10 @@
 .flows*
 flows_cred.json
 tests/nodered/data/package.json
-
+testing-checklist.md
+TESTS.md
+lines.js
+tests/nodered/tests/*.txt
 # Logs
 logs
 *.log
