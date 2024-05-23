@@ -1,5 +1,5 @@
 import { UNKNOWN_SBG_FRAME_DATA } from '../../../constants'
-import { SBGDataParser, SBGFrameNameData } from '../../../types'
+import type { SBGDataParser, SBGFrameNameData } from '../../../types'
 import { SBG_ECOM_LOG_DEPTH } from './depth-sensor'
 import { SBG_ECOM_LOG_DVL_BOTTOM_TRACK, SBG_ECOM_LOG_DVL_WATER_TRACK } from './doppler-velocity'
 import { SBG_ECOM_LOG_EKF_EULER } from './ekf-euler'

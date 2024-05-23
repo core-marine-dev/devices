@@ -1,17 +1,23 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { getSolutionStatus } from './utils'
-/* Message ID 07 -> SBG_ECOM_LOG_EKF_QUAT => Includes the 4 quaternions values
+/* Message ID 08 -> SBG_ECOM_LOG_EKF_NAV => Position and velocities in NED coordinates with the accuracies on each axis
  * Field            Offset  Size  Format  Unit  Description
  * TIME_STAMP            0     4  uint32    µs  Time since sensor is powered up
- * Q0                    4     4   float     -  First quaternion parameter (W)
- * Q1                    8     4   float     -  Second quaternion parameter (X)
- * Q2                   12     4   float     -  Third quaternion parameter (Y)
- * Q3                   16     4   float     -  Forth quaternion parameter (Z)
- * ROLL_ACC             20     4   float   rad  1σ Roll angle accuracy
- * PITCH_ACC            24     4   float   rad  1σ Pitch angle accuracy
- * YAW_ACC              28     4   float   rad  1σ Yaw angle accuracy
- * SOLUTION_STATUS      32     4  uint32     -  Global solution status
- *           Total size 36
+ * VELOCITY_N            4     4   float   m/s  Velocity in North direction
+ * VELOCITY_E            8     4   float   m/s  Velocity in East direction
+ * VELOCITY_D           12     4   float   m/s  Velocity in Down direction
+ * VELOCITY_N_ACC       16     4   float   m/s  1σ Velocity in North direction accuracy
+ * VELOCITY_E_ACC       20     4   float   m/s  1σ Velocity in East direction accuracy
+ * VELOCITY_D_ACC       24     4   float   m/s  1σ Velocity Down direction accuracy
+ * LATITUDE             28     8  double     °  Latitude
+ * LONGITUDE            36     8  double     °  Longitude
+ * ALTITUDE             44     8  double     m  Altitude above Mean Sea Level
+ * UNDULATION           52     4   float     m  Altitude difference between the geoid and the Ellipsoid. (WGS-84 Altitude = MSL Altitude + undulation)
+ * LATITUDE_ACC         56     4   float     m  1σ Latitude accuracy
+ * LONGITUDE_ACC        60     4   float     m  1σ Longitude accuracy
+ * ALTITUDE_ACC         64     4   float     m  1σ Vertical Position accuracy
+ * SOLUTION_STATUS      68     4  uint32     -  Global solution status
+ *           Total size 72
  *
  * SOLUTION_STATUS definition -> Provide information on the internal Kalman filter status such as which aiding data is used to compute the solution and the provided solution mode.
  *  Bit  Type  Name                         Description
@@ -45,18 +51,24 @@ import { getSolutionStatus } from './utils'
  *   3   SBG_ECOM_SOL_MODE_NAV_VELOCITY   The Kalman filter computes orientation and velocity. Position is freely integrated from velocity estimation.
  *   4   SBG_ECOM_SOL_MODE_NAV_POSITION   Nominal mode, the Kalman filter computes all parameters (attitude, velocity, position). Absolute position is provided.
 */
-export const SBG_ECOM_LOG_EKF_QUAT = (payload: Buffer): SBGFrameNameData => {
-  const name = 'SBG_ECOM_LOG_EKF_QUAT'
+export const SBG_ECOM_LOG_EKF_NAV = (payload: Buffer): SBGFrameNameData => {
+  const name = 'SBG_ECOM_LOG_EKF_NAV'
   const data = {
     timestamp: payload.readUIntLE(0, 4),
-    q0: payload.readFloatLE(4),
-    q1: payload.readFloatLE(8),
-    q2: payload.readFloatLE(12),
-    q3: payload.readFloatLE(16),
-    rollAcceleration: payload.readFloatLE(20),
-    pitchAcceleration: payload.readFloatLE(24),
-    yawAcceleration: payload.readFloatLE(28),
-    solutionStatus: payload.readUIntLE(32, 4),
+    velocityN: payload.readFloatLE(4),
+    velocityE: payload.readFloatLE(8),
+    velocityD: payload.readFloatLE(12),
+    velocityAccuracyN: payload.readFloatLE(16),
+    velocityAccuracyE: payload.readFloatLE(20),
+    velocityAccuracyD: payload.readFloatLE(24),
+    latitude: payload.readDoubleLE(28),
+    longitude: payload.readDoubleLE(36),
+    altitude: payload.readDoubleLE(44),
+    undulation: payload.readFloatLE(52),
+    latitudeAccuracy: payload.readFloatLE(56),
+    longitudeAccuracy: payload.readFloatLE(60),
+    altitudeAccuracy: payload.readFloatLE(64),
+    solutionStatus: payload.readUIntLE(68, 4),
     metadata: {}
   }
   data.metadata = {

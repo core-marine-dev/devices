@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { bitStatus } from '../../../utils'
 /* Message ID 04 -> SBG_ECOM_LOG_MAG => Magnetic data with associated accelerometer on each axis
  * Field         Offset  Size  Format   Unit  Description

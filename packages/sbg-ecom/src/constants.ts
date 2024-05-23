@@ -18,12 +18,12 @@ export const SBGFrameTypes = {
   UNKNOWN: 'unknown'
 } as const
 
-export const SBGFrameFormats = {
+export const SBG_FRAME_FORMATS = {
   STANDARD: 'standard',
   LARGE: 'large'
 } as const
 
-export const SBGParsingStatuses = {
+export const SBG_PARSING_STATUS = {
   OK: 0,
   MISSING_BYTES: 1,
   ERROR_CRC: 2,
@@ -49,11 +49,11 @@ export const PAYLOAD_INDEX = 6
 
 export const CRC_LENGTH = 2
 
-export const EXT_FLAG = Buffer.from([0x33])
-export const EXT_LENGTH = 1
+export const ETX_FLAG = Buffer.from([0x33])
+export const ETX_LENGTH = 1
 
 export const HEADER_LENGTH = SYNC_LENTGH + ID_LENGTH + CLASS_LENGTH + LENGTH_LENGTH
-export const FOOTER_LENGTH = CRC_LENGTH + EXT_LENGTH
+export const FOOTER_LENGTH = CRC_LENGTH + ETX_LENGTH
 
 export const MINIMAL_FRAME_LENGTH = HEADER_LENGTH + FOOTER_LENGTH
 // LARGE FRAME
@@ -74,6 +74,6 @@ export const DATA_INDEX = 11
 export const UNKNOWN_SBG_FRAME_DATA = {
   name: 'unknown',
   type: SBGFrameTypes.UNKNOWN,
-  format: SBGFrameFormats.STANDARD,
+  format: SBG_FRAME_FORMATS.STANDARD,
   data: null
 }
