@@ -1,0 +1,379 @@
+[
+    {
+        "id": "86f1271d07a48b44",
+        "type": "tab",
+        "label": "SBGEcom Parser Examples",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "9283b11f486aa6af",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Flow Errors",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "3dcdbb2ff53d1ac2",
+            "cd7a546b03381262"
+        ],
+        "x": 34,
+        "y": 19,
+        "w": 352,
+        "h": 82
+    },
+    {
+        "id": "fa79e06be881de74",
+        "type": "group",
+        "z": "86f1271d07a48b44",
+        "name": "Examples",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "bf1bf2211a0a99f4",
+            "0d643452dedfda51",
+            "bab379433f7607f5",
+            "2a2312ddbf6c1d4c",
+            "1b7de497daf8146e",
+            "b2dd2fc884f2b756",
+            "0866325a71bf54c8",
+            "50ec56828023ecac",
+            "cf83530668c8884e",
+            "95faf8f169dbc837",
+            "1a18d2d87afbf6c9",
+            "eb57049a15b736b8",
+            "8c98d96f36590d9d"
+        ],
+        "x": 34,
+        "y": 139,
+        "w": 672,
+        "h": 382
+    },
+    {
+        "id": "3dcdbb2ff53d1ac2",
+        "type": "catch",
+        "z": "86f1271d07a48b44",
+        "g": "9283b11f486aa6af",
+        "name": "ERRORS",
+        "scope": null,
+        "uncaught": false,
+        "x": 120,
+        "y": 60,
+        "wires": [
+            [
+                "cd7a546b03381262"
+            ]
+        ]
+    },
+    {
+        "id": "cd7a546b03381262",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "9283b11f486aa6af",
+        "name": "ERRORS",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 280,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "bf1bf2211a0a99f4",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "0d643452dedfda51",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Memory ON",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 280,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "bab379433f7607f5",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Memory OFF",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":false}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 240,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "2a2312ddbf6c1d4c",
+        "type": "cma-sbg-ecom",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "",
+        "memory": true,
+        "firmware": "2.3",
+        "x": 420,
+        "y": 340,
+        "wires": [
+            [
+                "bf1bf2211a0a99f4",
+                "8c98d96f36590d9d"
+            ]
+        ]
+    },
+    {
+        "id": "1b7de497daf8146e",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Send data",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 140,
+        "y": 180,
+        "wires": [
+            [
+                "b2dd2fc884f2b756"
+            ]
+        ]
+    },
+    {
+        "id": "b2dd2fc884f2b756",
+        "type": "file in",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "",
+        "filename": "/tests/sbg-raw.bin",
+        "filenameType": "str",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "allProps": false,
+        "x": 330,
+        "y": 180,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "0866325a71bf54c8",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Get All Available Firmwares",
+        "props": [
+            {
+                "p": "firmwares",
+                "v": "{}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 340,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "50ec56828023ecac",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Set Firmware 2.3",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"set\",\"payload\":\"2.3\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 440,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "cf83530668c8884e",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Set Firmware 3.2",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"set\",\"payload\":\"2.3\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 480,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "95faf8f169dbc837",
+        "type": "inject",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Get Firmware",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 150,
+        "y": 400,
+        "wires": [
+            [
+                "2a2312ddbf6c1d4c"
+            ]
+        ]
+    },
+    {
+        "id": "1a18d2d87afbf6c9",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Memory",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "memory",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "eb57049a15b736b8",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Firmwares",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "firmwares",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "8c98d96f36590d9d",
+        "type": "debug",
+        "z": "86f1271d07a48b44",
+        "g": "fa79e06be881de74",
+        "name": "Firmware",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "firmware",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 380,
+        "wires": []
+    }
+]

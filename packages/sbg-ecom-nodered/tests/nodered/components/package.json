@@ -1,0 +1,49 @@
+{
+  "name": "@coremarine/sbg-ecom-nodered",
+  "private": true,
+  "version": "0.0.1",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "description": "sbg-ecom",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/sbg-ecom-nodered",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "sbg-ecom",
+    "sbg",
+    "gnss",
+    "gps",
+    "mru",
+    "imu",
+    "binary",
+    "protocol",
+    "parser"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "node-red": {
+    "version": ">=3.0.0",
+    "nodes": {
+      "cma-sbg-ecom": "src/parser.js"
+    }
+  },
+  "main": "index.js",
+  "files": [
+    "src",
+    "examples"
+  ],
+  "scripts": {
+    "docker": "sh manual_tests.sh",
+    "test": "mocha \"tests/**/*.test.js\"",
+    "test:vitest": "vitest"
+  },
+  "dependencies": {
+    "@coremarine/sbg-ecom": ">=0.0.1"
+  }
+}
