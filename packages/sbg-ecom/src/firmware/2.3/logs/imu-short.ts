@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { bitStatus } from '../../../utils'
 /* Message ID 44 -> SBG_ECOM_LOG_IMU_SHORT => Asynchronous delta angles and delta velocities values from IMU directly
  * Field          Offset  Size  Format     Unit  Description

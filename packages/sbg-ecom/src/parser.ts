@@ -5,16 +5,18 @@ import {
   CRC_LENGTH,
   LENGTH_INDEX, LENGTH_LENGTH,
   PAYLOAD_INDEX,
-  EXT_FLAG,
+  ETX_FLAG,
   MINIMAL_FRAME_LENGTH,
   TRANSMISSION_ID_LENGTH, PAGES_LENGTH, PAGE_INDEX_LENGTH,
   UNKNOWN_SBG_FRAME_DATA,
   TWO_BYTES_MAX,
   FOOTER_LENGTH,
-  HEADER_LENGTH
+  HEADER_LENGTH,
+  SBG_PARSING_STATUS,
+  SBG_FRAME_FORMATS
 } from './constants'
 import { getFirmareParser, getFirmwares, isAvailableFirmware, throwFirmwareError } from './firmware'
-import { SBGFrameFormat, SBGLargeFrameDataBuffer, SBGFrameData, SBGHeader, SBGFooter, SBGFrameResponse, SBGFrameParser, SBGParsingStatus } from './types'
+import type { SBGLargeFrameDataBuffer, SBGFrameData, SBGHeader, SBGFooter, SBGFrameResponse, SBGFrameParser, SBGParsingStatus } from './types'
 import { getCalculatedCRC, isLargeFrame } from './utils'
 
 export class Parser {
@@ -103,13 +105,13 @@ export class Parser {
       const { status, frame: sbgframe } = this.getSBGFrame(buffer)
       // Correct frame
       // if (status === SBGParsingStatus.OK || status === SBGParsingStatus.ERROR_EXT) {
-      if (status === SBGParsingStatus.OK) {
+      if (status === SBG_PARSING_STATUS.OK) {
         frames.push(sbgframe)
         pivot = index + sbgframe.buffer.length
         continue
       }
       // Incomplete frame and last incomplete frame
-      if (status === SBGParsingStatus.MISSING_BYTES && index === lastIndex) {
+      if (status === SBG_PARSING_STATUS.MISSING_BYTES && index === lastIndex) {
         this._buffer = this._buffer.subarray(lastIndex)
         break
       }
@@ -122,47 +124,47 @@ export class Parser {
     this.setBuffer()
   }
 
-  protected getSBGFrame (buffer: Buffer): { status: SBGParsingStatus, frame: SBGFrameResponse } {
-    let status: SBGParsingStatus = SBGParsingStatus.OK
+  protected getSBGFrame (info: Buffer): { status: SBGParsingStatus, frame: SBGFrameResponse } {
+    let status: SBGParsingStatus = SBG_PARSING_STATUS.OK
+    let sbgFrame = {} as any
     // HEADER
-    const header = this.getHeader(buffer)
+    const header = this.getHeader(info)
     const payloadLength = header.length
-    const sbgFrame: SBGFrameResponse = {
-      frame: { header },
-      buffer: buffer.subarray(0, HEADER_LENGTH + payloadLength + FOOTER_LENGTH)
-    }
+    const frame = { header }
+    const buffer = info.subarray(0, HEADER_LENGTH + payloadLength + FOOTER_LENGTH)
+    sbgFrame = { frame, buffer }
     // Check length
-    if (buffer.subarray(PAYLOAD_INDEX).length < (payloadLength + FOOTER_LENGTH)) {
-    // if (buffer.subarray(PAYLOAD_INDEX).length < (payloadLength + CRC_LENGTH)) {
+    if (info.subarray(PAYLOAD_INDEX).length < (payloadLength + FOOTER_LENGTH)) {
+      // if (buffer.subarray(PAYLOAD_INDEX).length < (payloadLength + CRC_LENGTH)) {
       console.debug('getSBGFrame: SBG Frame is incomplete')
-      status = SBGParsingStatus.MISSING_BYTES
-      return { status, frame: sbgFrame }
+      status = SBG_PARSING_STATUS.MISSING_BYTES
+      return { status, frame: sbgFrame as SBGFrameResponse }
     }
     // FOOTER
-    const footerBuffer = buffer.subarray(PAYLOAD_INDEX + payloadLength, PAYLOAD_INDEX + payloadLength + FOOTER_LENGTH)
+    const footerBuffer = info.subarray(PAYLOAD_INDEX + payloadLength, PAYLOAD_INDEX + payloadLength + FOOTER_LENGTH)
     const footer = this.getFooter(footerBuffer)
     sbgFrame.frame.footer = footer
     // Check CRC
-    const crc = getCalculatedCRC(buffer, payloadLength)
+    const crc = getCalculatedCRC(info, payloadLength)
     if (crc !== footer.crc) {
       console.debug(`getSBGFrame: Invalid CRC - should be ${footer.crc} -> get it ${crc}`)
-      status = SBGParsingStatus.ERROR_CRC
-      return { status, frame: sbgFrame }
+      status = SBG_PARSING_STATUS.ERROR_CRC
+      return { status, frame: sbgFrame as SBGFrameResponse }
     }
     // Check ext -> Optional
-    if (Buffer.compare(footer.ext, EXT_FLAG) !== 0) {
-      console.debug(`getSBGFrame: Invalid EXT Flag - should be ${EXT_FLAG.toString()} -> get it ${footer.ext.toString()}`)
-      status = SBGParsingStatus.ERROR_EXT
-      return { status, frame: sbgFrame }
+    if (Buffer.compare(footer.ext, ETX_FLAG) !== 0) {
+      console.debug(`getSBGFrame: Invalid EXT Flag - should be ${ETX_FLAG.toString()} -> get it ${footer.ext.toString()}`)
+      status = SBG_PARSING_STATUS.ERROR_EXT
+      return { status, frame: sbgFrame as SBGFrameResponse }
     }
     // PAYLOAD
-    const payloadBuffer = buffer.subarray(PAYLOAD_INDEX, PAYLOAD_INDEX + payloadLength)
+    const payloadBuffer = info.subarray(PAYLOAD_INDEX, PAYLOAD_INDEX + payloadLength)
     const { name, type, format, data } = this.getPayloadData(header.messageClass, header.messageID, payloadBuffer)
     sbgFrame.name = name
     sbgFrame.type = type
     sbgFrame.format = format
     sbgFrame.frame.data = data
-    return { status, frame: sbgFrame }
+    return { status, frame: sbgFrame as SBGFrameResponse }
   }
 
   protected getHeader (buffer: Buffer): SBGHeader {
@@ -187,13 +189,13 @@ export class Parser {
       const { data: subpayload, ...largedata } = this.getLargeFrameMetadata(payload)
       const { name, type, data } = this._parser(messageClass, messageID, payload)
       sbgFrame.name = name
-      sbgFrame.format = SBGFrameFormat.LARGE
+      sbgFrame.format = SBG_FRAME_FORMATS.LARGE
       sbgFrame.type = type
       sbgFrame.data = { ...largedata, data }
     } else {
       const { name, type, data } = this._parser(messageClass, messageID, payload)
       sbgFrame.name = name
-      sbgFrame.format = SBGFrameFormat.STANDARD
+      sbgFrame.format = SBG_FRAME_FORMATS.STANDARD
       sbgFrame.type = type
       sbgFrame.data = data
     }

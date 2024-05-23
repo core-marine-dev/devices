@@ -1,5 +1,5 @@
 import { UNKNOWN_SBG_FRAME_DATA } from '../../../constants'
-import { SBGDataParser, SBGFrameNameData } from '../../../types'
+import type { SBGDataParser, SBGFrameNameData } from '../../../types'
 
 const highFrequency = new Map<number, SBGDataParser>()
 

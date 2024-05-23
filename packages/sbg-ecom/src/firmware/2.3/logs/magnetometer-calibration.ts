@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 /* Message ID 05 -> SBG_ECOM_LOG_MAG_CALIB => Magnetometer calibration data(raw buffer)
  * Field         Offset  Size   Format   Unit  Description
  * TIME_STAMP         0     4   uint32     µs  Time since sensor is powered up

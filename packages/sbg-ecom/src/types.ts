@@ -1,9 +1,9 @@
-import { SBGFrameFormats, SBGFrameMessageClasses, SBGFrameTypes, SBGParsingStatuses } from './constants'
+import { SBG_FRAME_FORMATS, SBGFrameMessageClasses, SBGFrameTypes, SBG_PARSING_STATUS } from './constants'
 
 export type SBGFrameMessageClass = typeof SBGFrameMessageClasses[keyof typeof SBGFrameMessageClasses]
 export type SBGFrameType = typeof SBGFrameTypes[keyof typeof SBGFrameTypes]
-export type SBGFrameFormat = typeof SBGFrameFormats[keyof typeof SBGFrameFormats]
-export type SBGParsingStatus = typeof SBGParsingStatuses[keyof typeof SBGParsingStatuses]
+export type SBGFrameFormat = typeof SBG_FRAME_FORMATS[keyof typeof SBG_FRAME_FORMATS]
+export type SBGParsingStatus = typeof SBG_PARSING_STATUS[keyof typeof SBG_PARSING_STATUS]
 
 export interface SBGLargeFrameDataBuffer {
   transmissionID: number

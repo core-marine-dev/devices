@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { bitStatus } from '../../../utils'
 /* Message ID 19 -> SBG_ECOM_LOG_ODO_VEL => Provides odometer velocity measured by the device
  * Field       Offset  Size  Format  Unit  Description

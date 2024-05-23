@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { getSolutionStatus } from './utils'
 /* Message ID 06 -> SBG_ECOM_LOG_EKF_EULER => Includes roll, pitch, yaw and their accuracies on each axis
  * Field            Offset  Size  Format  Unit  Description

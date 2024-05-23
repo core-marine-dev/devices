@@ -67,5 +67,8 @@
     "parserOptions": {
       "project": "./tsconfig.json"
     }
+  },
+  "devDependencies": {
+    "@schemasjs/valibot-numbers": "^1.0.8"
   }
 }

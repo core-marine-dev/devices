@@ -1,5 +1,5 @@
-import { SBGFrameParser, SBGParser } from '../types'
-import { getSBGFrame as getSBGFrame2_3 } from './2-3'
+import type { SBGFrameParser, SBGParser } from '../types'
+import { getSBGFrame as getSBGFrame2_3 } from './2.3'
 
 // Firmwares
 const firmwareParsers = new Map<string, SBGFrameParser>()

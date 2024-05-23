@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { bitStatus } from '../../../utils'
 /* Message ID 15 -> SBG_ECOM_LOG_GPS1_HDT => GNSS true heading from primary receiver
  * Message ID 18 -> SBG_ECOM_LOG_GPS2_HDT => GNSS true heading from secondary receiver

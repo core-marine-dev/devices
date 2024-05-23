@@ -1,4 +1,4 @@
-import { SBGFrameNameData } from '../../../types'
+import type { SBGFrameNameData } from '../../../types'
 import { bitStatus } from '../../../utils'
 /* Message ID 36 -> SBG_ECOM_LOG_AIR_DATA => Barometric altimeter input / output for airdata support
  * Field               Offset  Size  Format    Unit  Description
