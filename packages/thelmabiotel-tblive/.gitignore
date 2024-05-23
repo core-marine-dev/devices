@@ -4,6 +4,8 @@
 .DS_Store
 nodered
 docs
+tango.json
+utf8*
 
 # Logs
 logs

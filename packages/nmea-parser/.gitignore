@@ -4,6 +4,8 @@
 .DS_Store
 docs
 lib
+tests/*.txt
+*.tss
 
 # Logs
 logs

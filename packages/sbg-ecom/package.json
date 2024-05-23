@@ -1,0 +1,74 @@
+{
+  "name": "@coremarine/sbg-ecom",
+  "version": "0.0.1",
+  "description": "Library to parse sbgECom binary protocol for SBG devices",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/sbg-ecom",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "keywords": [
+    "sbg",
+    "ecom",
+    "sbgECom",
+    "imu",
+    "mru",
+    "gnss",
+    "gps",
+    "binary",
+    "protocol"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">= 18"
+  },
+  "scripts": {
+    "build": "npm run format && tsup",
+    "lint": "ts-standard",
+    "format": "ts-standard --fix",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "crc": "^4.3.2"
+  },
+  "ts-standard": {
+    "ignore": [
+      "tests",
+      "vitest.config.ts",
+      "tsup.config.ts",
+      "examples"
+    ]
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  },
+  "devDependencies": {
+    "@schemasjs/valibot-numbers": "^1.0.8"
+  }
+}
