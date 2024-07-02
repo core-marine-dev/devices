@@ -1,6 +1,7 @@
 import { FirmwareSchema } from '../../../schemas'
 import { FIRMWARE_START } from '../../../constants'
-import type { CommandFirmwareFrame, Frame } from '../../../types'
+import type { CommandFirmwareFrame, Firmware, Frame } from '../../../types'
+import { getParsedSchema } from '../../../utils'
 
 const getMajor = (text: string): { major?: string, error?: string } => {
   const major = parseInt(text)
@@ -52,11 +53,12 @@ export const parseFirmware = (text: string): CommandFirmwareFrame | Frame => {
   const { patch, error: errorPatch } = getPatch(patchText)
   if (errorPatch !== undefined) { return { name, raw: text, error: errorPatch } }
   // Get Firmware
-  const fw = `${major as string}.${minor as string}.${patch as string}`
-  const endIndex = text.indexOf(fw) + fw.length
+  const firmware = `${major as string}.${minor as string}.${patch as string}`
+  const endIndex = text.indexOf(firmware) + firmware.length
   const raw = text.slice(FIRMWARE_START.length, endIndex)
-  const parsed = FirmwareSchema.safeParse(fw)
-  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
+  const { data: dataParsed, error } = getParsedSchema(FirmwareSchema, firmware)
+  if (error !== undefined) { return { raw, name, error } }
+  const fw = dataParsed as Firmware
   return {
     name,
     raw,

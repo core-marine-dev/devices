@@ -1,6 +1,7 @@
 import { LOG_INTERVALS, LOG_INTERVAL_FRAME_LENGTH, LOG_INTERVAL_START } from '../../../constants'
 import { LogIntervalSchema } from '../../../schemas'
 import type { CommandLogIntervalFrame, Frame } from '../../../types'
+import { getParsedSchema } from '../../../utils'
 
 export const parseLogInterval = (text: string): CommandLogIntervalFrame | Frame => {
   const name = 'log interval'
@@ -11,10 +12,10 @@ export const parseLogInterval = (text: string): CommandLogIntervalFrame | Frame 
   const li = raw.replace(LOG_INTERVAL_START, '')
   // Incorrect Log Interval
   if (isNaN(Number(li))) { return { name, raw, error: `${li} is not a number` } }
-  const parsed = LogIntervalSchema.safeParse(li)
-  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
+  const { data, error } = getParsedSchema(LogIntervalSchema, li)
+  if (error !== undefined) { return { raw, name, error } }
   // Log Interval
-  const logInterval = parsed.data as keyof typeof LOG_INTERVALS
+  const logInterval = data as keyof typeof LOG_INTERVALS
   const metadata = LOG_INTERVALS[logInterval] ?? 'unknown'
   return {
     name,

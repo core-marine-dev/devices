@@ -1,5 +1,6 @@
-import { StringSchema } from './schemas'
+import { ValibotValidator } from '@schemasjs/validator'
 import { EMITTER_ANGLE_BIT_LENGTH, EMITTER_ANGLE_FACTOR, EMITTER_DEVIATION_FACTOR } from './constants'
+import { StringSchema } from './schemas'
 import type { LineData, LineSNR, LineTemperature } from './types'
 
 export const utf8ToAscii = (text: string): string => {
@@ -31,3 +32,9 @@ export const getLineSNR = (snr: number): LineSNR => {
 }
 
 export const getLinesTemperature = (temperature: number): LineTemperature => ({ degrees: (temperature - 50) / 10, raw: temperature })
+
+export const getParsedSchema = (schema: ReturnType<typeof ValibotValidator>, data: any): { data?: any, error?: string } => {
+  const parse = schema.safeParse(data)
+  if (!parse.success) return { error: (parse.errors as string[])[0] }
+  return { data: parse.data }
+}
