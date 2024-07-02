@@ -86,7 +86,7 @@ const ValibotReceiverSchema = v.pipe(
     ({ frequency, emitters }) => (
       (emitters === undefined)
         ? true
-        : emitters.map(emitter => emitter.frequency).filter(freq => (frequency - 2 <= freq) && (freq <= frequency + 2)).length === emitters.length
+        : emitters.map(emitter => emitter.frequency).filter(freq => [frequency - 2, frequency, frequency + 2].includes(freq)).length === emitters.length
     ),
     'Receiver: All emitters frequencies should be equal to TB-Live frequency or ± 2 kHz'
   )
