@@ -1,7 +1,6 @@
-import * as v from 'valibot'
 import { FREQUENCY_FRAME_LENGTH, FREQUENCY_START } from '../../../constants'
 import { FrequencySchema } from '../../../schemas'
-import type { CommandFrequencyFrame, Frame } from '../../../types'
+import type { CommandFrequencyFrame, Frame, Frequency } from '../../../types'
 
 export const parseFrequency = (text: string): CommandFrequencyFrame | Frame => {
   const name = 'frequency'
@@ -13,10 +12,10 @@ export const parseFrequency = (text: string): CommandFrequencyFrame | Frame => {
   const numFq = Number(fq)
   // Incorrect Frequency
   if (isNaN(numFq)) { return { name, raw, error: `${fq} is not a number` } }
-  const parsed = v.safeParse(FrequencySchema, numFq)
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  const parsed = FrequencySchema.safeParse(numFq)
+  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
   // Frequency
-  const frequency = parsed.output
+  const frequency = parsed.data as Frequency
   return {
     name,
     raw,

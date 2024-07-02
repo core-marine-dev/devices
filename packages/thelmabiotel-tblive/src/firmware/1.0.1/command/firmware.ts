@@ -1,4 +1,3 @@
-import * as v from 'valibot'
 import { FirmwareSchema } from '../../../schemas'
 import { FIRMWARE_START } from '../../../constants'
 import type { CommandFirmwareFrame, Frame } from '../../../types'
@@ -56,8 +55,8 @@ export const parseFirmware = (text: string): CommandFirmwareFrame | Frame => {
   const fw = `${major as string}.${minor as string}.${patch as string}`
   const endIndex = text.indexOf(fw) + fw.length
   const raw = text.slice(FIRMWARE_START.length, endIndex)
-  const parsed = v.safeParse(FirmwareSchema, fw)
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  const parsed = FirmwareSchema.safeParse(fw)
+  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
   return {
     name,
     raw,

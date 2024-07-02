@@ -1,15 +1,6 @@
-import * as v from 'valibot'
-import { LOG_INTERVALS, LOG_INTERVAL_FRAME_LENGTH, LOG_INTERVAL_MAX, LOG_INTERVAL_MIN, LOG_INTERVAL_START } from '../../../constants'
+import { LOG_INTERVALS, LOG_INTERVAL_FRAME_LENGTH, LOG_INTERVAL_START } from '../../../constants'
 import type { CommandLogIntervalFrame, Frame } from '../../../types'
-
-export const LogIntervalSchema = v.string(
-  [
-    v.custom(input => !isNaN(Number(input)), 'Log Interval: it is not a number'),
-    v.custom(input => Number.isInteger(Number(input)), 'Log Interval: it is not an integer'),
-    v.custom(input => Number(input) >= LOG_INTERVAL_MIN, `Log Interval: interval should be greater equal to ${LOG_INTERVAL_MIN}`),
-    v.custom(input => Number(input) <= LOG_INTERVAL_MAX, `Log Interval: interval should be less equal to ${LOG_INTERVAL_MAX}`)
-  ]
-)
+import { LogIntervalSchema } from '../../../schemas'
 
 export const parseLogInterval = (text: string): CommandLogIntervalFrame | Frame => {
   const name = 'log interval'
@@ -20,10 +11,10 @@ export const parseLogInterval = (text: string): CommandLogIntervalFrame | Frame 
   const li = raw.replace(LOG_INTERVAL_START, '')
   // Incorrect Log Interval
   if (isNaN(Number(li))) { return { name, raw, error: `${li} is not a number` } }
-  const parsed = v.safeParse(LogIntervalSchema, li)
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  const parsed = LogIntervalSchema.safeParse(li)
+  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
   // Log Interval
-  const logInterval = parsed.output as keyof typeof LOG_INTERVALS
+  const logInterval = parsed.data as keyof typeof LOG_INTERVALS
   const metadata = LOG_INTERVALS[logInterval] ?? 'unknown'
   return {
     name,

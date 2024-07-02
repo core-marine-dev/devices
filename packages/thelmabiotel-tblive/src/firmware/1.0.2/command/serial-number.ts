@@ -1,7 +1,6 @@
-import * as v from 'valibot'
 import { SerialNumberSchema } from '../../../schemas'
 import { SERIAL_NUMBER_FRAME_LENGTH_MAX, SERIAL_NUMBER_START } from '../../../constants'
-import type { Frame, CommandSerialNumberFrame } from '../../../types'
+import type { Frame, CommandSerialNumberFrame, SerialNumber } from '../../../types'
 
 export const parseSerialNumber = (text: string): CommandSerialNumberFrame | Frame => {
   const name = 'serial number'
@@ -10,11 +9,11 @@ export const parseSerialNumber = (text: string): CommandSerialNumberFrame | Fram
   // Get Serial Number
   const raw = text
   const data = raw.replace(SERIAL_NUMBER_START, '')
-  const parsed = v.safeParse(SerialNumberSchema, data)
+  const parsed = SerialNumberSchema.safeParse(data)
   // Incorrect Serial Number
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
   // Serial Number
-  const sn = parsed.output
+  const sn = parsed.data as SerialNumber
   return {
     name,
     raw,
