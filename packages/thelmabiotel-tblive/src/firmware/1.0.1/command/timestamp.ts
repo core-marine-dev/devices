@@ -1,6 +1,7 @@
 import { TIMESTAMP_FRAME_LENGTH, TIMESTAMP_START } from '../../../constants'
 import { TimestampSchema } from '../../../schemas'
 import type { CommandTimestampFrame, Frame, Timestamp } from '../../../types'
+import { getParsedSchema } from '../../../utils'
 
 export const parseTimestamp = (text: string): CommandTimestampFrame | Frame => {
   const name = 'device time'
@@ -11,10 +12,10 @@ export const parseTimestamp = (text: string): CommandTimestampFrame | Frame => {
   const tm = raw.replace(TIMESTAMP_START, '')
   // Incorrect Timestamp
   if (isNaN(Number(tm))) { return { name, raw, error: `${tm} is not a string-number` } }
-  const parsed = TimestampSchema.safeParse(tm)
-  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
+  const { data, error } = getParsedSchema(TimestampSchema, tm)
+  if (error !== undefined) { return { raw, name, error } }
   // Timestamp
-  const seconds = parsed.data as Timestamp
+  const seconds = data as Timestamp
   const timestamp = Number(seconds) * 1000
   const date = (new Date(timestamp)).toISOString()
   return {

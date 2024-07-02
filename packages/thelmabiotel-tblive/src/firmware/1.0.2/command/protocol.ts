@@ -1,6 +1,7 @@
 import { PROTOCOLS, PROTOCOLS_FRAME_LENGTH, PROTOCOLS_START } from '../../../constants'
 import { ProtocolSchema } from '../../../schemas'
 import type { CommandProtocolsFrame, Frame } from '../../../types'
+import { getParsedSchema } from '../../../utils'
 
 export const parseProtocols = (text: string): CommandProtocolsFrame | Frame => {
   const name = 'listening protocols'
@@ -11,10 +12,10 @@ export const parseProtocols = (text: string): CommandProtocolsFrame | Frame => {
   const lm = raw.replace(PROTOCOLS_START, '')
   // Incorrect Protocols
   if (isNaN(Number(lm))) { return { name, raw, error: `${lm} is not a number` } }
-  const parsed = ProtocolSchema.safeParse(lm)
-  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
+  const { data, error } = getParsedSchema(ProtocolSchema, lm)
+  if (error !== undefined) { return { raw, name, error } }
   // Protocols
-  const lmProtocol = parsed.data as keyof typeof PROTOCOLS
+  const lmProtocol = data as keyof typeof PROTOCOLS
   const metadata = PROTOCOLS[lmProtocol]
   return {
     name,
