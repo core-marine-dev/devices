@@ -1,15 +1,6 @@
-import * as v from 'valibot'
-import { TIMESTAMP_FRAME_LENGTH, TIMESTAMP_LENGTH, TIMESTAMP_START } from '../../../constants'
-import type { CommandTimestampFrame, Frame } from '../../../types'
-
-const TimestampSchema = v.string(
-  [
-    v.length(TIMESTAMP_LENGTH, 'invalid length for timestamp'),
-    v.custom(input => !isNaN(Number(input)), 'it is not a string-number'),
-    v.custom(input => Number.isInteger(Number(input)), 'it is not a string-integer'),
-    v.custom(input => Number(input) >= 0, 'it is not a string-integer positive')
-  ]
-)
+import { TIMESTAMP_FRAME_LENGTH, TIMESTAMP_START } from '../../../constants'
+import { TimestampSchema } from '../../../schemas'
+import type { CommandTimestampFrame, Frame, Timestamp } from '../../../types'
 
 export const parseTimestamp = (text: string): CommandTimestampFrame | Frame => {
   const name = 'device time'
@@ -20,10 +11,10 @@ export const parseTimestamp = (text: string): CommandTimestampFrame | Frame => {
   const tm = raw.replace(TIMESTAMP_START, '')
   // Incorrect Timestamp
   if (isNaN(Number(tm))) { return { name, raw, error: `${tm} is not a string-number` } }
-  const parsed = v.safeParse(TimestampSchema, tm)
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  const parsed = TimestampSchema.safeParse(tm)
+  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
   // Timestamp
-  const seconds = parsed.output
+  const seconds = parsed.data as Timestamp
   const timestamp = Number(seconds) * 1000
   const date = (new Date(timestamp)).toISOString()
   return {

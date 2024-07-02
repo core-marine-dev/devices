@@ -1,15 +1,14 @@
-import type * as v from 'valibot'
-import type { ReceiverSchema, EmitterSchema, FirmwareSchema, FrequencySchema, ModeSchema, SerialNumberSchema } from './schemas'
-import type { FIELD_TYPE, FLAGS_COMMAND, FLAGS_LISTENING, LISTENING_FRAMES, LOG_INTERVALS, PROTOCOLS } from './constants'
 import type { Int16, Int8, Uint16, Uint8 } from '@schemasjs/valibot-numbers'
+import type { FIELD_TYPE, FLAGS_COMMAND, FLAGS_LISTENING, LISTENING_FRAMES, LOG_INTERVALS, PROTOCOLS } from './constants'
+import { EmitterSchema, FirmwareSchema, FrequencySchema, LogIntervalSchema, ModeSchema, ProtocolSchema, ReceiverSchema, SerialNumberSchema, TimestampSchema } from './schemas'
 
 // TB LIVE
-export type SerialNumber = v.Input<typeof SerialNumberSchema>
-export type Frequency = v.Input<typeof FrequencySchema>
-export type Firmware = v.Input<typeof FirmwareSchema>
-export type Mode = v.Input<typeof ModeSchema>
-export type Emitter = v.Input<typeof EmitterSchema>
-export type Receiver = v.Input<typeof ReceiverSchema>
+export type SerialNumber = ReturnType<typeof SerialNumberSchema.parse>
+export type Frequency = ReturnType<typeof FrequencySchema.parse>
+export type Firmware = ReturnType<typeof FirmwareSchema.parse>
+export type Mode = ReturnType<typeof ModeSchema.parse>
+export type Emitter = ReturnType<typeof EmitterSchema.parse>
+export type Receiver = ReturnType<typeof ReceiverSchema.parse>
 
 export type ListeningFrame = typeof LISTENING_FRAMES[number]
 
@@ -196,3 +195,7 @@ export interface CommandAPIFrame extends Frame {
     api: string
   }
 }
+
+export type LogInterval = ReturnType<typeof LogIntervalSchema.parse>
+export type Protocol = ReturnType<typeof ProtocolSchema.parse>
+export type Timestamp = ReturnType<typeof TimestampSchema.parse>

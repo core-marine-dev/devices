@@ -1,4 +1,3 @@
-import * as v from 'valibot'
 import { API_END, API_START, FIRMWARES_AVAILABLE, FIRMWARE_START, MAX_BUFFER_LENGTH } from './constants'
 import { FirmwareSchema, FrequencySchema, ReceiverSchema, StringSchema } from './schemas'
 import type { Parser, Firmware, Receiver, FirmwareFrame, OutputFrame, SerialNumber, Frequency, Emitter, ListeningEmitterFrame } from './types'
@@ -11,7 +10,7 @@ export class TBLive {
   protected _firmware: Firmware
   get firmware (): Firmware { return this._firmware }
   set firmware (fw: Firmware) {
-    this._firmware = v.parse(FirmwareSchema, fw)
+    this._firmware = FirmwareSchema.parse(fw)
     const parser = firmwareParser.get(this.firmware)
     if (parser !== undefined) {
       this._parser = parser
@@ -26,19 +25,19 @@ export class TBLive {
   protected _receiver: Receiver | null = null
   get receiver (): Receiver | null { return (this._receiver !== null) ? { ...this._receiver } : null }
   set receiver (receiver: Receiver) {
-    this._receiver = v.parse(ReceiverSchema, receiver)
+    this._receiver = ReceiverSchema.parse(receiver)
     if (this._receiver.firmware !== this._firmware) {
       this._firmware = this._receiver.firmware
     }
   }
 
   constructor (firmware: Firmware = '1.0.1', receiver: Receiver | null = null) {
-    this._firmware = v.parse(FirmwareSchema, firmware)
+    this._firmware = FirmwareSchema.parse(firmware)
     const parser = firmwareParser.get(this._firmware)
     if (parser === undefined) throw new Error(`Firmware ${firmware} is not supported`)
     this._parser = parser
     if (receiver !== null) {
-      this._receiver = { ...v.parse(ReceiverSchema, receiver) }
+      this._receiver = { ...ReceiverSchema.parse(receiver) }
       this._receiver.firmware = firmware
     }
   }
@@ -71,10 +70,10 @@ export class TBLive {
     }
     // Listening Emitter Frame
     const { frequency: sampleFrequency, emitter: sampleEmitter } = metadata.sample as ListeningEmitterFrame['metadata']['sample']
-    const parsedFrequency = v.safeParse(FrequencySchema, sampleFrequency)
-    if (!parsedFrequency.success) return parsedFrequency.issues[0].message
-    const frameFrequency = parsedFrequency.output
-    if (frameFrequency !== receiverFrequency) return `Invalid receiver frequency -> received ${frameFrequency} - expected ${receiverFrequency}`
+    const parsedFrequency = FrequencySchema.safeParse(sampleFrequency)
+    if (!parsedFrequency.success) { return (parsedFrequency.errors as string[])[0] }
+    const frameFrequency = parsedFrequency.data as Frequency
+    if (frameFrequency !== receiverFrequency) return `Invalid receiver frequency -> received ${frameFrequency.toString()} - expected ${receiverFrequency}`
     // Check Emitters
     const emitters: Emitter[] | undefined = this._receiver.emitters
     if (emitters === undefined) return ''
@@ -104,10 +103,10 @@ export class TBLive {
     this.getNewFirmwareChange()
   }
 
-  addData (data: string): void { this._buffer += v.parse(StringSchema, data) }
+  addData (data: string): void { this._buffer += StringSchema.parse(data) }
 
   parseData (data: string = ''): OutputFrame[] {
-    if (v.parse(StringSchema, data).length > 0) {
+    if (StringSchema.parse(data).length > 0) {
       this.addData(data)
     }
     const timestamp = Date.now()
@@ -121,9 +120,8 @@ export class TBLive {
       // Firmware change -> change the firmware and parse the nonparsed
       const firmwareChangeFrame: FirmwareFrame = frames.slice(-1)[0]
       const newFirmware: Firmware = (firmwareChangeFrame.data?.at(0) as Firmware) ?? '9.9.9'
-      const parsed = v.safeParse(FirmwareSchema, newFirmware)
       // Non supported firmware -> find next fw change
-      if (!parsed.success) {
+      if (!FirmwareSchema.is(newFirmware)) {
         response[response.length - 1].errorFirmware = `Firmware ${newFirmware} is not supported, just ${FIRMWARES_AVAILABLE.toString()}`
         this.getNewFirmwareChange()
         break

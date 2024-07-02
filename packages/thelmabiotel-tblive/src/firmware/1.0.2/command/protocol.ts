@@ -1,14 +1,6 @@
-import * as v from 'valibot'
 import { PROTOCOLS, PROTOCOLS_FRAME_LENGTH, PROTOCOLS_START } from '../../../constants'
+import { ProtocolSchema } from '../../../schemas'
 import type { CommandProtocolsFrame, Frame } from '../../../types'
-
-export const ProtocolSchema = v.string(
-  [
-    v.custom(input => !isNaN(Number(input)), 'it is not a number'),
-    v.custom(input => Number.isInteger(Number(input)), 'it is not an integer'),
-    v.custom(input => input in PROTOCOLS, 'invalid listenning mode protocol')
-  ]
-)
 
 export const parseProtocols = (text: string): CommandProtocolsFrame | Frame => {
   const name = 'listening protocols'
@@ -19,10 +11,10 @@ export const parseProtocols = (text: string): CommandProtocolsFrame | Frame => {
   const lm = raw.replace(PROTOCOLS_START, '')
   // Incorrect Protocols
   if (isNaN(Number(lm))) { return { name, raw, error: `${lm} is not a number` } }
-  const parsed = v.safeParse(ProtocolSchema, lm)
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  const parsed = ProtocolSchema.safeParse(lm)
+  if (!parsed.success) { return { name, raw, error: (parsed.errors as string[])[0] } }
   // Protocols
-  const lmProtocol = parsed.output as keyof typeof PROTOCOLS
+  const lmProtocol = parsed.data as keyof typeof PROTOCOLS
   const metadata = PROTOCOLS[lmProtocol]
   return {
     name,

@@ -1,10 +1,9 @@
-import * as v from 'valibot'
 import { StringSchema } from './schemas'
 import { EMITTER_ANGLE_BIT_LENGTH, EMITTER_ANGLE_FACTOR, EMITTER_DEVIATION_FACTOR } from './constants'
 import type { LineData, LineSNR, LineTemperature } from './types'
 
 export const utf8ToAscii = (text: string): string => {
-  const utf8 = v.parse(StringSchema, text)
+  const utf8 = StringSchema.parse(text)
   const bytes = (new TextEncoder()).encode(utf8)
   return (new TextDecoder('ascii')).decode(bytes)
 }
