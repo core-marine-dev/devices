@@ -106,10 +106,10 @@ export class TBLive {
   addData (data: string): void { this._buffer += StringSchema.parse(data) }
 
   parseData (data: string = ''): OutputFrame[] {
+    const timestamp = Date.now()
     if (StringSchema.parse(data).length > 0) {
       this.addData(data)
     }
-    const timestamp = Date.now()
     let response: FirmwareFrame[] = []
     while (this._buffer.length > 0) {
       const { frames, nonparsed, firmwareChange } = this._parser(this._buffer)
