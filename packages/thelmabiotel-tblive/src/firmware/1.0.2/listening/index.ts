@@ -11,7 +11,6 @@ import { parseSample } from './sample'
  * 02 - Round clock     -> ack01\r
  * 03 - Set clock       -> ack02\r
 */
-
 export const sample = (text: string): ParsedFrame => {
   const endIndex = text.indexOf(SAMPLE_END) + SAMPLE_END.length
   if (endIndex === -1) return { frame: null, remainder: text }

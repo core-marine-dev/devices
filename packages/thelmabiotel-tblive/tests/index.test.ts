@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest'
-
 import { TBLive } from '../src'
 import { Emitter, Receiver } from '../src/types'
 import { CLOCK_ROUND, CLOCK_SET, COMMAND_MODE, FACTORY_RESET, FIRMWARES_AVAILABLE, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_START, PING_END, PING_START, PROTOCOLS_START, RESTART_DEVICE, SERIAL_NUMBER_START, TIMESTAMP_START, UPGRADE_FIRMWARE } from '../src/constants'
@@ -100,27 +99,27 @@ describe('contructors_getters_setters',() => {
     expect(tblive.receiver?.firmware).toBe(firmware)
     expect(tblive.receiver).toEqual(receiver)
     // Invalid emitters - Frequency
-    receiver.emitters[1].frequency = frequency - 1
+    ;(receiver.emitters as Emitter[])[1].frequency = frequency - 1
     expect(() => tblive.receiver = { ...receiver }).toThrow()
-    receiver.emitters[1].frequency = frequency - 10
+    ;(receiver.emitters as Emitter[])[1].frequency = frequency - 10
     expect(() => tblive.receiver = { ...receiver }).toThrow()
-    receiver.emitters[1].frequency = frequency - 2
+    ;(receiver.emitters as Emitter[])[1].frequency = frequency - 2
     expect(() => tblive.receiver = { ...receiver }).not.toThrow()
     // Invalid emitters - Serial Number
-    receiver.emitters[1].serialNumber = '0123456'
+    ;(receiver.emitters as Emitter[])[1].serialNumber = '0123456'
     expect(() => tblive.receiver = { ...receiver }).toThrow()
-    receiver.emitters[1].serialNumber = '0123457'
+    ;(receiver.emitters as Emitter[])[1].serialNumber = '0123457'
     expect(() => tblive.receiver = { ...receiver }).not.toThrow()
     // Invalid emitters - Invalid number of emiiters
-    receiver.emitters[3] = { serialNumber: '01234569', frequency: 69 }
+    ;(receiver.emitters as Emitter[])[3] = { serialNumber: '01234569', frequency: 69 }
     expect(() => tblive.receiver = { ...receiver }).toThrow()
-    receiver.emitters.pop()
+    ;(receiver.emitters as Emitter[]).pop()
     expect(() => tblive.receiver = { ...receiver }).not.toThrow()
-    receiver.emitters.pop()
+    ;(receiver.emitters as Emitter[]).pop()
     expect(() => tblive.receiver = { ...receiver }).not.toThrow()
-    receiver.emitters.pop()
+    ;(receiver.emitters as Emitter[]).pop()
     expect(() => tblive.receiver = { ...receiver }).not.toThrow()
-    receiver.emitters.pop()
+    ;(receiver.emitters as Emitter[]).pop()
     expect(() => tblive.receiver = { ...receiver }).toThrow()
   })
 })

@@ -1,7 +1,7 @@
-import * as v from 'valibot'
 import { FirmwareSchema } from '../../../schemas'
 import { FIRMWARE_START } from '../../../constants'
-import type { CommandFirmwareFrame, Frame } from '../../../types'
+import type { CommandFirmwareFrame, Firmware, Frame } from '../../../types'
+import { getParsedSchema } from '../../../utils'
 
 const getMajor = (text: string): { major?: string, error?: string } => {
   const major = parseInt(text)
@@ -56,15 +56,16 @@ export const parseFirmware = (text: string): CommandFirmwareFrame | Frame => {
   const fw = `${major as string}.${minor as string}.${patch as string}`
   const endIndex = text.indexOf(fw) + fw.length
   const raw = text.slice(FIRMWARE_START.length, endIndex)
-  const parsed = v.safeParse(FirmwareSchema, fw)
-  if (!parsed.success) { return { name, raw, error: parsed.issues[0].message } }
+  const { data: parsedData, error } = getParsedSchema(FirmwareSchema, fw)
+  if (error !== undefined) { return { raw, name, error } }
+  const firmware = parsedData as Firmware
   return {
     name,
     raw,
-    data: [fw],
-    fields: [{ name: 'firmware', type: 'string', data: fw }],
+    data: [firmware],
+    fields: [{ name: 'firmware', type: 'string', data: firmware }],
     metadata: {
-      firmware: fw
+      firmware
     }
   }
 }

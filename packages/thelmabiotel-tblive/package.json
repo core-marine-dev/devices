@@ -1,7 +1,7 @@
 {
   "name": "@coremarine/thelmabiotel-tblive",
-  "version": "0.0.5",
-  "description": "Library to work with TB-Lives devices (hydrophones and acoustic sensors of Thelma Biotel)",
+  "version": "0.0.6",
+  "description": "Library to work with Thlema Biotel TB-Lives hydrophones",
   "author": "CoreMarine",
   "license": "MIT",
   "homepage": "https://github.com/core-marine-dev/tree/main/packages/thelmabiotel-tblive",
@@ -49,10 +49,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@schemasjs/valibot-numbers": "^1.0.8"
+    "@schemasjs/valibot-numbers": "^1.0.12",
+    "@schemasjs/validator": "^1.0.0"
   },
   "peerDependencies": {
-    "valibot": ">=0.30.0"
+    "valibot": ">=0.33.3"
   },
   "ts-standard": {
     "ignore": [
