@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'vitest'
-import * as v from 'valibot'
 import { serialNumber, firmware, frequency, logInterval, protocols, timestamp, api, restart, factoryReset, upgradeFirmware, commandModeON, commandModeOFF } from '../../../src/firmware/1.0.2/command'
 import { API_END, API_START, COMMAND_MODE, FACTORY_RESET, FIRMWARES_AVAILABLE, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVALS, LOG_INTERVAL_START, PROTOCOLS, PROTOCOLS_START, RESTART_DEVICE, SERIAL_NUMBER_START, TIMESTAMP_START, UPGRADE_FIRMWARE } from '../../../src/constants'
 import { FrequencySchema, SerialNumberSchema } from '../../../src/schemas'
@@ -46,7 +45,7 @@ describe('serial number', () => {
     const sn = '123456a'
     const input = SERIAL_NUMBER_START + sn
     const output = serialNumber(input)
-    const parsed = v.safeParse(SerialNumberSchema, sn)
+    const parsed = SerialNumberSchema.safeParse(sn)
     expect(parsed.success).toBeFalsy()
     if (!parsed.success) {
       const expected: ParsedFrame = {
@@ -54,7 +53,7 @@ describe('serial number', () => {
         frame: {
           name,
           raw: input,
-          error: parsed.issues[0].message
+          error: (parsed.errors as string[])[0]
         }
       }
       expect(output).toEqual(expected)
@@ -188,7 +187,7 @@ describe('frequency', () => {
     const fq = '7a'
     const input = FREQUENCY_START + fq
     const output = frequency(input)
-    const parsed = v.safeParse(FrequencySchema, fq)
+    const parsed = FrequencySchema.safeParse(fq)
     expect(parsed.success).toBeFalsy()
     if (!parsed.success) {
       const expected: ParsedFrame = {
