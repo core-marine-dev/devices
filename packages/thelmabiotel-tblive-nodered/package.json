@@ -1,10 +1,10 @@
 {
   "name": "@coremarine/thelmabiotel-tblive-nodered",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Node-Red component to work with Thelma Biotel hydrophones TB-Live",
   "author": "CoreMarine",
   "license": "MIT",
-  "homepage": "https://github.com/core-marine-dev/devices/packages/thelmabiotel-tblive-nodered#readme",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/thelmabiotel-tblive-nodered",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git"
@@ -21,12 +21,27 @@
     "accoustic",
     "inclinometer"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "node-red": {
+    "version": ">=3.0.0",
+    "nodes": {
+      "cma-thelmabiotel-tblive": "src/parser.js"
+    }
+  },
   "main": "index.js",
+  "files": [
+    "src",
+    "examples"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker": "sh manual_tests.sh",
+    "test": "mocha \"tests/**/*.test.js\"",
+    "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/thelmabiotel-tblive": "^0.0.1"
+    "@coremarine/thelmabiotel-tblive": ">=0.0.6"
   },
   "peerDependencies": {
     "valibot": ">=0.30.0"

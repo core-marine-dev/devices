@@ -1,26 +1,14 @@
 <!-- Definition -->
 <script type="text/javascript">
-  function checkSerialNumber (sn) {
-    if (isNaN(Number(sn))) return false
-    if (sn.length < 6 || 7 < sn.length) return false
-
-  }
-
-  function checkFrequency (freq) {
-    if (Number.isNaN(freq)) return false
-    if (!Number.isInteger(freq)) return false
-    return (63 <= freq && freq <= 77)
-  }
-
-  RED.nodes.registerType("tblive-parser", {
+  RED.nodes.registerType("cma-thelmabiotel-tblive", {
     // Category
     category: "CoreMarine",
     // UI
-    color: "#FB9313",
-    icon: "sonar-icon-white.png",
+    color: "#ccc4b0",
+    icon: "cma-logo-blue.png",
     label: function () {
-      const { name, firmware } = this;
-      return name ?? `TB-Live ${firmware}`;
+      const { firmware } = this;
+      return `TB-Live ${firmware}`;
     },
     paletteLabel: "TB-Live parser",
     labelStyle: function () { return this.name ? "node_label_italic" : "" },
@@ -44,68 +32,8 @@
     defaults: {
       name: { value: "" },
       firmware: {
-          value: "4.10.1",
-          required: true,
-      },
-      // Receiver
-      receiverRequired: {
-        value: false,
-        required: true
-      },
-      receiverSerialNumber: {
-        value: "1234567",
-        required: false,
-        validate: checkSerialNumber,
-      },
-      receiverFrequency: {
-        value: 69,
-        required: false,
-        validate: checkFrequency
-      },
-      // Emitter 1
-      emitter1Required: {
-        value: false,
-        required: true
-      },
-      emitter1SerialNumber: {
-        value: "1234567",
-        required: false,
-        validate: checkSerialNumber,
-      },
-      emitter1Frequency: {
-        value: 69,
-        required: false,
-        validate: checkFrequency,
-      },
-      // Emitter 2
-      emitter2Required: {
-        value: false,
-        required: true
-      },
-      emitter2SerialNumber: {
-        value: "1234567",
-        required: false,
-        validate: checkSerialNumber,
-      },
-      emitter2Frequency: {
-        value: 69,
-        required: false,
-        validate: checkFrequency,
-      },
-      // Emitter 3
-      emitter3Required: {
-        value: false,
-        required: true
-      },
-      emitter3SerialNumber: {
-        value: "1234567",
-        required: false,
-        validate: checkSerialNumber,
-      },
-      emitter3Frequency: {
-        value: 69,
-        required: false,
-        validate: checkFrequency,
+        value: "1.0.1",
+        required: true,
       },
     },
     // credentials: {},
@@ -129,7 +57,7 @@
 </script>
   
 <!-- Edit dialog -->
-<script type="text/html" data-template-name="tblive-parser">
+<script type="text/html" data-template-name= "cma-thelmabiotel-tblive">
   <!-- Name -->
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -140,87 +68,42 @@
     <label for="node-input-firmware"><i class="fa fa-tag"></i> Firmware</label>
     <input type="text" id="node-input-firmware" checked/>
   </div>
-  <!-- RECEIVER -->
-  <!-- Receiver Required -->
-  <div class="form-row">
-    <label for="node-input-receiverRequired"><i class="fa fa-tag"></i> Receiver</label>
-    <input type="checkbox" id="node-input-receiverRequired">
-  </div>
-  <!-- Receiver Serial Number -->
-  <div class="form-row">
-    <label for="node-input-receiverSerialNumber"><i class="fa fa-tag"></i> Receiver SerialNumber</label>
-    <input type="text" id="node-input-receiverSerialNumber" placeholder="1234567" />
-  </div>
-  <!-- Receiver Frequency -->
-  <div class="form-row">
-    <label for="node-input-receiverFrequency"><i class="fa fa-tag"></i> Receiver Frequency</label>
-    <input type="number" id="node-input-receiverFrequency" placeholder="69" />
-  </div>
-  <!-- EMITTER 1 -->
-  <!-- Emitter 1 Required -->
-  <div class="form-row">
-    <label for="node-input-emitter1Required"><i class="fa fa-tag"></i> Emitter 1</label>
-    <input type="checkbox" id="node-input-emitter1Required">
-  </div>
-  <!-- Emitter 1 Serial Number -->
-  <div class="form-row">
-    <label for="node-input-emitter1SerialNumber"><i class="fa fa-tag"></i> Emitter 1 SerialNumber</label>
-    <input type="text" id="node-input-emitter1SerialNumber" placeholder="1234567" />
-  </div>
-  <!-- Emitter 1 Frequency -->
-  <div class="form-row">
-    <label for="node-input-emitter1Frequency"><i class="fa fa-tag"></i> Emitter 1 Frequency</label>
-    <input type="number" id="node-input-emitter1Frequency" placeholder="69" />
-  </div>
-  <!-- EMITTER 2 -->
-  <!-- Emitter 2 Required -->
-  <div class="form-row">
-    <label for="node-input-emitter2Required"><i class="fa fa-tag"></i> Emitter 2</label>
-    <input type="checkbox" id="node-input-emitter2Required">
-  </div>
-  <!-- Emitter 2 Serial Number -->
-  <div class="form-row">
-    <label for="node-input-emitter2SerialNumber"><i class="fa fa-tag"></i> Emitter 2 SerialNumber</label>
-    <input type="text" id="node-input-emitter2SerialNumber" placeholder="1234567" />
-  </div>
-  <!-- Emitter 2 Frequency -->
-  <div class="form-row">
-    <label for="node-input-emitter2Frequency"><i class="fa fa-tag"></i> Emitter 2 Frequency</label>
-    <input type="number" id="node-input-emitter2Frequency" placeholder="69" />
-  </div>
-  <!-- EMITTER 3 -->
-  <!-- Emitter 3 Required -->
-  <div class="form-row">
-    <label for="node-input-emitter3Required"><i class="fa fa-tag"></i> Emitter 3</label>
-    <input type="checkbox" id="node-input-emitter3Required">
-  </div>
-  <!-- Emitter 3 Serial Number -->
-  <div class="form-row">
-    <label for="node-input-emitter3SerialNumber"><i class="fa fa-tag"></i> Emitter 3 SerialNumber</label>
-    <input type="text" id="node-input-emitter3SerialNumber" placeholder="1234567" />
-  </div>
-  <!-- Emitter 3 Frequency -->
-  <div class="form-row">
-    <label for="node-input-emitter3Frequency"><i class="fa fa-tag"></i> Emitter 3 Frequency</label>
-    <input type="number" id="node-input-emitter3Frequency" placeholder="69" />
-  </div>
 </script>
   
 <!-- Help text -->
-<script type="text/markdown" data-help-name="tblive-parser">
-Parser of TB-Live propietary protocol sentences [check @coremarine/tb-live package docs](https://github.com/core-marine-dev/tb-live)
+<script type="text/markdown" data-help-name= "cma-thelmabiotel-tblive">
+Parser of TB-Live propietary protocol sentences check [@coremarine/thelmabiotel-tblive](https://www.npmjs.com/package/@coremarine/thelmabiotel-tblive) package docs
 
 ### Input
 
-TODO
+: payload (string) : ASCII output from TB-Live device to be parsed.
+
 
 ### Output
 
-TODO
+: payload (array) : It is the same output @coremarine/thelmabiotel-tblive gives. Look details for more info.
 
 ### Details
 
-TODO
+The output is an `Frame[]` where `Frame` has this type definiton
+
+```typescript
+interface Frame {
+  timestamp: number
+  name: string
+  raw: string
+  error?: string | object
+  data?: (boolean | string | number)[]
+  fields?: Array<{
+    name: string
+    type: "string" | "boolean" | "int8" | "int16" | "int32" | "uint8" | "uint16" | "uint32"
+    data: boolean | string | number
+    metadata?: any
+    units?: string
+  }>
+  metadata?: any
+}
+```
 
 </script>
   
