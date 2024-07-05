@@ -1,0 +1,229 @@
+[
+  {
+      "id": "271b26f860ccf008",
+      "type": "tab",
+      "label": "TB-Live Parser",
+      "disabled": false,
+      "info": "",
+      "env": []
+  },
+  {
+      "id": "3e237620352f4422",
+      "type": "inject",
+      "z": "271b26f860ccf008",
+      "name": "One Frame",
+      "props": [],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 150,
+      "y": 160,
+      "wires": [
+          [
+              "e4d0482bbace07f3"
+          ]
+      ]
+  },
+  {
+      "id": "34b2f0f95aa52b1f",
+      "type": "inject",
+      "z": "271b26f860ccf008",
+      "name": "Some Frames",
+      "props": [],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 150,
+      "y": 220,
+      "wires": [
+          [
+              "8de7cc659e71f27c"
+          ]
+      ]
+  },
+  {
+      "id": "a80ec7743cf0e8d4",
+      "type": "inject",
+      "z": "271b26f860ccf008",
+      "name": "Invalid Frame",
+      "props": [],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 150,
+      "y": 280,
+      "wires": [
+          [
+              "dd466010c1c7d412"
+          ]
+      ]
+  },
+  {
+      "id": "984e1aed5aaaee85",
+      "type": "inject",
+      "z": "271b26f860ccf008",
+      "name": "Invalid input",
+      "props": [],
+      "repeat": "",
+      "crontab": "",
+      "once": false,
+      "onceDelay": 0.1,
+      "topic": "",
+      "x": 150,
+      "y": 340,
+      "wires": [
+          [
+              "798cda4ffc0c75a0"
+          ]
+      ]
+  },
+  {
+      "id": "6a6ee5c5862b85e3",
+      "type": "catch",
+      "z": "271b26f860ccf008",
+      "name": "ERRORS",
+      "scope": null,
+      "uncaught": false,
+      "x": 140,
+      "y": 100,
+      "wires": [
+          [
+              "f98f2bfb06e22abf"
+          ]
+      ]
+  },
+  {
+      "id": "f98f2bfb06e22abf",
+      "type": "debug",
+      "z": "271b26f860ccf008",
+      "name": "ERRORS",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "true",
+      "targetType": "full",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 300,
+      "y": 100,
+      "wires": []
+  },
+  {
+      "id": "a5a3b1284fd07605",
+      "type": "cma-thelmabiotel-tblive",
+      "z": "271b26f860ccf008",
+      "name": "",
+      "firmware": "1.0.1",
+      "x": 530,
+      "y": 240,
+      "wires": [
+          [
+              "9951ad612a732e70"
+          ]
+      ]
+  },
+  {
+      "id": "e4d0482bbace07f3",
+      "type": "function",
+      "z": "271b26f860ccf008",
+      "name": "One Frame",
+      "func": "const frame = \"$1000185,0000070780,760,S64K,30075,3,22,67,2621\\r\\n\"\n\nreturn { payload: frame }",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 350,
+      "y": 160,
+      "wires": [
+          [
+              "a5a3b1284fd07605"
+          ]
+      ]
+  },
+  {
+      "id": "9951ad612a732e70",
+      "type": "debug",
+      "z": "271b26f860ccf008",
+      "name": "Frames",
+      "active": true,
+      "tosidebar": true,
+      "console": false,
+      "tostatus": false,
+      "complete": "payload",
+      "targetType": "msg",
+      "statusVal": "",
+      "statusType": "auto",
+      "x": 700,
+      "y": 240,
+      "wires": []
+  },
+  {
+      "id": "8de7cc659e71f27c",
+      "type": "function",
+      "z": "271b26f860ccf008",
+      "name": "Some Frames",
+      "func": "const frame1 = \"$1000185,0000071080,758,S64K,30331,3,20,67,2634\\r\\n\"\nconst frame2 = \"$1000185,0000071100,TBR Sensor,322,9,12,67,2635\\r\\n\"\nconst frame3 = \"$1000185,0000071105,759,S64K,30331,3,22,67,2636\\r\\n\"\n\nconst frames = frame1 + frame2 + frame3\n\nreturn { payload: frames }",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 340,
+      "y": 220,
+      "wires": [
+          [
+              "a5a3b1284fd07605"
+          ]
+      ]
+  },
+  {
+      "id": "dd466010c1c7d412",
+      "type": "function",
+      "z": "271b26f860ccf008",
+      "name": "Invalid Frame",
+      "func": "const frame = \"this is an invalid frame\"\n\nreturn { payload: frame }",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 340,
+      "y": 280,
+      "wires": [
+          [
+              "a5a3b1284fd07605"
+          ]
+      ]
+  },
+  {
+      "id": "798cda4ffc0c75a0",
+      "type": "function",
+      "z": "271b26f860ccf008",
+      "name": "Invalid Input",
+      "func": "const frame = { input: 'invalid' }\n\nreturn { payload: frame }",
+      "outputs": 1,
+      "timeout": 0,
+      "noerr": 0,
+      "initialize": "",
+      "finalize": "",
+      "libs": [],
+      "x": 350,
+      "y": 340,
+      "wires": [
+          [
+              "a5a3b1284fd07605"
+          ]
+      ]
+  }
+]
