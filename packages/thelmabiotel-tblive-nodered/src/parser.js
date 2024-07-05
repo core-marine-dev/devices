@@ -1,10 +1,9 @@
 const v = require('valibot')
-const { TBLive: Parser } = require('@coremarine/tb-live')
-const { ReceiverSchema, EmitterSchema } = require('@coremarine/tb-live/lib/schemas')
+const { TBLive: Parser, ReceiverSchema, EmitterSchema } = require('@coremarine/thelmabiotel-tblive')
 
-const isString = value => v.is(v.string(), value)
-const isBoolean = value => v.is(v.boolean(), value)
-const isNullOrUndefined = value => value === null || value === undefined
+// const isString = value => (typeof value === 'string' || value instanceof String)
+// const isBoolean = value => (typeof value === 'boolean')
+// const isNullOrUndefined = value => value === null || value === undefined
 
 const setParser = (parser, config) => {
   parser.firmware = config.firmware
@@ -61,9 +60,9 @@ const cleanUndefineds = (msg) => {
   })
 }
 
-module.exports = function(RED) {
+module.exports = function (RED) {
   // Component
-  function TBLiveParser(config) {
+  function TBLiveParser (config) {
     RED.nodes.createNode(this, config)
     const node = this
     Object.assign(node, config)
@@ -90,10 +89,10 @@ module.exports = function(RED) {
         error = err
       } finally {
         // Finish
-        if (done) { (error === null ) ? done() : done(error) }
+        if (done) { (error === null) ? done() : done(error) }
       }
     })
   }
   // Register
-  RED.nodes.registerType('tblive-parser', TBLiveParser)
+  RED.nodes.registerType('cma-thelmabiotel-tblive', TBLiveParser)
 }
