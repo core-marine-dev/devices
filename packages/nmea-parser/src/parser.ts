@@ -1,21 +1,20 @@
-import * as v from 'valibot'
 import { END_FLAG, END_FLAG_LENGTH, MAX_CHARACTERS, NMEA_ID_LENGTH, START_FLAG, START_FLAG_LENGTH } from './constants'
-import { BooleanSchema, NMEALikeSchema, ProtocolsInputSchema, StringSchema, UnsignedIntegerSchema } from './schemas'
-import type { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentences } from './types'
-import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols'
-import { generateSentenceFromModel, getFakeSentence, getNMEAUnparsedSentence } from './sentences'
-import { getTalker } from './utils'
 import { PROTOCOLS } from './nmea'
+import { getSentencesByProtocol, getStoreSentences, readProtocolsFile, readProtocolsString } from './protocols'
+import { BooleanSchema, NMEALikeSchema, ProtocolsInputSchema, StringSchema, UnsignedIntegerSchema } from './schemas'
+import { generateSentenceFromModel, getFakeSentence, getNMEAUnparsedSentence } from './sentences'
+import type { Data, FieldType, FieldUnknown, NMEAKnownSentence, NMEALike, NMEAParser, NMEAPreParsed, NMEASentence, NMEAUknownSentence, ParserSentences, ProtocolOutput, ProtocolsFile, ProtocolsInput, Sentence, StoredSentences } from './types'
+import { getTalker } from './utils'
 
 export class Parser implements NMEAParser {
   // Memory - Buffer
   protected _memory: boolean = true
   get memory (): typeof this._memory { return this._memory }
-  set memory (mem: boolean) { this._memory = v.parse(BooleanSchema, mem) }
+  set memory (mem: boolean) { this._memory = BooleanSchema.parse(mem) }
   protected _buffer: string = ''
   protected _bufferLength: number = MAX_CHARACTERS
   get bufferLimit (): typeof this._bufferLength { return this._bufferLength }
-  set bufferLimit (limit: number) { this._bufferLength = v.parse(UnsignedIntegerSchema, limit) }
+  set bufferLimit (limit: number) { this._bufferLength = UnsignedIntegerSchema.parse(limit) }
   // Sentences
   protected _sentences: StoredSentences = new Map()
   // get sentences() { return this._sentences }
@@ -28,7 +27,7 @@ export class Parser implements NMEAParser {
   }
 
   private readInternalProtocols (): void {
-    const parsed = v.parse(ProtocolsInputSchema, PROTOCOLS)
+    const parsed = ProtocolsInputSchema.parse(PROTOCOLS)
     this.addProtocols(parsed)
   }
 
@@ -44,7 +43,7 @@ export class Parser implements NMEAParser {
   }
 
   getSentence (id: string): Sentence {
-    if (!v.is(StringSchema, id) || id.length < NMEA_ID_LENGTH) { return null }
+    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) { return null }
     const aux = this._sentences.get(id) ?? null
     if (aux !== null) { return aux }
     const [talk, sent] = [id.slice(0, id.length - NMEA_ID_LENGTH), id.slice(-NMEA_ID_LENGTH)]
@@ -55,7 +54,7 @@ export class Parser implements NMEAParser {
   }
 
   addProtocols (input: ProtocolsInput): void {
-    if (!v.is(ProtocolsInputSchema, input)) {
+    if (!ProtocolsInputSchema.is(input)) {
       const error = 'Parser: invalid protocols to parse'
       console.error(error)
       console.error(input)
@@ -73,7 +72,7 @@ export class Parser implements NMEAParser {
   }
 
   getFakeSentenceByID (id: string): NMEALike | null {
-    if (!v.is(StringSchema, id) || id.length < NMEA_ID_LENGTH) { return null }
+    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) { return null }
     const aux = this._sentences.get(id) ?? null
     if (aux !== null) { return generateSentenceFromModel(aux) }
     // const [_, sent] = [id.slice(0, id.length - NMEA_ID_LENGTH), id.slice(-NMEA_ID_LENGTH)]
@@ -85,7 +84,7 @@ export class Parser implements NMEAParser {
   }
 
   parseData (text: string): NMEASentence[] {
-    if (!v.is(StringSchema, text)) return []
+    if (!StringSchema.is(text)) return []
     const data = (this.memory) ? this._buffer + text : text
     return this.getFrames(data)
   }
@@ -177,7 +176,7 @@ export class Parser implements NMEAParser {
     if (this._sentences.has(preparsedSentence.sentence)) {
       const sentence = this.getKnownFrame(preparsedSentence)
       if (sentence !== null) return sentence
-    // Probably known sentence by talker ID
+      // Probably known sentence by talker ID
     } else {
       const sentence = this.getKnownTalkerFrame(preparsedSentence)
       if (sentence !== null) return sentence
@@ -207,7 +206,7 @@ export class Parser implements NMEAParser {
 
       const possibleFrame = text.slice(start, end + END_FLAG_LENGTH)
 
-      if (!v.is(NMEALikeSchema, possibleFrame)) {
+      if (!NMEALikeSchema.is(possibleFrame)) {
         pivot = start + START_FLAG_LENGTH
         continue
       }

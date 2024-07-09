@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import * as v from 'valibot'
 import { Parser } from '../src/parser'
 import { generateSentenceFromModel, getFakeSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEASentenceSchema, NMEAUknownSentenceSchema } from '../src/schemas'
@@ -134,9 +133,9 @@ describe('Parser', () => {
       const input = generateSentenceFromModel(storedSentence)
       expect(input).toBeTypeOf('string')
       const output = parser.parseData(input)[0]
-      const parsed = v.safeParse(NMEAKnownSentenceSchema, output)
+      const parsed = NMEAKnownSentenceSchema.safeParse(output)
       if (!parsed.success) {
-        console.error(parsed.issues[0].message)
+        console.error((parsed.errors as string[])[0])
       }
       expect(parsed.success).toBeTruthy()
     })
@@ -155,11 +154,11 @@ describe('Parser', () => {
     if (output.length === 2) {
       // Known talker
       ['GP', 'GA'].forEach((id, index) => {
-        const parsed = v.safeParse(NMEASentenceSchema, output[index])
-        if (!parsed.success) { console.error(parsed.issues[0].message ) }
+        const parsed = NMEASentenceSchema.safeParse(output[index])
+        if (!parsed.success) { console.error((parsed.errors as string[])[0] ) }
         expect(parsed.success).toBeTruthy()
         // @ts-ignore
-        const { output: data }: { output: NMEASentence} = parsed
+        const data = parsed.data as NMEASentence
         expect(data.talker).toEqual({ id, description: TALKERS.get(id)})
       })
     }
@@ -183,8 +182,8 @@ describe('Parser', () => {
       expect(output).toHaveLength(2)
     } else {
       output.forEach(out => {
-        const parse = v.safeParse(NMEASentenceSchema, out)
-        if (!parse.success) { console.error(parse.issues[0].message ) }
+        const parse = NMEASentenceSchema.safeParse(out)
+        if (!parse.success) { console.error((parse.errors as string[])[0] ) }
         expect(parse.success).toBeTruthy()
       })
       // Known special talker
@@ -208,8 +207,8 @@ describe('Parser', () => {
     const output = parser.parseData(input);
     expect(output).toHaveLength(2)
     output.forEach(out => {
-      const parse = v.safeParse(NMEASentenceSchema, out)
-      if (!parse.success) { console.error(parse.issues[0].message ) }
+      const parse = NMEASentenceSchema.safeParse(out)
+      if (!parse.success) { console.error((parse.errors as string[])[0] ) }
       expect(parse.success).toBeTruthy()
     })
     // Known special talker
@@ -276,9 +275,9 @@ describe('Parser', () => {
         console.error(`Problem parsing frame -> ${input}`)
         expect(output).toHaveLength(1)
       } else {
-        const parsed = v.safeParse(NMEAUknownSentenceSchema, output[0])
+        const parsed = NMEAUknownSentenceSchema.safeParse(output[0])
         if (!parsed.success) {
-          console.error(parsed.issues[0].message)
+          console.error((parsed.errors as string[])[0])
         }
         expect(parsed.success).toBeTruthy()
       }
