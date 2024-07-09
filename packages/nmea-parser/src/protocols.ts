@@ -1,29 +1,16 @@
 
 import fs from 'node:fs'
-import * as v from 'valibot'
-// import Path from 'node:path'
-// import zodToJsonSchema from 'zod-to-json-schema'
 import yaml from 'js-yaml'
 import { ProtocolsFileSchema, StringSchema } from './schemas'
 import type { Protocol, ProtocolOutput, ProtocolsFile, StoredSentence, StoredSentences } from './types'
 
-// export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
-// export const jsonSchema = zodToJsonSchema(ProtocolsFileSchema, 'NMEAProtocolsSchema')
-
-// export const createJSONSchema = (input: JSONSchemaInput): void => {
-//   const { path, filename } = JSONSchemaInputSchema.parse(input)
-//   const FILE = Path.join(path, filename)
-//   const CONTENT = JSON.stringify(jsonSchema, null, 2)
-//   fs.writeFileSync(FILE, CONTENT)
-// }
-
 export const readProtocolsString = (content: string): ProtocolsFile => {
   const fileData = yaml.load(content)
-  return v.parse(ProtocolsFileSchema, fileData)
+  return ProtocolsFileSchema.parse(fileData)
 }
 
 export const readProtocolsFile = (file: string): ProtocolsFile => {
-  const filename = v.parse(StringSchema, file)
+  const filename = StringSchema.parse(file)
   const content = fs.readFileSync(filename, 'utf-8')
   return readProtocolsString(content)
 }
