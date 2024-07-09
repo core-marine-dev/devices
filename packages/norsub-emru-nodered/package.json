@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/norsub-emru-nodered",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-Red component to work with NorSub eMRU devices",
@@ -41,6 +41,6 @@
     "test": "mocha \"tests/**/*.test.js\""
   },
   "dependencies": {
-    "@coremarine/norsub-emru": "^1.0.8"
+    "@coremarine/norsub-emru": "^1.1.0"
   }
 }
