@@ -1,5 +1,4 @@
 import { test, expect } from 'vitest'
-import * as v from 'valibot'
 import { Status } from '../src/types'
 import { getStatus } from '../src/status'
 import { StatusSchema } from '../src/schemas'
@@ -78,7 +77,7 @@ test('get Status from status full', () => {
   }
   const result = getStatus({ status })
   expect(result).not.toBeNull()
-  expect(v.is(StatusSchema, result)).toBeTruthy()
+  expect(StatusSchema.is(result)).toBeTruthy()
   expect(result).toEqual(expected)
 })
 

@@ -1,6 +1,5 @@
-import * as v from 'valibot'
-import { StatusInputSchema, StatusSchema } from './schemas'
 import type { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser'
+import { StatusInputSchema, StatusSchema } from './schemas'
 
 /** STATUS
  * Bit - Parameter            - Description
@@ -37,8 +36,8 @@ import type { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser'
  *  30 - AID_VERTICAL_VALID   - 1 = vertical position is valid and used in the observer.
  *  31 - AID_HORIZONTAL_VALID - 1 = horizontal position is valid and used in the observer.
 **/
-export type Status = v.Input<typeof StatusSchema>
-export type StatusInput = v.Input<typeof StatusInputSchema>
+export type Status = ReturnType<typeof StatusSchema.parse>
+export type StatusInput = ReturnType<typeof StatusInputSchema.parse>
 
 export type NorsubFieldData = Data | Status
 
