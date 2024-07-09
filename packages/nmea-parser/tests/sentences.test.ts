@@ -1,9 +1,7 @@
 import { describe, expect, test } from 'vitest'
-import * as v from 'valibot'
-import { UnsignedIntegerSchema, Int16Schema, Int32Schema, Int8Schema, IntegerSchema, Uint16Schema, Uint32Schema, Uint8Schema} from '@schemasjs/valibot-numbers'
 import { generateSentenceFromModel, getNMEAUnparsedSentence, getNumberValue, getUnknownSentence, getValue } from '../src/sentences'
 import { FieldType, NMEAPreParsed, NMEAUnparsedSentence, StoredSentence } from '../src/types'
-import { NMEALikeSchema, NMEAPreParsedSentenceSchema } from '../src/schemas'
+import { Int16Schema, Int32Schema, Int8Schema, IntegerSchema, NMEALikeSchema, NMEAPreParsedSentenceSchema, Uint16Schema, Uint32Schema, Uint8Schema, UnsignedIntegerSchema } from '../src/schemas'
 import { CHECKSUM_LENGTH, DELIMITER_LENGTH, END_FLAG_LENGTH, SEPARATOR } from '../src/constants'
 
 describe('getNumberValue', () => {
@@ -15,7 +13,7 @@ describe('getNumberValue', () => {
   test('uint8', () => {
     ['uint8', 'char'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(Uint8Schema, value)
+      const expected = Uint8Schema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -23,7 +21,7 @@ describe('getNumberValue', () => {
   test('uint16', () => {
     ['uint16', 'unsigned short'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(Uint16Schema, value)
+      const expected = Uint16Schema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -31,7 +29,7 @@ describe('getNumberValue', () => {
   test('uint32', () => {
     ['uint32', 'unsigned int'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(Uint32Schema, value)
+      const expected = Uint32Schema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -47,7 +45,7 @@ describe('getNumberValue', () => {
   test('int8', () => {
     ['int8', 'signed char'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(Int8Schema, value)
+      const expected = Int8Schema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -55,7 +53,7 @@ describe('getNumberValue', () => {
   test('int16', () => {
     ['int16', 'short'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(Int16Schema, value)
+      const expected = Int16Schema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -63,7 +61,7 @@ describe('getNumberValue', () => {
   test('int32', () => {
     ['int32', 'int'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(Int32Schema, value)
+      const expected = Int32Schema.parse(value)
       expect(value).toBe(expected)
     })
   })
@@ -79,8 +77,8 @@ describe('getNumberValue', () => {
   test('float32', () => {
     ['float32', 'float'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.safeParse(IntegerSchema, value)
-      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.output}`)}
+      const expected = IntegerSchema.safeParse(value)
+      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.data}`)}
       expect(expected.success).toBeFalsy()
     })
   })
@@ -88,8 +86,8 @@ describe('getNumberValue', () => {
   test('float64', () => {
     ['float64', 'double'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.safeParse(IntegerSchema, value)
-      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.output}`)}
+      const expected = IntegerSchema.safeParse(value)
+      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.data}`)}
       expect(expected.success).toBeFalsy()
     })
   })
@@ -111,22 +109,22 @@ describe('getValue', () => {
   test('numbers -> unsigned integers', () => {
     ['uint8', 'uint16', 'uint32'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(UnsignedIntegerSchema, value)
+      const expected = UnsignedIntegerSchema.parse(value)
       expect(value).toBe(expected)
     });
   })
   test('numbers -> integers', () => {
     ['int8', 'int16', 'int32'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.parse(IntegerSchema, value)
+      const expected = IntegerSchema.parse(value)
       expect(value).toBe(expected)
     });
   })
   test('numbers -> floats', () => {
     ['float32', 'float64'].forEach(type => {
       const value = getNumberValue(type as FieldType)
-      const expected = v.safeParse(IntegerSchema, value)
-      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.output}`)}
+      const expected = IntegerSchema.safeParse(value)
+      if (expected.success) { console.log(`Value = ${value} | Parsed = ${expected.data}`)}
       expect(expected.success).toBeFalsy()
     })
   })
@@ -161,7 +159,7 @@ describe('generateSentenceFromModel', () => {
   }
   test('Happy path', () => {
     const expected = generateSentenceFromModel(testSentence)
-    const parsed = v.parse(NMEALikeSchema, expected)
+    const parsed = NMEALikeSchema.parse(expected)
     expect(parsed).toBe(expected)
 
     const info = parsed.slice(1, - (DELIMITER_LENGTH + CHECKSUM_LENGTH + END_FLAG_LENGTH)).split(SEPARATOR)
@@ -223,7 +221,7 @@ describe('unknown sentence', () => {
     const text = generateSentenceFromModel(testSentence)
     const unparsedSentence: NMEAUnparsedSentence = getNMEAUnparsedSentence(text) as NMEAUnparsedSentence
     const preparsedFrame = { timestamp: Date.now(), ...unparsedSentence }
-    const input: NMEAPreParsed = v.parse(NMEAPreParsedSentenceSchema, preparsedFrame)
+    const input: NMEAPreParsed = NMEAPreParsedSentenceSchema.parse(preparsedFrame)
     const result = getUnknownSentence(input)
     expect(result.protocol.name).toBe('UNKNOWN')
     expect(result.raw).toBe(text)

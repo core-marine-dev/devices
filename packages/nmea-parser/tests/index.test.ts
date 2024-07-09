@@ -1,7 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
-import * as v from 'valibot'
 import { NMEAParser as Parser } from '../src'
 import { generateSentenceFromModel, getFakeSentence } from '../src/sentences'
 import { NMEAKnownSentenceSchema, NMEALikeSchema, NMEAUknownSentenceSchema } from '../src/schemas'
@@ -133,9 +132,9 @@ describe('Parser', () => {
       const input = generateSentenceFromModel(storedSentence)
       expect(input).toBeTypeOf('string')
       const output = parser.parseData(input)[0]
-      const parsed = v.safeParse(NMEAKnownSentenceSchema, output)
+      const parsed = NMEAKnownSentenceSchema.safeParse(output)
       if (!parsed.success) {
-        console.error(parsed.issues[0].message)
+        console.error((parsed.errors as string[])[0])
       }
       expect(parsed.success).toBeTruthy()
     })
@@ -197,9 +196,9 @@ describe('Parser', () => {
         console.error(`Problem parsing frame -> ${input}`)
         expect(output).toHaveLength(1)
       } else {
-        const parsed = v.safeParse(NMEAUknownSentenceSchema, output[0])
+        const parsed = NMEAUknownSentenceSchema.safeParse(output[0])
         if (!parsed.success) {
-          console.error(parsed.issues[0].message)
+          console.error((parsed.errors as string[])[0])
         }
         expect(parsed.success).toBeTruthy()
       }
@@ -242,7 +241,7 @@ describe('Parser', () => {
       const id = sentences[key].sentence
       const fakeSentence = parser.getFakeSentenceByID(id)
       expect(fakeSentence).not.toBeNull()
-      expect(v.is(NMEALikeSchema, fakeSentence)).toBeTruthy()
+      expect(NMEALikeSchema.is(fakeSentence)).toBeTruthy()
       if (fakeSentence !== null) {
         const parsed = parser.parseData(fakeSentence)
         expect(parsed).toHaveLength(1)
@@ -260,7 +259,7 @@ describe('Parser', () => {
       const id = talker + sentence
       const fakeSentence = parser.getFakeSentenceByID(id)
       expect(fakeSentence).not.toBeNull()
-      expect(v.is(NMEALikeSchema, fakeSentence)).toBeTruthy()
+      expect(NMEALikeSchema.is(fakeSentence)).toBeTruthy()
       if (fakeSentence !== null) {
         const starts = fakeSentence.startsWith(talker, 1)
         expect(starts).toBeTruthy()
