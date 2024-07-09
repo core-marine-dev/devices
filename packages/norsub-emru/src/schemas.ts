@@ -1,14 +1,23 @@
 import * as v from 'valibot'
-import { Uint16Schema, Uint32Schema } from '@schemasjs/valibot-numbers'
+import { ValibotValidator } from '@schemasjs/validator'
+import {
+  UnsignedIntegerSchema as ValibotUnsignedIntegerSchema,
+  Uint16Schema as ValibotUint16Schema,
+  Uint32Schema as ValibotUint32Schema
+} from '@schemasjs/valibot-numbers'
 
-export const BooleanSchema = v.boolean()
+const ValibotBooleanSchema = v.boolean()
+export const BooleanSchema = ValibotValidator<v.InferInput<typeof ValibotBooleanSchema>>(ValibotBooleanSchema)
+
+export const UnsignedIntegerSchema = ValibotValidator<v.InferInput<typeof ValibotUnsignedIntegerSchema>>(ValibotUnsignedIntegerSchema)
+
 // STATUS
-export const StatusInputSchema = v.object({
-  status: v.optional(Uint32Schema),
-  status_a: v.optional(Uint16Schema),
-  status_b: v.optional(Uint16Schema)
+const ValibotStatusInputSchema = v.object({
+  status: v.optional(ValibotUint32Schema),
+  status_a: v.optional(ValibotUint16Schema),
+  status_b: v.optional(ValibotUint16Schema)
 })
-
+export const StatusInputSchema = ValibotValidator<v.InferInput<typeof ValibotStatusInputSchema>>(ValibotStatusInputSchema)
 /** STATUS
  * Bit - Parameter            - Description
  *  00 - MAIN_OK              - 1 = no errors or warnings, initialization done. Everything OK.
@@ -44,65 +53,66 @@ export const StatusInputSchema = v.object({
  *  30 - AID_VERTICAL_VALID   - 1 = vertical position is valid and used in the observer.
  *  31 - AID_HORIZONTAL_VALID - 1 = horizontal position is valid and used in the observer.
 **/
-export const StatusSchema = v.object({
+const ValibotStatusSchema = v.object({
   main: v.object({
-    ok: BooleanSchema,
-    health: BooleanSchema
+    ok: ValibotBooleanSchema,
+    health: ValibotBooleanSchema
   }),
   system: v.object({
-    ok: BooleanSchema,
-    health: BooleanSchema,
+    ok: ValibotBooleanSchema,
+    health: ValibotBooleanSchema,
     synchronized: v.object({
-      time: BooleanSchema,
-      clock: BooleanSchema
+      time: ValibotBooleanSchema,
+      clock: ValibotBooleanSchema
     }),
-    cpu: BooleanSchema
+    cpu: ValibotBooleanSchema
   }),
   sensor: v.object({
-    ok: BooleanSchema,
-    health: BooleanSchema,
-    limits: BooleanSchema,
+    ok: ValibotBooleanSchema,
+    health: ValibotBooleanSchema,
+    limits: ValibotBooleanSchema,
     environmental: v.object({
-      vibration: BooleanSchema,
-      temperature: BooleanSchema
+      vibration: ValibotBooleanSchema,
+      temperature: ValibotBooleanSchema
     })
   }),
   algorithms: v.object({
-    ok: BooleanSchema,
-    health: BooleanSchema,
+    ok: ValibotBooleanSchema,
+    health: ValibotBooleanSchema,
     initialization: v.object({
-      observer: BooleanSchema,
-      heading: BooleanSchema
+      observer: ValibotBooleanSchema,
+      heading: ValibotBooleanSchema
     }),
     roll_pitch: v.object({
-      ok: BooleanSchema,
-      health: BooleanSchema
+      ok: ValibotBooleanSchema,
+      health: ValibotBooleanSchema
     }),
     heading: v.object({
-      ok: BooleanSchema,
-      health: BooleanSchema
+      ok: ValibotBooleanSchema,
+      health: ValibotBooleanSchema
     }),
     surge_sway: v.object({
-      ok: BooleanSchema,
-      health: BooleanSchema
+      ok: ValibotBooleanSchema,
+      health: ValibotBooleanSchema
     }),
     heave: v.object({
-      ok: BooleanSchema,
-      health: BooleanSchema
+      ok: ValibotBooleanSchema,
+      health: ValibotBooleanSchema
     })
   }),
   aiding: v.object({
     received: v.object({
-      position: BooleanSchema,
-      velocity: BooleanSchema,
-      heading: BooleanSchema
+      position: ValibotBooleanSchema,
+      velocity: ValibotBooleanSchema,
+      heading: ValibotBooleanSchema
     }),
     valid: v.object({
-      position: BooleanSchema,
-      velocity: BooleanSchema,
-      heading: BooleanSchema,
-      vertical: BooleanSchema,
-      horizontal: BooleanSchema
+      position: ValibotBooleanSchema,
+      velocity: ValibotBooleanSchema,
+      heading: ValibotBooleanSchema,
+      vertical: ValibotBooleanSchema,
+      horizontal: ValibotBooleanSchema
     })
   })
 })
+export const StatusSchema = ValibotValidator<v.InferInput<typeof ValibotStatusSchema>>(ValibotStatusSchema)

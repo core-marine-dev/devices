@@ -1,5 +1,4 @@
 import { describe, test, expect } from 'vitest'
-import * as v from 'valibot'
 import type { ProtocolOutput, Sentence } from '@coremarine/nmea-parser'
 import { NorsubParser } from '../src'
 import { StatusSchema } from '../src/schemas'
@@ -34,7 +33,7 @@ describe('Parser', () => {
               const norsub = parsed[0]
               if (norsub.sentence.includes('PNORSUB')) {
                 const statusField = (norsub.fields.slice(-1))[0].metadata
-                expect(v.is(StatusSchema, statusField)).toBeTruthy()
+                expect(StatusSchema.is(statusField)).toBeTruthy()
               }
             }
           }

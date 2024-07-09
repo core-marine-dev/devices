@@ -1,26 +1,24 @@
-import * as v from 'valibot'
-import { MAX_CHARACTERS, NMEAParser, ProtocolsInputSchema } from '@coremarine/nmea-parser'
 import type { FieldParsed, NMEALike, NMEASentence, ProtocolOutput, ProtocolsInput, Sentence } from '@coremarine/nmea-parser'
-import { getUint32 } from './utils'
+import { MAX_CHARACTERS, NMEAParser, ProtocolsInputSchema } from '@coremarine/nmea-parser'
+import { PROTOCOLS } from './norsub'
+import { BooleanSchema, UnsignedIntegerSchema } from './schemas'
 import { getStatus } from './status'
 import { NorsubSentence } from './types'
-import { BooleanSchema } from './schemas'
-import { UnsignedIntegerSchema } from '@schemasjs/valibot-numbers'
-import { PROTOCOLS } from './norsub'
+import { getUint32 } from './utils'
 
 export class NorsubParser {
   // Parser
   protected _parser: NMEAParser = new NMEAParser()
   // Memory - Buffer
   get memory (): typeof this._parser.memory { return this._parser.memory }
-  set memory (mem: boolean) { this._parser.memory = v.parse(BooleanSchema, mem) }
+  set memory (mem: boolean) { this._parser.memory = BooleanSchema.parse(mem) }
   get bufferLimit (): typeof this._parser.bufferLimit { return this._parser.bufferLimit }
-  set bufferLimit (limit: number) { this._parser.bufferLimit = v.parse(UnsignedIntegerSchema, limit) }
+  set bufferLimit (limit: number) { this._parser.bufferLimit = UnsignedIntegerSchema.parse(limit) }
 
   constructor (memory: boolean = true, limit: number = MAX_CHARACTERS) {
     this.memory = memory
     this.bufferLimit = limit
-    const parsed = v.parse(ProtocolsInputSchema, PROTOCOLS)
+    const parsed = ProtocolsInputSchema.parse(PROTOCOLS)
     this.addProtocols(parsed)
   }
 
