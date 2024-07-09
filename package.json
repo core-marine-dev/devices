@@ -76,20 +76,20 @@
     "thelmabiotel-tblive:nodered:test": "npm run test --workspace=@coremarine/thelmabiotel-tblive-nodered"
   },
   "devDependencies": {
-    "@types/node": "20.12.10",
-    "@vitest/coverage-v8": "1.6.0",
-    "chai": "5.1.0",
+    "@types/node": "20.14.10",
+    "@vitest/coverage-v8": "2.0.1",
+    "chai": "5.1.1",
     "deep-equal-in-any-order": "2.0.6",
-    "mocha": "10.4.0",
-    "node-red": "3.1.9",
+    "mocha": "10.6.0",
+    "node-red": "4.0.2",
     "node-red-node-test-helper": "0.3.4",
     "ts-standard": "12.0.2",
-    "tsup": "8.0.2",
-    "typescript": "5.4.5",
-    "vitest": "1.6.0"
+    "tsup": "8.1.0",
+    "typescript": "5.5.3",
+    "vitest": "2.0.1"
   },
   "peerDependencies": {
-    "valibot": ">=0.30.0"
+    "valibot": ">=0.36.0"
   },
   "ts-standard": {
     "ignore": [
