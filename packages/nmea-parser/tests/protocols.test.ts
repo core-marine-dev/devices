@@ -1,5 +1,4 @@
 import path from 'node:path'
-import * as v from 'valibot'
 import { describe, test, expect } from 'vitest'
 import { Protocol, StoredSentence } from '../src/types'
 import { getStoreSentences, readProtocolsFile, readProtocolsString } from '../src/protocols' 
@@ -208,8 +207,8 @@ describe('Protocols Files', () => {
   test('Right protocols file', () => {
     const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
     protocols.forEach(protocol => {
-      const parsed = v.safeParse(ProtocolSchema, protocol)
-      if (!parsed.success) { console.error(parsed.issues[0].message) }
+      const parsed = ProtocolSchema.safeParse(protocol)
+      if (!parsed.success) { console.error((parsed.errors as string[])[0]) }
       expect(parsed.success).toBeTruthy()
     })
     // expect(protocols).toStrictEqual(EXPECTED_PROTOCOLS)

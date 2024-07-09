@@ -1,39 +1,54 @@
-import { Input, Output } from 'valibot'
 import type {
-  FieldTypeSchema, FieldSchema,
-  ProtocolSchema, ProtocolsFileSchema, ProtocolSentenceSchema,
-  VersionSchema, JSONSchemaInputSchema,
-  StoredSentenceSchema, StoredSentencesSchema,
-  NMEALikeSchema, NMEAUnparsedSentenceSchema, NMEAPreParsedSentenceSchema,
-  DataSchema, FieldParsedSchema, NMEASentenceSchema, NMEAUknownSentenceSchema, NMEAKnownSentenceSchema, ProtocolsInputSchema, FieldUnknownSchema, OutputSentenceSchema, TalkerSchema, StoredSentenceDataSchema
+  DataSchema,
+  FieldParsedSchema,
+  FieldSchema,
+  FieldTypeSchema,
+  FieldUnknownSchema,
+  JSONSchemaInputSchema,
+  NMEAKnownSentenceSchema,
+  NMEALikeSchema,
+  NMEAPreParsedSentenceSchema,
+  NMEASentenceSchema,
+  NMEAUknownSentenceSchema,
+  NMEAUnparsedSentenceSchema,
+  OutputSentenceSchema,
+  ProtocolSchema,
+  ProtocolSentenceSchema,
+  ProtocolsFileSchema,
+  ProtocolsInputSchema,
+  StoredSentenceDataSchema,
+  StoredSentenceSchema,
+  StoredSentencesSchema,
+  TalkerSchema,
+  VersionSchema
 } from './schemas'
 // COMMONS
 // PROTOCOLS
-export type FieldType = Input<typeof FieldTypeSchema>
-export type Field = Input<typeof FieldSchema>
-export type FieldUnknown = Input<typeof FieldUnknownSchema>
-export type ProtocolSentence = Input<typeof ProtocolSentenceSchema>
-export type Version = Input<typeof VersionSchema>
-export type Protocol = Output<typeof ProtocolSchema>
-export type ProtocolsFile = Output<typeof ProtocolsFileSchema>
-export type ProtocolsInput = Output<typeof ProtocolsInputSchema>
-export type StoredSentence = Input<typeof StoredSentenceSchema>
-export type StoredSentences = Input<typeof StoredSentencesSchema>
+export type FieldType = ReturnType<typeof FieldTypeSchema.parse>
+export type Field = ReturnType<typeof FieldSchema.parse>
+export type FieldUnknown = ReturnType<typeof FieldUnknownSchema.parse>
+export type ProtocolSentence = ReturnType<typeof ProtocolSentenceSchema.parse>
+export type Version = ReturnType<typeof VersionSchema.parse>
+export type Protocol = ReturnType<typeof ProtocolSchema.parse>
+export type ProtocolsFile = ReturnType<typeof ProtocolsFileSchema.parse>
+export type ProtocolsInput = ReturnType<typeof ProtocolsInputSchema.parse>
+export type StoredSentence = ReturnType<typeof StoredSentenceSchema.parse>
+export type StoredSentences = ReturnType<typeof StoredSentencesSchema.parse>
 export type ParserSentences = Record<string, StoredSentence>
 // JSON Schema
-export type JSONSchemaInput = Input<typeof JSONSchemaInputSchema>
+export type JSONSchemaInput = ReturnType<typeof JSONSchemaInputSchema.parse>
 // SENTENCES
-export type NMEALike = Input<typeof NMEALikeSchema>
-export type Talker = Input<typeof TalkerSchema>
-export type NMEAUnparsedSentence = Input<typeof NMEAUnparsedSentenceSchema>
-export type NMEAPreParsed = Input<typeof NMEAPreParsedSentenceSchema>
-export type Data = Input<typeof DataSchema>
-export type FieldParsed = Input<typeof FieldParsedSchema>
-export type StoredSentenceData = Input<typeof StoredSentenceDataSchema>
-export type NMEAUknownSentence = Input<typeof NMEAUknownSentenceSchema>
-export type NMEAKnownSentence = Input<typeof NMEAKnownSentenceSchema>
-export type NMEASentence = Input<typeof NMEASentenceSchema>
-export type OutputSentence = Input<typeof OutputSentenceSchema>
+export type NMEALike = ReturnType<typeof NMEALikeSchema.parse>
+export type Talker = ReturnType<typeof TalkerSchema.parse>
+export type NMEAUnparsedSentence = ReturnType<typeof NMEAUnparsedSentenceSchema.parse>
+export type NMEAPreParsed = ReturnType<typeof NMEAPreParsedSentenceSchema.parse>
+export type Data = ReturnType<typeof DataSchema.parse>
+export type FieldParsed = ReturnType<typeof FieldParsedSchema.parse>
+export type StoredSentenceData = ReturnType<typeof StoredSentenceDataSchema.parse>
+export type NMEAUknownSentence = ReturnType<typeof NMEAUknownSentenceSchema.parse>
+export type NMEAKnownSentence = ReturnType<typeof NMEAKnownSentenceSchema.parse>
+export type NMEASentence = ReturnType<typeof NMEASentenceSchema.parse>
+export type OutputSentence = ReturnType<typeof OutputSentenceSchema.parse>
 export type Sentence = null | OutputSentence
 // PARSER
 export interface ProtocolOutput {

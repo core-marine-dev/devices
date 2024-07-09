@@ -1,14 +1,13 @@
 import { describe, test, expect } from 'vitest'
-import * as v from 'valibot'
 import { VersionSchema } from '../src/schemas'
 
 
 describe('Version Schema', () => {
   test('Proper versions', () => {
-    ['3.2.1', '3.2', '3'].forEach(version => expect(v.parse(VersionSchema, version)).toStrictEqual(version))
+    ['3.2.1', '3.2', '3'].forEach(version => expect(VersionSchema.parse(version)).toStrictEqual(version))
   })
 
   test('Failure versions', () => {
-    ['3.2.1.0', '3.a', 'asdfa', '-1', '3.-2'].forEach(version => expect(v.safeParse(VersionSchema, version).success).toBeFalsy())
+    ['3.2.1.0', '3.a', 'asdfa', '-1', '3.-2'].forEach(version => expect(VersionSchema.is(version)).toBeFalsy())
   })
 })

@@ -1,4 +1,3 @@
-import * as v from 'valibot'
 import { getChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, SEPARATOR, START_FLAG, START_FLAG_LENGTH } from './constants'
 import { NMEALikeSchema, NMEAUknownSentenceSchema, NMEAUnparsedSentenceSchema } from './schemas'
@@ -7,9 +6,9 @@ import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
 // GET NMEA SENTENCE
 export const isNMEAFrame = (text: string): boolean => {
   // Not valid NMEA like
-  const parsed = v.safeParse(NMEALikeSchema, text)
+  const parsed = NMEALikeSchema.safeParse(text)
   if (!parsed.success) {
-    console.debug(`Error parsing frame -> ${parsed.issues[0].message}`)
+    console.debug(`Error parsing frame -> ${(parsed.errors as string[])[0]}`)
     return false
   }
   // More than one START Flag
@@ -18,7 +17,7 @@ export const isNMEAFrame = (text: string): boolean => {
     return false
   }
   // Not enough characters
-  const { output: data } = parsed
+  const data = parsed.data as string
   if (data.length < MINIMAL_LENGTH) {
     console.debug('Invalid NMEA line -> it doesn\'t contain any data')
     return false
@@ -50,19 +49,19 @@ export const getNMEAUnparsedSentence = (text: string): NMEAUnparsedSentence | nu
   const [info, cs] = raw.slice(1, -END_FLAG_LENGTH).split(DELIMITER)
   const checksum = stringChecksumToNumber(cs)
   const [sentence, ...data] = info.split(SEPARATOR)
-  const parsed = v.safeParse(NMEAUnparsedSentenceSchema, { raw, sentence, checksum, data })
-  if (parsed.success) { return parsed.output }
+  const parsed = NMEAUnparsedSentenceSchema.safeParse({ raw, sentence, checksum, data })
+  if (parsed.success) { return (parsed.data as NMEAUnparsedSentence) }
   console.debug(`Error parsing sentence -> ${raw}`)
-  console.debug(parsed.issues[0].message)
+  console.debug((parsed.errors as string[])[0])
   return null
 }
 
 export const getUnknownSentence = (sentence: NMEAPreParsed): NMEAUknownSentence => {
   const fields: FieldUnknown[] = sentence.data.map(value => ({ name: 'unknown', type: 'string', data: value }))
   const unknowFrame = { ...sentence, protocol: { name: 'UNKNOWN' }, fields }
-  const parsed = v.safeParse(NMEAUknownSentenceSchema, unknowFrame)
-  if (parsed.success) return parsed.output
-  throw new Error(parsed.issues[0].message)
+  const parsed = NMEAUknownSentenceSchema.safeParse(unknowFrame)
+  if (parsed.success) return parsed.data as NMEAUknownSentence
+  throw new Error((parsed.errors as string[])[0])
 }
 
 // TESTING - GENERATE
@@ -84,10 +83,6 @@ export const getNumberValue = (type: FieldType): number => {
     case 'unsigned int':
       return (new Uint32Array([useed]))[0]
 
-      // case 'uint64':
-      // case 'unsigned long':
-      //   return Number((new BigUint64Array([BigInt(Math.floor(seed))]))[0])
-
     case 'int8':
     case 'signed char':
       return (new Int8Array([seed]))[0]
@@ -99,10 +94,6 @@ export const getNumberValue = (type: FieldType): number => {
     case 'int32':
     case 'int':
       return (new Int32Array([seed]))[0]
-
-      // case 'int64':
-      // case 'long':
-      //   return Number((new BigInt64Array([BigInt(Math.floor(seed))]))[0])
 
     case 'float32':
     case 'float':
