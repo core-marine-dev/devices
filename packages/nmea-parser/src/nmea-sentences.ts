@@ -48,7 +48,7 @@ export const NMEA_SENTENCES: ProtocolsFileContent = {
             {
               name: 'latitude',
               type: 'string',
-              units: 'deg'
+              units: 'deg-min'
             },
             {
               name: 'latitude_direction',
@@ -58,7 +58,7 @@ export const NMEA_SENTENCES: ProtocolsFileContent = {
             {
               name: 'longitude',
               type: 'string',
-              units: 'deg'
+              units: 'deg-min'
             },
             {
               name: 'longitude_direction',
@@ -66,7 +66,7 @@ export const NMEA_SENTENCES: ProtocolsFileContent = {
               description: 'E - East\n W - West'
             },
             {
-              name: 'gps_quality',
+              name: 'quality',
               type: 'int8',
               description: '0: Fix not valid\n 1: GPS fix\n 2: Differential GPS fix (DGNSS), SBAS, OmniSTAR VBS, Beacon, RTX in GVBS mode\n 3: Not applicable\n 4: RTK Fixed, xFill\n 5: RTK Float, OmniSTAR XP/HP, Location RTK, RTX\n 6: INS Dead reckoning\n 7: Manual Input Mode\n 8: Simulator Mode'
             },
