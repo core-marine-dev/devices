@@ -107,7 +107,7 @@ describe('Parser', () => {
     const parser = new Parser()
     parser.addProtocols({ file: NORSUB_FILE })
     const storedSentences = parser.getSentences()
-    const fakeinput = storedSentences.reduce((acc, curr) => acc += createFakeSentence(curr), '')
+    const fakeinput = storedSentences.reduce((acc, curr) => acc + createFakeSentence(curr), '')
     const output = parser.parseData(fakeinput)
     expect(output.length).toBe(storedSentences.length)
   })
