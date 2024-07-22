@@ -1,3 +1,24 @@
+// COMMONS
+export const FIELD_TYPES = [
+  // Unsigned Integers
+  'uint8', //  'char',
+  'uint16', // 'unsigned short',
+  'uint32', // 'unsigned int',
+  'uint64', // 'unsigned long',
+  // Integers
+  'int8', //  'signed char',
+  'int16', // 'short',
+  'int32', // 'int',
+  'int64', // 'long',
+  // Floats
+  'float32', // 'float',
+  'float64', // 'double',
+  // Strings
+  'string',
+  // Boolean
+  'boolean' // 'bool'
+] as const
+
 // NMEA
 export const START_FLAG = '$'
 export const SEPARATOR = ','
@@ -15,106 +36,107 @@ export const NMEA_ID_LENGTH = 3
 export const NMEA_TALKER_LENGTH = 2
 export const NMEA_SENTENCE_LENGTH = NMEA_ID_LENGTH + NMEA_TALKER_LENGTH
 
-export const TALKERS = new Map<string, string>()
-TALKERS.set('AB', 'Independent AIS Base Station')
-TALKERS.set('AD', 'Dependent AIS Base Station')
-TALKERS.set('AG', 'Autopilot - General')
-TALKERS.set('AI', 'Mobile AIS Station')
-TALKERS.set('AN', 'AIS Aid to Navigation')
-TALKERS.set('AP', 'Autopilot - Magnetic')
-TALKERS.set('AR', 'AIS Receiving Station')
-TALKERS.set('AT', 'AIS Transmitting Station')
-TALKERS.set('AX', 'AIS Simplex Repeater')
-TALKERS.set('BD', 'BeiDou (China)')
-TALKERS.set('BI', 'Bilge System')
-TALKERS.set('BN', 'Bridge navigational watch alarm system')
-TALKERS.set('CA', 'Central Alarm')
-TALKERS.set('CC', 'Computer - Programmed Calculator (obsolete)')
-TALKERS.set('CD', 'Communications - Digital Selective Calling (DSC)')
-TALKERS.set('CM', 'Computer - Memory Data (obsolete)')
-TALKERS.set('CR', 'Data Receiver')
-TALKERS.set('CS', 'Communications - Satellite')
-TALKERS.set('CT', 'Communications - Radio-Telephone (MF/HF)')
-TALKERS.set('CV', 'Communications - Radio-Telephone (VHF)')
-TALKERS.set('CX', 'Communications - Scanning Receiver')
-TALKERS.set('DE', 'DECCA Navigation (obsolete)')
-TALKERS.set('DF', 'Direction Finder')
-TALKERS.set('DM', 'Velocity Sensor, Speed Log, Water, Magnetic')
-TALKERS.set('DP', 'Dynamiv Position')
-TALKERS.set('DU', 'Duplex repeater station')
-TALKERS.set('EC', 'Electronic Chart Display & Information System (ECDIS)')
-TALKERS.set('EP', 'Emergency Position Indicating Beacon (EPIRB)')
-TALKERS.set('ER', 'Engine Room Monitoring Systems')
-TALKERS.set('FD', 'Fire Door')
-TALKERS.set('FS', 'Fire Sprinkler')
-TALKERS.set('GA', 'Galileo Positioning System')
-TALKERS.set('GB', 'BeiDou (China)')
-TALKERS.set('GI', 'NavIC, IRNSS (India)')
-TALKERS.set('GL', 'GLONASS, according to IEIC 61162-1')
-TALKERS.set('GN', 'Combination of multiple satellite systems (NMEA 1083)')
-TALKERS.set('GP', 'Global Positioning System receiver')
-TALKERS.set('GQ', 'QZSS regional GPS augmentation system (Japan)')
-TALKERS.set('HC', 'Heading - Magnetic Compass')
-TALKERS.set('HD', 'Hull Door')
-TALKERS.set('HE', 'Heading - North Seeking Gyro')
-TALKERS.set('HF', 'Heading - Fluxgate')
-TALKERS.set('HN', 'Heading - Non North Seeking Gyro')
-TALKERS.set('HS', 'Hull Stress')
-TALKERS.set('II', 'Integrated Instrumentation')
-TALKERS.set('IN', 'Integrated Navigation')
-TALKERS.set('JA', 'Alarm and Monitoring')
-TALKERS.set('JB', 'Water Monitoring')
-TALKERS.set('JC', 'Power Management')
-TALKERS.set('JD', 'Propulsion Control')
-TALKERS.set('JE', 'Engine Control')
-TALKERS.set('JF', 'Propulsion Boiler')
-TALKERS.set('JG', 'Aux Boiler')
-TALKERS.set('JH', 'Engine Governor')
-TALKERS.set('LA', 'Loran A (obsolete)')
-TALKERS.set('LC', 'Loran C (obsolete)')
-TALKERS.set('MP', 'Microwave Positioning System (obsolete)')
-TALKERS.set('MX', 'Multiplexer')
-TALKERS.set('NL', 'Navigation light controller')
-TALKERS.set('OM', 'OMEGA Navigation System (obsolete)')
-TALKERS.set('OS', 'Distress Alarm System (obsolete)')
-TALKERS.set('QZ', 'QZSS regional GPS augmentation system (Japan)')
-TALKERS.set('RA', 'RADAR and/or ARPA')
-TALKERS.set('RB', 'Record Book')
-TALKERS.set('RC', 'Propulsion Machinery')
-TALKERS.set('RI', 'Rudder Angle Indicator')
-TALKERS.set('SA', 'Physical Shore AUS Station')
-TALKERS.set('SD', 'Depth Sounder')
-TALKERS.set('SG', 'Steering Gear')
-TALKERS.set('SN', 'Electronic Positioning System, other/general')
-TALKERS.set('SS', 'Scanning Sounder')
-TALKERS.set('ST', 'Skytraq debug output')
-TALKERS.set('TC', 'Track Control')
-TALKERS.set('TI', 'Turn Rate Indicator')
-TALKERS.set('TR', 'TRANSIT Navigation System')
-TALKERS.set('UP', 'Microprocessor controller')
-TALKERS.set('VA', 'VHF Data Exchange System (VDES), ASM')
-TALKERS.set('VD', 'Velocity Sensor, Doppler, other/general')
-TALKERS.set('VM', 'Velocity Sensor, Speed Log, Water, Magnetic')
-TALKERS.set('VR', 'Voyage Data recorder')
-TALKERS.set('VS', 'VHF Data Exchange System (VDES), Satellite')
-TALKERS.set('VT', 'VHF Data Exchange System (VDES), Terrestrial')
-TALKERS.set('VW', 'Velocity Sensor, Speed Log, Water, Mechanical')
-TALKERS.set('WD', 'Watertight Door')
-TALKERS.set('WI', 'Weather Instruments')
-TALKERS.set('WL', 'Water Level')
-TALKERS.set('YC', 'Transducer - Temperature (obsolete)')
-TALKERS.set('YD', 'Transducer - Displacement, Angular or Linear (obsolete)')
-TALKERS.set('YF', 'Transducer - Frequency (obsolete)')
-TALKERS.set('YL', 'Transducer - Level (obsolete)')
-TALKERS.set('YP', 'Transducer - Pressure (obsolete)')
-TALKERS.set('YR', 'Transducer - Flow Rate (obsolete)')
-TALKERS.set('YT', 'Transducer - Tachometer (obsolete)')
-TALKERS.set('YV', 'Transducer - Volume (obsolete)')
-TALKERS.set('YX', 'Transducer')
-TALKERS.set('ZA', 'Timekeeper - Atomic Clock')
-TALKERS.set('ZC', 'Timekeeper - Chronometer')
-TALKERS.set('ZQ', 'Timekeeper - Quartz')
-TALKERS.set('ZV', 'Timekeeper - Radio Update, WWV or WWVH')
+export const TALKERS = [
+  ['AB', 'Independent AIS Base Station'],
+  ['AD', 'Dependent AIS Base Station'],
+  ['AG', 'Autopilot - General'],
+  ['AI', 'Mobile AIS Station'],
+  ['AN', 'AIS Aid to Navigation'],
+  ['AP', 'Autopilot - Magnetic'],
+  ['AR', 'AIS Receiving Station'],
+  ['AT', 'AIS Transmitting Station'],
+  ['AX', 'AIS Simplex Repeater'],
+  ['BD', 'BeiDou (China)'],
+  ['BI', 'Bilge System'],
+  ['BN', 'Bridge navigational watch alarm system'],
+  ['CA', 'Central Alarm'],
+  ['CC', 'Computer - Programmed Calculator (obsolete)'],
+  ['CD', 'Communications - Digital Selective Calling (DSC)'],
+  ['CM', 'Computer - Memory Data (obsolete)'],
+  ['CR', 'Data Receiver'],
+  ['CS', 'Communications - Satellite'],
+  ['CT', 'Communications - Radio-Telephone (MF/HF)'],
+  ['CV', 'Communications - Radio-Telephone (VHF)'],
+  ['CX', 'Communications - Scanning Receiver'],
+  ['DE', 'DECCA Navigation (obsolete)'],
+  ['DF', 'Direction Finder'],
+  ['DM', 'Velocity Sensor, Speed Log, Water, Magnetic'],
+  ['DP', 'Dynamiv Position'],
+  ['DU', 'Duplex repeater station'],
+  ['EC', 'Electronic Chart Display & Information System (ECDIS)'],
+  ['EP', 'Emergency Position Indicating Beacon (EPIRB)'],
+  ['ER', 'Engine Room Monitoring Systems'],
+  ['FD', 'Fire Door'],
+  ['FS', 'Fire Sprinkler'],
+  ['GA', 'Galileo Positioning System'],
+  ['GB', 'BeiDou (China)'],
+  ['GI', 'NavIC, IRNSS (India)'],
+  ['GL', 'GLONASS, according to IEIC 61162-1'],
+  ['GN', 'Combination of multiple satellite systems (NMEA 1083)'],
+  ['GP', 'Global Positioning System receiver'],
+  ['GQ', 'QZSS regional GPS augmentation system (Japan)'],
+  ['HC', 'Heading - Magnetic Compass'],
+  ['HD', 'Hull Door'],
+  ['HE', 'Heading - North Seeking Gyro'],
+  ['HF', 'Heading - Fluxgate'],
+  ['HN', 'Heading - Non North Seeking Gyro'],
+  ['HS', 'Hull Stress'],
+  ['II', 'Integrated Instrumentation'],
+  ['IN', 'Integrated Navigation'],
+  ['JA', 'Alarm and Monitoring'],
+  ['JB', 'Water Monitoring'],
+  ['JC', 'Power Management'],
+  ['JD', 'Propulsion Control'],
+  ['JE', 'Engine Control'],
+  ['JF', 'Propulsion Boiler'],
+  ['JG', 'Aux Boiler'],
+  ['JH', 'Engine Governor'],
+  ['LA', 'Loran A (obsolete)'],
+  ['LC', 'Loran C (obsolete)'],
+  ['MP', 'Microwave Positioning System (obsolete)'],
+  ['MX', 'Multiplexer'],
+  ['NL', 'Navigation light controller'],
+  ['OM', 'OMEGA Navigation System (obsolete)'],
+  ['OS', 'Distress Alarm System (obsolete)'],
+  ['QZ', 'QZSS regional GPS augmentation system (Japan)'],
+  ['RA', 'RADAR and/or ARPA'],
+  ['RB', 'Record Book'],
+  ['RC', 'Propulsion Machinery'],
+  ['RI', 'Rudder Angle Indicator'],
+  ['SA', 'Physical Shore AUS Station'],
+  ['SD', 'Depth Sounder'],
+  ['SG', 'Steering Gear'],
+  ['SN', 'Electronic Positioning System, other/general'],
+  ['SS', 'Scanning Sounder'],
+  ['ST', 'Skytraq debug output'],
+  ['TC', 'Track Control'],
+  ['TI', 'Turn Rate Indicator'],
+  ['TR', 'TRANSIT Navigation System'],
+  ['UP', 'Microprocessor controller'],
+  ['VA', 'VHF Data Exchange System (VDES), ASM'],
+  ['VD', 'Velocity Sensor, Doppler, other/general'],
+  ['VM', 'Velocity Sensor, Speed Log, Water, Magnetic'],
+  ['VR', 'Voyage Data recorder'],
+  ['VS', 'VHF Data Exchange System (VDES), Satellite'],
+  ['VT', 'VHF Data Exchange System (VDES), Terrestrial'],
+  ['VW', 'Velocity Sensor, Speed Log, Water, Mechanical'],
+  ['WD', 'Watertight Door'],
+  ['WI', 'Weather Instruments'],
+  ['WL', 'Water Level'],
+  ['YC', 'Transducer - Temperature (obsolete)'],
+  ['YD', 'Transducer - Displacement, Angular or Linear (obsolete)'],
+  ['YF', 'Transducer - Frequency (obsolete)'],
+  ['YL', 'Transducer - Level (obsolete)'],
+  ['YP', 'Transducer - Pressure (obsolete)'],
+  ['YR', 'Transducer - Flow Rate (obsolete)'],
+  ['YT', 'Transducer - Tachometer (obsolete)'],
+  ['YV', 'Transducer - Volume (obsolete)'],
+  ['YX', 'Transducer'],
+  ['ZA', 'Timekeeper - Atomic Clock'],
+  ['ZC', 'Timekeeper - Chronometer'],
+  ['ZQ', 'Timekeeper - Quartz'],
+  ['ZV', 'Timekeeper - Radio Update, WWV or WWVH']
+] as const
 
 export const TALKERS_SPECIAL = {
   P: 'Vendor specific',
@@ -148,3 +170,12 @@ export const MIN_FLOAT = -999999999999999
 // PARSER
 export const MAX_CHARACTERS = 1024
 export const MAX_NMEA_CHARACTERS = 82
+
+export const UNKNOWN_NMEA_SENTENCE_SCAFOLDING = {
+  id: 'unknown',
+  protocol: {
+    name: 'unknown',
+    standard: false
+  },
+  description: 'unknown nmea sentence'
+}

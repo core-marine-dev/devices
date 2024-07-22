@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, test, expect } from 'vitest'
 import { Protocol, StoredSentence } from '../src/types'
-import { getStoreSentences, readProtocolsFile, readProtocolsString } from '../src/protocols' 
+import { getStoreSentences, readProtocolsYAMLFile, readProtocolsYAMLString } from '../src/protocols' 
 import { ProtocolSchema } from '../src/schemas'
 import { PROTOCOLS } from './norsub'
 
@@ -12,131 +12,33 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
     standard: false,
     sentences: [
       {
-        sentence: 'PNORSUB8',
+        id: 'PNORSUB8',
         description: 'The whole regular attitude information from the MRU',
-        fields: [
-          {
-            name: 'time',
-            type: 'uint32',
-            units: 'us'
-          },
-          {
-            name: 'delay',
-            type: 'uint32',
-            units: 'us',
-          },
-          {
-            name: 'roll',
-            type: 'double',
-            units: 'deg',
-          },
-          {
-            name: 'pitch',
-            type: 'double',
-            units: 'deg',
-          },
-          {
-            name: 'heading',
-            type: 'double',
-            units: 'deg',
-            note: 'From 0 to 360'
-          },
-          {
-            name: 'surge',
-            type: 'double',
-            units: 'm',
-          },
-          {
-            name: 'sway',
-            type: 'double',
-            units: 'm',
-          },
-          {
-            name: 'heave',
-            type: 'double',
-            units: 'm',
-            note: 'z-down'
-          },
-          {
-            name: 'roll_rate',
-            type: 'double',
-            units: 'deg/s',
-          },
-          {
-            name: 'pitch_rate',
-            type: 'double',
-            units: 'deg/s',
-          },
-          {
-            name: 'yaw_rate',
-            type: 'double',
-            units: 'deg/s',
-          },
-          {
-            name: 'surge_velocity',
-            type: 'double',
-            units: 'm/s',
-          },
-          {
-            name: 'sway_velocity',
-            type: 'double',
-            units: 'm/s',
-          },
-          {
-            name: 'heave_velocity',
-            type: 'double',
-            units: 'm/s',
-            note: 'z-down'
-          },
-          {
-            name: 'acceleration_x',
-            type: 'double',
-            units: 'm/s2',
-          },
-          {
-            name: 'acceleration_y',
-            type: 'double',
-            units: 'm/s2',
-          },
-          {
-            name: 'acceleration_z',
-            type: 'double',
-            units: 'm/s2',
-          },
-          {
-            name: 'period_x',
-            type: 'double',
-            units: 's',
-          },
-          {
-            name: 'period_y',
-            type: 'double',
-            units: 's',
-          },
-          {
-            name: 'period_z',
-            type: 'double',
-            units: 's',
-          },
-          {
-            name: 'amplitude_x',
-            type: 'double',
-            units: 'm',
-          },
-          {
-            name: 'amplitude_y',
-            type: 'double',
-            units: 'm',
-          },
-          {
-            name: 'amplitude_z',
-            type: 'double',
-            units: 'm',
-          },
-          {
-            name: 'status',
-            type: 'uint32'
-          }
+        payload: [
+          { name: 'time', type: 'uint32', units: 'us' },
+          { name: 'delay', type: 'uint32', units: 'us' },
+          { name: 'roll', type: 'float64', units: 'deg' },
+          { name: 'pitch', type: 'float64', units: 'deg' },
+          { name: 'heading', type: 'float64', units: 'deg', description: 'From 0 to 360' },
+          { name: 'surge', type: 'float64', units: 'm' },
+          { name: 'sway', type: 'float64', units: 'm' },
+          { name: 'heave', type: 'float64', units: 'm', description: 'z-down' },
+          { name: 'roll_rate', type: 'float64', units: 'deg/s' },
+          { name: 'pitch_rate', type: 'float64', units: 'deg/s' },
+          { name: 'yaw_rate', type: 'float64', units: 'deg/s' },
+          { name: 'surge_velocity', type: 'float64', units: 'm/s', },
+          { name: 'sway_velocity', type: 'float64', units: 'm/s', },
+          { name: 'heave_velocity', type: 'float64', units: 'm/s', description: 'z-down' },
+          { name: 'acceleration_x', type: 'float64', units: 'm/s2' },
+          { name: 'acceleration_y', type: 'float64', units: 'm/s2' },
+          { name: 'acceleration_z', type: 'float64', units: 'm/s2' },
+          { name: 'period_x', type: 'float64', units: 's' },
+          { name: 'period_y', type: 'float64', units: 's' },
+          { name: 'period_z', type: 'float64', units: 's' },
+          { name: 'amplitude_x', type: 'float64', units: 'm' },
+          { name: 'amplitude_y', type: 'float64', units: 'm' },
+          { name: 'amplitude_z', type: 'float64', units: 'm' },
+          { name: 'status', type: 'uint32' }
         ],
       }
     ]
@@ -145,67 +47,72 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
     protocol: 'GYROCOMPAS1',
     standard: false,
     sentences: [
-      { sentence: 'HEHDT', fields: [
-        { name: 'heading', type: 'float', units: 'deg' },
-        { name: 'symbol', type: 'string' },
-      ] },
-      { sentence: 'PHTRO', fields: [
-        { name: 'pitch', type: 'float', units: 'deg' },
-        { name: 'pitch_direction', type: 'string', note: 'M bow up, P bow down' },
-        { name: 'roll', type: 'float', units: 'deg' },
-        { name: 'roll_direction', type: 'string', note: 'M bow up, P bow down' },
-      ] },
-      { sentence: 'PHINF', fields: [ { name: 'status', type: 'string' } ] },
+      {
+        id: 'HEHDT',
+        payload: [
+          { name: 'heading', type: 'float32', units: 'deg' },
+          { name: 'symbol', type: 'string' },
+        ]
+      },
+      {
+        id: 'PHTRO',
+        payload: [
+          { name: 'pitch', type: 'float32', units: 'deg' },
+          { name: 'pitch_direction', type: 'string', description: 'M bow up, P bow down' },
+          { name: 'roll', type: 'float32', units: 'deg' },
+          { name: 'roll_direction', type: 'string', description: 'M bow up, P bow down' },
+        ]
+      },
+      { id: 'PHINF', payload: [ { name: 'status', type: 'string' } ] },
     ]
   }
 ]
 const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
   'PNORSUB8': {
-    sentence: EXPECTED_PROTOCOLS[0].sentences[0].sentence,
+    id: EXPECTED_PROTOCOLS[0].sentences[0].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[0].protocol,
       standard: EXPECTED_PROTOCOLS[0].standard,
       version: EXPECTED_PROTOCOLS[0]?.version,
     },
-    fields: EXPECTED_PROTOCOLS[0].sentences[0].fields,
+    payload: EXPECTED_PROTOCOLS[0].sentences[0].payload,
     description: EXPECTED_PROTOCOLS[0].sentences[0]?.description
   },
   'HEHDT': {
-    sentence: EXPECTED_PROTOCOLS[1].sentences[0].sentence,
+    id: EXPECTED_PROTOCOLS[1].sentences[0].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[1].protocol,
       standard: EXPECTED_PROTOCOLS[1].standard,
       version: EXPECTED_PROTOCOLS[1]?.version,
     },
-    fields: EXPECTED_PROTOCOLS[1].sentences[0].fields,
+    payload: EXPECTED_PROTOCOLS[1].sentences[0].payload,
     description: EXPECTED_PROTOCOLS[1].sentences[0]?.description
   },
   'PHTRO': {
-    sentence: EXPECTED_PROTOCOLS[1].sentences[1].sentence,
+    id: EXPECTED_PROTOCOLS[1].sentences[1].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[1].protocol,
       standard: EXPECTED_PROTOCOLS[1].standard,
       version: EXPECTED_PROTOCOLS[1]?.version,
     },
-    fields: EXPECTED_PROTOCOLS[1].sentences[1].fields,
+    payload: EXPECTED_PROTOCOLS[1].sentences[1].payload,
     description: EXPECTED_PROTOCOLS[1].sentences[1]?.description
   },
   'PHINF': {
-    sentence: EXPECTED_PROTOCOLS[1].sentences[2].sentence,
+    id: EXPECTED_PROTOCOLS[1].sentences[2].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[1].protocol,
       standard: EXPECTED_PROTOCOLS[1].standard,
       version: EXPECTED_PROTOCOLS[1]?.version,
     },
-    fields: EXPECTED_PROTOCOLS[1].sentences[2].fields,
+    payload: EXPECTED_PROTOCOLS[1].sentences[2].payload,
     description: EXPECTED_PROTOCOLS[1].sentences[2]?.description
   },
 }
 
 describe('Protocols Files', () => {
-
   test('Right protocols file', () => {
-    const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
+    const { protocols } = readProtocolsYAMLFile(PROTOCOLS_FILE)
     protocols.forEach(protocol => {
       const parsed = ProtocolSchema.safeParse(protocol)
       if (!parsed.success) { console.error((parsed.errors as string[])[0]) }
@@ -217,7 +124,7 @@ describe('Protocols Files', () => {
 
 describe('Protocols File to StoredSentences', () => {
   test('Happy path', () => {
-    const { protocols } = readProtocolsFile(PROTOCOLS_FILE)
+    const { protocols } = readProtocolsYAMLFile(PROTOCOLS_FILE)
     const sentences = getStoreSentences({ protocols })
     Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
     // sentences.forEach((value, key) => {
@@ -232,7 +139,7 @@ describe('Protocols content to StoredSentences', () => {
   test('Happy path', () => {
     // const content = fs.readFileSync(PROTOCOLS_FILE, 'utf-8')
     const content = JSON.stringify(PROTOCOLS)
-    const { protocols } = readProtocolsString(content)
+    const { protocols } = readProtocolsYAMLString(content)
     const sentences = getStoreSentences({ protocols })
     Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
     // sentences.forEach((value, key) => {
