@@ -1,865 +1,867 @@
-export const PROTOCOLS = {
-  "protocols": [
+import type { ProtocolsFileContent } from '../src'
+
+export const PROTOCOLS: ProtocolsFileContent = {
+  protocols: [
     {
-      "protocol": "GYROCOMPAS1",
-      "standard": false,
-      "sentences": [
+      protocol: 'GYROCOMPAS1',
+      standard: false,
+      sentences: [
         {
-          "sentence": "HEHDT",
-          "fields": [
+          id: 'HEHDT',
+          payload: [
             {
-              "name": "heading",
-              "type": "float",
-              "units": "deg"
+              name: 'heading',
+              type: 'float32',
+              units: 'deg'
             },
             {
-              "name": "symbol",
-              "type": "string"
+              name: 'symbol',
+              type: 'string'
             }
           ]
         },
         {
-          "sentence": "PHTRO",
-          "fields": [
+          id: 'PHTRO',
+          payload: [
             {
-              "name": "pitch",
-              "type": "float",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float32',
+              units: 'deg'
             },
             {
-              "name": "pitch_direction",
-              "type": "string",
-              "note": "M bow up, P bow down"
+              name: 'pitch_direction',
+              type: 'string',
+              description: 'M bow up, P bow down'
             },
             {
-              "name": "roll",
-              "type": "float",
-              "units": "deg"
+              name: 'roll',
+              type: 'float32',
+              units: 'deg'
             },
             {
-              "name": "roll_direction",
-              "type": "string",
-              "note": "M bow up, P bow down"
+              name: 'roll_direction',
+              type: 'string',
+              description: 'M bow up, P bow down'
             }
           ]
         },
         {
-          "sentence": "PHINF",
-          "fields": [
+          id: 'PHINF',
+          payload: [
             {
-              "name": "status",
-              "type": "string"
+              name: 'status',
+              type: 'string'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PNORSUB",
-          "fields": [
+          id: 'PNORSUB',
+          payload: [
             {
-              "name": "time",
-              "type": "uint32",
-              "units": "ms"
+              name: 'time',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "delay",
-              "type": "uint32",
-              "units": "ms"
+              name: 'delay',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg",
-              "note": "0 - 360"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: '0 - 360'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "z-down"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'z-down'
             },
             {
-              "name": "status",
-              "type": "uint32",
-              "note": "0 - Error\n\n1 - No Error"
+              name: 'status',
+              type: 'uint32',
+              description: '0 - Error\n\n1 - No Error'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB2",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB2',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PNORSUB2",
-          "fields": [
+          id: 'PNORSUB2',
+          payload: [
             {
-              "name": "time",
-              "type": "uint32",
-              "units": "ms"
+              name: 'time',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "delay",
-              "type": "uint32",
-              "units": "ms"
+              name: 'delay',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg",
-              "note": "0 - 360"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: '0 - 360'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "z-down"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'z-down'
             },
             {
-              "name": "heave_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "z-down"
+              name: 'heave_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: 'z-down'
             },
             {
-              "name": "status",
-              "type": "uint32",
-              "note": "0 - Error\n\n1 - No Error"
+              name: 'status',
+              type: 'uint32',
+              description: '0 - Error\n\n1 - No Error'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB6",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB6',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PNORSUB6",
-          "fields": [
+          id: 'PNORSUB6',
+          payload: [
             {
-              "name": "time",
-              "type": "uint32",
-              "units": "ms"
+              name: 'time',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "delay",
-              "type": "uint32",
-              "units": "ms"
+              name: 'delay',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg",
-              "note": "0 - 360"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: '0 - 360'
             },
             {
-              "name": "surge",
-              "type": "double",
-              "units": "m"
+              name: 'surge',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "sway",
-              "type": "double",
-              "units": "m"
+              name: 'sway',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "z-down"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'z-down'
             },
             {
-              "name": "roll_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'roll_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "pitch_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'pitch_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "yaw_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'yaw_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "surge_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'surge_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "sway_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'sway_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "heave_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "z-down"
+              name: 'heave_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: 'z-down'
             },
             {
-              "name": "acceleration_x",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_x',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_y",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_y',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_z",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_z',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "status",
-              "type": "uint32",
-              "note": "0 - Error\n\n1 - No Error"
+              name: 'status',
+              type: 'uint32',
+              description: '0 - Error\n\n1 - No Error'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB7",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB7',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PNORSUB7",
-          "fields": [
+          id: 'PNORSUB7',
+          payload: [
             {
-              "name": "time",
-              "type": "uint32",
-              "units": "ms"
+              name: 'time',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "delay",
-              "type": "uint32",
-              "units": "ms"
+              name: 'delay',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg",
-              "note": "0 - 360"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: '0 - 360'
             },
             {
-              "name": "surge",
-              "type": "double",
-              "units": "m"
+              name: 'surge',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "sway",
-              "type": "double",
-              "units": "m"
+              name: 'sway',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "z-down"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'z-down'
             },
             {
-              "name": "roll_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'roll_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "pitch_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'pitch_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "yaw_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'yaw_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "surge_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'surge_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "sway_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'sway_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "heave_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "z-down"
+              name: 'heave_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: 'z-down'
             },
             {
-              "name": "acceleration_x",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_x',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_y",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_y',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_z",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_z',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "period_x",
-              "type": "double",
-              "units": "s"
+              name: 'period_x',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "period_y",
-              "type": "double",
-              "units": "s"
+              name: 'period_y',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "period_z",
-              "type": "double",
-              "units": "s"
+              name: 'period_z',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "amplitude_x",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_x',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "amplitude_y",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_y',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "amplitude_z",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_z',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "status",
-              "type": "uint32"
+              name: 'status',
+              type: 'uint32'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB7b",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB7b',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PNORSUB7b",
-          "fields": [
+          id: 'PNORSUB7b',
+          payload: [
             {
-              "name": "time",
-              "type": "uint32",
-              "units": "ms"
+              name: 'time',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "delay",
-              "type": "uint32",
-              "units": "ms"
+              name: 'delay',
+              type: 'uint32',
+              units: 'ms'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg",
-              "note": "0 - 360"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: '0 - 360'
             },
             {
-              "name": "surge",
-              "type": "double",
-              "units": "m"
+              name: 'surge',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "sway",
-              "type": "double",
-              "units": "m"
+              name: 'sway',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "z-down"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'z-down'
             },
             {
-              "name": "roll_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'roll_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "pitch_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'pitch_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "yaw_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'yaw_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "surge_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'surge_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "sway_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'sway_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "heave_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "z-down"
+              name: 'heave_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: 'z-down'
             },
             {
-              "name": "acceleration_x",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_x',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_y",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_y',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_z",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_z',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "period_x",
-              "type": "double",
-              "units": "s"
+              name: 'period_x',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "period_y",
-              "type": "double",
-              "units": "s"
+              name: 'period_y',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "period_z",
-              "type": "double",
-              "units": "s"
+              name: 'period_z',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "amplitude_x",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_x',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "amplitude_y",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_y',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "amplitude_z",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_z',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "status_a",
-              "type": "uint16"
+              name: 'status_a',
+              type: 'uint16'
             },
             {
-              "name": "status_b",
-              "type": "uint16"
+              name: 'status_b',
+              type: 'uint16'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB8",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB8',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PNORSUB8",
-          "description": "The whole regular attitude information from the MRU",
-          "fields": [
+          id: 'PNORSUB8',
+          description: 'The whole regular attitude information from the MRU',
+          payload: [
             {
-              "name": "time",
-              "type": "uint32",
-              "units": "us"
+              name: 'time',
+              type: 'uint32',
+              units: 'us'
             },
             {
-              "name": "delay",
-              "type": "uint32",
-              "units": "us"
+              name: 'delay',
+              type: 'uint32',
+              units: 'us'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg",
-              "note": "From 0 to 360"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: 'From 0 to 360'
             },
             {
-              "name": "surge",
-              "type": "double",
-              "units": "m"
+              name: 'surge',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "sway",
-              "type": "double",
-              "units": "m"
+              name: 'sway',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "z-down"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'z-down'
             },
             {
-              "name": "roll_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'roll_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "pitch_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'pitch_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "yaw_rate",
-              "type": "double",
-              "units": "deg/s"
+              name: 'yaw_rate',
+              type: 'float64',
+              units: 'deg/s'
             },
             {
-              "name": "surge_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'surge_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "sway_velocity",
-              "type": "double",
-              "units": "m/s"
+              name: 'sway_velocity',
+              type: 'float64',
+              units: 'm/s'
             },
             {
-              "name": "heave_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "z-down"
+              name: 'heave_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: 'z-down'
             },
             {
-              "name": "acceleration_x",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_x',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_y",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_y',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "acceleration_z",
-              "type": "double",
-              "units": "m/s2"
+              name: 'acceleration_z',
+              type: 'float64',
+              units: 'm/s2'
             },
             {
-              "name": "period_x",
-              "type": "double",
-              "units": "s"
+              name: 'period_x',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "period_y",
-              "type": "double",
-              "units": "s"
+              name: 'period_y',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "period_z",
-              "type": "double",
-              "units": "s"
+              name: 'period_z',
+              type: 'float64',
+              units: 's'
             },
             {
-              "name": "amplitude_x",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_x',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "amplitude_y",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_y',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "amplitude_z",
-              "type": "double",
-              "units": "m"
+              name: 'amplitude_z',
+              type: 'float64',
+              units: 'm'
             },
             {
-              "name": "status",
-              "type": "uint32"
+              name: 'status',
+              type: 'uint32'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "NORSUB PRDID",
-      "standard": false,
-      "sentences": [
+      protocol: 'NORSUB PRDID',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PRDID",
-          "fields": [
+          id: 'PRDID',
+          payload: [
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "Tokimek PTVG",
-      "standard": false,
-      "sentences": [
+      protocol: 'Tokimek PTVG',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PTVG",
-          "fields": [
+          id: 'PTVG',
+          payload: [
             {
-              "name": "pitch",
-              "type": "number",
-              "units": "deg",
-              "note": "Multiplied by 100, a [-] bow up / a [space] bow down"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg',
+              description: 'Multiplied by 100, a [-] bow up / a [space] bow down'
             },
             {
-              "name": "roll",
-              "type": "number",
-              "units": "deg",
-              "note": "Multiplied by 100, a [-] bow up / a [space] bow down"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg',
+              description: 'Multiplied by 100, a [-] bow up / a [space] bow down'
             },
             {
-              "name": "heading",
-              "type": "number",
-              "units": "deg"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "RDI ADCP",
-      "standard": false,
-      "sentences": [
+      protocol: 'RDI ADCP',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PRDID",
-          "fields": [
+          id: 'PRDID',
+          payload: [
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg",
-              "note": "s if [+] is bow up / s is [-] if bow down, leading zeros"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg',
+              description: 's if [+] is bow up / s is [-] if bow down, leading zeros'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg",
-              "note": "s if [+] is bow up / s is [-] if bow down, leading zeros"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg',
+              description: 's if [+] is bow up / s is [-] if bow down, leading zeros'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "deg"
+              name: 'heading',
+              type: 'float64',
+              units: 'deg'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "SMCA",
-      "standard": false,
-      "sentences": [
+      protocol: 'SMCA',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PSMCA",
-          "fields": [
+          id: 'PSMCA',
+          payload: [
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg",
-              "note": "±100 degs, resolution 0.001 degs"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg',
+              description: '±100 degs, resolution 0.001 degs'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg",
-              "note": "±100 degs, resolution 0.001 degs"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg',
+              description: '±100 degs, resolution 0.001 degs'
             },
             {
-              "name": "heading",
-              "type": "double",
-              "units": "m",
-              "note": "±10 m, resolution 0.01 m"
+              name: 'heading',
+              type: 'float64',
+              units: 'm',
+              description: '±10 m, resolution 0.01 m'
             },
             {
-              "name": "surge",
-              "type": "double",
-              "units": "m",
-              "note": "±10 m, resolution 0.01 m"
+              name: 'surge',
+              type: 'float64',
+              units: 'm',
+              description: '±10 m, resolution 0.01 m'
             },
             {
-              "name": "sway",
-              "type": "double",
-              "units": "m",
-              "note": "±10 m, resolution 0.01 m"
+              name: 'sway',
+              type: 'float64',
+              units: 'm',
+              description: '±10 m, resolution 0.01 m'
             }
           ]
         }
       ]
     },
     {
-      "protocol": "SMCC",
-      "standard": false,
-      "sentences": [
+      protocol: 'SMCC',
+      standard: false,
+      sentences: [
         {
-          "sentence": "PSMCC",
-          "fields": [
+          id: 'PSMCC',
+          payload: [
             {
-              "name": "pitch",
-              "type": "double",
-              "units": "deg",
-              "note": "±100 degs, resolution 0.001 degs"
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg',
+              description: '±100 degs, resolution 0.001 degs'
             },
             {
-              "name": "roll",
-              "type": "double",
-              "units": "deg",
-              "note": "±100 degs, resolution 0.001 degs"
+              name: 'roll',
+              type: 'float64',
+              units: 'deg',
+              description: '±100 degs, resolution 0.001 degs'
             },
             {
-              "name": "yaw",
-              "type": "double",
-              "units": "deg",
-              "note": "0-359.9 degs, resolution 0.1 degs"
+              name: 'yaw',
+              type: 'float64',
+              units: 'deg',
+              description: '0-359.9 degs, resolution 0.1 degs'
             },
             {
-              "name": "surge",
-              "type": "double",
-              "units": "m",
-              "note": "±10 m, resolution 0.01 m"
+              name: 'surge',
+              type: 'float64',
+              units: 'm',
+              description: '±10 m, resolution 0.01 m'
             },
             {
-              "name": "sway",
-              "type": "double",
-              "units": "m",
-              "note": "±10 m, resolution 0.01 m"
+              name: 'sway',
+              type: 'float64',
+              units: 'm',
+              description: '±10 m, resolution 0.01 m'
             },
             {
-              "name": "heave",
-              "type": "double",
-              "units": "m",
-              "note": "±10 m, resolution 0.01 m"
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: '±10 m, resolution 0.01 m'
             },
             {
-              "name": "surge_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "±100 m/s, resolution 0.01 m/s"
+              name: 'surge_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: '±100 m/s, resolution 0.01 m/s'
             },
             {
-              "name": "sway_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "±100 m/s, resolution 0.01 m/s"
+              name: 'sway_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: '±100 m/s, resolution 0.01 m/s'
             },
             {
-              "name": "heave_velocity",
-              "type": "double",
-              "units": "m/s",
-              "note": "±100 m/s, resolution 0.01 m/s"
+              name: 'heave_velocity',
+              type: 'float64',
+              units: 'm/s',
+              description: '±100 m/s, resolution 0.01 m/s'
             },
             {
-              "name": "acceleration_x",
-              "type": "double",
-              "units": "m/s2",
-              "note": "±100 m/s2, resolution 0.01 m/s2"
+              name: 'acceleration_x',
+              type: 'float64',
+              units: 'm/s2',
+              description: '±100 m/s2, resolution 0.01 m/s2'
             },
             {
-              "name": "acceleration_y",
-              "type": "double",
-              "units": "m/s2",
-              "note": "±100 m/s2, resolution 0.01 m/s2"
+              name: 'acceleration_y',
+              type: 'float64',
+              units: 'm/s2',
+              description: '±100 m/s2, resolution 0.01 m/s2'
             },
             {
-              "name": "acceleration_z",
-              "type": "double",
-              "units": "m/s2",
-              "note": "±100 m/s2, resolution 0.01 m/s2"
+              name: 'acceleration_z',
+              type: 'float64',
+              units: 'm/s2',
+              description: '±100 m/s2, resolution 0.01 m/s2'
             }
           ]
         }

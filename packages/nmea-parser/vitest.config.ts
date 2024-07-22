@@ -8,7 +8,9 @@ export default defineConfig({
         '**/*/constants.ts',
         '**/*/types.ts',
         'dist/*',
-        'yaml-to-json.js'
+        'yaml-to-json.js',
+        'legacy/*',
+        '*.config.ts'
       ]
     }
   }
