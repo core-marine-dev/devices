@@ -186,6 +186,7 @@ const ValibotNMEASentenceSchema = v.object({
   description: v.optional(ValibotStringSchema),
   checksum: ValibotChecksumSchema,
   payload: v.array(ValibotNMEAParsedFieldSchema),
+  metadata: v.optional(v.any()),
   protocol: v.optional(
     v.object({
       name: ValibotStringSchema,

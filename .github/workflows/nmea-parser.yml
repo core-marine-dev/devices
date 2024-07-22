@@ -30,6 +30,9 @@ jobs:
 
       - name: 🧑‍🔬 Tests
         run: "npm run nmea-parser:test"
+    
+      - name: 🛠️ Build
+        run: "npm run nmea-parser:build"
 
   publish:
     name: 🚀 Publish
