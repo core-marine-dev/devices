@@ -1,8 +1,6 @@
 # NMEA parser
 
-![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nmea-parser)
-[![publish](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser.yml)
-![npm](https://img.shields.io/npm/dy/%40coremarine/nmea-parser)
+![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/nmea-parser) [![publish](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/nmea-parser.yml) ![npm](https://img.shields.io/npm/dy/%40coremarine/nmea-parser)
 
 **NMEA Parser** is a library to parse NMEA 0183 sentences.
 
@@ -14,7 +12,7 @@ This library parse **ALL** NMEA-like sentences (sentences that follow these rule
 - Start with `$`
 - Fields separated by `,`
 - An `*` character splitting info and checksum
-- Two digits of checksum
+- Two hexadecimal digits of checksum
 - End with `\r\n`
 
 If the parser knows the NMEA sentences it gives more metadata. Known frames are:
@@ -54,15 +52,15 @@ The output it is an array of parsed sentences which have this type
 ```typescript
 type NMEASentence = {
   // Sentence ID
-  sentence: string,
-  // Array just with the data of each field (easier to just read data and not fields metadata)
-  data: Array<string | number | boolean | null>,
+  id: string,
   // Array with ordered fields and their metadata
-  fields: Array<{
+  payload: Array<{
     name: string,
-    data: string | number | boolean | null,
+    value: string | number | bigint | boolean | null,
+    type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'int8' | 'int16' | 'int32' | 'int64' | 'float32' | 'float64' | 'unknown',
     units?: string,
-    note?: string,
+    description?: string,
+    metadata?: any
   }>,
   // Protocol information
   protocol: {
@@ -71,21 +69,26 @@ type NMEASentence = {
     version: string,
   },
   // UTC timestamp when the sentence was parsed
-  timestamp: number,
+  received: number,
   // Whole ASCII string sentence
-  raw: string,
+  sample: string,
   // Sentence checksum
-  checksum: number
+  checksum: {
+    sample: string,
+    value: number
+  }
   // Sentence talker
-  talker?: null | { id: string, description: string }
+  talker?: {
+    value: string,
+    description: string
+  }
 }
 ```
 
 If the sentence is unknown for the parser you have:
 
-- `protocol` is equal to `{ name: 'UNKNOWN' }`
-- `data` is an `Array<string>`
-- In `fields` each element is equal to `{ name: 'unknown', data: string }`
+- `protocol` is equal to `{ name: 'unknown' }`
+- In `payload` each element is equal to `{ name: 'unknown', value: string, type: string }`
 
 ### Feed the parser
 
@@ -111,7 +114,7 @@ To get that is with method `getFakeSentenceByID()`. If the sentence it is not su
 ```typescript
 type Sentence = {
   // ID of the sentence
-  sentence: string,
+  id: string,
   // Protocol info
   protocol: {
     name: string,
@@ -119,14 +122,17 @@ type Sentence = {
     version?: string
   },
   // Ordered fields with its info
-  fields: Array<{
+  payload: Array<{
     name: string,
-    type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
+    type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'int8' | 'int16' | 'int32' | 'int64' | 'float32' | 'float64',
     units?: string,
-    note?: string
+    description?: string
   }>,
   // Optional talker
-  talker?: null | { id: string, description: string }
+  talker?: {
+    value: string,
+    description: string
+  }
   // Optional description
   description?: string
 }
@@ -183,15 +189,15 @@ protocols:
     # Array of sentences
     sentences:
       # Each sentence has this structure
-      - sentence: <ID of sentence 1>
+      - id: <ID of sentence 1>
         description: <optional description>
         # Array of fields
-        fields:
+        payload:
           # Each field has this structure
           - name: <field 1>
             type: <type>
             units: <optional units>
-            note: <optional note>
+            description: <optional note>
 ```
 
 It will be parsed into an `Protocol` object then (see next section).
@@ -205,13 +211,13 @@ protocols:
     version: '3.1'
     standard: true
     sentences:
-      - sentence: AAM
+      - id: AAM
         description: Waypoint Arrival Alarm
-        fields:
+        payload:
           # 1
           - name: status
             type: string
-            note: "BOOLEAN\n
+            description: "BOOLEAN\n
             
               A = arrival circle entered\n
 
@@ -219,7 +225,7 @@ protocols:
           # 2
           - name: status
             type: string
-            note: "BOOLEAN\n
+            description: "BOOLEAN\n
             
               A = perpendicular passed at waypoint\n
               
@@ -234,9 +240,9 @@ protocols:
           # 5
           - name: waypoint_id
             type: string
-      - sentence: GGA
+      - id: GGA
         description: Global Positioning System Fix Data
-        fields:
+        payload:
           # 1
           - name: utc_position
             type: string
@@ -248,7 +254,7 @@ protocols:
           # 3
           - name: latitude_direction
             type: string
-            note: "N: North\n
+            description: "N: North\n
               S: South"
           # 4
           - name: longitude
@@ -257,12 +263,12 @@ protocols:
           # 5
           - name: longitude_direction
             type: string
-            note: "E - East\n
+            description: "E - East\n
               W - West"
           # 6
           - name: gps_quality
             type: int8
-            note: "0: Fix not valid\n
+            description: "0: Fix not valid\n
               1: GPS fix\n
               2: Differential GPS fix (DGNSS), SBAS, OmniSTAR VBS, Beacon, RTX in GVBS mode\n
               3: Not applicable\n
@@ -281,7 +287,7 @@ protocols:
           - name: altitude
             type: float64
             units: m
-            note: "Orthometric height Mean-Sea-Level (MSL reference)"
+            description: "Orthometric height Mean-Sea-Level (MSL reference)"
           # 10
           - name: altitude_units
             type: string
@@ -290,7 +296,7 @@ protocols:
           - name: geoid_separation
             type: float64
             units: m
-            note: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
+            description: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
           # 12
           - name: geoid_separation_units
             type: string
@@ -299,11 +305,11 @@ protocols:
           - name: age_of_differential_gps_data
             type: float64
             units: sec
-            note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
+            description: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
           # 14
           - name: reference_station_id
             type: uint16
-            note: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
+            description: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
 
               0002 CenterPoint or ViewPoint RTX\n
 
@@ -332,73 +338,73 @@ protocols:
               1020 HP/G2 (GPS)\n
               
               1021 HP/G2 (GPS/GLONASS)"
-      - sentence: HDT
+      - id: HDT
         description: Heading - True
-        fields:
+        payload:
           # 1
           - name: heading
             type: float32
-            note: "Heading, degrees True"
+            description: "Heading, degrees True"
           # 2
           - name: "true"
             type: string
-            note: "T = True"
-      - sentence: ZDA
+            description: "T = True"
+      - id: ZDA
         description: Time & Date - UTC, day, month, year and local time zone
-        fields:
+        payload:
           # 1
           - name: utc_time
             type: string
-            note: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
+            description: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
           # 2
           - name: day
             type: int8
-            note: "Day, 01 to 31"
+            description: "Day, 01 to 31"
           # 3
           - name: month
             type: int8
-            note: "Month, 01 to 12"
+            description: "Month, 01 to 12"
           # 4
           - name: year
             type: int16
-            note: "Year (4 digits)"
+            description: "Year (4 digits)"
           # 5
           - name: local_zone_hours
             type: int8
-            note: "Local zone description, 00 to +- 13 hours"
+            description: "Local zone description, 00 to +- 13 hours"
           # 6
           - name: local_zone_minutes
             type: int8
-            note: "Local zone minutes description, 00 to 59, apply same sign as local hours"
+            description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
 
 
   # Propietary GYROCOMPAS1
   - protocol: GYROCOMPAS1
     standard: false
     sentences:
-      - sentence: HEHDT
-        fields:
+      - id: HEHDT
+        payload:
           - name: heading
             type: float
             units: deg
           - name: symbol
             type: string
-      - sentence: PHTRO
-        fields:
+      - id: PHTRO
+        payload:
           - name: pitch
             type: float
             units: deg
           - name: pitch_direction
             type: string
-            note: M bow up, P bow down
+            description: M bow up, P bow down
           - name: roll
             type: float
             units: deg
           - name: roll_direction
             type: string
-            note: M bow up, P bow down
-      - sentence: PHINF
-        fields:
+            description: M bow up, P bow down
+      - id: PHINF
+        payload:
           - name: status
             type: string
 ```
@@ -411,16 +417,16 @@ It is an object which has the next type.
 type Protocol = {
   // Protocol name
   protocol: string,
-  // Semantic version
-  version?: string,
   // If the protocol is NMEA stantard or propietary (false by default)
   standard?: boolean = false,
+  // Semantic version
+  version?: string,
   // Array of sentences
   sentences: Array<{
     // Sentence ID
-    sentence: string,
+    id: string,
     // Each field metadata
-    fields: Array<{
+    payload: Array<{
       name: string,
       type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
       units?: string,
@@ -460,14 +466,26 @@ type Protocol = {
 - Get known protocols with their sentences
 
     ```typescript
-    type ProtocolOutput = {
-      protocol: string,
-      version?: string,
-      sentences: string[]
+    type StoredSentence = {
+      id: string,
+      protocol: {
+        name: string,
+        standard: boolean,
+        version?: string
+      },
+      payload: Array<{
+        name: string,
+        type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
+        units?: string,
+        description?: string
+      }>,
+      description?: string
     }
 
+    type ProtocolOutput = Record<string, StoredSentence>
+
     // GET protocols
-    const knownProtocols: ProtocolOutput[] = parser.getProtocols()
+    const knownProtocols: ProtocolOutput = parser.getSentencesByProtocol()
     ```
 
 - Get sentence info by id
@@ -475,7 +493,7 @@ type Protocol = {
     ```typescript
     type Sentence = {
       // ID of the sentence
-      sentence: string,
+      id: string,
       // Protocol info
       protocol: {
         name: string,
@@ -483,7 +501,7 @@ type Protocol = {
         version?: string
       },
       // Ordered fields with its info
-      fields: Array<{
+      payload: Array<{
         name: string,
         type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
         units?: string,
