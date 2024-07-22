@@ -1,56 +1,46 @@
-
-import fs from 'node:fs'
 import yaml from 'js-yaml'
-import { ProtocolsFileSchema, StringSchema } from './schemas'
-import type { Protocol, ProtocolOutput, ProtocolsFile, StoredSentence, StoredSentences } from './types'
+import fs from 'node:fs'
+import { ProtocolsFileContentSchema, StringSchema } from './schemas'
+import type { MapStoredSentences, Protocol, ProtocolsFileContent, StoredSentence } from './types'
 
-export const readProtocolsString = (content: string): ProtocolsFile => {
+export const readProtocolsYAMLString = (content: string): ProtocolsFileContent => {
   const fileData = yaml.load(content)
-  return ProtocolsFileSchema.parse(fileData)
+  const parsed = ProtocolsFileContentSchema.safeParse(fileData)
+  if (!parsed.success) {
+    throw new Error(parsed.errors?.toString())
+  }
+  return parsed.data as ProtocolsFileContent
+  // Valibot version to debug
+  // const parsed = safeParse(ValibotProtocolsFileContentSchema, fileData)
+  // if (parsed.success) { return parsed.output }
+  // throw new Error(parsed.issues?.toString())
 }
 
-export const readProtocolsFile = (file: string): ProtocolsFile => {
+export const readProtocolsYAMLFile = (file: string): ProtocolsFileContent => {
   const filename = StringSchema.parse(file)
   const content = fs.readFileSync(filename, 'utf-8')
-  return readProtocolsString(content)
+  return readProtocolsYAMLString(content)
 }
 
-const getStoreSentencesFromProtocol = (protocol: Protocol): StoredSentences => {
+const getStoreSentencesFromProtocol = (protocol: Protocol): MapStoredSentences => {
   const { protocol: name, standard, version, sentences } = protocol
-  const storedSentences: StoredSentences = new Map()
+  const storedSentences: MapStoredSentences = new Map()
   sentences.forEach(element => {
     const obj: StoredSentence = {
-      sentence: element.sentence,
-      fields: element.fields,
+      id: element.id,
+      payload: element.payload,
       protocol: { name, standard, version },
       description: element?.description
     }
-    storedSentences.set(element.sentence, obj)
+    storedSentences.set(element.id, obj)
   })
   return storedSentences
 }
 
-export const getStoreSentences = ({ protocols }: ProtocolsFile): StoredSentences => {
-  let storedSentences: StoredSentences = new Map()
+export const getStoreSentences = ({ protocols }: ProtocolsFileContent): MapStoredSentences => {
+  let storedSentences: MapStoredSentences = new Map()
   protocols.forEach(protocol => {
     storedSentences = new Map([...storedSentences, ...getStoreSentencesFromProtocol(protocol)])
   })
   return storedSentences
-}
-
-export const getSentencesByProtocol = (storedSentences: StoredSentences): ProtocolOutput[] => {
-  const mapProtocols = new Map<string, ProtocolOutput>()
-  storedSentences.forEach((value, key) => {
-    const mapKey = (value.protocol.version !== undefined) ? `${value.protocol.name}_${value.protocol?.version}` : value.protocol.name
-    const object = mapProtocols.get(mapKey) ?? {
-      protocol: value.protocol.name,
-      version: value.protocol?.version,
-      sentences: [key]
-    }
-    if (!object.sentences.includes(key)) {
-      object.sentences.push(key)
-    }
-    mapProtocols.set(mapKey, object)
-  })
-  return Array.from(mapProtocols.values())
 }
