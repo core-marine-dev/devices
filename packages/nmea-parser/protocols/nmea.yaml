@@ -3,13 +3,13 @@ protocols:
     version: '3.1'
     standard: true
     sentences:
-      - sentence: AAM
+      - id: AAM
         description: Waypoint Arrival Alarm
-        fields:
+        payload:
           # 1
           - name: status
             type: string
-            note: "BOOLEAN\n
+            description: "BOOLEAN\n
             
               A = arrival circle entered\n
 
@@ -17,7 +17,7 @@ protocols:
           # 2
           - name: status
             type: string
-            note: "BOOLEAN\n
+            description: "BOOLEAN\n
             
               A = perpendicular passed at waypoint\n
               
@@ -32,9 +32,9 @@ protocols:
           # 5
           - name: waypoint_id
             type: string
-      - sentence: GGA
+      - id: GGA
         description: Global Positioning System Fix Data
-        fields:
+        payload:
           # 1
           - name: utc_position
             type: string
@@ -46,7 +46,7 @@ protocols:
           # 3
           - name: latitude_direction
             type: string
-            note: "N: North\n
+            description: "N: North\n
               S: South"
           # 4
           - name: longitude
@@ -55,12 +55,12 @@ protocols:
           # 5
           - name: longitude_direction
             type: string
-            note: "E - East\n
+            description: "E - East\n
               W - West"
           # 6
           - name: gps_quality
             type: int8
-            note: "0: Fix not valid\n
+            description: "0: Fix not valid\n
               1: GPS fix\n
               2: Differential GPS fix (DGNSS), SBAS, OmniSTAR VBS, Beacon, RTX in GVBS mode\n
               3: Not applicable\n
@@ -79,7 +79,7 @@ protocols:
           - name: altitude
             type: float64
             units: m
-            note: "Orthometric height Mean-Sea-Level (MSL reference)"
+            description: "Orthometric height Mean-Sea-Level (MSL reference)"
           # 10
           - name: altitude_units
             type: string
@@ -88,7 +88,7 @@ protocols:
           - name: geoid_separation
             type: float64
             units: m
-            note: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
+            description: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
           # 12
           - name: geoid_separation_units
             type: string
@@ -97,11 +97,11 @@ protocols:
           - name: age_of_differential_gps_data
             type: uint32
             units: sec
-            note: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
+            description: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
           # 14
           - name: reference_station_id
             type: uint16
-            note: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
+            description: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
 
               0002 CenterPoint or ViewPoint RTX\n
 
@@ -130,41 +130,41 @@ protocols:
               1020 HP/G2 (GPS)\n
               
               1021 HP/G2 (GPS/GLONASS)"
-      - sentence: HDT
+      - id: HDT
         description: Heading - True
-        fields:
+        payload:
           # 1
           - name: heading
             type: float32
-            note: "Heading, degrees True"
+            description: "Heading, degrees True"
           # 2
           - name: "true"
             type: string
-            note: "T = True"
-      - sentence: ZDA
+            description: "T = True"
+      - id: ZDA
         description: Time & Date - UTC, day, month, year and local time zone
-        fields:
+        payload:
           # 1
           - name: utc_time
             type: string
-            note: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
+            description: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
           # 2
           - name: day
             type: int8
-            note: "Day, 01 to 31"
+            description: "Day, 01 to 31"
           # 3
           - name: month
             type: int8
-            note: "Month, 01 to 12"
+            description: "Month, 01 to 12"
           # 4
           - name: year
             type: int16
-            note: "Year (4 digits)"
+            description: "Year (4 digits)"
           # 5
           - name: local_zone_hours
             type: int8
-            note: "Local zone description, 00 to +- 13 hours"
+            description: "Local zone description, 00 to +- 13 hours"
           # 6
           - name: local_zone_minutes
             type: int8
-            note: "Local zone minutes description, 00 to 59, apply same sign as local hours"
+            description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
