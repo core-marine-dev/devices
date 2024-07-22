@@ -4,6 +4,7 @@ import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, 
 import { Float32Schema, Float64Schema, Int16Schema, Int32Schema, Int64Schema, Int8Schema, NMEASentenceSchema, Uint16Schema, Uint32Schema, Uint64Schema, Uint8Schema } from './schemas'
 import type { Checksum, NMEALike, NMEASentence, Payload, ProtocolFieldType, StoredSentence, Talker, Value } from './types'
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
+import { addMetadata } from './nmea-metadata'
 
 export const lastUncompletedFrame = (text: string): string | null => {
   // Start of last possible frame
@@ -137,7 +138,7 @@ export const getKnownNMEASentence = (
   })
   const { protocol } = model
   // TODO: Metada -> GGA Latitude-Longitude degrees
-  const sent: NMEASentence = {
+  const nmeaSentence: NMEASentence = {
     received,
     sample,
     id: sentenceID,
@@ -145,7 +146,8 @@ export const getKnownNMEASentence = (
     payload,
     protocol
   }
-  return NMEASentenceSchema.parse(sent)
+  const nmeaSentenceWithMetadata = addMetadata(nmeaSentence)
+  return NMEASentenceSchema.parse(nmeaSentenceWithMetadata)
 }
 
 export const getTalker = (sentenceID: string): Talker | null => {
