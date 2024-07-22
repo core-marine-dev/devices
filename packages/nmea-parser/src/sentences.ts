@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, NMEA_ID_LENGTH, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from './constants'
 import { Float32Schema, Float64Schema, Int16Schema, Int32Schema, Int64Schema, Int8Schema, NMEASentenceSchema, Uint16Schema, Uint32Schema, Uint64Schema, Uint8Schema } from './schemas'
