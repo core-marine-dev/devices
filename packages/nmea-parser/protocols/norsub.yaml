@@ -55,7 +55,6 @@ protocols:
           - name: status
             type: uint32
             description: "0 - Error\n
-            
               1 - No Error"
   - protocol: NORSUB2
     standard: false
@@ -89,7 +88,6 @@ protocols:
           - name: status
             type: uint32
             description: "0 - Error\n
-            
               1 - No Error"
   - protocol: NORSUB6
     standard: false
@@ -153,7 +151,6 @@ protocols:
           - name: status
             type: uint32
             description: "0 - Error\n
-            
               1 - No Error"
   - protocol: NORSUB7
     standard: false
