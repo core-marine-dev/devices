@@ -246,3 +246,16 @@ describe('Parser', () => {
     })
   })
 })
+
+test('GGA sentence', () => {
+  const sample = '$INGGA,132247.95,7118.690092,N,02215.039776,E,2,12,0.8,66.48,M,26.96,M,20.0,1006*56\r\n'
+  const parser = new Parser()
+  const output = parser.parseData(sample)
+  expect(output).toHaveLength(1)
+  const gga = output[0]
+  expect(gga).toHaveProperty('metadata')
+  expect(gga.metadata).toHaveProperty('timestamp')
+  expect(gga.metadata).toHaveProperty('latitude')
+  expect(gga.metadata).toHaveProperty('longitude')
+  expect(gga.metadata).toHaveProperty('quality')
+})
