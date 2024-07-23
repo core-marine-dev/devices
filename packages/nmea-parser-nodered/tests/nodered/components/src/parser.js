@@ -55,11 +55,11 @@ const getProtocols = (parser, _protocols) => {
       // SET
       if (command === 'set') {
         parser.addProtocols({ file, content, protocols })
-        return parser.getProtocols()
+        return parser()
       }
       // GET
       if (command === 'get') {
-        return parser.getProtocols()
+        return parser.getSentencesByProtocol()
       }
     }
     return 'protocols.command should be "get" or "set"'
