@@ -62,6 +62,8 @@ type NMEASentence = {
     description?: string,
     metadata?: any
   }>,
+  // Metadata which can be computed fields from payload fields
+  metadata?: any,
   // Protocol information
   protocol: {
     name: string,
