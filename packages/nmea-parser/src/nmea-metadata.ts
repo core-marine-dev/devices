@@ -1,6 +1,25 @@
-import { Float64, NMEASentence, Uint8 } from './types'
+import { Float64, NMEASentence, Uint32, Uint8 } from './types'
 
 const metadataGGA = (sentence: NMEASentence): NMEASentence => {
+  const getUTCPosition = /**
+   * Description placeholder
+   *
+   * @param {string} utcPosition hhmmss.ss where hh hours, mm minutes and ss.ss seconds
+   * @returns {Uint32 | null}
+   */
+  (utcPosition: string): Uint32 | null => {
+    if (utcPosition.length !== 9) { return null }
+    if (isNaN(Number(utcPosition))) { return null }
+    const hours = Number(utcPosition.slice(0, 2))
+    const minutes = Number(utcPosition.slice(2, 4))
+    const seconds = Number(utcPosition.slice(4, 6))
+    const millis = Number(utcPosition.slice(7))
+
+    const date = new Date()
+    date.setHours(hours, minutes, seconds, millis)
+    return date.getTime()
+  }
+
   const getLatitudeDegrees = (latitude: string, letter: string): Float64 => {
     const [left, minutesRight] = latitude.split('.')
     const degrees = left.slice(0, -2)
@@ -39,12 +58,22 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
   }
 
   sentence.payload.forEach((field, index) => {
+    // UTC Position
+    if (field.name === 'utc_position') {
+      const utcPosition = field.value as string
+      const timestamp = getUTCPosition(utcPosition)
+      if (timestamp !== null) {
+        sentence.payload[index].metadata = { timestamp }
+        sentence.metadata = { ...sentence.metadata, timestamp }
+      }
+    }
     // Latitude
     if (field.name === 'latitude') {
       const latitude = field.value as string
       const letter = sentence.payload[index + 1].value as string
       const degrees = getLatitudeDegrees(latitude, letter)
-      sentence.metadata = { latitude: degrees }
+      sentence.payload[index].metadata = { degrees }
+      sentence.metadata = { ...sentence.metadata, latitude: degrees }
       return
     }
     // Longitude
@@ -52,12 +81,13 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
       const longitude = field.value as string
       const letter = sentence.payload[index + 1].value as string
       const degrees = getLongitudeDegrees(longitude, letter)
-      sentence.metadata = { longitude: degrees }
+      sentence.payload[index].metadata = { degrees }
+      sentence.metadata = { ...sentence.metadata, longitude: degrees }
       return
     }
     // Quality
     if (field.name === 'quality') {
-      sentence.metadata = { quality: getQuality(field.value as Uint8) }
+      sentence.metadata = { ...sentence.metadata, quality: getQuality(field.value as Uint8) }
       // return
     }
     // Rest
