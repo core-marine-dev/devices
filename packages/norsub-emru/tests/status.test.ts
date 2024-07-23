@@ -127,7 +127,15 @@ test('null Status', () => {
   const status_a: Uint16 = Uint32Array.from([0b0_1010_1010_1010_1010])[0]
   const status_b: Uint16 = Uint32Array.from([0b0_1010_1010_1010_1010])[0]
   expect(getStatus({})).toBeNull()
+  // @ts-expect-error
   expect(getStatus({ status: 'hola '})).toBeNull()
   expect(getStatus({ status_a })).toBeNull()
   expect(getStatus({ status_b })).toBeNull()
+})
+
+test('nanai', () => {
+  // const status = 892941617
+  const status = 1036236
+  const parsed = getStatus({ status })
+  expect(parsed).not.toBeNull()
 })
