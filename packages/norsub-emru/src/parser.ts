@@ -1,86 +1,36 @@
-import type { FieldParsed, NMEALike, NMEASentence, ProtocolOutput, ProtocolsInput, Sentence } from '@coremarine/nmea-parser'
+import type { Field, NMEASentence, Uint16, Uint32 } from '@coremarine/nmea-parser'
 import { MAX_CHARACTERS, NMEAParser, ProtocolsInputSchema } from '@coremarine/nmea-parser'
-import { PROTOCOLS } from './norsub'
-import { BooleanSchema, UnsignedIntegerSchema } from './schemas'
+import { NORSUB_SENTENCES } from './norsub'
 import { getStatus } from './status'
-import { NorsubSentence } from './types'
-import { getUint32 } from './utils'
+import { StatusInput } from './types'
 
-export class NorsubParser {
-  // Parser
-  protected _parser: NMEAParser = new NMEAParser()
-  // Memory - Buffer
-  get memory (): typeof this._parser.memory { return this._parser.memory }
-  set memory (mem: boolean) { this._parser.memory = BooleanSchema.parse(mem) }
-  get bufferLimit (): typeof this._parser.bufferLimit { return this._parser.bufferLimit }
-  set bufferLimit (limit: number) { this._parser.bufferLimit = UnsignedIntegerSchema.parse(limit) }
-
+export class NorsubParser extends NMEAParser {
   constructor (memory: boolean = true, limit: number = MAX_CHARACTERS) {
-    this.memory = memory
-    this.bufferLimit = limit
-    const parsed = ProtocolsInputSchema.parse(PROTOCOLS)
+    super(memory, limit)
+    const parsed = ProtocolsInputSchema.parse(NORSUB_SENTENCES)
     this.addProtocols(parsed)
   }
 
-  private getStatusIndexes (fields: FieldParsed[]): number[] {
-    const indexes: number[] = []
-    fields.forEach((field, index) => {
-      if (field.name.includes('status')) {
-        indexes.push(index)
-      }
-    })
-    return indexes
-  }
-
-  private addStatus (nmea: NMEASentence): NorsubSentence {
-    const indexes: number[] = this.getStatusIndexes(nmea.fields)
-    const numberOfIndex = indexes.length
-    if (![1, 2].includes(numberOfIndex)) { return nmea }
-    const sentence: NorsubSentence = { ...nmea }
-    // Status
-    if (numberOfIndex === 1) {
-      const index = indexes[0]
-      const data = sentence.fields[index].data as number
-      const status = getStatus({ status: data })
-      if (status !== null) {
-        sentence.fields[index].metadata = status
-      }
-      return sentence
-    }
-    // Status_A + Status_B
-    const [indexA, indexB] = indexes
-    const statusA = sentence.fields[indexA].data as number
-    const statusB = sentence.fields[indexB].data as number
-    const status = getStatus({ status_a: statusA, status_b: statusB })
-    if (status !== null) {
-      const statusNumber = getUint32(statusA, statusB)
-      sentence.data.push(statusNumber)
-      sentence.fields.push({
-        name: 'status',
-        type: 'uint32',
-        data: statusNumber,
-        metadata: status
-      })
+  private addStatus (sentence: NMEASentence): NMEASentence {
+    const input: StatusInput = sentence.id.includes('b')
+      ? { status_a: sentence.payload.at(-2)?.value as Uint16, status_b: sentence.payload.at(-1)?.value as Uint16 }
+      : { status: sentence.payload.at(-1)?.value as Uint32 }
+    const status = getStatus(input)
+    sentence.metadata = { status }
+    if (input.status !== undefined) {
+      (sentence.payload.at(-1) as Field).metadata = { status }
     }
     return sentence
   }
 
-  parseData (data: string): NorsubSentence[] {
-    const sentences = this._parser.parseData(data)
+  parseData (data: string): NMEASentence[] {
+    const sentences = super.parseData(data)
     if (sentences.length === 0) return sentences
     return sentences.map(sentence => {
-      if (sentence.protocol.name.includes('NORSUB')) {
+      if (sentence.id.includes('PNORSUB')) {
         return this.addStatus(sentence)
       }
       return sentence
     })
   }
-
-  addProtocols (protocols: ProtocolsInput): void { this._parser.addProtocols(protocols) }
-
-  getProtocols (): ProtocolOutput[] { return this._parser.getProtocols() }
-
-  getSentence (id: string): Sentence { return this._parser.getSentence(id) }
-
-  getFakeSentenceByID (id: string): NMEALike { return this._parser.getFakeSentenceByID(id) as NMEALike }
 }
