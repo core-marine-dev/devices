@@ -4,7 +4,7 @@
 [![publish](https://github.com/core-marine-dev/devices/actions/workflows/norsub-emru-nodered.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/norsub-emru-nodered.yml)
 ![npm](https://img.shields.io/npm/dy/%40coremarine/norsub-emru-nodered)
 
-Node-Red component for the [Norsub-eMRU library](https://github.com/core-marine-dev/norsub-emru) to read NorSub NMEA propietary protocols and NMEA 0183 sentences. It is a wrapper of [@coremarine/norsub-emru](https://github.com/core-marine-dev/norsub-emru) (check it docs).
+Node-Red component to read NorSub NMEA propietary sentences and NMEA 0183 sentences. It is a wrapper of [@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru) (check it docs).
 
 ## Input
 
@@ -38,7 +38,7 @@ Each input proerty would be responded in the same output property
 NorSub parser translate NMEA ASCII string data into a JavaScript objects (one for each
 NMEA sentence). Each time it receives data from payload input, it gives the parsed sentences to payload output.
 
-It just a wrapper of the npm library [@coremarine/norsub-emru](https://github.com/core-marine-dev/norsub-emru) (take a look on it).
+It just a wrapper of the npm library [@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru) (take a look on it).
 
 To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
 

@@ -59,7 +59,7 @@ const getProtocols = (parser, _protocols) => {
       }
       // GET
       if (command === 'get') {
-        return parser.getProtocols()
+        return parser.getSentencesByProtocol()
       }
     }
     return 'protocols.command should be "get" or "set"'
