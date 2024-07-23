@@ -1,4 +1,4 @@
-import type { Data, FieldParsed, NMEASentence } from '@coremarine/nmea-parser'
+// import type { NMEASentence } from '@coremarine/nmea-parser'
 import { StatusInputSchema, StatusSchema } from './schemas'
 
 /** STATUS
@@ -36,16 +36,6 @@ import { StatusInputSchema, StatusSchema } from './schemas'
  *  30 - AID_VERTICAL_VALID   - 1 = vertical position is valid and used in the observer.
  *  31 - AID_HORIZONTAL_VALID - 1 = horizontal position is valid and used in the observer.
 **/
+
 export type Status = ReturnType<typeof StatusSchema.parse>
 export type StatusInput = ReturnType<typeof StatusInputSchema.parse>
-
-export type NorsubFieldData = Data | Status
-
-export type NorsubField = FieldParsed & { metadata?: object }
-
-export type NMEAWithoutFieldsData = Omit<NMEASentence, 'fields' | 'data'>
-
-export type NorsubSentence = NMEAWithoutFieldsData & {
-  fields: NorsubField[]
-  data: NorsubFieldData[]
-}

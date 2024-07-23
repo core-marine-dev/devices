@@ -33,6 +33,9 @@ jobs:
 
       - name: 🧑‍🔬 Tests
         run: "npm run norsub-emru:test"
+    
+      - name: 🛠️ Build
+        run: "npm run norsub-emru:build"
 
   publish:
     name: 🚀 Publish
