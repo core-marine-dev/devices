@@ -1,3 +1,4 @@
+import { wnTowToGpsTimestamp } from 'gpstime'
 import {
   BODY_INDEX,
   CRC_INDEX,
@@ -9,15 +10,14 @@ import {
   LENGTH_INDEX,
   LENGTH_LENGTH,
   MINIMAL_FRAME_LENGTH,
-  SYNC_FLAG_BUFFER, TIME_LENGTH, TOW_INDEX, TOW_LENGTH, TWO_BYTES_MAX, WNC_INDEX, WNC_LENGTH
+  SYNC_FLAG_BUFFER, TIME_LENGTH, TOW_INDEX, TOW_LENGTH, TWO_BYTES_MAX, WNC_INDEX, WNC_LENGTH,
+  SBF_PARSING_STATUS
 } from './constants'
-import type { Firmware, SBFBodyData, SBFBodyDataParser, SBFHeader, SBFID, SBFParser, SBFResponse, SBFTime } from './types'
-import { SBFParsingStatus } from './types'
-import { computedCRC } from './utils'
 import { getFirmareParser, getFirmwares, isAvailableFirmware, throwFirmwareError } from './firmware'
-import { wnTowToGpsTimestamp } from 'gpstime'
+import type { Firmware, SBFBodyData, SBFBodyDataParser, SBFHeader, SBFID, SBFResponse, SBFTime, SeptentrioParser, SBFParsingStatus } from './types'
+import { computedCRC } from './utils'
 
-export class Parser implements SBFParser {
+export class Parser implements SeptentrioParser {
   // Internal Buffer
   protected _buffer: Buffer = Buffer.from([])
   get bufferLength (): typeof this._buffer.byteLength { return this._buffer.byteLength }
@@ -25,7 +25,8 @@ export class Parser implements SBFParser {
   protected _bufferLimit: number = TWO_BYTES_MAX
   get bufferLimit (): typeof this._bufferLimit { return this._bufferLimit }
   set bufferLimit (limit: number) {
-    if (typeof limit !== 'number') throw new Error('limit has to be a number')
+    if (isNaN(limit)) throw new Error('limit has to be a number')
+    if (!Number.isInteger(limit)) throw new Error('limit has to be a number')
     if (limit < 0) throw new Error('limit has to be a positive integer')
     if (limit < 1) throw new Error('limit has to be a positive integer greater than zero')
     this._bufferLimit = Math.trunc(limit)
@@ -73,16 +74,16 @@ export class Parser implements SBFParser {
     // Add data
     this._buffer = (this._memory) ? Buffer.concat([this._buffer, data]) : data
     // Parse data
-    this.parseData()
+    this._parseData()
   }
 
-  getFrames (): SBFResponse[] {
+  parseData (): SBFResponse[] {
     const frames = structuredClone(this._frames)
     this._frames = []
     return frames
   }
 
-  protected parseData (): void {
+  protected _parseData (): void {
     const frames = [] as SBFResponse[]
     let pivot = 0
     // Get last Index
@@ -105,13 +106,13 @@ export class Parser implements SBFParser {
       // Get frame
       const { status, frame: sbfFrame } = this.getSBFFrame(buffer)
       // Correct frame
-      if (status === SBFParsingStatus.OK) {
+      if (status === SBF_PARSING_STATUS.OK) {
         frames.push(sbfFrame)
         pivot = index + sbfFrame.buffer.length
         continue
       }
       // Incomplete frame and last incomplete frame
-      if (status === SBFParsingStatus.MISSING_BYTES && index === lastIndex) {
+      if (status === SBF_PARSING_STATUS.MISSING_BYTES && index === lastIndex) {
         this._buffer = this._buffer.subarray(lastIndex)
         break
       }
@@ -125,7 +126,7 @@ export class Parser implements SBFParser {
   }
 
   protected getSBFFrame (buffer: Buffer): { status: SBFParsingStatus, frame: SBFResponse } {
-    let status: SBFParsingStatus = SBFParsingStatus.OK
+    let status: SBFParsingStatus = SBF_PARSING_STATUS.OK
     // @ts-expect-error will be completed in the next lines
     const sbfFrame: SBFResponse = {}
     // HEADER
@@ -136,12 +137,12 @@ export class Parser implements SBFParser {
     const frameLength = header.length
     if (buffer.length < frameLength) {
       console.debug('getSBFFrame: SBF Frame is incomplete')
-      status = SBFParsingStatus.MISSING_BYTES
+      status = SBF_PARSING_STATUS.MISSING_BYTES
       return { status, frame: sbfFrame }
     }
     if ((frameLength % 4) !== 0) {
       console.debug('getSBFFrame: SBF Frame length is wrong')
-      status = SBFParsingStatus.ERROR_LENGTH
+      status = SBF_PARSING_STATUS.ERROR_LENGTH
       return { status, frame: sbfFrame }
     }
     const bodyLength = frameLength - (HEADER_LENGTH + TIME_LENGTH)
@@ -151,7 +152,7 @@ export class Parser implements SBFParser {
     const crc = this.getCalculatecCRC(frameBuffer, bodyLength)
     if (crc !== header.crc) {
       console.debug(`getSBFFrame: Invalid CRC - should be ${header.crc} -> get it ${crc}`)
-      status = SBFParsingStatus.ERROR_CRC
+      status = SBF_PARSING_STATUS.ERROR_CRC
       return { status, frame: sbfFrame }
     }
     // TIME
