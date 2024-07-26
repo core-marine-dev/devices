@@ -59,12 +59,13 @@ const PADDING_INDEX = SYNC_LEVEL_INDEX + SYNC_LEVEL_LENGTH
 const DO_NOT_USE = -128
 const getTimeData = (data: number): number | null => (data !== DO_NOT_USE) ? data : null
 
-export const enum Synchronization {
-  FULL = 'FULL',
-  NOT_FULL = 'NOT_FULL',
-  NONE = 'NONE',
-  UNKNOWN = 'UNKNOWN'
+export const SYNCHRONIZATION = {
+  FULL: 'FULL',
+  NOT_FULL: 'NOT_FULL',
+  NONE: 'NONE',
+  UNKNOWN: 'UNKNOWN'
 }
+export type Synchronization = typeof SYNCHRONIZATION[keyof typeof SYNCHRONIZATION]
 
 export interface SyncLevel {
   synchronization: Synchronization
@@ -78,7 +79,7 @@ export interface SyncLevel {
 
 const getSyncLevel = (syncLevel: number): SyncLevel => {
   const response: SyncLevel = {
-    synchronization: Synchronization.UNKNOWN,
+    synchronization: SYNCHRONIZATION.UNKNOWN,
     wnSet: bitState(syncLevel, 0),
     towSet: bitState(syncLevel, 1),
     finetime: bitState(syncLevel, 2),
@@ -88,9 +89,9 @@ const getSyncLevel = (syncLevel: number): SyncLevel => {
   }
   const sync = [response.wnSet, response.towSet, response.finetime]
   if (sync.every(e => e)) {
-    response.synchronization = Synchronization.FULL
+    response.synchronization = SYNCHRONIZATION.FULL
   } else {
-    response.synchronization = (sync.every(e => !e)) ? Synchronization.NONE : Synchronization.NOT_FULL
+    response.synchronization = (sync.every(e => !e)) ? SYNCHRONIZATION.NONE : SYNCHRONIZATION.NOT_FULL
   }
   return response
 }

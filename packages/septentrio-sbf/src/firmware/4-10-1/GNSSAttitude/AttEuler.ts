@@ -68,21 +68,22 @@ const ROLL_DOT_LENGTH = BYTES_LENGTH.FLOAT
 
 const PADDING_INDEX = ROLL_DOT_INDEX + ROLL_DOT_LENGTH
 
-export const enum ErrorCode {
-  NO = 'NO_ERROR',
-  MEASUREMENTS = 'NOT_ENOUGH_MEASUREMENTS',
-  RESERVED = 'RESERVED',
-  UNKNOWN = 'UNKNOWN'
-}
+export const ERROR_CODE = {
+  NO: 'NO_ERROR',
+  MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
+  RESERVED: 'RESERVED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+export type ErrorCode = typeof ERROR_CODE[keyof typeof ERROR_CODE]
 
 const getErrorCode = (error: number): ErrorCode => {
   switch (error) {
-    case 0: return ErrorCode.NO
-    case 1: return ErrorCode.MEASUREMENTS
+    case 0: return ERROR_CODE.NO
+    case 1: return ERROR_CODE.MEASUREMENTS
     case 2:
-    case 3: return ErrorCode.RESERVED
+    case 3: return ERROR_CODE.RESERVED
   }
-  return ErrorCode.UNKNOWN
+  return ERROR_CODE.UNKNOWN
 }
 
 export interface Error {
@@ -105,24 +106,25 @@ const getError = (error: number): Error => {
   }
 }
 
-export const enum Mode {
-  NO = 'NO_ATTITUDE',
-  HEADING_PICH_FLOAT = 'HEADING_PICH_FLOAT',
-  HEADING_PICH_FIXED = 'HEADING_PICH_FIXED',
-  HEADING_PICH_ROLL_FLOAT = 'HEADING_PICH_ROLL_FLOAT',
-  HEADING_PICH_ROLL_FIXED = 'HEADING_PICH_ROLL_FIXED',
-  UNKNOWN = 'UNKNOWN'
-}
+export const MODE = {
+  NO: 'NO_ATTITUDE',
+  HEADING_PICH_FLOAT: 'HEADING_PICH_FLOAT',
+  HEADING_PICH_FIXED: 'HEADING_PICH_FIXED',
+  HEADING_PICH_ROLL_FLOAT: 'HEADING_PICH_ROLL_FLOAT',
+  HEADING_PICH_ROLL_FIXED: 'HEADING_PICH_ROLL_FIXED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+export type Mode = typeof MODE[keyof typeof MODE]
 
 const getMode = (mode: number): Mode => {
   switch (mode) {
-    case 0: return Mode.NO
-    case 1: return Mode.HEADING_PICH_FLOAT
-    case 2: return Mode.HEADING_PICH_FIXED
-    case 3: return Mode.HEADING_PICH_ROLL_FLOAT
-    case 4: return Mode.HEADING_PICH_ROLL_FIXED
+    case 0: return MODE.NO
+    case 1: return MODE.HEADING_PICH_FLOAT
+    case 2: return MODE.HEADING_PICH_FIXED
+    case 3: return MODE.HEADING_PICH_ROLL_FLOAT
+    case 4: return MODE.HEADING_PICH_ROLL_FIXED
   }
-  return Mode.UNKNOWN
+  return MODE.UNKNOWN
 }
 
 const DO_NOT_USE_SATELLITES = 255
