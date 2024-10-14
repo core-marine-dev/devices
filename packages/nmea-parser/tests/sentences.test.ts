@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { DELIMITER, END_FLAG, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from '../src/constants'
 import { Float32Schema, Float64Schema, Int16Schema, Int32Schema, Int64Schema, Int8Schema, NMEALikeSchema, StoredSentenceSchema, StringSchema, Uint16Schema, Uint32Schema, Uint64Schema, Uint8Schema } from '../src/schemas'
 import { createFakeSentence, createPayload, createValue, getIdPayloadAndChecksum, getKnownNMEASentence, getTalker, getUnknowNMEASentence, getUnparsedNMEAFrames, hasSameNumberOfFields, parseValue } from '../src/sentences'
-import { Checksum, NMEASentence, ProtocolField, StoredSentence, Talker } from '../src/types'
+import { Checksum, NMEASentence, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from '../src/types'
 import { stringChecksumToNumber } from '../src/checksum'
 
 const TEST_STORED_SENTENCE: StoredSentence = {
@@ -122,12 +122,14 @@ test('hasSameFields', () => {
 
 describe('parseValue', () => {
   test('string', () => {
+    expect(parseValue('', 'string')).toBeNull()
     expect(parseValue('8', 'string')).toBe('8')
   })
 
   test('boolean', () => {
     // Boolean
     [
+      ['', null],
       ['false', false],
       ['0', false],
       ['True', true],
@@ -146,6 +148,7 @@ describe('parseValue', () => {
     // Bad
     ['-1', '1.2', '1a', Math.pow(2, 8).toString()].forEach(num => expect(parseValue(num, 'uint8')).toBeNull());
     // Good
+    expect(parseValue('', 'uint8')).toBeNull();
     ['1', '-0', (Math.pow(2, 8) - 1).toString()].forEach(num => expect(parseValue(num, 'uint8')).toBe(Number(num)))
   })
 
@@ -153,6 +156,7 @@ describe('parseValue', () => {
     // Bad
     ['-1', '1.2', '1a', Math.pow(2, 16).toString()].forEach(num => expect(parseValue(num, 'uint16')).toBeNull());
     // Good
+    expect(parseValue('', 'uint16')).toBeNull();
     ['1', '-0', (Math.pow(2, 16) - 1).toString()].forEach(num => expect(parseValue(num, 'uint16')).toBe(Number(num)))
   })
 
@@ -160,6 +164,7 @@ describe('parseValue', () => {
     // Bad
     ['-1', '1.2', '1a', Math.pow(2, 32).toString()].forEach(num => expect(parseValue(num, 'uint32')).toBeNull());
     // Good
+    expect(parseValue('', 'uint32')).toBeNull();
     ['1', '-0', (Math.pow(2, 32) - 1).toString()].forEach(num => expect(parseValue(num, 'uint32')).toBe(Number(num)))
   })
 
@@ -167,6 +172,7 @@ describe('parseValue', () => {
     // Bad
     ['-1', '1.2', '1a'].forEach(num => expect(parseValue(num, 'uint64')).toBeNull());
     // Good
+    expect(parseValue('', 'uint64')).toBeNull();
     [(Math.pow(2, 32)).toString()].forEach(num => expect(parseValue(num, 'uint64')).toBe(BigInt(num)))
   })
 
@@ -174,6 +180,7 @@ describe('parseValue', () => {
     // Bad
     ['1.2', '1a', Math.pow(2, 8).toString()].forEach(num => expect(parseValue(num, 'int8')).toBeNull());
     // Good
+    expect(parseValue('', 'int8')).toBeNull();
     ['1', '-0', (Math.pow(2, 7) - 1).toString()].forEach(num => expect(parseValue(num, 'int8')).toBe(Number(num)))
   })
 
@@ -181,6 +188,7 @@ describe('parseValue', () => {
     // Bad
     ['1.2', '1a', Math.pow(2, 16).toString()].forEach(num => expect(parseValue(num, 'int16')).toBeNull());
     // Good
+    expect(parseValue('', 'int16')).toBeNull();
     ['1', '-0', (Math.pow(2, 16) - 1).toString()].forEach(num => expect(parseValue(num, 'int16')).toBe(Number(num)))
   })
 
@@ -188,6 +196,7 @@ describe('parseValue', () => {
     // Bad
     ['1.2', '1a', Math.pow(2, 32).toString()].forEach(num => expect(parseValue(num, 'int32')).toBeNull());
     // Good
+    expect(parseValue('', 'int32')).toBeNull();
     ['1', '-0', (Math.pow(2, 32) - 1).toString()].forEach(num => expect(parseValue(num, 'int32')).toBe(Number(num)))
   })
 
@@ -195,6 +204,7 @@ describe('parseValue', () => {
     // Bad
     ['1.2', '1a'].forEach(num => expect(parseValue(num, 'int64')).toBeNull());
     // Good
+    expect(parseValue('', 'int64')).toBeNull();
     [(Math.pow(2, 32)).toString()].forEach(num => expect(parseValue(num, 'int64')).toBe(BigInt(num)))
   })
 
@@ -202,6 +212,7 @@ describe('parseValue', () => {
     // Bad
     ['1a'].forEach(num => expect(parseValue(num, 'float32')).toBeNull());
     // Good
+    expect(parseValue('', 'float32')).toBeNull();
     ['1.2'].forEach(num => expect(parseValue(num, 'float32')).toBe(Number(num)))
   })
 
@@ -209,11 +220,12 @@ describe('parseValue', () => {
     // Bad
     ['1a'].forEach(num => expect(parseValue(num, 'float64')).toBeNull());
     // Good
+    expect(parseValue('', 'float64')).toBeNull();
     ['1.2'].forEach(num => expect(parseValue(num, 'float64')).toBe(Number(num)))
   })
 
   test('unknown', () => {
-    ['integer', 'float', 'char', 'bool', 'double'].forEach(type => expect(parseValue('a', type)).toBeNull())
+    ['integer', 'float', 'char', 'bool', 'double'].forEach(type => expect(parseValue('a', type as ProtocolFieldType)).toBeNull())
   })
 })
 
@@ -281,7 +293,7 @@ test('getUnknownSentence', () => {
     received, sample, id: sentenceID, checksum,
     payload: [
       { name: 'unknown', sample: '1', value: '1', type: 'string', units: 'unknown' },
-      { name: 'unknown', sample: '', value: '', type: 'string', units: 'unknown' },
+      { name: 'unknown', sample: '', value: null, type: 'string', units: 'unknown' },
       { name: 'unknown', sample: '2', value: '2', type: 'string', units: 'unknown' },
       { name: 'unknown', sample: 'T', value: 'T', type: 'string', units: 'unknown' },
     ],
