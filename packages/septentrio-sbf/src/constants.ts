@@ -53,3 +53,10 @@ export const BYTES_LENGTH = {
   FLOAT: 4,
   DOUBLE: 8
 }
+
+export const SBF_PARSING_STATUS = {
+  OK: 'OK',
+  MISSING_BYTES: 'MISSING_BYTES',
+  ERROR_LENGTH: 'ERROR_LENGTH',
+  ERROR_CRC: 'ERROR_CRC'
+} as const

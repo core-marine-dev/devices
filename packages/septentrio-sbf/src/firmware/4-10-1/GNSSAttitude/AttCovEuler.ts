@@ -65,21 +65,22 @@ const COV_PITCH_ROLL_LENGTH = BYTES_LENGTH.FLOAT
 
 const PADDING_INDEX = COV_PITCH_ROLL_INDEX + COV_PITCH_ROLL_LENGTH
 
-export const enum ErrorCode {
-  NO = 'NO_ERROR',
-  MEASUREMENTS = 'NOT_ENOUGH_MEASUREMENTS',
-  RESERVED = 'RESERVED',
-  UNKNOWN = 'UNKNOWN'
-}
+export const ERROR_CODE = {
+  NO: 'NO_ERROR',
+  MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
+  RESERVED: 'RESERVED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+export type ErrorCode = typeof ERROR_CODE[keyof typeof ERROR_CODE]
 
 const getErrorCode = (error: number): ErrorCode => {
   switch (error) {
-    case 0: return ErrorCode.NO
-    case 1: return ErrorCode.MEASUREMENTS
+    case 0: return ERROR_CODE.NO
+    case 1: return ERROR_CODE.MEASUREMENTS
     case 2:
-    case 3: return ErrorCode.RESERVED
+    case 3: return ERROR_CODE.RESERVED
   }
-  return ErrorCode.UNKNOWN
+  return ERROR_CODE.UNKNOWN
 }
 
 export interface Error {

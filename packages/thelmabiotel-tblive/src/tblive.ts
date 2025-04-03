@@ -3,6 +3,8 @@ import { FirmwareSchema, FrequencySchema, ReceiverSchema, StringSchema } from '.
 import type { Parser, Firmware, Receiver, FirmwareFrame, OutputFrame, SerialNumber, Frequency, Emitter, ListeningEmitterFrame } from './types'
 import { firmwareParser } from './firmware'
 
+export const tbliveFirmwares = (): typeof FIRMWARES_AVAILABLE => FIRMWARES_AVAILABLE
+
 export class TBLive {
   protected _parser: Parser
   protected _buffer: string = ''
@@ -20,7 +22,7 @@ export class TBLive {
     }
   }
 
-  get firmwares (): typeof FIRMWARES_AVAILABLE { return FIRMWARES_AVAILABLE }
+  get firmwares (): typeof FIRMWARES_AVAILABLE { return tbliveFirmwares() }
 
   protected _receiver: Receiver | null = null
   get receiver (): Receiver | null { return (this._receiver !== null) ? { ...this._receiver } : null }
@@ -71,8 +73,8 @@ export class TBLive {
     // Listening Emitter Frame
     const { frequency: sampleFrequency, emitter: sampleEmitter } = metadata.sample as ListeningEmitterFrame['metadata']['sample']
     const parsedFrequency = FrequencySchema.safeParse(sampleFrequency)
-    if (!parsedFrequency.success) { return (parsedFrequency.errors as string[])[0] }
-    const frameFrequency = parsedFrequency.data as Frequency
+    if (!parsedFrequency.success) { return parsedFrequency.errors[0] }
+    const frameFrequency = parsedFrequency.value
     if (frameFrequency !== receiverFrequency) return `Invalid receiver frequency -> received ${frameFrequency.toString()} - expected ${receiverFrequency}`
     // Check Emitters
     const emitters: Emitter[] | undefined = this._receiver.emitters

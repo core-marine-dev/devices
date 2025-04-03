@@ -319,7 +319,7 @@ describe('Firmware 1.0.1 - parse data', () => {
     })
   })
 
-  test.todo('Command mode - with receiver - happy path', () => {
+  test('Command mode - with receiver - happy path', () => {
 
   })
 })

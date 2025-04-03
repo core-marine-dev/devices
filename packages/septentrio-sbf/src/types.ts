@@ -1,3 +1,5 @@
+import { SBF_PARSING_STATUS } from './constants'
+
 export interface SBFFrame {
   header: SBFHeader
   time: SBFTime
@@ -40,12 +42,7 @@ export interface SBFBodyData {
   body: SBFBody
 }
 
-export const enum SBFParsingStatus {
-  OK,
-  MISSING_BYTES,
-  ERROR_LENGTH,
-  ERROR_CRC,
-}
+export type SBFParsingStatus = typeof SBF_PARSING_STATUS[keyof typeof SBF_PARSING_STATUS]
 
 export type SBFBodyDataParser = (blockNumber: number, blockRevision: number, data: Buffer) => SBFBodyData
 export type SBFBodyDataBlockParser = (blockRevision: number, data: Buffer) => SBFBodyData
@@ -53,8 +50,8 @@ export type SBFBodyDataMap = Map<number, SBFBodyDataBlockParser>
 
 export type Firmware = `${number}.${number}.${number}` | `${number}.${number}` | `${number}`
 
-export interface SBFParser {
+export interface SeptentrioParser {
   getAvailableFirmwares: () => Firmware[]
   addData: (data: Buffer) => void
-  getFrames: () => SBFResponse[]
+  parseData: () => SBFResponse[]
 }

@@ -107,6 +107,7 @@ const parseBoolean = (value: string): Value | undefined => {
   if (value.toLowerCase() === 'true' || value === '1') return true
 }
 export const parseValue = (value: string, type: ProtocolFieldType): Value => {
+  if (value === '') { return null }
   try {
     // String
     if (type === 'string') { return value }
@@ -176,7 +177,7 @@ export const getUnknowNMEASentence = (
 ): NMEASentence => {
   const fields = sentencePayload.split(SEPARATOR)
   const response: Payload = fields.map(field => ({
-    name: 'unknown', sample: field, value: field, type: 'string', units: 'unknown'
+    name: 'unknown', sample: field, value: (field.length > 0) ? field : null, type: 'string', units: 'unknown'
   }))
   const sent = NMEASentenceSchema.parse({
     received,

@@ -38,29 +38,30 @@ const OFFSET_LENGTH = BYTES_LENGTH.FLOAT
 
 const PADDING_INDEX = OFFSET_INDEX + OFFSET_LENGTH
 
-export const enum TimeScale {
-  GPS = 'GPS',
-  UTC = 'UTC',
-  RECEIVER = 'Receiver',
-  GLONASS = 'GLONASS',
-  GALILEO = 'Galileo',
-  BEIDOU = 'BEIDOU',
-  UNKNOWN = 'UNKNOWN'
-}
+export const TIME_SCALE = {
+  GPS: 'GPS',
+  UTC: 'UTC',
+  RECEIVER: 'Receiver',
+  GLONASS: 'GLONASS',
+  GALILEO: 'Galileo',
+  BEIDOU: 'BEIDOU',
+  UNKNOWN: 'UNKNOWN'
+} as const
+export type TimeScale = typeof TIME_SCALE[keyof typeof TIME_SCALE]
 
 const getTimeScale = (timeScale: number): TimeScale => {
   switch (timeScale) {
-    case 1: return TimeScale.GPS
-    case 2: return TimeScale.UTC
-    case 3: return TimeScale.RECEIVER
-    case 4: return TimeScale.GLONASS
-    case 5: return TimeScale.GALILEO
-    case 6: return TimeScale.BEIDOU
+    case 1: return TIME_SCALE.GPS
+    case 2: return TIME_SCALE.UTC
+    case 3: return TIME_SCALE.RECEIVER
+    case 4: return TIME_SCALE.GLONASS
+    case 5: return TIME_SCALE.GALILEO
+    case 6: return TIME_SCALE.BEIDOU
   }
-  return TimeScale.UNKNOWN
+  return TIME_SCALE.UNKNOWN
 }
 
-export interface xPPSOffset {
+export interface XPPSOffset {
   syncAge: number
   timeScale: number
   offset: number
@@ -71,14 +72,14 @@ export interface xPPSOffset {
 }
 
 interface Response extends SBFBodyData {
-  body: xPPSOffset
+  body: XPPSOffset
 }
 
 export const xppsOffset = (blockRevision: number, data: Buffer): Response => {
   const name = 'xPPSOffset'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
   const timeScale = data.readUIntLE(TIME_SCALE_INDEX, TIME_SCALE_LENGTH)
-  const body: xPPSOffset = {
+  const body: XPPSOffset = {
     syncAge: data.readUIntLE(SYNC_AGE_INDEX, SYNC_AGE_LENGTH),
     timeScale,
     offset: data.readFloatLE(OFFSET_INDEX),
@@ -88,7 +89,7 @@ export const xppsOffset = (blockRevision: number, data: Buffer): Response => {
     }
   }
   body.metadata.timeScale = getTimeScale(body.timeScale)
-  if (body.metadata.timeScale === TimeScale.RECEIVER) {
+  if (body.metadata.timeScale === TIME_SCALE.RECEIVER) {
     body.syncAge = 0
   }
   return { name, body }
