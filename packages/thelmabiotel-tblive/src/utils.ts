@@ -35,6 +35,6 @@ export const getLinesTemperature = (temperature: number): LineTemperature => ({ 
 
 export const getParsedSchema = (schema: ReturnType<typeof ValibotValidator>, data: any): { data?: any, error?: string } => {
   const parse = schema.safeParse(data)
-  if (!parse.success) return { error: (parse.errors as string[])[0] }
-  return { data: parse.data }
+  if (!parse.success) return { error: parse.errors[0] }
+  return { data: parse.value }
 }
