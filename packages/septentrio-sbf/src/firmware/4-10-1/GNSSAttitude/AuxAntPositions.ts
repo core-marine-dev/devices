@@ -72,19 +72,20 @@ const UP_VEL_LENGTH = BYTES_LENGTH.DOUBLE
 
 const PADDING_SUB_INDEX = UP_VEL_INDEX + UP_VEL_LENGTH
 
-export const enum Error {
-  NO = 'NO_ERROR',
-  MEASUREMENTS = 'NOT_ENOUGH_MEASUREMENTS',
-  RESERVED = 'RESERVED',
-  UNKNOWN = 'UNKNOWN',
+export const ERROR = {
+  NO: 'NO_ERROR',
+  MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
+  RESERVED: 'RESERVED',
+  UNKNOWN: 'UNKNOWN'
+} as const
+export type Error = typeof ERROR[keyof typeof ERROR]
 
-}
-
-export const enum Ambiguity {
-  FIXED = 'FIXED',
-  FLOAT = 'FLOAT',
-  UNKNOWN = 'UNKNOWN'
-}
+export const AMBIGUITY = {
+  FIXED: 'FIXED',
+  FLOAT: 'FLOAT',
+  UNKNOWN: 'UNKNOWN'
+} as const
+export type Ambiguity = typeof AMBIGUITY[keyof typeof AMBIGUITY]
 
 export interface AuxAntPositionSub {
   nrSV: number | null
@@ -120,24 +121,24 @@ const getDouble = (double: number): number | null => (double !== DO_NOT_USE_DOUB
 const getError = (error: number): Error => {
   switch (error) {
     case 0:
-      return Error.NO
+      return ERROR.NO
     case 1:
-      return Error.MEASUREMENTS
+      return ERROR.MEASUREMENTS
     case 2:
     case 3:
-      return Error.RESERVED
+      return ERROR.RESERVED
   }
-  return Error.UNKNOWN
+  return ERROR.UNKNOWN
 }
 
 const getAmbiguityType = (ambiguity: number | null): Ambiguity => {
   switch (ambiguity) {
     case 0:
-      return Ambiguity.FIXED
+      return AMBIGUITY.FIXED
     case 1:
-      return Ambiguity.FLOAT
+      return AMBIGUITY.FLOAT
   }
-  return Ambiguity.UNKNOWN
+  return AMBIGUITY.UNKNOWN
 }
 
 const getAuxAntPositionSub = (data: Buffer): AuxAntPositionSub => {

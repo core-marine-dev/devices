@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/thelmabiotel-tblive",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Library to work with Thlema Biotel TB-Lives hydrophones",
   "author": "CoreMarine",
   "license": "MIT",
@@ -49,11 +49,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@schemasjs/valibot-numbers": "^1.0.12",
-    "@schemasjs/validator": "^1.0.0"
+    "@schemasjs/valibot-numbers": "^1.0.17",
+    "@schemasjs/validator": "^2.0.1"
   },
   "peerDependencies": {
-    "valibot": ">=0.33.3"
+    "valibot": ">=1.0.0"
   },
   "ts-standard": {
     "ignore": [
