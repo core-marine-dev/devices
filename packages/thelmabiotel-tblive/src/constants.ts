@@ -87,7 +87,7 @@ export const TIMESTAMP_FRAME_LENGTH = TIMESTAMP_START.length + TIMESTAMP_LENGTH
 
 export const API_START = 'In Command Mode'
 export const API_END = 'L is Luhn\'s verification number.'
-export const API_TYPICAL_CONTENT = `In Command Mode
+export const API_TYPICAL_CONTENT_101 = `In Command Mode
 Read values
   SN? ---> TBR serial number
   FV? ---> Firmware version
@@ -107,8 +107,31 @@ Actions
   UF! ---> Warning: Puts TBR in bootloader mode. Firmware must be written after activating this action
 
 In Listening mode
-Note: Minimum 1 ms betwee
-n input characters
+Note: Minimum 1 ms between input characters
+  LIVECM --> Enter Command Mode
+  (+)  --> Sync Time
+  (+)XXXXXXXXXL -> Sync and set new time (UTC) with the least significant digit being 10 seconds. L is Luhn's verification number.`
+export const API_TYPICAL_CONTENT_102 = `In Command Mode
+Read values
+  SN? ---> TBR serial number
+  FV? ---> Firmware version
+  FC? ---> Listening freq. in kHz
+  LM? ---> Listening Mode. Determines active protocols
+  LI? ---> TBR sensor log interval (00=never,01=once every 5 min,02=10 min,03=30 min, 04=1 hour, 05=2 hours, 06=12 hours, 07=24 hours)
+  UT? ---> Current UNIX timestamp (UTC)
+Set values
+  FC=69 --> Set freq. channel (base frequency)
+  LM=01 --> Listening Mode. Sets active protocols.
+  LI=00 --> Set TBR sensor log interval (00=never,01=once every 5 min,02=10 min,03=30 min, 04=1 hour, 05=2 hours, 06=12 hours, 07=24 hours)
+  UT=1234567890 -> Set UNIX timestamp (UTC)
+Actions
+  EX! ---> Exit command mode and resume listening for signals
+  RR! ---> Restart TBR
+  FS! ---> Warning: Restores factory settings and deletes all tag detections and TBR sensor logs from flash memory
+  UF! ---> Warning: Puts TBR in bootloader mode. Firmware must be written after activating this action
+
+In Listening mode
+Note: Minimum 1 ms between input characters
   TBRC --> Enter Command Mode
   (+)  --> Sync Time
   (+)XXXXXXXXXL -> Sync and set new time (UTC) with the least significant digit being 10 seconds. L is Luhn's verification number.`
@@ -143,4 +166,22 @@ export const EMITTER_ANGLE_FACTOR = 10
 export const EMITTER_DEVIATION_BIT_LENGTH = 6
 export const EMITTER_DEVIATION_FACTOR = 4
 // TB LIVE
-export const MAX_BUFFER_LENGTH = API_TYPICAL_CONTENT.length + 100
+export const MAX_BUFFER_LENGTH = API_TYPICAL_CONTENT_101.length + 100
+
+export const SENTENCES_START = [
+  '$',
+  'SN=',
+  'ack01\r',
+  'ack02\r',
+  'LIVECM',
+  'EX!',
+  'In Command Mode',
+  'FV=',
+  'UT=',
+  'FC=',
+  'LM=',
+  'LI=',
+  'RR!',
+  'FS!',
+  'UF!'
+]
