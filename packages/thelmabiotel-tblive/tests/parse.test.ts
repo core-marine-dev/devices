@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
-import { API_TYPICAL_CONTENT_101, API_TYPICAL_CONTENT_102, COMMAND_MODE, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_START, PROTOCOLS_START, TIMESTAMP_START, UPDATE_MODE } from '../src/constants'
-import { getBoundariesAPI, getBoundariesClockRound, getBoundariesClockSet, getBoundariesCommand, getBoundariesFirmware, getBoundariesFrequency, getBoundariesIntervals, getBoundariesListening, getBoundariesProtocols, getBoundariesSample, getBoundariesSerialNumber, getBoundariesTime, getBoundariesUpdate } from '../src/parse'
+import { API_TYPICAL_CONTENT_101, API_TYPICAL_CONTENT_102, COMMAND_MODE, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_START, PING_END, PING_START, PROTOCOLS_START, SAMPLE_END, SAMPLE_START, TIMESTAMP_START, UPDATE_MODE } from '../src/constants'
+import { getBoundariesAPI, getBoundariesClockRound, getBoundariesClockSet, getBoundariesCommand, getBoundariesFirmware, getBoundariesFrequency, getBoundariesIntervals, getBoundariesListening, getBoundariesProtocols, getBoundariesSample, getBoundariesSerialNumber, getBoundariesTime, getBoundariesUpdate, getRawSentence } from '../src/parse'
 
 describe('getBoundariesSample', () => {
   const startFlag = '$'
@@ -228,7 +228,8 @@ describe("getBoundariesFirmware", () => {
   test("end set", () => {
     const sample = `2024-07-05T07:26:49.713Z - ${sentence}`
     const boundaries = getBoundariesFirmware(sample)
-    expect(boundaries).toEqual({ start: sample.indexOf(sentence), end: -1
+    expect(boundaries).toEqual({
+      start: sample.indexOf(sentence), end: -1
     })
   })
 })
@@ -273,7 +274,8 @@ describe("getBoundariesTime", () => {
   test("end set", () => {
     const sample = `2024-07-05T07:26:49.713Z - ${sentence}`
     const boundaries = getBoundariesTime(sample)
-    expect(boundaries).toEqual({ start: sample.indexOf(sentence), end: -1
+    expect(boundaries).toEqual({
+      start: sample.indexOf(sentence), end: -1
     })
   })
 })
@@ -322,3 +324,23 @@ describe("getBoundariesIntervals", () => {
   })
 })
 
+describe('getRawSentence', () => {
+  const sample = `${SAMPLE_START}1000185,0000073905,745,S64K,30075,3,25,67,2757${SAMPLE_END}`
+  const ping = `${PING_START}000185 ${PING_END}`
+
+  test('happy path', () => {
+    const input = `${sample}${ping}`
+    const { sentence, interference } = getRawSentence(input)
+    expect(sentence.index).toEqual(0)
+    expect(sentence.id).toMatch(sample)
+    expect(interference).toBeUndefined()
+  })
+
+  test('interference', () => {
+    const input = `${sample.slice(0, sample.length - 5)}${ping}${sample.slice(sample.length - 5)}`
+    const { sentence, interference } = getRawSentence(input)
+    expect(interference).not.toBeUndefined()
+    expect(sentence.index).toEqual(0)
+    expect(sentence.id).toMatch('sample')
+  })
+})

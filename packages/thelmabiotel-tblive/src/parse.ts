@@ -2,8 +2,20 @@ import { API_END, API_START, CLOCK_ROUND, CLOCK_SET, COMMAND_MODE, FIRMWARE_STAR
 
 export const getBoundariesSample = (input: string): { start: number, end: number } => {
   const start = input.indexOf(SAMPLE_START)
-  const end = input.indexOf(SAMPLE_END, start) + SAMPLE_END.length
-  return { start, end }
+  // No Sample
+  if (start === -1) return { start: -1, end: -1 }
+  // const end = input.indexOf(SAMPLE_END, start + PING_LENGTH_MAX) + SAMPLE_END.length
+  const endSample = input.indexOf(SAMPLE_END, start)
+  if (endSample === -1) return { start, end: -1 }
+
+  const endPing = input.indexOf(PING_END, start)
+  const endClockRound = input.indexOf(CLOCK_ROUND, start)
+  const endClockSet = input.indexOf(CLOCK_SET, start)
+  const interferenceIndexes = [endPing, endClockRound, endClockSet].filter(value => value > -1)
+  // Sample with interferences is dicard
+  return (interferenceIndexes.some(value => value < endSample))
+    ? { start, end: -1 }
+    : { start, end: endSample + SAMPLE_END.length }
 }
 
 export const getBoundariesSerialNumber = (input: string): { start: number, end: number } => {
@@ -80,7 +92,7 @@ export const getBoundariesIntervals = (input: string): { start: number, end: num
   return { start, end }
 }
 
-export const getRawSentence = (input: string): { sentence: { index: number, value: string }, interference?: { index: number, value: string } } => {
+export const getRawSentence = (input: string): { sentence: { index: number, id: string }, interference?: { index: number, id: string } } => {
   const boundaries = {
     sample: getBoundariesSample(input),
     serialNumber: getBoundariesSerialNumber(input),
@@ -112,9 +124,9 @@ export const getRawSentence = (input: string): { sentence: { index: number, valu
       end.index = boundaryEnd
     }
   })
-  const output = { index: start.index, value: start.sentence }
-  if (start.sentence === end.sentence) { return { sentence: { index: start.index, value: input.slice(start.index, end.index + 1) } } }
-  const interference = { index: boundaries[end.sentence as keyof typeof boundaries].start, value: end.sentence }
+  const output = { index: start.index, id: start.sentence }
+  if (start.sentence === end.sentence) { return { sentence: { index: start.index, id: input.slice(start.index, end.index + 1) } } }
+  const interference = { index: boundaries[end.sentence as keyof typeof boundaries].start, id: end.sentence }
   return { sentence: output, interference }
 }
 
