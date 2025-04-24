@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 
-import { API_TYPICAL_CONTENT_101, API_TYPICAL_CONTENT_102, COMMAND_MODE, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_START, PING_END, PING_START, PROTOCOLS_START, SAMPLE_END, SAMPLE_START, TIMESTAMP_START, UPDATE_MODE } from '../src/constants'
-import { getBoundariesAPI, getBoundariesClockRound, getBoundariesClockSet, getBoundariesCommand, getBoundariesFirmware, getBoundariesFrequency, getBoundariesIntervals, getBoundariesListening, getBoundariesProtocols, getBoundariesSample, getBoundariesSerialNumber, getBoundariesTime, getBoundariesUpdate, getRawSentence } from '../src/parse'
+import { API_TYPICAL_CONTENT_101, API_TYPICAL_CONTENT_102, COMMAND_MODE, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_START, PING_END, PING_START, PROTOCOLS_START, SAMPLE_END, SAMPLE_START, SERIAL_NUMBER_START, TIMESTAMP_START, UPDATE_MODE } from '../src/constants'
+import { getBoundariesAPI, getBoundariesClockRound, getBoundariesClockSet, getBoundariesCommand, getBoundariesFirmware, getBoundariesFrequency, getBoundariesIntervals, getBoundariesListening, getBoundariesPing, getBoundariesProtocols, getBoundariesSample, getBoundariesSerialNumber, getBoundariesTime, getBoundariesUpdate, getRawSentence } from '../src/parse'
 
 describe('getBoundariesSample', () => {
   const startFlag = '$'
@@ -27,30 +27,33 @@ describe('getBoundariesSample', () => {
   })
 })
 
-describe('getBoundariesSerialNumber', () => {
-  const startFlag = 'SN='
-  const endPing = '><>\r'
+describe('getBoundariesPing', () => {
+  const startFlag = PING_START
+  const endPing = PING_END
   const ping = `${startFlag}000185 ${endPing}`
-  const serialnumber = `${startFlag}1000185`
-
 
   test('happy path ping', () => {
     const sample = ping
-    const boundaries = getBoundariesSerialNumber(sample)
+    const boundaries = getBoundariesPing(sample)
     expect(boundaries).toEqual({ start: 0, end: sample.length })
   })
 
   test('start sample ping', () => {
     const sample = `${ping} - 2024-07-05T07:26:49.713Z`
-    const boundaries = getBoundariesSerialNumber(sample)
+    const boundaries = getBoundariesPing(sample)
     expect(boundaries).toEqual({ start: 0, end: sample.indexOf(endPing) + endPing.length })
   })
 
   test('end sample ping', () => {
     const sample = `2024-07-05T07:26:49.713Z - ${ping}`
-    const boundaries = getBoundariesSerialNumber(sample)
+    const boundaries = getBoundariesPing(sample)
     expect(boundaries).toEqual({ start: sample.indexOf(startFlag), end: sample.length })
   })
+})
+
+describe('getBoundariesSerialNumber', () => {
+  const startFlag = SERIAL_NUMBER_START
+  const serialnumber = `${startFlag}1000185`
 
   test('happy path serialnumber', () => {
     const sample = serialnumber
@@ -337,10 +340,12 @@ describe('getRawSentence', () => {
   })
 
   test('interference', () => {
-    const input = `${sample.slice(0, sample.length - 5)}${ping}${sample.slice(sample.length - 5)}`
+    const pivot = 15
+    const end = sample.length - pivot
+    const input = `${sample.slice(0, end)}${ping}${sample.slice(end)}`
     const { sentence, interference } = getRawSentence(input)
     expect(interference).not.toBeUndefined()
-    expect(sentence.index).toEqual(0)
-    expect(sentence.id).toMatch('sample')
+    expect(sentence).toEqual({ id: 'sample', index: 0})
+    expect(interference).toEqual({ id: "ping", index: end })
   })
 })

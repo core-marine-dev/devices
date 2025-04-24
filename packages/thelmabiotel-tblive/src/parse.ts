@@ -1,4 +1,4 @@
-import { API_END, API_START, CLOCK_ROUND, CLOCK_SET, COMMAND_MODE, FIRMWARE_START, FREQUENCY_LENGTH, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_LENGTH, LOG_INTERVAL_START, PING_END, PING_LENGTH_MAX, PING_START, PROTOCOLS_LENGTH, PROTOCOLS_START, SAMPLE_END, SAMPLE_START, SERIAL_NUMBER_LENGTH_MAX, TIMESTAMP_START, UPDATE_MODE } from "./constants"
+import { API_END, API_START, CLOCK_ROUND, CLOCK_SET, COMMAND_MODE, FIRMWARE_START, FREQUENCY_LENGTH, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_LENGTH, LOG_INTERVAL_START, PING_END, PING_LENGTH_MAX, PING_START, PROTOCOLS_LENGTH, PROTOCOLS_START, SAMPLE_END, SAMPLE_START, SERIAL_NUMBER_LENGTH_MAX, SERIAL_NUMBER_START, TIMESTAMP_START, UPDATE_MODE } from "./constants"
 
 export const getBoundariesSample = (input: string): { start: number, end: number } => {
   const start = input.indexOf(SAMPLE_START)
@@ -18,11 +18,22 @@ export const getBoundariesSample = (input: string): { start: number, end: number
     : { start, end: endSample + SAMPLE_END.length }
 }
 
-export const getBoundariesSerialNumber = (input: string): { start: number, end: number } => {
+export const getBoundariesPing = (input: string): { start: number, end: number } => {
   const start = input.indexOf(PING_START)
+  // No Sample
+  if (start === -1) return { start: -1, end: -1 }
+  // Rest
   const tmp = input.indexOf(PING_END, start)
-  const aux = (tmp === -1) ? tmp : tmp + PING_END.length
-  const end = (aux === -1 || aux > (start + PING_LENGTH_MAX)) ? start + PING_START.length + SERIAL_NUMBER_LENGTH_MAX : aux
+  const end = (tmp === -1 || tmp > (start + PING_LENGTH_MAX)) ? -1 : tmp + PING_END.length
+  return { start, end }
+}
+
+export const getBoundariesSerialNumber = (input: string): { start: number, end: number } => {
+  const start = input.indexOf(SERIAL_NUMBER_START)
+  // No Sample
+  if (start === -1) return { start: -1, end: -1 }
+  // Rest
+  const end = (input.slice(start).length <= SERIAL_NUMBER_LENGTH_MAX) ? -1 : start + PING_START.length + SERIAL_NUMBER_LENGTH_MAX
   return { start, end }
 }
 
@@ -95,6 +106,7 @@ export const getBoundariesIntervals = (input: string): { start: number, end: num
 export const getRawSentence = (input: string): { sentence: { index: number, id: string }, interference?: { index: number, id: string } } => {
   const boundaries = {
     sample: getBoundariesSample(input),
+    ping: getBoundariesPing(input),
     serialNumber: getBoundariesSerialNumber(input),
     clokcRound: getBoundariesClockRound(input),
     clockSet: getBoundariesClockSet(input),
@@ -108,13 +120,30 @@ export const getRawSentence = (input: string): { sentence: { index: number, id: 
     protocols: getBoundariesProtocols(input),
     intervals: getBoundariesIntervals(input)
   }
-  const sentences = Object.keys(boundaries)
+  let sentences = Object.keys(boundaries)
     .filter((sentence) => boundaries[sentence as keyof typeof boundaries].start !== -1)
+
+  if (['ping', 'serialNumber'].every(sentence => sentences.includes(sentence))) {
+    const ping = boundaries.ping
+    const serialNumber = boundaries.serialNumber
+    if (ping.start === serialNumber.start && ping.end !== -1) {
+      sentences = sentences.filter((sentence) => sentence !== 'serialNumber')
+    }
+  }
 
   const start = { sentence: '', index: -1 }
   const end = { sentence: '', index: -1 }
   sentences.forEach((sentence) => {
     const { start: boundaryStart, end: boundaryEnd } = boundaries[sentence as keyof typeof boundaries]
+
+    if (
+      sentence === 'serialNumber' &&
+      start.sentence === 'ping' &&
+      boundaryStart === start.index &&
+      end.sentence === 'ping' &&
+      end.index !== -1
+    ) { return }
+
     if (start.index === -1 || boundaryStart < start.index) {
       start.sentence = sentence
       start.index = boundaryStart
@@ -130,7 +159,25 @@ export const getRawSentence = (input: string): { sentence: { index: number, id: 
   return { sentence: output, interference }
 }
 
-// export const parseSentence = (input: string): { parsed: object, incomplete: boolean } => {}
+// export const parseSentence = ({ id, input }: { id: string, input: string }): { parsed: object, incomplete: boolean, remainder: string } => {
+  // 01. Sample - Emitter
+  // 02. Sample - Receiver
+  // 03. Ping
+  // 04. Clock Round
+  // 05. Clock Set
+  // 06. Listening
+  // 07. Command
+  // 08. API
+  // 09. SerialNumber
+  // 10. Firmware
+  // 11. Frequency
+  // 12. Time
+  // 13. Protocols
+  // 14. Log Intervals
+  // 15. Reboot
+  // 16. Reset
+  // 17. Upgrade
+// }
 
 // export const parseSentences = (input: string): { sentences: object[], remainder: string } => {
 //   let sentences: object[] = []
