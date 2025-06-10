@@ -1,4 +1,3 @@
-import { ValibotValidator } from '@schemasjs/validator'
 import { EMITTER_ANGLE_AVERAGE_BIT_LENGTH, EMITTER_ANGLE_AVERAGE_FACTOR, EMITTER_ANGLE_DEVIATION_FACTOR } from './constants'
 
 export const getLineAngle = (data: number): { raw: number, average: { raw: number, degrees: number }, deviation: { raw: number, degrees: number } } => {
