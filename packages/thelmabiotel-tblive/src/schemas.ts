@@ -1,18 +1,19 @@
 import * as v from 'valibot'
 import { ValibotValidator } from '@schemasjs/validator'
-import { FIRMWARES_AVAILABLE, FREQUENCY_MAX, FREQUENCY_MIN, LOG_INTERVAL_MAX, LOG_INTERVAL_MIN, MODES, PING_END, PING_LENGTH_MAX, PING_LENGTH_MIN, PING_START, PROTOCOLS, TIMESTAMP_LENGTH } from './constants'
+import { FIRMWARES_AVAILABLE, FREQUENCY_MAX, FREQUENCY_MIN, LOG_INTERVAL_MAX, LOG_INTERVAL_MIN, MODES, PING_END, PING_LENGTH_MAX, PING_LENGTH_MIN, PING_START, PROTOCOLS } from './constants'
 // COMMONS
 const ValibotStringSchema = v.string()
 export const StringSchema = ValibotValidator<v.InferInput<typeof ValibotStringSchema>>(ValibotStringSchema)
 
-const ValibotStringArraySchema = v.array(ValibotStringSchema)
-export const StringArraySchema = ValibotValidator<v.InferInput<typeof ValibotStringArraySchema>>(ValibotStringArraySchema)
-
 const ValibotBooleanSchema = v.boolean()
 export const BooleanSchema = ValibotValidator<v.InferInput<typeof ValibotBooleanSchema>>(ValibotBooleanSchema)
 
-const ValibotNumberSchema = v.number()
-export const NumberSchema = ValibotValidator<v.InferInput<typeof ValibotNumberSchema>>(ValibotNumberSchema)
+const ValibotNaturalSchema = v.pipe(
+  v.number('It should be a number'),
+  v.integer('It should be an integer'),
+  v.minValue(0, 'It should be a positive integer number greater or equal to 0')
+)
+export const NaturalSchema = ValibotValidator<v.InferInput<typeof ValibotNaturalSchema>>(ValibotNaturalSchema)
 
 // HARDWARE
 const ValibotSerialNumberSchema = v.pipe(
@@ -137,11 +138,17 @@ const ValibotProtocolSchema = v.pipe(
 )
 export const ProtocolSchema = ValibotValidator<v.InferInput<typeof ValibotProtocolSchema>>(ValibotProtocolSchema)
 
+// const ValibotTimestampSchema = v.pipe(
+//   v.string(),
+//   v.length(TIMESTAMP_LENGTH, 'invalid length for timestamp'),
+//   v.check(input => !isNaN(Number(input)), 'it is not a string-number'),
+//   v.check(input => Number.isInteger(Number(input)), 'it is not a string-integer'),
+//   v.check(input => Number(input) >= 0, 'it is not a string-integer positive')
+// )
 const ValibotTimestampSchema = v.pipe(
-  v.string(),
-  v.length(TIMESTAMP_LENGTH, 'invalid length for timestamp'),
-  v.check(input => !isNaN(Number(input)), 'it is not a string-number'),
-  v.check(input => Number.isInteger(Number(input)), 'it is not a string-integer'),
-  v.check(input => Number(input) >= 0, 'it is not a string-integer positive')
+  v.number(),
+  v.integer('Timestamp: It should be an integer'),
+  v.minValue(0, 'Timestamp: It should be a positive integer'),
+  v.maxValue(Math.pow(2, 32), `Timestamp: It should be a positive integer less than ${Math.pow(2, 32) + 1}`)
 )
 export const TimestampSchema = ValibotValidator<v.InferInput<typeof ValibotTimestampSchema>>(ValibotTimestampSchema)
