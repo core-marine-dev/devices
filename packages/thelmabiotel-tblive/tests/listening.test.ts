@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { PING_END, PING_START } from '../src/constants'
 import { parseClockRound, parseClockSet, parseListening, parsePing } from '../src/listening'
-import type { Timestamp, RParsedSentence } from '../src/types'
+import type { Timestamp, ParsedSentence } from '../src/types'
 
 const timestamp: Timestamp = Date.now()
 
@@ -9,7 +9,7 @@ describe('parsePing', () => {
   test('happy path - valid serial number', () => {
     const input = `${PING_START}123456 ${PING_END}`
     const result = parsePing(input, timestamp)
-    const expected: RParsedSentence = {
+    const expected: ParsedSentence = {
       raw: input,
       id: 'ping',
       firmware: '1.0.2',
@@ -30,7 +30,7 @@ describe('parsePing', () => {
   test('invalid serial number - not a number', () => {
     const input = `${PING_START}12345a${PING_END}`
     const result = parsePing(input, timestamp)
-    const expected: RParsedSentence = {
+    const expected: ParsedSentence = {
       raw: input,
       id: 'ping',
       firmware: '1.0.2',
@@ -55,7 +55,7 @@ describe('parsePing', () => {
   test('invalid serial number - negative number', () => {
     const input = `${PING_START}-123456${PING_END}`
     const result = parsePing(input, timestamp)
-    const expected: RParsedSentence = {
+    const expected: ParsedSentence = {
       raw: input,
       id: 'ping',
       firmware: '1.0.2',
@@ -82,7 +82,7 @@ describe('parseClockRound', () => {
   test('happy path', () => {
     const input = 'ack01\r'
     const result = parseClockRound(input, timestamp)
-    const expected: RParsedSentence = {
+    const expected: ParsedSentence = {
       raw: input,
       id: 'clock round',
       firmware: '1.0.2',
@@ -104,7 +104,7 @@ describe('parseClockSet', () => {
   test('happy path', () => {
     const input = 'ack02\r'
     const result = parseClockSet(input, timestamp)
-    const expected: RParsedSentence = {
+    const expected: ParsedSentence = {
       raw: input,
       id: 'clock set',
       firmware: '1.0.2',
@@ -126,7 +126,7 @@ describe('parseListening', () => {
   test('happy path', () => {
     const input = 'EX!'
     const result = parseListening(input, timestamp)
-    const expected: RParsedSentence = {
+    const expected: ParsedSentence = {
       raw: input,
       id: 'listening',
       firmware: '1.0.2',
