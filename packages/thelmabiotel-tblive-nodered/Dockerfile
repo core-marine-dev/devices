@@ -10,4 +10,4 @@ COPY --chown=node-red:node-red --chmod=777 tests/nodered/components/ /components
 
 USER node-red
 
-RUN npm i --production @coremarine/thelmabiotel-tblive>0.0.3 /components 
+RUN npm i --production @coremarine/thelmabiotel-tblive>=1.0.2 /components 
