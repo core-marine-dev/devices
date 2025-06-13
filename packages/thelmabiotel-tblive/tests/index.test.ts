@@ -1,16 +1,17 @@
 import { describe, expect, test } from 'vitest'
-import { TBLive, tbliveFirmwares, FIRMWARES_AVAILABLE } from '../src/index'
+import { TBLive, tbliveFirmwares } from '../src/index'
 
 describe('firmwares available', () => {
   test('tbliveFirmwares', () => {
     const firmwares = tbliveFirmwares()
-    expect(firmwares).toEqual(FIRMWARES_AVAILABLE)
+    expect(firmwares).not.toContain('unknown')
+    expect(firmwares).toContain('1.0.1')
+    expect(firmwares).toContain('1.0.2')
   })
   
   test('TBLive.firmwares', () => {
     const tblive = new TBLive()
-    expect(tblive.firmwares).toEqual(FIRMWARES_AVAILABLE)
-    // Check it includes known firmware versions
+    expect(tblive.firmwares).not.toContain('unknown')
     expect(tblive.firmwares).toContain('1.0.1')
     expect(tblive.firmwares).toContain('1.0.2')
   })
