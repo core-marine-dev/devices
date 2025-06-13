@@ -3,7 +3,7 @@ import { parseSentences } from './parse'
 import { BooleanSchema, NaturalSchema, StringSchema } from './schemas'
 import { ParsedSentence } from './types'
 
-export const tbliveFirmwares = (): typeof FIRMWARES_AVAILABLE => FIRMWARES_AVAILABLE
+export const tbliveFirmwares = (): string[] => FIRMWARES_AVAILABLE.filter(f => !Number.isNaN(Number(f[0])))
 
 export class TBLive {
   protected _memory: boolean = true
@@ -27,7 +27,7 @@ export class TBLive {
 
   protected _sentences: ParsedSentence[] = []
 
-  get firmwares (): typeof FIRMWARES_AVAILABLE { return tbliveFirmwares() }
+  get firmwares (): ReturnType<typeof tbliveFirmwares> { return tbliveFirmwares() }
 
   constructor ({ memory, bufferLimit }: { memory?: boolean, bufferLimit?: number } = { memory: true, bufferLimit: 1024 }) {
     if (memory !== undefined) {
