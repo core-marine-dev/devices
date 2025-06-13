@@ -6,10 +6,7 @@
     // UI
     color: "#ccc4b0",
     icon: "cma-logo-blue.png",
-    label: function () {
-      const { firmware } = this;
-      return `TB-Live ${firmware}`;
-    },
+    label: () => 'TB-Live',
     paletteLabel: "TB-Live parser",
     labelStyle: function () { return this.name ? "node_label_italic" : "" },
     align: "left", // 'right'
@@ -31,22 +28,22 @@
     // Logic
     defaults: {
       name: { value: "" },
-      firmware: {
-        value: "1.0.1",
+      memory: {
+        value: true,
         required: true,
       },
     },
     // credentials: {},
-    oneditprepare: function() {
-      $("#node-input-firmware").typedInput({
-        types: [
-          {
-            value: "1.0.1",
-            options: ["1.0.1", "1.0.2"]
-          }
-        ]
-      })
-    },
+    // oneditprepare: function() {
+    //   $("#node-input-memory").typedInput({
+    //     types: [
+    //       {
+    //         value: true,
+    //         options: ["true", "false"]
+    //       }
+    //     ]
+    //   })
+    // },
     // oneditsave: function() {},
     // oneditcancel: function() {},
     // oneditdelete: function() {},
@@ -63,10 +60,10 @@
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="TB-Live parser" />
   </div>
-  <!-- Firmware -->
+  <!-- Memory -->
   <div class="form-row">
-    <label for="node-input-firmware"><i class="fa fa-tag"></i> Firmware</label>
-    <input type="text" id="node-input-firmware" checked/>
+    <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
+    <input type="checkbox" id="node-input-memory" checked/>
   </div>
 </script>
   
@@ -77,31 +74,39 @@ Parser of TB-Live propietary protocol sentences check [@coremarine/thelmabiotel-
 ### Input
 
 : payload (string) : ASCII output from TB-Live device to be parsed.
+: memory (boolean) : If you want parser attatchs new input to previous values (memory = true) or just parses the input.
 
 
 ### Output
 
 : payload (array) : It is the same output @coremarine/thelmabiotel-tblive gives. Look details for more info.
+: memory (boolean) : Memory state of the parser
+: firmwares (boolean) : If you want parser attatches new input to previous values (memory = true) or just parse the input.
 
 ### Details
 
-The output is an `Frame[]` where `Frame` has this type definiton
+The output is an `Sentence[]` where `Sentence` has this type definiton
 
 ```typescript
-interface Frame {
+interface Sentence {
   timestamp: number
-  name: string
   raw: string
-  error?: string | object
-  data?: (boolean | string | number)[]
-  fields?: Array<{
+  id: string
+  mode: 'listening' | 'command' | 'upgrade' | 'unknown'
+  firmware: '1.0.1' | '1.0.2' | 'unknown'
+  payload: Array<{
+    raw: string
     name: string
     type: "string" | "boolean" | "int8" | "int16" | "int32" | "uint8" | "uint16" | "uint32"
-    data: boolean | string | number
-    metadata?: any
+    value: boolean | string | number
     units?: string
+    metadata?: Record<string, any>
+    description?: string
+    errors?: string[]
   }>
-  metadata?: any
+  metadata?: Record<string, any>
+  description?: string
+  errors?: string[]
 }
 ```
 
