@@ -506,6 +506,6 @@ describe('parseSentences', () => {
     const input = `${SAMPLE_START}1000185,0000073905,745,S${CLOCK_ROUND}64K,30075,3,25,67,2757${SAMPLE_END}`
     const result = parseSentences(input)
     expect(result.sentences).toHaveLength(1)
-    expect(result.sentences[0].id).toEqual('clock round')
+    expect(result.sentences[0].id).toEqual('clock_round')
   })
 })
