@@ -40,7 +40,7 @@ export const parseClockRound = (input: string, timestamp: Timestamp): ParsedSent
   const ack = input.replace('\r', '').trim()
   return {
     raw: input,
-    id: 'clock round',
+    id: 'clock_round',
     timestamp,
     firmware: '1.0.2',
     mode: 'listening',
@@ -57,7 +57,7 @@ export const parseClockSet = (input: string, timestamp: Timestamp): ParsedSenten
   const ack = input.replace('\r', '').trim()
   return {
     raw: input,
-    id: 'clock set',
+    id: 'clock_set',
     timestamp,
     firmware: '1.0.2',
     mode: 'listening',
