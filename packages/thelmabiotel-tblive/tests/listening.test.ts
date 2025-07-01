@@ -84,7 +84,7 @@ describe('parseClockRound', () => {
     const result = parseClockRound(input, timestamp)
     const expected: ParsedSentence = {
       raw: input,
-      id: 'clock round',
+      id: 'clock_round',
       firmware: '1.0.2',
       mode: 'listening',
       timestamp,
@@ -106,7 +106,7 @@ describe('parseClockSet', () => {
     const result = parseClockSet(input, timestamp)
     const expected: ParsedSentence = {
       raw: input,
-      id: 'clock set',
+      id: 'clock_set',
       firmware: '1.0.2',
       mode: 'listening',
       timestamp,
