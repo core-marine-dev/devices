@@ -1,7 +1,9 @@
-import { defineWorkspace } from 'vitest/config'
+import { defineConfig } from 'vitest/config'
 
-export default defineWorkspace([
-  './packages/**/*/vitest.config.ts'
+export default defineConfig({
+  test: {
+    projects: ['./packages/**/*/vitest.config.ts']
+  }
   // './packages/nmea-parser/vitest.config.ts',
   // './packages/nmea-parser-nodered/vitest.config.ts',
   // './packages/norsub-emru/vitest.config.ts',
@@ -15,4 +17,4 @@ export default defineWorkspace([
   // './todo/vectornav/vitest.config.ts',
   // './templates/nodered/vitest.config.ts',
   // './templates/library/vitest.config.ts',
-])
+})
