@@ -186,10 +186,18 @@ describe('parseValue', () => {
 
   test('int16', () => {
     // Bad
-    ['1.2', '1a', Math.pow(2, 16).toString()].forEach(num => expect(parseValue(num, 'int16')).toBeNull());
+    for (const num of ['1.2', '1a', Math.pow(2, 16).toString(), '']) {
+      const received = parseValue(num, 'int16')
+      console.log(received)
+      expect(received).toBeNull()
+    }
     // Good
-    expect(parseValue('', 'int16')).toBeNull();
-    ['1', '-0', (Math.pow(2, 16) - 1).toString()].forEach(num => expect(parseValue(num, 'int16')).toBe(Number(num)))
+    for (const num of ['1', '-0', (Math.pow(2, 15) - 1).toString()]) {
+      const received = parseValue(num, 'int16')
+      const expected = Number(num)
+      expect(received).toBe(expected)
+
+    }
   })
 
   test('int32', () => {
@@ -197,7 +205,7 @@ describe('parseValue', () => {
     ['1.2', '1a', Math.pow(2, 32).toString()].forEach(num => expect(parseValue(num, 'int32')).toBeNull());
     // Good
     expect(parseValue('', 'int32')).toBeNull();
-    ['1', '-0', (Math.pow(2, 32) - 1).toString()].forEach(num => expect(parseValue(num, 'int32')).toBe(Number(num)))
+    ['1', '-0', (Math.pow(2, 31) - 1).toString()].forEach(num => expect(parseValue(num, 'int32')).toBe(Number(num)))
   })
 
   test('int64', () => {
