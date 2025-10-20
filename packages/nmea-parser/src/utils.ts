@@ -3,7 +3,8 @@ import { CODE } from './constants'
 export const numberToHexString = (num: number): string => num.toString(16)
 
 export const isBoundedASCII = (char: string, min: number, max: number): boolean => {
-  const num = char.charCodeAt(0)
+  const num = char.codePointAt(0)
+  if (num === undefined) return false
   return (min <= num) && (num <= max)
 }
 
