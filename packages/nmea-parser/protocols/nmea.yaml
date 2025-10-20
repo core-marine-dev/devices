@@ -168,3 +168,51 @@ protocols:
           - name: local_zone_minutes
             type: int8
             description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
+      - id: VTG
+        description: Track Made Good and Ground Speed
+        payload:
+          # 1
+          - name: track_degrees_true
+            type: float32
+            units: deg
+            description: "Track angle in degrees True"
+          # 2
+          - name: true_indicator
+            type: string
+            description: "T = True"
+          # 3
+          - name: track_degrees_magnetic
+            type: float32
+            units: deg
+            description: "Track angle in degrees Magnetic"
+          # 4
+          - name: magnetic_indicator
+            type: string
+            description: "M = Magnetic"
+          # 5
+          - name: speed_knots
+            type: float32
+            units: knots
+            description: "Speed over ground in knots"
+          # 6
+          - name: knots_indicator
+            type: string
+            description: "N = Knots"
+          # 7
+          - name: speed_kilometers_per_hour
+            type: float32
+            units: km/h
+            description: "Speed over ground in kilometers per hour"
+          # 8
+          - name: kmh_indicator
+            type: string
+            description: "K = Kilometers per hour"
+          # 9 (NMEA 2.3+)
+          - name: mode_indicator
+            type: string
+            description: "Mode indicator (NMEA 2.3+)\n
+              A = Autonomous\n
+              D = Differential\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              N = Data not valid"
