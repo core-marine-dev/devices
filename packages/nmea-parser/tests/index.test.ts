@@ -253,6 +253,7 @@ test('GGA sentence', () => {
   const output = parser.parseData(sample)
   expect(output).toHaveLength(1)
   const gga = output[0]
+  // console.log(gga)
   expect(gga).toHaveProperty('metadata')
   expect(gga.metadata).toHaveProperty('timestamp')
   expect(gga.metadata).toHaveProperty('latitude')

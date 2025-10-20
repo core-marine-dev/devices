@@ -4,6 +4,7 @@ import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, 
 import { Float32Schema, Float64Schema, Int16Schema, Int32Schema, Int64Schema, Int8Schema, NMEASentenceSchema, Uint16Schema, Uint32Schema, Uint64Schema, Uint8Schema } from './schemas'
 import type { Checksum, NMEALike, NMEASentence, Payload, ProtocolFieldType, StoredSentence, Talker, Value } from './types'
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
+import { Schema } from '@schemasjs/validator'
 import { addMetadata } from './nmea-metadata'
 
 export const lastUncompletedFrame = (text: string): string | null => {
@@ -88,19 +89,27 @@ export const getIdPayloadAndChecksum = (frame: NMEALike): { id: string, payload:
 export const hasSameNumberOfFields = (payload: string, sentence: StoredSentence): boolean => payload.split(SEPARATOR).length === sentence.payload.length
 
 const parseNumber = (value: string, type: ProtocolFieldType): Value | undefined => {
-  // Integers
-  if (type === 'int8') return Int8Schema.safeParse(Number(value)).data
-  if (type === 'int16') return Int16Schema.safeParse(Number(value)).data
-  if (type === 'int32') return Int32Schema.safeParse(Number(value)).data
-  if (type === 'int64') return Int64Schema.safeParse(BigInt(value)).data
-  // Unsigned Integers
-  if (type === 'uint8') return Uint8Schema.safeParse(Number(value)).data
-  if (type === 'uint16') return Uint16Schema.safeParse(Number(value)).data
-  if (type === 'uint32') return Uint32Schema.safeParse(Number(value)).data
-  if (type === 'uint64') return Uint64Schema.safeParse(BigInt(value)).data
-  // Floats
-  if (type === 'float32') return Float32Schema.safeParse(Number(value)).data
-  if (type === 'float64') return Float64Schema.safeParse(Number(value)).data
+  const schemas = {
+    // Integers
+    int8: Int8Schema,
+    int16: Int16Schema,
+    int32: Int32Schema,
+    int64: Int64Schema,
+    // Unsigned Integers
+    uint8: Uint8Schema,
+    uint16: Uint16Schema,
+    uint32: Uint32Schema,
+    uint64: Uint64Schema,
+    // Floats
+    float32: Float32Schema,
+    float64: Float64Schema
+  }
+  const schema: Schema<number | bigint> | undefined = schemas[type as keyof typeof schemas]
+  if (schema === undefined) { return undefined }
+  const num = (type.includes('int64')) ? BigInt(value) : Number(value)
+  const result = schema.safeParse(num)
+  if (!result.success) { return undefined }
+  return result.value
 }
 const parseBoolean = (value: string): Value | undefined => {
   if (value.toLowerCase() === 'false' || value === '0') return false
@@ -120,7 +129,8 @@ export const parseValue = (value: string, type: ProtocolFieldType): Value => {
     const num = parseNumber(value, type)
     if (num !== undefined) { return num }
   } catch (error) {
-    console.debug(`Error parsing value: ${value} is not ${type}`)
+    console.debug(`Error parsing value: ${value} is not ${type} -> ${(error as Error).message}`)
+    // console.debug(error)
   }
   return null
 }

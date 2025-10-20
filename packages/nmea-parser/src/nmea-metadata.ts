@@ -9,7 +9,7 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
    */
   (utcPosition: string): Uint32 | null => {
     if (utcPosition.length !== 9) { return null }
-    if (isNaN(Number(utcPosition))) { return null }
+    if (Number.isNaN(Number(utcPosition))) { return null }
     const hours = Number(utcPosition.slice(0, 2))
     const minutes = Number(utcPosition.slice(2, 4))
     const seconds = Number(utcPosition.slice(4, 6))
@@ -57,7 +57,8 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
     return QUALITIES[quality as keyof typeof QUALITIES] ?? 'unknown'
   }
 
-  sentence.payload.forEach((field, index) => {
+  for (let index = 0; index < sentence.payload.length; index++) {
+    const field = sentence.payload[index]
     // UTC Position
     if (field.name === 'utc_position') {
       const utcPosition = field.value as string
@@ -74,7 +75,7 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
       const degrees = getLatitudeDegrees(latitude, letter)
       sentence.payload[index].metadata = { degrees }
       sentence.metadata = { ...sentence.metadata, latitude: degrees }
-      return
+      continue
     }
     // Longitude
     if (field.name === 'longitude') {
@@ -83,16 +84,16 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
       const degrees = getLongitudeDegrees(longitude, letter)
       sentence.payload[index].metadata = { degrees }
       sentence.metadata = { ...sentence.metadata, longitude: degrees }
-      return
+      continue
     }
     // Quality
     if (field.name === 'quality') {
       sentence.metadata = { ...sentence.metadata, quality: getQuality(field.value as Uint8) }
-      // return
+      // continue
     }
     // Rest
     // return
-  })
+  }
   return { ...sentence }
 }
 

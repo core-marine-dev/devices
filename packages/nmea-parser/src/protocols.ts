@@ -9,7 +9,7 @@ export const readProtocolsYAMLString = (content: string): ProtocolsFileContent =
   if (!parsed.success) {
     throw new Error(parsed.errors?.toString())
   }
-  return parsed.data as ProtocolsFileContent
+  return parsed.value
   // Valibot version to debug
   // const parsed = safeParse(ValibotProtocolsFileContentSchema, fileData)
   // if (parsed.success) { return parsed.output }
@@ -25,7 +25,7 @@ export const readProtocolsYAMLFile = (file: string): ProtocolsFileContent => {
 const getStoreSentencesFromProtocol = (protocol: Protocol): MapStoredSentences => {
   const { protocol: name, standard, version, sentences } = protocol
   const storedSentences: MapStoredSentences = new Map()
-  sentences.forEach(element => {
+  for (const element of sentences) {
     const obj: StoredSentence = {
       id: element.id,
       payload: element.payload,
@@ -33,14 +33,14 @@ const getStoreSentencesFromProtocol = (protocol: Protocol): MapStoredSentences =
       description: element?.description
     }
     storedSentences.set(element.id, obj)
-  })
+  }
   return storedSentences
 }
 
 export const getStoreSentences = ({ protocols }: ProtocolsFileContent): MapStoredSentences => {
   let storedSentences: MapStoredSentences = new Map()
-  protocols.forEach(protocol => {
+  for (const protocol of protocols) {
     storedSentences = new Map([...storedSentences, ...getStoreSentencesFromProtocol(protocol)])
-  })
+  }
   return storedSentences
 }

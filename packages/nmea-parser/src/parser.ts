@@ -92,7 +92,7 @@ export class Parser implements NMEAParser {
     }
     // Unknown NMEA sentence
     const unknown = getUnknowNMEASentence({ received, sample: text, sentenceID, sentencePayload: pl, checksum })
-    return (talker !== null) ? { ...unknown, talker } : unknown
+    return (talker === null) ? unknown : { ...unknown, talker }
   }
 
   // Nice to have -----------------------------------------------------------------------------------------------------
@@ -104,13 +104,13 @@ export class Parser implements NMEAParser {
     const sentences = this.getSentences()
     // return Object.groupBy(sentences, (sentence: StoredSentence) => sentence.protocol.name)
     const response: ProtocolOutput = {}
-    sentences.forEach(sentence => {
+    for (const sentence of sentences) {
       const key = sentence.protocol.name
       if (!(key in response)) {
         response[key] = [sentence]
       }
       response[key].push(sentence)
-    })
+    }
     return response
   }
 
