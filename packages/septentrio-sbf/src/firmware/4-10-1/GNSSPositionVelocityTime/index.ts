@@ -1,9 +1,10 @@
-import type { SBFBodyDataMap } from '../../../types'
 import { dop } from './DOP'
 import { endOfPVT } from './EndOfPVT'
+import { pvtGeodetic } from './PVTGeodetic'
 import { ptvSupport } from './PVTSupport'
 import { ptvSupportA } from './PVTSupportA'
-import { pvtGeodetic } from './PVTGeodetic'
+
+import type { SBFBodyDataMap } from '../../../types'
 
 const blocks: SBFBodyDataMap = new Map()
 // 4006 - PVTCartesian

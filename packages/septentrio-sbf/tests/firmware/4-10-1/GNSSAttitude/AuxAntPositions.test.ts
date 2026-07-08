@@ -1,9 +1,10 @@
 import { describe, test, expect } from 'vitest'
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
+
 import { AMBIGUITY, Ambiguity, AuxAntPositionSub, AuxAntPositions, ERROR, Error, auxAntPositions } from '../../../../src/firmware/4-10-1/GNSSAttitude/AuxAntPositions'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 
 /* AuxAntPositions -> Number: 5942 => "OnChange" interval: default PVT output rate
-  The AuxAntPositions block contains the relative position and velocity of the 
+  The AuxAntPositions block contains the relative position and velocity of the
   different antennas in a multi-antenna receiver.
   The coordinates are expressed in the local-level ENU reference frame.
 
@@ -16,7 +17,7 @@ import { AMBIGUITY, Ambiguity, AuxAntPositionSub, AuxAntPositions, ERROR, Error,
   SBLength              uint8                     Length of one sub-block in bytes
   AuxAntPositionSub[N]                            A succession of N AuxAntPositionSub sub-blocks
   Padding                uint                     Padding bytes
-  
+
   AuxAntPositionSub -----------------------------------------------------------
   Block fields           Type  Units  Do-Not-Use  Description
   NrSV                  uint8                255  Total number of satellites tracked by the antenna identified by the AuxAntID field and used in the attitude computation
@@ -62,7 +63,7 @@ const getAuxAntPositionSub = (input: Input) => {
   // UpVel
   const { number: upVel, buffer: upVelBuffer } = getTypedData(randomNumber(RandomNumberType.FLOAT), TypeData.DOUBLE) as TypedData
   // Padding
-  const auxBuffer = Buffer.concat([nrSVBuffer, errorBuffer, ambiguityTypeBuffer, auxAntIDBuffer, deltaEastBuffer, deltaNorthBuffer, deltaUpBuffer, eastVelBuffer, northVelBuffer, upVelBuffer ])
+  const auxBuffer = Buffer.concat([nrSVBuffer, errorBuffer, ambiguityTypeBuffer, auxAntIDBuffer, deltaEastBuffer, deltaNorthBuffer, deltaUpBuffer, eastVelBuffer, northVelBuffer, upVelBuffer])
   const paddingLength = input.length - auxBuffer.length
   const { padding, paddingBuffer } = (paddingLength > 0)
     ? { padding: 0, paddingBuffer: Buffer.from(Array(paddingLength).fill(0)) }
@@ -72,8 +73,8 @@ const getAuxAntPositionSub = (input: Input) => {
     nrSV, error, ambiguityType, auxAntID, deltaEast, deltaNorth, deltaUp, eastVel, northVel, upVel, padding,
     metadata: {
       error: input.errorMeta,
-      ambiguityType: input.ambiguityMeta
-    }
+      ambiguityType: input.ambiguityMeta,
+    },
   }
 
   const dataSub = Buffer.concat([auxBuffer, paddingBuffer])
@@ -83,22 +84,22 @@ const getAuxAntPositionSub = (input: Input) => {
 
 type ErrorNumber = 0 | 1 | 2 | 3 | 4
 type ErrorTest = {
-  error: ErrorNumber,
+  error: ErrorNumber
   type: Error
 }
 const errorTestDefault: ErrorTest = { error: 0, type: ERROR.NO }
 
 type Ambiguitynumber = 0 | 1 | 2
 type AmbiguityTest = {
-  ambiguity: Ambiguitynumber,
+  ambiguity: Ambiguitynumber
   type: Ambiguity
 }
 const ambiguityTestDefault: AmbiguityTest = { ambiguity: 0, type: AMBIGUITY.FIXED }
 
 type InputData = {
-  antennas: number,
-  subFramesLength: number,
-  errorTest: ErrorTest,
+  antennas: number
+  subFramesLength: number
+  errorTest: ErrorTest
   ambiguityTest: AmbiguityTest
 }
 
@@ -106,8 +107,8 @@ const defaultInput: InputData = {
   antennas: 2,
   subFramesLength: 52,
   errorTest: errorTestDefault,
-  ambiguityTest: ambiguityTestDefault
-} 
+  ambiguityTest: ambiguityTestDefault,
+}
 
 const getNameFrameData = (input: InputData = defaultInput) => {
   const frameName = 'AuxAntPositions'
@@ -123,8 +124,8 @@ const getNameFrameData = (input: InputData = defaultInput) => {
     errorMeta: input.errorTest.type,
     ambiguity: input.ambiguityTest.ambiguity,
     ambiguityMeta: input.ambiguityTest.type,
-    antID: 0
-})
+    antID: 0,
+  })
   const { frameSub: frameSub2, dataSub: dataSub2 } = getAuxAntPositionSub({
     length: sbLength,
     satellites: randomNumber(RandomNumberType.UINT),
@@ -132,8 +133,8 @@ const getNameFrameData = (input: InputData = defaultInput) => {
     errorMeta: input.errorTest.type,
     ambiguity: input.ambiguityTest.ambiguity,
     ambiguityMeta: input.ambiguityTest.type,
-    antID: 1
-})
+    antID: 1,
+  })
   const auxAntPositionSub = [frameSub1, frameSub2]
   const auxAntPositionSubBuffer = Buffer.concat([dataSub1, dataSub2])
   // Padding
@@ -145,7 +146,7 @@ const getNameFrameData = (input: InputData = defaultInput) => {
     nBuffer,
     sbLengthBuffer,
     auxAntPositionSubBuffer,
-    paddingBuffer
+    paddingBuffer,
   ])
 
   return { frameName, frame, data }
@@ -157,14 +158,13 @@ const getNullableFields = (sub: AuxAntPositionSub) => {
 }
 
 describe('Testing AuxAntPositions', () => {
-
   test('Regular body', () => {
     const { frameName, frame, data } = getNameFrameData()
-    const { name, body } = auxAntPositions(0, data) as { name: string, body: AuxAntPositions}
+    const { name, body } = auxAntPositions(0, data) as { name: string, body: AuxAntPositions }
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -180,11 +180,11 @@ describe('Testing AuxAntPositions', () => {
 
     body1.auxAntPositionSub.forEach((sub: AuxAntPositionSub) => {
       const fields = getNullableFields(sub)
-      const result = Object.values(fields).every(value => value === null)
+      const result = Object.values(fields).every((value) => value === null)
       expect(result).toBeTruthy()
     })
 
-    errorTest.error = 2 
+    errorTest.error = 2
     errorTest.type = ERROR.RESERVED
     const { frame: frame2, data: data2 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body2 } = auxAntPositions(0, data2) as { name: string, body: AuxAntPositions }
@@ -192,7 +192,7 @@ describe('Testing AuxAntPositions', () => {
 
     body2.auxAntPositionSub.forEach((sub: AuxAntPositionSub) => {
       const fields = getNullableFields(sub)
-      const result = Object.values(fields).every(value => value === null)
+      const result = Object.values(fields).every((value) => value === null)
       expect(result).toBeTruthy()
     })
 
@@ -203,7 +203,7 @@ describe('Testing AuxAntPositions', () => {
 
     body3.auxAntPositionSub.forEach((sub: AuxAntPositionSub) => {
       const fields = getNullableFields(sub)
-      const result = Object.values(fields).every(value => value === null)
+      const result = Object.values(fields).every((value) => value === null)
       expect(result).toBeTruthy()
     })
 
@@ -215,7 +215,7 @@ describe('Testing AuxAntPositions', () => {
 
     body4.auxAntPositionSub.forEach((sub: AuxAntPositionSub) => {
       const fields = getNullableFields(sub)
-      const result = Object.values(fields).every(value => value === null)
+      const result = Object.values(fields).every((value) => value === null)
       expect(result).toBeTruthy()
     })
   })
@@ -241,6 +241,5 @@ describe('Testing AuxAntPositions', () => {
     const { frame: frame3, data: data3 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body3 } = auxAntPositions(0, data3) as { name: string, body: AuxAntPositions }
     expect(body3).toStrictEqual(frame3)
-
   })
 })

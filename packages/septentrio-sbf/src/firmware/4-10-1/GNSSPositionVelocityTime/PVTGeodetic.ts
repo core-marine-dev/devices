@@ -295,7 +295,7 @@ export const PVTSolution: Record<number, string> = {
   7: 'MOVING_RTK_FIXED',
   8: 'MOVING_RTK_FLOAT',
   10: 'PPP',
-  12: 'RESERVED'
+  12: 'RESERVED',
 }
 const getPVTSolution = (num: keyof typeof PVTSolution): string => PVTSolution[num] ?? 'UNKNOWN'
 
@@ -310,7 +310,7 @@ const getMode = (mode: number): Mode => ({
   pvtSolution: getPVTSolution(mode & 0b0000_1111),
   reserved45: (mode & 0b0011_0000) >>> 4,
   determiningPosition: bitState(mode, 6),
-  flag2D3D: bitState(mode, 7)
+  flag2D3D: bitState(mode, 7),
 })
 
 export const ErrorPVT: Record<number, string> = {
@@ -324,7 +324,7 @@ export const ErrorPVT: Record<number, string> = {
   7: 'POSITION_OUTPUT_PROHIBITED_DUE_TO_EXPORT_LAWS',
   8: 'NOT_ENOUGH_DIFFERENTIAL_CORRECTIONS',
   9: 'BASESTATION_COORDINATES_UNAVAILABLE',
-  10: 'AMBIGUITIES_NOT_FIXED_AND_USER_REQUESTED_RTK_FIXED'
+  10: 'AMBIGUITIES_NOT_FIXED_AND_USER_REQUESTED_RTK_FIXED',
 }
 const getErrorPVT = (num: keyof typeof ErrorPVT): string => ErrorPVT[num] ?? 'UNKNOWN'
 
@@ -333,7 +333,7 @@ export const TimeSystem: Record<number, string> = {
   1: 'Galileo',
   3: 'GLONASS',
   4: 'BeiDou',
-  5: 'QZSS'
+  5: 'QZSS',
 }
 const getTimesystem = (num: number): string => TimeSystem[num] ?? 'UNKNOWN'
 
@@ -347,7 +347,7 @@ export const Datum: Record<number, string> = {
   34: 'GDA94(2010)',
   35: 'GDA2020',
   250: 'First user-deﬁned datum',
-  251: 'Second user-deﬁned datum'
+  251: 'Second user-deﬁned datum',
 }
 const getDatum = (num: keyof typeof Datum): string => Datum[num] ?? 'UNKNOWN'
 
@@ -365,7 +365,7 @@ const getWACorrInfo = (num: number): WACorrInfo => ({
   ionosphericInformation: bitState(num, 2),
   orbitAccuracy: bitState(num, 3),
   DO229: bitState(num, 4),
-  reserved: (num & 0b1110_0000) >>> 5
+  reserved: (num & 0b1110_0000) >>> 5,
 })
 
 export type SignalInfo = Record<number, GNSSSignal>
@@ -387,7 +387,7 @@ export const RAIMIntegrityFlag: Record<number, string> = {
   0: 'RAIM_NOT_ACTIVE',
   1: 'RAIM_SUCCESSFULL',
   2: 'RAIM_FAILED',
-  3: 'RESERVED'
+  3: 'RESERVED',
 }
 const getRAIMIntegrityFlag = (num: keyof typeof RAIMIntegrityFlag): string => RAIMIntegrityFlag[num] ?? 'UNKNOWN'
 
@@ -403,7 +403,7 @@ const getAlertFlag = (num: number): AlertFlag => ({
   galileoIntegrityFailed: bitState(num, 2),
   galileoIonosphericStorm: bitState(num, 3),
   reserved4: bitState(num, 4),
-  reserved57: (num & 0b1110_0000) >>> 5
+  reserved57: (num & 0b1110_0000) >>> 5,
 })
 
 export interface MetadataRev0 {
@@ -451,7 +451,7 @@ const getMetadaRev0 = (input: MetadataRev0Input): MetadataRev0 => ({
   datum: getNullableValue(input.datum, getDatum),
   waCorrInfo: getNullableValue(input.waCorrInfo, getWACorrInfo),
   signalInfo: getNullableValue(input.signalInfo, getSignalInfo),
-  alertFlag: getNullableValue(input.alertFlag, getAlertFlag)
+  alertFlag: getNullableValue(input.alertFlag, getAlertFlag),
 })
 
 const getRev0 = (data: Buffer): PVTGeodeticRev0 => {
@@ -470,7 +470,7 @@ const getRev0 = (data: Buffer): PVTGeodeticRev0 => {
     datum,
     waCorrInfo,
     signalInfo,
-    alertFlag
+    alertFlag,
   }
 
   const body: PVTGeodeticRev0 = {
@@ -496,7 +496,7 @@ const getRev0 = (data: Buffer): PVTGeodeticRev0 => {
     signalInfo,
     alertFlag,
     padding: null,
-    metadata: getMetadaRev0(input)
+    metadata: getMetadaRev0(input),
   }
   return body
 }
@@ -505,7 +505,7 @@ export const LastSeed: Record<number, string> = {
   0: 'NOT_SEEDED',
   1: 'MANUAL_SEED',
   2: 'DGPS_SEED',
-  3: 'RTK_FIXED_SEED'
+  3: 'RTK_FIXED_SEED',
 }
 const getLastSeed = (num: keyof typeof LastSeed): string => LastSeed[num] ?? 'UNKNOWN'
 
@@ -518,7 +518,7 @@ export interface PPPInfo {
 const getPPPInfo = (num: number): PPPInfo => ({
   ageLastSeed: num & 0b0000_1111_1111_1111,
   reserved: bitState(num, 12),
-  lastSeed: getLastSeed((num & 0b1110_0000_0000_0000) >>> 13)
+  lastSeed: getLastSeed((num & 0b1110_0000_0000_0000) >>> 13),
 })
 
 export interface MetadataRev1 extends MetadataRev0 {
@@ -537,7 +537,7 @@ const getRev1 = (data: Buffer, rev0: PVTGeodeticRev0): PVTGeodeticRev1 => {
     ...rev0,
     revision: 1,
     nrBases: getData(data.readUIntLE(REV1_NRBASES_INDEX, REV1_NRBASES_LENGTH), 'UINT32'),
-    pppInfo: getData(data.readUIntLE(REV1_PPPINFO_INDEX, REV1_PPPINFO_LENGTH), 'UINT32')
+    pppInfo: getData(data.readUIntLE(REV1_PPPINFO_INDEX, REV1_PPPINFO_LENGTH), 'UINT32'),
   }
   body.metadata.pppInfo = getNullableValue(body.pppInfo, getPPPInfo)
   return body
@@ -546,7 +546,7 @@ const getRev1 = (data: Buffer, rev0: PVTGeodeticRev0): PVTGeodeticRev1 => {
 export const ARPPosition: Record<number, string> = {
   0: 'Unknown',
   1: 'ARP-to-marker offset is zero',
-  2: 'ARP-to-marker offset is not zero'
+  2: 'ARP-to-marker offset is not zero',
 }
 const getARPPosition = (num: keyof typeof ARPPosition): string => ARPPosition[num] ?? 'UNKNOWN'
 
@@ -564,7 +564,7 @@ const getMisc = (misc: number): Misc => ({
   propietary2: bitState(misc, 2),
   propietary3: bitState(misc, 3),
   propietary45: (misc & 0b0011_0000) >>> 4,
-  arpPosition: getARPPosition((misc & 0b1100_0000) >>> 6)
+  arpPosition: getARPPosition((misc & 0b1100_0000) >>> 6),
 })
 
 export interface MetadataRev2 extends MetadataRev1 {
@@ -587,7 +587,7 @@ const getRev2 = (data: Buffer, rev1: PVTGeodeticRev1): PVTGeodeticRev2 => {
     latency: getData(data.readUIntLE(REV2_LATENCY_INDEX, REV2_LATENCY_LENGTH), 'UINT16'),
     hAccuracy: getData(data.readUIntLE(REV2_HACCURACY_INDEX, REV2_HACCURACY_LENGTH), 'UINT16'),
     vAccuracy: getData(data.readUIntLE(REV2_VACCURACY_INDEX, REV2_VACCURACY_LENGTH), 'UINT16'),
-    misc: data.readUIntLE(REV2_MISC_INDEX, REV2_MISC_LENGTH)
+    misc: data.readUIntLE(REV2_MISC_INDEX, REV2_MISC_LENGTH),
   }
   body.metadata.misc = getMisc(body.misc)
   return body

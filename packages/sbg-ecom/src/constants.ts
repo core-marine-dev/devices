@@ -1,11 +1,10 @@
-
 export const SBGFrameMessageClasses = {
   CMD: 0x10,
   LOG: 0x00,
   HIGH_FREQ: 0x01,
   NMEA_STANDARD: 0x02,
   NMEA_PROPIETARY: 0x03,
-  THIRD_PARTY: 0x04
+  THIRD_PARTY: 0x04,
 } as const
 
 export const SBGFrameTypes = {
@@ -15,19 +14,19 @@ export const SBGFrameTypes = {
   NMEA_STANDARD: 'nmea-standard',
   NMEA_PROPIETARY: 'nmea-propietary',
   THIRD_PARTY: 'thid-party',
-  UNKNOWN: 'unknown'
+  UNKNOWN: 'unknown',
 } as const
 
 export const SBG_FRAME_FORMATS = {
   STANDARD: 'standard',
-  LARGE: 'large'
+  LARGE: 'large',
 } as const
 
 export const SBG_PARSING_STATUS = {
   OK: 0,
   MISSING_BYTES: 1,
   ERROR_CRC: 2,
-  ERROR_EXT: 3
+  ERROR_EXT: 3,
 } as const
 
 export const TWO_BYTES_MAX = 65_535
@@ -75,5 +74,5 @@ export const UNKNOWN_SBG_FRAME_DATA = {
   name: 'unknown',
   type: SBGFrameTypes.UNKNOWN,
   format: SBG_FRAME_FORMATS.STANDARD,
-  data: null
+  data: null,
 }

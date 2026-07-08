@@ -100,7 +100,7 @@ export const GNSSSignals: Record<number, GNSSSignal> = {
   32: { signal: 'L1C', constellation: 'QZSS', carrierFrequency: 1575.42, rinexCode: '1L' },
   33: { signal: 'L1S', constellation: 'QZSS', carrierFrequency: 1575.42, rinexCode: '1Z' },
   34: { signal: 'B2b', constellation: 'BeiDou', carrierFrequency: 1207.14, rinexCode: '7D' },
-  35: { signal: 'Reserved' }
+  35: { signal: 'Reserved' },
 }
 
 export const getGNSSSignal = (num: number): GNSSSignal | null => GNSSSignals[num] ?? null

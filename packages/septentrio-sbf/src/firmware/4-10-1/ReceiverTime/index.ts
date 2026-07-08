@@ -1,6 +1,7 @@
-import type { SBFBodyDataMap } from '../../../types'
 import { receiverTime } from './ReceiverTime'
 import { xppsOffset } from './xPPSOffset'
+
+import type { SBFBodyDataMap } from '../../../types'
 
 const blocks: SBFBodyDataMap = new Map()
 // 5914 - ReceiverTime

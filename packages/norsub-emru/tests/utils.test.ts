@@ -1,5 +1,6 @@
 import { test, expect } from 'vitest'
-import * as utils  from '../src/utils'
+
+import * as utils from '../src/utils'
 
 test('getUint32', () => {
   const a = 0b1111_1010_0101_0000

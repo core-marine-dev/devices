@@ -63,7 +63,7 @@ export const SYNCHRONIZATION = {
   FULL: 'FULL',
   NOT_FULL: 'NOT_FULL',
   NONE: 'NONE',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 }
 export type Synchronization = typeof SYNCHRONIZATION[keyof typeof SYNCHRONIZATION]
 
@@ -85,13 +85,13 @@ const getSyncLevel = (syncLevel: number): SyncLevel => {
     finetime: bitState(syncLevel, 2),
     reserved1: bitState(syncLevel, 3),
     reserved2: bitState(syncLevel, 4),
-    reserved3: (syncLevel & 0b11100000) >>> 5
+    reserved3: (syncLevel & 0b11100000) >>> 5,
   }
   const sync = [response.wnSet, response.towSet, response.finetime]
-  if (sync.every(e => e)) {
+  if (sync.every((e) => e)) {
     response.synchronization = SYNCHRONIZATION.FULL
   } else {
-    response.synchronization = (sync.every(e => !e)) ? SYNCHRONIZATION.NONE : SYNCHRONIZATION.NOT_FULL
+    response.synchronization = (sync.every((e) => !e)) ? SYNCHRONIZATION.NONE : SYNCHRONIZATION.NOT_FULL
   }
   return response
 }
@@ -130,8 +130,8 @@ export const receiverTime = (blockRevision: number, data: Buffer): Response => {
     syncLevel,
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
     metadata: {
-      syncLeveL: getSyncLevel(syncLevel)
-    }
+      syncLeveL: getSyncLevel(syncLevel),
+    },
   }
   return { name, body }
 }

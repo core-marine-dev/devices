@@ -1,7 +1,7 @@
-import { test, expect } from "vitest"
-import { CHECKSUM_LENGTH, DELIMITER, DELIMITER_LENGTH, END_FLAG_LENGTH} from '../src/constants'
-import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from '../src/checksum'
+import { test, expect } from 'vitest'
 
+import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from '../src/checksum'
+import { CHECKSUM_LENGTH, DELIMITER, DELIMITER_LENGTH, END_FLAG_LENGTH } from '../src/constants'
 
 const TEST_SENTENCES = [
   '$GPGGA,074844.199,3652.514,N,00225.679,W,1,12,1.0,0.0,M,0.0,M,,*79\r\n',
@@ -12,11 +12,11 @@ const TEST_SENTENCES = [
   '$GPRMC,074845.199,A,3659.100,N,00219.087,W,30386.3,045.0,021123,000.0,W*61\r\n',
 ]
 
-const EXPECTED_CHECKSUMS = [ 121, 48, 98, 122, 48, 97 ]
+const EXPECTED_CHECKSUMS = [121, 48, 98, 122, 48, 97]
 
 test('getChecksum', () => {
   TEST_SENTENCES.forEach((sentence, index) => {
-    const data = sentence.slice(1, - (DELIMITER_LENGTH + CHECKSUM_LENGTH + END_FLAG_LENGTH))
+    const data = sentence.slice(1, -(DELIMITER_LENGTH + CHECKSUM_LENGTH + END_FLAG_LENGTH))
     const checksum = calculateChecksum(data)
     expect(checksum).toBe(EXPECTED_CHECKSUMS[index])
   })

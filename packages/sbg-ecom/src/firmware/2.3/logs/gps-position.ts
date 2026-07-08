@@ -61,12 +61,13 @@ import type { SBGFrameNameData } from '../../../types'
  *   9   SBG_ECOM_POS_PPP_INT       Precise Point Positioning with fixed ambiguities
  *  10   SBG_ECOM_POS_FIXED         Fixed location solution position
 */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used as typeof STATUSES[number] for type inference
 const STATUSES = [
   'SBG_ECOM_POS_SOL_COMPUTED',
   'SBG_ECOM_POS_INSUFFICIENT_OBS',
   'SBG_ECOM_POS_INTERNAL_ERROR',
   'SBG_ECOM_POS_HEIGHT_LIMIT',
-  'UNKNOWN'
+  'UNKNOWN',
 ] as const
 type Status = typeof STATUSES[number]
 
@@ -90,7 +91,7 @@ const TYPES = [
   'SBG_ECOM_POS_PPP_FLOAT',
   'SBG_ECOM_POS_PPP_INT',
   'SBG_ECOM_POS_FIXED',
-  'UNKOWN'
+  'UNKOWN',
 ] as const
 type Type = typeof TYPES[number]
 
@@ -108,7 +109,7 @@ interface GPSPositionStatus {
 const getGPSPositionStatus = (gpsPositionStatus: number): GPSPositionStatus => {
   return {
     status: getStatus(gpsPositionStatus),
-    type: getType(gpsPositionStatus)
+    type: getType(gpsPositionStatus),
   }
 }
 
@@ -127,10 +128,10 @@ const SBG_ECOM_LOG_GPS_POS = (payload: Buffer): object => {
     numberSpaceVehicles: payload.readUIntLE(52, 1),
     baseStationID: payload.readUIntLE(53, 2),
     differentialAge: payload.readUIntLE(55, 2),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    gpsPositionStatus: getGPSPositionStatus(data.gpsPositionStatus)
+    gpsPositionStatus: getGPSPositionStatus(data.gpsPositionStatus),
   }
   return data
 }

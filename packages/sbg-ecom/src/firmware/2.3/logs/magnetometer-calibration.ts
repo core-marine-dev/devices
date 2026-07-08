@@ -11,7 +11,7 @@ export const SBG_ECOM_LOG_MAG_CALIB = (payload: Buffer): SBGFrameNameData => {
   const data = {
     timestamp: payload.readUIntLE(0, 4),
     reserved: payload.readUIntLE(4, 2),
-    buffer: payload.subarray(6, 22)
+    buffer: payload.subarray(6, 22),
   }
   return { name, data }
 }

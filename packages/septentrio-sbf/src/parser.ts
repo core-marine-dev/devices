@@ -1,4 +1,5 @@
 import { wnTowToGpsTimestamp } from 'gpstime'
+
 import {
   BODY_INDEX,
   CRC_INDEX,
@@ -11,7 +12,7 @@ import {
   LENGTH_LENGTH,
   MINIMAL_FRAME_LENGTH,
   SYNC_FLAG_BUFFER, TIME_LENGTH, TOW_INDEX, TOW_LENGTH, TWO_BYTES_MAX, WNC_INDEX, WNC_LENGTH,
-  SBF_PARSING_STATUS
+  SBF_PARSING_STATUS,
 } from './constants'
 import { getFirmareParser, getFirmwares, isAvailableFirmware, throwFirmwareError } from './firmware'
 import type { Firmware, SBFBodyData, SBFBodyDataParser, SBFHeader, SBFID, SBFResponse, SBFTime, SeptentrioParser, SBFParsingStatus } from './types'
@@ -20,11 +21,11 @@ import { computedCRC } from './utils'
 export class Parser implements SeptentrioParser {
   // Internal Buffer
   protected _buffer: Buffer = Buffer.from([])
-  get bufferLength (): typeof this._buffer.byteLength { return this._buffer.byteLength }
+  get bufferLength(): typeof this._buffer.byteLength { return this._buffer.byteLength }
 
   protected _bufferLimit: number = TWO_BYTES_MAX
-  get bufferLimit (): typeof this._bufferLimit { return this._bufferLimit }
-  set bufferLimit (limit: number) {
+  get bufferLimit(): typeof this._bufferLimit { return this._bufferLimit }
+  set bufferLimit(limit: number) {
     if (isNaN(limit)) throw new Error('limit has to be a number')
     if (!Number.isInteger(limit)) throw new Error('limit has to be a number')
     if (limit < 0) throw new Error('limit has to be a positive integer')
@@ -38,8 +39,8 @@ export class Parser implements SeptentrioParser {
   // Firmware
   protected _firmware: Firmware = '4.10.1'
   protected _parser: SBFBodyDataParser = getFirmareParser(this._firmware) as SBFBodyDataParser
-  get firmware (): typeof this._firmware { return this._firmware }
-  set firmware (fw: Firmware) {
+  get firmware(): typeof this._firmware { return this._firmware }
+  set firmware(fw: Firmware) {
     if (typeof fw !== 'string') throw new Error('firmware has to be a string')
     if (!isAvailableFirmware(fw)) throwFirmwareError(fw)
     this._firmware = fw
@@ -53,37 +54,39 @@ export class Parser implements SeptentrioParser {
 
   // Memory
   protected _memory: boolean = false
-  get memory (): typeof this._memory { return this._memory }
-  set memory (mem: boolean) {
+  get memory(): typeof this._memory { return this._memory }
+  set memory(mem: boolean) {
     if (typeof mem !== 'boolean') throw new Error('memory has to be boolean')
     this._memory = mem
   }
 
-  constructor (firmware: Firmware = '4.10.1', memory: boolean = false) {
+  constructor(firmware: Firmware = '4.10.1', memory: boolean = false) {
     this.firmware = firmware
     this.memory = memory
   }
 
-  getAvailableFirmwares (): Firmware[] {
+  getAvailableFirmwares(): Firmware[] {
     return getFirmwares()
   }
 
-  addData (data: Buffer): void {
+  addData(data: Buffer): void {
     // Check input data is Buffer
-    if (!Buffer.isBuffer(data)) { throw new Error('data has to be a Buffer') }
+    if (!Buffer.isBuffer(data)) {
+      throw new Error('data has to be a Buffer')
+    }
     // Add data
     this._buffer = (this._memory) ? Buffer.concat([this._buffer, data]) : data
     // Parse data
     this._parseData()
   }
 
-  parseData (): SBFResponse[] {
+  parseData(): SBFResponse[] {
     const frames = structuredClone(this._frames)
     this._frames = []
     return frames
   }
 
-  protected _parseData (): void {
+  protected _parseData(): void {
     const frames = [] as SBFResponse[]
     let pivot = 0
     // Get last Index
@@ -125,7 +128,7 @@ export class Parser implements SeptentrioParser {
     this.setBuffer()
   }
 
-  protected getSBFFrame (buffer: Buffer): { status: SBFParsingStatus, frame: SBFResponse } {
+  protected getSBFFrame(buffer: Buffer): { status: SBFParsingStatus, frame: SBFResponse } {
     let status: SBFParsingStatus = SBF_PARSING_STATUS.OK
     // @ts-expect-error will be completed in the next lines
     const sbfFrame: SBFResponse = {}
@@ -168,7 +171,7 @@ export class Parser implements SeptentrioParser {
     return { status, frame: sbfFrame }
   }
 
-  protected getNumberVersion (id: Buffer): SBFID {
+  protected getNumberVersion(id: Buffer): SBFID {
     // ID = 16 bits = 2 bytes
     // 00-12 bits -> block number
     // 13-15 bits -> block version
@@ -179,18 +182,18 @@ export class Parser implements SeptentrioParser {
     const revision = Buffer.from([revisionByte]).readUIntLE(0, 1)
     return {
       blockNumber: number,
-      blockRevision: revision
+      blockRevision: revision,
     }
   }
 
-  protected getCalculatecCRC (frame: Buffer, bodyLength: number): number {
+  protected getCalculatecCRC(frame: Buffer, bodyLength: number): number {
     const start = ID_INDEX
     const end = BODY_INDEX + bodyLength
     const rawData = frame.subarray(start, end)
     return computedCRC(rawData)
   }
 
-  protected getHeader (data: Buffer): SBFHeader {
+  protected getHeader(data: Buffer): SBFHeader {
     // 00-01 bytes -> Sync    char
     // 02-03 bytes -> CRC     uint16 LE
     // 04-05 bytes -> ID      uint16 LE
@@ -204,7 +207,7 @@ export class Parser implements SeptentrioParser {
     return { sync, crc, id, length }
   }
 
-  protected getTime (data: Buffer): SBFTime {
+  protected getTime(data: Buffer): SBFTime {
     // 08-11 bytes -> TOW     uint32 LE | Do-Not-Use = 4294967295
     // 12-13 bytes -> WNc     uint16 LE | Do-Not-Use = 65535
     // 14-.. bytes -> Body
@@ -214,7 +217,7 @@ export class Parser implements SeptentrioParser {
       tow: (tow !== DO_NOT_USE_TOW) ? tow : null,
       wnc: (wnc !== DO_NOT_USE_WNC) ? wnc : null,
       timestamp: null,
-      date: null
+      date: null,
     }
     if (time.tow !== null && time.wnc !== null) {
       const date = wnTowToGpsTimestamp(wnc, tow)
@@ -224,17 +227,17 @@ export class Parser implements SeptentrioParser {
     return time
   }
 
-  protected getBodyData (blockNumber: number, blockRevision: number, payload: Buffer): SBFBodyData {
+  protected getBodyData(blockNumber: number, blockRevision: number, payload: Buffer): SBFBodyData {
     return this._parser(blockNumber, blockRevision, payload)
   }
 
-  protected updateFrames (frames: SBFResponse[]): void {
+  protected updateFrames(frames: SBFResponse[]): void {
     if (frames.length > 0) {
       this._frames = (this._memory) ? this._frames.concat(frames) : frames
     }
   }
 
-  protected setBuffer (): void {
+  protected setBuffer(): void {
     if (this._buffer.length > this._bufferLimit) {
       this._buffer = this._buffer.subarray(-this._bufferLimit)
     }

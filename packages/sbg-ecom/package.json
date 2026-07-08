@@ -47,26 +47,13 @@
   },
   "scripts": {
     "build": "pnpm run format && tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "crc": "^4.3.2"
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "examples"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
   },
   "devDependencies": {
     "@schemasjs/valibot-numbers": "^1.0.17"

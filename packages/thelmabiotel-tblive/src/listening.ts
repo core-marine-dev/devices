@@ -9,7 +9,7 @@ export const parsePing = (input: string, timestamp: Timestamp): ParsedSentence =
     timestamp,
     firmware: '1.0.2',
     mode: 'listening',
-    payload: []
+    payload: [],
   }
   const sn = input.replace(PING_START, '').replace(PING_END, '').trim()
   const number = Number(sn)
@@ -27,7 +27,7 @@ export const parsePing = (input: string, timestamp: Timestamp): ParsedSentence =
     type: 'uint16',
     value,
     description: 'Receiver serial number',
-    errors: errors.length > 0 ? errors : undefined
+    errors: errors.length > 0 ? errors : undefined,
   })
 
   if (errors.length > 0) {
@@ -48,8 +48,8 @@ export const parseClockRound = (input: string, timestamp: Timestamp): ParsedSent
       raw: ack,
       name: 'clock round ack',
       type: 'string',
-      value: ack
-    }]
+      value: ack,
+    }],
   }
 }
 // 05. Clock Set
@@ -65,8 +65,8 @@ export const parseClockSet = (input: string, timestamp: Timestamp): ParsedSenten
       raw: ack,
       name: 'clock set ack',
       type: 'string',
-      value: ack
-    }]
+      value: ack,
+    }],
   }
 }
 // 06. Listening
@@ -80,6 +80,6 @@ export const parseListening = (input: string, timestamp: Timestamp): ParsedSente
     raw: input,
     name: 'listening command',
     type: 'string',
-    value: input
-  }]
+    value: input,
+  }],
 })

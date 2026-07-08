@@ -9,17 +9,23 @@ import type { MapStoredSentences, NMEALike, NMEAParser, NMEASentence, ProtocolOu
 export class Parser implements NMEAParser {
   // Memory - Buffer
   protected _memory: boolean = true
-  get memory (): typeof this._memory { return this._memory }
-  set memory (mem: boolean) { this._memory = BooleanSchema.parse(mem) }
+  get memory(): typeof this._memory {
+    return this._memory
+  }
+
+  set memory(mem: boolean) { this._memory = BooleanSchema.parse(mem) }
   protected _buffer: string = ''
   protected _bufferLength: number = MAX_CHARACTERS
-  get bufferLimit (): typeof this._bufferLength { return this._bufferLength }
-  set bufferLimit (limit: number) { this._bufferLength = UnsignedIntegerSchema.parse(limit) }
+  get bufferLimit(): typeof this._bufferLength {
+    return this._bufferLength
+  }
+
+  set bufferLimit(limit: number) { this._bufferLength = UnsignedIntegerSchema.parse(limit) }
   // Sentences
   protected _sentences: MapStoredSentences = new Map()
   // get sentences() { return this._sentences }
 
-  constructor (memory: boolean = false, limit: number = MAX_CHARACTERS) {
+  constructor(memory: boolean = false, limit: number = MAX_CHARACTERS) {
     this.memory = memory
     this.bufferLimit = limit
     // add NMEA standard frames
@@ -27,19 +33,19 @@ export class Parser implements NMEAParser {
   }
 
   // Mandatory --------------------------------------------------------------------------------------------------------
-  private readInternalProtocols (): void {
+  private readInternalProtocols(): void {
     const parsed = ProtocolsInputSchema.parse(NMEA_SENTENCES)
     this.addProtocols(parsed)
   }
 
-  private readProtocols (input: ProtocolsInput): ProtocolsFileContent {
+  private readProtocols(input: ProtocolsInput): ProtocolsFileContent {
     if (input.file !== undefined) return readProtocolsYAMLFile(input.file)
     if (input.content !== undefined) return readProtocolsYAMLString(input.content)
     if (input.protocols !== undefined) return { protocols: input.protocols }
     throw new Error('Invalid protocols to add')
   }
 
-  addProtocols (input: ProtocolsInput): void {
+  addProtocols(input: ProtocolsInput): void {
     if (!ProtocolsInputSchema.is(input)) {
       const error = 'Parser: invalid protocols to parse'
       console.error(error)
@@ -53,13 +59,13 @@ export class Parser implements NMEAParser {
     this._sentences = new Map([...this._sentences, ...sentences])
   }
 
-  parseData (text: string): NMEASentence[] {
+  parseData(text: string): NMEASentence[] {
     if (!StringSchema.is(text)) return []
     const data = (this.memory) ? this._buffer + text : text
     return this.getFrames(data)
   }
 
-  private getFrames (text: string): NMEASentence[] {
+  private getFrames(text: string): NMEASentence[] {
     if (this._memory) {
       const lastFrame = lastUncompletedFrame(text)
       if (lastFrame !== null) {
@@ -67,10 +73,10 @@ export class Parser implements NMEAParser {
       }
     }
     const unparsedFrames = getUnparsedNMEAFrames(text)
-    return unparsedFrames.map(frame => this.getFrame(frame))
+    return unparsedFrames.map((frame) => this.getFrame(frame))
   }
 
-  private getFrame (text: NMEALike): NMEASentence {
+  private getFrame(text: NMEALike): NMEASentence {
     const received = Date.now()
     const { id: sentenceID, payload: pl, checksum: cs } = getIdPayloadAndChecksum(text)
     const checksum = getChecksum(cs)
@@ -78,7 +84,9 @@ export class Parser implements NMEAParser {
     // Known NMEA sentence
     if (sentence !== undefined) {
       const response = getKnownNMEASentence({ received, sample: text, sentenceID, sentencePayload: pl, checksum, model: sentence })
-      if (response !== null) { return response }
+      if (response !== null) {
+        return response
+      }
     }
     // Known NMEA sentence with Talker
     const talker = getTalker(sentenceID)
@@ -87,7 +95,9 @@ export class Parser implements NMEAParser {
       const talkerSentence = this._sentences.get(id)
       if (talkerSentence !== undefined) {
         const response = getKnownNMEASentence({ received, sample: text, sentenceID: id, sentencePayload: pl, checksum, model: talkerSentence })
-        if (response !== null) { return { ...response, talker } }
+        if (response !== null) {
+          return { ...response, talker }
+        }
       }
     }
     // Unknown NMEA sentence
@@ -96,11 +106,11 @@ export class Parser implements NMEAParser {
   }
 
   // Nice to have -----------------------------------------------------------------------------------------------------
-  getSentences (): StoredSentence[] {
+  getSentences(): StoredSentence[] {
     return Array.from(this._sentences.values())
   }
 
-  getSentencesByProtocol (): ProtocolOutput {
+  getSentencesByProtocol(): ProtocolOutput {
     const sentences = this.getSentences()
     // return Object.groupBy(sentences, (sentence: StoredSentence) => sentence.protocol.name)
     const response: ProtocolOutput = {}
@@ -114,29 +124,43 @@ export class Parser implements NMEAParser {
     return response
   }
 
-  getSentence (id: string): Sentence | null {
-    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) { return null }
+  getSentence(id: string): Sentence | null {
+    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) {
+      return null
+    }
     const sentence = this._sentences.get(id)
-    if (sentence !== undefined) { return { ...sentence } }
+    if (sentence !== undefined) {
+      return { ...sentence }
+    }
     const talker = getTalker(id)
-    if (talker === null) { return null }
+    if (talker === null) {
+      return null
+    }
     const sentenceID = id.slice(talker.value.length)
     const sent = this._sentences.get(sentenceID)
-    if (sent !== undefined) { return { ...sent, talker } }
+    if (sent !== undefined) {
+      return { ...sent, talker }
+    }
     return null
   }
 
-  getFakeSentenceByID (id: string): NMEALike | null {
-    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) { return null }
+  getFakeSentenceByID(id: string): NMEALike | null {
+    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) {
+      return null
+    }
     // No Talker
     const sentence = this._sentences.get(id)
-    if (sentence !== undefined) { return createFakeSentence(sentence) }
+    if (sentence !== undefined) {
+      return createFakeSentence(sentence)
+    }
     // Talker
     const talker = getTalker(id)
     if (talker !== null) {
       const sentenceID = id.slice(talker.value.length)
       const sent = this._sentences.get(sentenceID)
-      if (sent !== undefined) { return createFakeSentence(sent, talker.value) }
+      if (sent !== undefined) {
+        return createFakeSentence(sent, talker.value)
+      }
     }
     return null
   }

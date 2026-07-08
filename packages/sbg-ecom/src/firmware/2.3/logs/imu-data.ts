@@ -56,7 +56,7 @@ const getIMUStatus = (imuStatus: number): IMUStatus => {
     gyroY: bitStatus(imuStatus, 6),
     gyroZ: bitStatus(imuStatus, 7),
     accelerationsInRange: bitStatus(imuStatus, 8),
-    gyrosInRange: bitStatus(imuStatus, 9)
+    gyrosInRange: bitStatus(imuStatus, 9),
   }
 }
 
@@ -78,10 +78,10 @@ export const SBG_ECOM_LOG_IMU_DATA = (payload: Buffer): SBGFrameNameData => {
     deltaAngleX: payload.readFloatLE(46),
     deltaAngleY: payload.readFloatLE(50),
     deltaAngleZ: payload.readFloatLE(54),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    imuStatus: getIMUStatus(data.imuStatus)
+    imuStatus: getIMUStatus(data.imuStatus),
   }
   return { name, data }
 }

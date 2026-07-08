@@ -23,7 +23,7 @@ interface DepthStatus {
 const getDepthStatus = (depthStatus: number): DepthStatus => ({
   SBG_ECOM_DEPTH_TIME_IS_DELAY: bitStatus(depthStatus, 0),
   SBG_ECOM_DEPTH_PRESSURE_ABS_VALID: bitStatus(depthStatus, 1),
-  SBG_ECOM_DEPTH_ALTITUDE_VALID: bitStatus(depthStatus, 1)
+  SBG_ECOM_DEPTH_ALTITUDE_VALID: bitStatus(depthStatus, 1),
 })
 
 export const SBG_ECOM_LOG_DEPTH = (payload: Buffer): SBGFrameNameData => {
@@ -33,10 +33,10 @@ export const SBG_ECOM_LOG_DEPTH = (payload: Buffer): SBGFrameNameData => {
     depthStatus: payload.readUIntLE(4, 2),
     pressureAbsolute: payload.readFloatLE(6),
     depth: payload.readFloatLE(10),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    odometerStatus: getDepthStatus(data.depthStatus)
+    odometerStatus: getDepthStatus(data.depthStatus),
   }
   return { name, data }
 }

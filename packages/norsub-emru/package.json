@@ -46,8 +46,8 @@
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/norsub.yaml ./src/norsub.ts",
     "build": "pnpm run format && tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
@@ -58,18 +58,5 @@
   },
   "peerDependencies": {
     "valibot": ">=1.0.0"
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "yaml-to-json.js"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
   }
 }

@@ -16,7 +16,7 @@ export const FIELD_TYPES = [
   // Strings
   'string',
   // Boolean
-  'boolean' // 'bool'
+  'boolean', // 'bool'
 ] as const
 
 // NMEA
@@ -135,12 +135,12 @@ export const TALKERS = [
   ['ZA', 'Timekeeper - Atomic Clock'],
   ['ZC', 'Timekeeper - Chronometer'],
   ['ZQ', 'Timekeeper - Quartz'],
-  ['ZV', 'Timekeeper - Radio Update, WWV or WWVH']
+  ['ZV', 'Timekeeper - Radio Update, WWV or WWVH'],
 ] as const
 
 export const TALKERS_SPECIAL = {
   P: 'Vendor specific',
-  U: 'U# where \'#\' is a digit 0 …​ 9; User Configured'
+  U: 'U# where \'#\' is a digit 0 …​ 9; User Configured',
 }
 
 // GENERATE ASCII STRING
@@ -150,7 +150,7 @@ export const CODE = {
   a: 'a'.charCodeAt(0),
   z: 'z'.charCodeAt(0),
   0: '0'.charCodeAt(0),
-  9: '9'.charCodeAt(0)
+  9: '9'.charCodeAt(0),
 } as const
 
 // GENERATE NUMBERS
@@ -175,7 +175,7 @@ export const UNKNOWN_NMEA_SENTENCE_SCAFOLDING = {
   id: 'unknown',
   protocol: {
     name: 'unknown',
-    standard: false
+    standard: false,
   },
-  description: 'unknown nmea sentence'
+  description: 'unknown nmea sentence',
 }

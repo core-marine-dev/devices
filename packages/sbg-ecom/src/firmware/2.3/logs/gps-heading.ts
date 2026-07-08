@@ -25,6 +25,7 @@ import { bitStatus } from '../../../utils'
  *   2   SBG_ECOM_HDT_INTERNAL_ERROR    An internal error has occurred.
  *   3   SBG_ECOM_HDT_HEIGHT_LIMIT      The height limit has been exceeded.
 */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used as typeof STATUSES[number] for type inference
 const STATUSES = ['SBG_ECOM_HDT_SOL_COMPUTED', 'SBG_ECOM_HDT_INSUFFICIENT_OBS', 'SBG_ECOM_HDT_INTERNAL_ERROR', 'SBG_ECOM_HDT_HEIGHT_LIMIT', 'UNKNOWN'] as const
 type Status = typeof STATUSES[number]
 
@@ -43,7 +44,7 @@ interface GPSHeadingStatus {
 
 const getGPSHeadingStatus = (gpsHeadingStatus: number): GPSHeadingStatus => ({
   status: getStatus(gpsHeadingStatus),
-  headingBaseline: bitStatus(gpsHeadingStatus, 6)
+  headingBaseline: bitStatus(gpsHeadingStatus, 6),
 })
 
 const SBG_ECOM_LOG_GPS_HDT = (payload: Buffer): object => {
@@ -56,10 +57,10 @@ const SBG_ECOM_LOG_GPS_HDT = (payload: Buffer): object => {
     pitch: payload.readFloatLE(18),
     pitchAccuracy: payload.readFloatLE(22),
     baseline: payload.readFloatLE(26),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    gpsHeadingStatus: getGPSHeadingStatus(data.gpsHeadingStatus)
+    gpsHeadingStatus: getGPSHeadingStatus(data.gpsHeadingStatus),
   }
   return data
 }

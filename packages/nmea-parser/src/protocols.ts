@@ -1,5 +1,7 @@
-import yaml from 'js-yaml'
 import fs from 'node:fs'
+
+import yaml from 'js-yaml'
+
 import { ProtocolsFileContentSchema, StringSchema } from './schemas'
 import type { MapStoredSentences, Protocol, ProtocolsFileContent, StoredSentence } from './types'
 
@@ -30,7 +32,7 @@ const getStoreSentencesFromProtocol = (protocol: Protocol): MapStoredSentences =
       id: element.id,
       payload: element.payload,
       protocol: { name, standard, version },
-      description: element?.description
+      description: element?.description,
     }
     storedSentences.set(element.id, obj)
   }

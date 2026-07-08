@@ -1,5 +1,6 @@
-import type { SBGFrameNameData } from '../../../types'
 import { getSolutionStatus } from './utils'
+
+import type { SBGFrameNameData } from '../../../types'
 /* Message ID 07 -> SBG_ECOM_LOG_EKF_QUAT => Includes the 4 quaternions values
  * Field            Offset  Size  Format  Unit  Description
  * TIME_STAMP            0     4  uint32    µs  Time since sensor is powered up
@@ -57,10 +58,10 @@ export const SBG_ECOM_LOG_EKF_QUAT = (payload: Buffer): SBGFrameNameData => {
     pitchAcceleration: payload.readFloatLE(24),
     yawAcceleration: payload.readFloatLE(28),
     solutionStatus: payload.readUIntLE(32, 4),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    solutionStatus: getSolutionStatus(data.solutionStatus)
+    solutionStatus: getSolutionStatus(data.solutionStatus),
   }
   return { name, data }
 }

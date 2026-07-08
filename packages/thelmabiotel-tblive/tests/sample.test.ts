@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { EMITTER_ANGLE_AVERAGE_BIT_LENGTH, EMITTER_ANGLE_AVERAGE_FACTOR, EMITTER_ANGLE_DEVIATION_FACTOR, SAMPLE_END, SAMPLE_START } from '../src/constants'
 import { parseSample } from '../src/sample'
 import { getLineAngle, getLineSNR, getLinesTemperature } from '../src/utils'
@@ -14,14 +15,14 @@ describe('sample()', () => {
     degrees: 15.3,
     value: Number.parseInt((15.3 * EMITTER_ANGLE_AVERAGE_FACTOR).toFixed(0)),
   }
-  
+
   const deviation = {
     degrees: 1.25,
     value: Number.parseInt((1.25 * EMITTER_ANGLE_DEVIATION_FACTOR).toFixed(0)),
   }
 
   const angle = average.value + (deviation.value << EMITTER_ANGLE_AVERAGE_BIT_LENGTH)
-  
+
   const emitter = {
     receiver: '1000042',
     protocol: 'S64K',
@@ -30,18 +31,18 @@ describe('sample()', () => {
       raw: angle.toString(),
       value: angle,
       average,
-      deviation
+      deviation,
     },
     snr: getLineSNR(24),
     frequency: 69,
-    sent: 11
+    sent: 11,
   }
 
   const receiver = {
     receiver: '1000042',
     log: 'TBR Sensor',
     temperature: {
-      raw: "297",
+      raw: '297',
       value: 297,
       celsius: getLinesTemperature(297).celsius,
     },
@@ -59,6 +60,7 @@ describe('sample()', () => {
 
     test('happy path', () => {
       const result = parseSample(input, Date.now())
+      // eslint-disable-next-line sonarjs/no-unused-vars -- intentionally discarded
       const { timestamp: _timestamp, ...resultWithoutTimestamp } = result
       const expected = {
         raw: input,
@@ -80,34 +82,34 @@ describe('sample()', () => {
           { raw: emitter.angle.raw, name: 'angle', type: 'uint16', value: emitter.angle.value, metadata: {
             raw: emitter.angle.value,
             average: { raw: emitter.angle.average.value, degrees: emitter.angle.average.degrees },
-            deviation: { raw: emitter.angle.deviation.value, degrees: emitter.angle.deviation.degrees }
+            deviation: { raw: emitter.angle.deviation.value, degrees: emitter.angle.deviation.degrees },
           } },
           // SNR
           { raw: emitter.snr.raw.toString(), name: 'snr', type: 'uint8', value: emitter.snr.raw, metadata: { ...emitter.snr } },
           // Frequency
           { raw: emitter.frequency.toString(), name: 'frequency', type: 'uint8', value: emitter.frequency, units: 'kHz', description: 'Frequency has to be bound between 63 - 77 kHz' },
           // Sent
-          { raw: emitter.sent.toString(), name: 'sent', type: 'uint32', value: emitter.sent }
+          { raw: emitter.sent.toString(), name: 'sent', type: 'uint32', value: emitter.sent },
         ],
-        metadata : {
-          timestamp : {
-            value : Number(`${seconds}${milliseconds}`),
-            date : new Date(Number(`${seconds}${milliseconds}`)).toISOString()
+        metadata: {
+          timestamp: {
+            value: Number(`${seconds}${milliseconds}`),
+            date: new Date(Number(`${seconds}${milliseconds}`)).toISOString(),
           },
-          receiver : Number(emitter.receiver),
-          emitter : Number(emitter.emitter),
-          angle : { ...getLineAngle(emitter.angle.value) },
-          snr : { ...emitter.snr },
-        }
+          receiver: Number(emitter.receiver),
+          emitter: Number(emitter.emitter),
+          angle: { ...getLineAngle(emitter.angle.value) },
+          snr: { ...emitter.snr },
+        },
       }
       expect(resultWithoutTimestamp).toEqual(expected)
     })
 
     test('errors', () => {
       const input = `${SAMPLE_START}R01,abc,500,A69,T01,456,22,69,123${SAMPLE_END}`
-      
+
       const result = parseSample(input, Date.now())
-      
+
       expect(result.errors).toBeDefined()
       expect(result.errors?.length).toBeGreaterThan(0)
       expect(result.errors).toContain('seconds field is not a positive integer: abc')
@@ -122,6 +124,7 @@ describe('sample()', () => {
 
     test('happy path', () => {
       const result = parseSample(input, Date.now())
+      // eslint-disable-next-line sonarjs/no-unused-vars -- intentionally discarded
       const { timestamp: _timestamp, ...resultWithoutTimestamp } = result
       const expected = {
         raw: input,
@@ -143,37 +146,36 @@ describe('sample()', () => {
           { raw: emitter.angle.raw, name: 'angle', type: 'uint16', value: emitter.angle.value, metadata: {
             raw: emitter.angle.value,
             average: { raw: emitter.angle.average.value, degrees: emitter.angle.average.degrees },
-            deviation: { raw: emitter.angle.deviation.value, degrees: emitter.angle.deviation.degrees }
+            deviation: { raw: emitter.angle.deviation.value, degrees: emitter.angle.deviation.degrees },
           } },
           // SNR
           { raw: emitter.snr.raw.toString(), name: 'snr', type: 'uint8', value: emitter.snr.raw, metadata: { ...emitter.snr } },
           // Frequency
-          { raw: emitter.frequency.toString(), name: 'frequency', type: 'uint8', value: emitter.frequency, units: 'kHz', description: 'Frequency has to be bound between 63 - 77 kHz' }
+          { raw: emitter.frequency.toString(), name: 'frequency', type: 'uint8', value: emitter.frequency, units: 'kHz', description: 'Frequency has to be bound between 63 - 77 kHz' },
         ],
-        metadata : {
-          timestamp : {
-            value : Number(`${seconds}${milliseconds}`),
-            date : new Date(Number(`${seconds}${milliseconds}`)).toISOString()
+        metadata: {
+          timestamp: {
+            value: Number(`${seconds}${milliseconds}`),
+            date: new Date(Number(`${seconds}${milliseconds}`)).toISOString(),
           },
-          receiver : Number(emitter.receiver),
-          emitter : Number(emitter.emitter),
-          angle : { ...getLineAngle(emitter.angle.value) },
-          snr : { ...emitter.snr },
-        }
+          receiver: Number(emitter.receiver),
+          emitter: Number(emitter.emitter),
+          angle: { ...getLineAngle(emitter.angle.value) },
+          snr: { ...emitter.snr },
+        },
       }
       expect(resultWithoutTimestamp).toEqual(expected)
     })
 
     test('errors', () => {
       const input = `${SAMPLE_START}R02,1686124048,-501,A69,T02,457,23,70${SAMPLE_END}`
-      
+
       const result = parseSample(input, Date.now())
-      
+
       expect(result.errors).toBeDefined()
       expect(result.errors?.length).toBeGreaterThan(0)
       expect(result.errors).toContain('milliseconds field is not a positive integer: -501')
     })
-
   })
 
   describe('receiver101', () => {
@@ -184,6 +186,7 @@ describe('sample()', () => {
 
     test('happy path', () => {
       const result = parseSample(input, Date.now())
+      // eslint-disable-next-line sonarjs/no-unused-vars -- intentionally discarded
       const { timestamp: _timestamp, ...resultWithoutTimestamp } = result
       const expected = {
         raw: input,
@@ -206,34 +209,33 @@ describe('sample()', () => {
           // Frequency
           { raw: receiver.frequency.toString(), name: 'frequency', type: 'uint8', value: receiver.frequency, units: 'kHz', description: 'frequency has to be bound between 63 - 77 kHz' },
           // Sent
-          { raw: receiver.sent.toString(), name: 'sent', type: 'uint32', value: receiver.sent }
+          { raw: receiver.sent.toString(), name: 'sent', type: 'uint32', value: receiver.sent },
         ],
-        metadata : {
-          timestamp : {
-            value : Number(`${seconds}000`),
-            date : new Date(Number(`${seconds}000`)).toISOString()
+        metadata: {
+          timestamp: {
+            value: Number(`${seconds}000`),
+            date: new Date(Number(`${seconds}000`)).toISOString(),
           },
-          receiver : Number(receiver.receiver),
-          noise : {
-            average : receiver.noiseAverage,
-            peak : receiver.noisePeak
+          receiver: Number(receiver.receiver),
+          noise: {
+            average: receiver.noiseAverage,
+            peak: receiver.noisePeak,
           },
-          temperature: { ...getLinesTemperature(receiver.temperature.value) }
-        }
+          temperature: { ...getLinesTemperature(receiver.temperature.value) },
+        },
       }
       expect(resultWithoutTimestamp).toEqual(expected)
     })
 
     test('errors', () => {
       const input = `${SAMPLE_START}R03,1686124049,TBR Sensor,temp,10,15,70,124${SAMPLE_END}`
-      
+
       const result = parseSample(input, Date.now())
-      
+
       expect(result.errors).toBeDefined()
       expect(result.errors?.length).toBeGreaterThan(0)
       expect(result.errors).toContain('temperature field is not an integer: temp')
     })
-
   })
 
   describe('receiver102', () => {
@@ -244,6 +246,7 @@ describe('sample()', () => {
 
     test('happy path', () => {
       const result = parseSample(input, Date.now())
+      // eslint-disable-next-line sonarjs/no-unused-vars -- intentionally discarded
       const { timestamp: _timestamp, ...resultWithoutTimestamp } = result
       const expected = {
         raw: input,
@@ -266,32 +269,31 @@ describe('sample()', () => {
           // Frequency
           { raw: receiver.frequency.toString(), name: 'frequency', type: 'uint8', value: receiver.frequency, units: 'kHz', description: 'frequency has to be bound between 63 - 77 kHz' },
         ],
-        metadata : {
-          timestamp : {
-            value : Number(`${seconds}000`),
-            date : new Date(Number(`${seconds}000`)).toISOString()
+        metadata: {
+          timestamp: {
+            value: Number(`${seconds}000`),
+            date: new Date(Number(`${seconds}000`)).toISOString(),
           },
-          receiver : Number(receiver.receiver),
-          noise : {
-            average : receiver.noiseAverage,
-            peak : receiver.noisePeak
+          receiver: Number(receiver.receiver),
+          noise: {
+            average: receiver.noiseAverage,
+            peak: receiver.noisePeak,
           },
-          temperature: { ...getLinesTemperature(receiver.temperature.value) }
-        }
+          temperature: { ...getLinesTemperature(receiver.temperature.value) },
+        },
       }
       expect(resultWithoutTimestamp).toEqual(expected)
     })
 
     test('errors', () => {
       const input = `${SAMPLE_START}R04,1686124050,TBR Status,66,11,NaN,71${SAMPLE_END}`
-      
+
       const result = parseSample(input, Date.now())
-      
+
       expect(result.errors).toBeDefined()
       expect(result.errors?.length).toBeGreaterThan(0)
       expect(result.errors).toContain('noise_peak field is not a positive integer: NaN')
     })
-
   })
 
   describe('unknown format', () => {
@@ -299,22 +301,21 @@ describe('sample()', () => {
     const firmware = 'unknown'
     test('should handle unknown sample format', () => {
       const input = `${SAMPLE_START}R05,1686124051,600,A69,T05${SAMPLE_END}`
-      
+
       const result = parseSample(input, Date.now())
+      // eslint-disable-next-line sonarjs/no-unused-vars -- intentionally discarded
       const { timestamp: _timestamp, ...resultWithoutTimestamp } = result
-      
+
       const expected = {
         raw: input,
         id,
         firmware,
         mode,
         payload: [],
-        errors: [`unknown sample sentence with 5 fields\n${input}`]
+        errors: [`unknown sample sentence with 5 fields\n${input}`],
       }
 
       expect(resultWithoutTimestamp).toEqual(expected)
     })
   })
-
 })
-

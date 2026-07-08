@@ -7,12 +7,12 @@ export const getLineAngle = (data: number): { raw: number, average: { raw: numbe
     raw: data,
     average: {
       raw: angle,
-      degrees: Number.parseFloat((angle / EMITTER_ANGLE_AVERAGE_FACTOR).toFixed(1))
+      degrees: Number.parseFloat((angle / EMITTER_ANGLE_AVERAGE_FACTOR).toFixed(1)),
     },
     deviation: {
       raw: deviation,
-      degrees: Number.parseFloat((deviation / EMITTER_ANGLE_DEVIATION_FACTOR).toFixed(2))
-    }
+      degrees: Number.parseFloat((deviation / EMITTER_ANGLE_DEVIATION_FACTOR).toFixed(2)),
+    },
   }
 }
 
@@ -24,5 +24,5 @@ export const getLineSNR = (snr: number): { raw: number, signal: 'strong' | 'regu
 
 export const getLinesTemperature = (temperature: number): { raw: number, celsius: number } => ({
   raw: temperature,
-  celsius: Number.parseFloat(((temperature - 50) / 10).toFixed(1))
+  celsius: Number.parseFloat(((temperature - 50) / 10).toFixed(1)),
 })
