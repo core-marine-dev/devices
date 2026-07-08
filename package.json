@@ -93,6 +93,6 @@
     "vitest": "4.1.10"
   },
   "peerDependencies": {
-    "valibot": ">=1.0.0"
+    "valibot": "1.4.2"
   }
 }

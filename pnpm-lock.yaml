@@ -20,7 +20,7 @@ importers:
   .:
     dependencies:
       valibot:
-        specifier: '>=1.0.0'
+        specifier: 1.4.2
         version: 1.4.2(typescript@6.0.3)
     devDependencies:
       '@stylistic/eslint-plugin':
@@ -109,7 +109,7 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(valibot@1.4.2(typescript@6.0.3))
       valibot:
-        specifier: '>=1.0.0'
+        specifier: 1.4.2
         version: 1.4.2(typescript@6.0.3)
 
   packages/norsub-emru-nodered:
@@ -158,7 +158,7 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(valibot@1.4.2(typescript@6.0.3))
       valibot:
-        specifier: '>=1.0.0'
+        specifier: 1.4.2
         version: 1.4.2(typescript@6.0.3)
 
   packages/thelmabiotel-tblive-nodered:
@@ -167,7 +167,7 @@ importers:
         specifier: workspace:^
         version: link:../thelmabiotel-tblive
       valibot:
-        specifier: '>=1.0.0'
+        specifier: 1.4.2
         version: 1.4.2(typescript@6.0.3)
 
 packages:
