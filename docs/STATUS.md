@@ -10,10 +10,11 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD not pushed) · Repo was idle
+> **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD `31b52c3`, pushed) · Repo was idle
 > 2025-12-15 → 2026-07-08.
 >
-> **Steps 1-3 complete + dependency refresh done.** Next: CMA rollout, Result pattern.
+> **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
+> Next: CMA rollout, Result pattern, strictness pass.
 
 ## How to use this doc
 
@@ -24,6 +25,7 @@
    - Per-package state + known issues: [`docs/PACKAGES.md`](PACKAGES.md)
    - The target output format: [`docs/CMA.md`](CMA.md)
    - Commands: [`docs/COMMANDS.md`](COMMANDS.md) · Stack/CI: [`docs/TOOLING.md`](TOOLING.md)
+   - Code style: [`docs/CodeStyle.md`](CodeStyle.md)
    - pnpm migration (done): [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md)
 3. Working method the user (cru) expects: **discuss decisions before coding, one step at a
    time; this repo feeds the Tracker product, so output-format changes are breaking changes.**
@@ -34,14 +36,19 @@ Refresh the whole monorepo in strokes:
 
 1. **CMA format rollout** — every parser emits the same output shape ([`docs/CMA.md`](CMA.md)).
    Today only `thelmabiotel-tblive` conforms.
-2. ~~**pnpm migration**~~ — ✅ DONE (2026-07-08). See [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md).
-3. ~~**Linter + formatter migration**~~ — ✅ DONE (2026-07-08). ESLint flat config with
-   @stylistic + sonarjs + perfectionist plugins (mirrors Tracker repo).
-4. ~~**Documentation**~~ — ✅ DONE (2026-07-08). `docs/CodeStyle.md` + AGENTS.md code-style
-   section + lint→tsc→test run order codified.
-5. ~~**Dependency refresh**~~ — ✅ DONE (2026-07-08). TypeScript 6.0.3, Vitest 4.x,
+2. ~~**pnpm migration**~~ — ✅ DONE (2026-07-08, `f6444c3`). See
+   [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md).
+3. ~~**Linter + formatter migration**~~ — ✅ DONE (2026-07-08, `21ad374`). ESLint flat config
+   with @stylistic + sonarjs + perfectionist plugins (mirrors Tracker repo).
+4. ~~**Documentation**~~ — ✅ DONE (2026-07-08, `055b6d4`). `docs/CodeStyle.md` + AGENTS.md
+   code-style section + lint→tsc→test run order codified.
+5. ~~**Dependency refresh**~~ — ✅ DONE (2026-07-08, `3bcc0d6`). TypeScript 6.0.3, Vitest 4.x,
    Valibot 1.4.2, @schemasjs/* latest, tsup 8.5.1 (patched), safe dep bumps.
-6. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
+6. ~~**Security audit + fixes**~~ — ✅ DONE (2026-07-08, `b505fc9` + `2d40a86` + `31b52c3`).
+   All 27 known vulnerabilities fixed (0 remaining). node-red 4→5, js-yaml bump, pnpm
+   overrides for transitive vulns, valibot pinned to 1.4.2 everywhere, rootDir added to
+   all per-package tsconfigs (TS 6 requirement).
+7. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
    Later track, after CMA.
 
 ## Done
@@ -68,7 +75,7 @@ Refresh the whole monorepo in strokes:
     also fixed a real one in `example_csv.ts` map keys) — lint + build clean;
     septentrio-sbf-nodered sibling bump `^1.0.1`; tblive-nodered expanded docker flows +
     its previously-untracked docker components mirror.
-- **2026-07-08 — pnpm migration (step 1 of refactor):**
+- **2026-07-08 — pnpm migration (step 1, `f6444c3`):**
   - Root `package.json`: `packageManager: pnpm@11.10.0`, dropped npm `workspaces` + `main`,
     rewrote ~36 proxy scripts to `pnpm --filter @coremarine/<pkg> run <action>`.
   - `.npmrc` (`engine-strict=true`) + `pnpm-workspace.yaml` (`strictDepBuilds: true` +
@@ -85,7 +92,7 @@ Refresh the whole monorepo in strokes:
   - Verified: all 5 builds pass, all 4 test suites with specs pass (nmea 60/60, septentrio
     54/54, tblive 134/134, norsub 8/8; sbg-ecom has no specs — pre-existing).
   - Docs updated: TOOLING, COMMANDS, PNPM-MIGRATION (marked done), CONTRIBUTING, AGENTS.
-- **2026-07-08 — ESLint flat config migration (step 2 of refactor):**
+- **2026-07-08 — ESLint flat config migration (step 2, `21ad374`):**
   - Root `eslint.config.js` with 4 plugins: typescript-eslint, @stylistic, eslint-plugin-sonarjs,
     eslint-plugin-perfectionist (mirrors Tracker repo). House style: no-semi, single-quotes,
     2-space, K&R braces, arrowParens: always. Sonar thresholds: max-lines-per-function 50,
@@ -108,7 +115,7 @@ Refresh the whole monorepo in strokes:
   - Verified: all 5 builds pass, all 4 test suites pass (nmea 60/60, septentrio 54/54,
     tblive 134/134, norsub 8/8). `pnpm lint` clean across the whole monorepo.
   - Docs updated: TOOLING (linting section), COMMANDS, CONTRIBUTING, AGENTS.
-- **2026-07-08 — documentation (step 3 of refactor):**
+- **2026-07-08 — documentation (step 3, `055b6d4`):**
   - `docs/CodeStyle.md` created — dev explainer with rationale + examples for: formatting,
     import groups, arrow functions, one-statement-per-line, small-function thresholds,
     validation & types (Valibot/SchemasJS), per-package five-file structure, tooling commands,
@@ -117,14 +124,14 @@ Refresh the whole monorepo in strokes:
   - `AGENTS.md` — added "Code style (enforced)" condensed checklist section (73 lines total,
     under the 80-line cap) + CodeStyle.md added to docs map.
   - `docs/STATUS.md` — updated to reflect step 3 done.
-- **2026-07-08 — dependency refresh (step 5 of refactor):**
+- **2026-07-08 — dependency refresh (step 5, `3bcc0d6`):**
   - **TypeScript 5.9.3 → 6.0.3.** Root `tsconfig.json` replaced the annotated starter template
     with a clean modern config: `moduleResolution: "bundler"`, `moduleDetection: "force"`,
     `types: ["node"]`, `noFallthroughCasesInSwitch`, `noImplicitOverride`. Per-package
     tsconfigs updated. `norsub-emru` needed `override` on `parseData()`.
   - **tsup 8.5.0 → 8.5.1 (patched).** tsup injects `baseUrl: "."` in its DTS build, which TS 6
-    deprecated (TS5101). Patched via `pnpm patch` to skip the injection when using
-    `moduleResolution: "bundler"` (see `patches/tsup@8.5.1.patch`).
+    deprecated (TS5101). Patched via `pnpm patch` to skip the injection (see
+    `patches/tsup@8.5.1.patch`).
   - **Vitest 3.2.4 → 4.1.10** + `@vitest/coverage-v8` 3.2.4 → 4.1.10. Zero code changes needed.
   - **Valibot** — `nmea-parser` `valibot: ^1.4.0` → `1.4.2`; `@valibot/to-json-schema`
     `1.3.0` → `1.7.1`; `@schemasjs/valibot-numbers` → `1.1.1`; `@schemasjs/validator` → `2.0.5`.
@@ -133,14 +140,32 @@ Refresh the whole monorepo in strokes:
   - Verified: all 5 builds pass, all 4 test suites pass (nmea 60/60, septentrio 54/54,
     tblive 134/134, norsub 8/8), `pnpm lint` clean, `pnpm install --frozen-lockfile` clean.
   - Docs updated: TOOLING, STATUS.
+- **2026-07-08 — security audit + vulnerability fixes (step 6, `b505fc9` + `2d40a86` + `31b52c3`):**
+  - `pnpm audit` found 27 vulnerabilities (3 critical, 15 high, 9 moderate). Root cause: mostly
+    transitive deps through `node-red@4.1.1` (tar, multer, qs, ws, uuid, path-to-regexp,
+    jsonata, form-data, ajv) + `esbuild` (via tsup) + `js-yaml` (via mocha/nmea-parser).
+  - **node-red 4.1.1 → 5.0.1** — fixed 19 of 27 vulns.
+  - **js-yaml 4.1.0 → 4.2.0** in nmea-parser — fixed prototype pollution + quadratic DoS.
+  - **pnpm overrides** in `pnpm-workspace.yaml` for remaining transitive vulns:
+    `serialize-javascript >=7.0.5`, `diff >=8.0.3`, `js-yaml >=4.1.1`, `jsonata >=2.2.0`,
+    `form-data >=4.0.6`, `esbuild >=0.28.1`.
+  - **valibot pinned to `1.4.2`** (exact) in all `peerDependencies` — was `>=1.0.0` in root +
+    norsub-emru + thelmabiotel-tblive + thelmabiotel-tblive-nodered, allowing older vulnerable
+    versions.
+  - **rootDir fix** — TS 6 requires explicit `rootDir` when `include` spans multiple dirs
+    (`src/` + `tests/`). Added `"rootDir": "."` to all 5 library packages + template.
+  - Result: `pnpm audit` reports **0 known vulnerabilities**.
+  - GitHub still shows 75 vulns on `main` (default branch) — they'll clear once `dev` is merged
+    to `main`.
 
 ## Where we are now
 
-Steps 1-5 of the refactor are complete and committed on `dev` (not pushed): pnpm migration,
-ESLint migration, documentation, and dependency refresh (TS 6.0.3 + Vitest 4.x + Valibot
-1.4.2 + safe bumps). Next up: **CMA rollout**, then **Result pattern**.
+Working tree is **clean**. All refactor steps 1-6 are complete, committed, and pushed to
+`dev` (HEAD `31b52c3`). The repo is on a modern stack: pnpm 11, TypeScript 6.0.3, ESLint 10
+with sonar + perfectionist, Vitest 4, Valibot 1.4.2, zero known vulnerabilities.
 
-No parser code has been refactored yet — CMA rollout and Result pattern are still pending.
+No parser code has been refactored yet — CMA rollout and Result pattern are the remaining
+tracks.
 
 ## Decisions (locked unless cru says otherwise)
 
@@ -151,29 +176,34 @@ No parser code has been refactored yet — CMA rollout and Result pattern are st
 - **pnpm migration is done** — no more npm in the repo (except Node-RED Dockerfiles, deferred).
 - **ESLint sonar thresholds: strict from day one** (Option A: max-lines-per-function 50,
   cyclomatic-complexity 10, cognitive-complexity 15; tests exempt from max-lines).
-- **Result pattern will be adopted** as a later track, after linter + CMA.
+- **Valibot pinned to 1.4.2** (exact) in all peerDependencies — no `>=1.0.0` ranges.
+- **Result pattern will be adopted** as a later track, after CMA.
 
 ## Next steps (in order)
 
-1. **Push `dev`** when cru is ready (publishing only happens on merge to `main`, so pushing
-   `dev` is safe).
+1. **Merge `dev` → `main`** when cru is ready — this publishes to npm via GitHub Actions and
+   clears the 75 dependabot vulnerabilities on the default branch.
 2. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
    start with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work
    already exists in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru),
    and align thelmabiotel-tblive's extra top-level keys.
-3. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
-4. **Strictness pass** (deferred) — add `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
-   `verbatimModuleSyntax` to tsconfig (the tracker has them; needs ~218 code fixes).
+3. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow). Read the
+   Tracker repo's `docs/CodeStyle.md` §Errors and `src/core/tracker/src/types.ts` for the
+   `Result<T,E>` type.
+4. **Strictness pass** (deferred) — add `noUncheckedIndexedAccess`,
+   `exactOptionalPropertyTypes`, `verbatimModuleSyntax` to root tsconfig (the Tracker repo
+   has them; needs ~218 code fixes in the parsers — mostly array access returning `T |
+   undefined`).
 
 ## Open threads / known bugs (report before fixing)
 
-- **Dep rot:** resolved for valibot (1.4.2 now installs); other deps still from ~2025 —
-  audit during dep refresh.
 - `nmea-parser/src/types.ts`: `Float32`/`Float64` types are swapped (each aliases the other's schema).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
 - `thelmabiotel-tblive-nodered` has a `test` script but **no mocha specs** (`No test files found`).
 - All 5 nodered CI workflows have their test jobs commented out — they publish untested.
 - nmea-parser ships a committed `legacy/` folder + stray root files (`morenmea.tss`).
-- Nodered sibling dep ranges now use `workspace:^` (was inconsistent `^exact` vs `>=`).
-- `main: index.js` removed from root `package.json` (was pointing to a non-existent file).
+- Node-RED docker `Dockerfile`s still use `npm i` inside the container (install the published
+  package from the npm registry, not the workspace — unaffected by the pnpm migration, but
+  inconsistent).
+- `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
 - P08-Trident harness (`misc/tests/p08trident/`) status unknown — ask cru if still live.
