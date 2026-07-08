@@ -1,5 +1,6 @@
-import type { SBGFrameNameData } from '../../../types'
 import { getSolutionStatus } from './utils'
+
+import type { SBGFrameNameData } from '../../../types'
 /* Message ID 08 -> SBG_ECOM_LOG_EKF_NAV => Position and velocities in NED coordinates with the accuracies on each axis
  * Field            Offset  Size  Format  Unit  Description
  * TIME_STAMP            0     4  uint32    µs  Time since sensor is powered up
@@ -69,10 +70,10 @@ export const SBG_ECOM_LOG_EKF_NAV = (payload: Buffer): SBGFrameNameData => {
     longitudeAccuracy: payload.readFloatLE(60),
     altitudeAccuracy: payload.readFloatLE(64),
     solutionStatus: payload.readUIntLE(68, 4),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    solutionStatus: getSolutionStatus(data.solutionStatus)
+    solutionStatus: getSolutionStatus(data.solutionStatus),
   }
   return { name, data }
 }

@@ -1,9 +1,12 @@
 import path from 'node:path'
+
 import { describe, test, expect } from 'vitest'
-import { Protocol, StoredSentence } from '../src/types'
-import { getStoreSentences, readProtocolsYAMLFile, readProtocolsYAMLString } from '../src/protocols' 
-import { ProtocolSchema } from '../src/schemas'
+
 import { PROTOCOLS } from './norsub'
+
+import { getStoreSentences, readProtocolsYAMLFile, readProtocolsYAMLString } from '../src/protocols'
+import { ProtocolSchema } from '../src/schemas'
+import { Protocol, StoredSentence } from '../src/types'
 
 const PROTOCOLS_FILE = path.join(__dirname, '..', 'protocols', 'norsub.yaml')
 const EXPECTED_PROTOCOLS: Protocol[] = [
@@ -26,8 +29,8 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
           { name: 'roll_rate', type: 'float64', units: 'deg/s' },
           { name: 'pitch_rate', type: 'float64', units: 'deg/s' },
           { name: 'yaw_rate', type: 'float64', units: 'deg/s' },
-          { name: 'surge_velocity', type: 'float64', units: 'm/s', },
-          { name: 'sway_velocity', type: 'float64', units: 'm/s', },
+          { name: 'surge_velocity', type: 'float64', units: 'm/s' },
+          { name: 'sway_velocity', type: 'float64', units: 'm/s' },
           { name: 'heave_velocity', type: 'float64', units: 'm/s', description: 'z-down' },
           { name: 'acceleration_x', type: 'float64', units: 'm/s2' },
           { name: 'acceleration_y', type: 'float64', units: 'm/s2' },
@@ -38,10 +41,10 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
           { name: 'amplitude_x', type: 'float64', units: 'm' },
           { name: 'amplitude_y', type: 'float64', units: 'm' },
           { name: 'amplitude_z', type: 'float64', units: 'm' },
-          { name: 'status', type: 'uint32' }
+          { name: 'status', type: 'uint32' },
         ],
-      }
-    ]
+      },
+    ],
   },
   {
     protocol: 'GYROCOMPAS1',
@@ -52,7 +55,7 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
         payload: [
           { name: 'heading', type: 'float32', units: 'deg' },
           { name: 'symbol', type: 'string' },
-        ]
+        ],
       },
       {
         id: 'PHTRO',
@@ -61,14 +64,14 @@ const EXPECTED_PROTOCOLS: Protocol[] = [
           { name: 'pitch_direction', type: 'string', description: 'M bow up, P bow down' },
           { name: 'roll', type: 'float32', units: 'deg' },
           { name: 'roll_direction', type: 'string', description: 'M bow up, P bow down' },
-        ]
+        ],
       },
-      { id: 'PHINF', payload: [ { name: 'status', type: 'string' } ] },
-    ]
-  }
+      { id: 'PHINF', payload: [{ name: 'status', type: 'string' }] },
+    ],
+  },
 ]
 const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
-  'PNORSUB8': {
+  PNORSUB8: {
     id: EXPECTED_PROTOCOLS[0].sentences[0].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[0].protocol,
@@ -76,9 +79,9 @@ const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
       version: EXPECTED_PROTOCOLS[0]?.version,
     },
     payload: EXPECTED_PROTOCOLS[0].sentences[0].payload,
-    description: EXPECTED_PROTOCOLS[0].sentences[0]?.description
+    description: EXPECTED_PROTOCOLS[0].sentences[0]?.description,
   },
-  'HEHDT': {
+  HEHDT: {
     id: EXPECTED_PROTOCOLS[1].sentences[0].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[1].protocol,
@@ -86,9 +89,9 @@ const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
       version: EXPECTED_PROTOCOLS[1]?.version,
     },
     payload: EXPECTED_PROTOCOLS[1].sentences[0].payload,
-    description: EXPECTED_PROTOCOLS[1].sentences[0]?.description
+    description: EXPECTED_PROTOCOLS[1].sentences[0]?.description,
   },
-  'PHTRO': {
+  PHTRO: {
     id: EXPECTED_PROTOCOLS[1].sentences[1].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[1].protocol,
@@ -96,9 +99,9 @@ const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
       version: EXPECTED_PROTOCOLS[1]?.version,
     },
     payload: EXPECTED_PROTOCOLS[1].sentences[1].payload,
-    description: EXPECTED_PROTOCOLS[1].sentences[1]?.description
+    description: EXPECTED_PROTOCOLS[1].sentences[1]?.description,
   },
-  'PHINF': {
+  PHINF: {
     id: EXPECTED_PROTOCOLS[1].sentences[2].id,
     protocol: {
       name: EXPECTED_PROTOCOLS[1].protocol,
@@ -106,16 +109,18 @@ const EXPECTED_STORED_SENTECES: Record<string, StoredSentence> = {
       version: EXPECTED_PROTOCOLS[1]?.version,
     },
     payload: EXPECTED_PROTOCOLS[1].sentences[2].payload,
-    description: EXPECTED_PROTOCOLS[1].sentences[2]?.description
+    description: EXPECTED_PROTOCOLS[1].sentences[2]?.description,
   },
 }
 
 describe('Protocols Files', () => {
   test('Right protocols file', () => {
     const { protocols } = readProtocolsYAMLFile(PROTOCOLS_FILE)
-    protocols.forEach(protocol => {
+    protocols.forEach((protocol) => {
       const parsed = ProtocolSchema.safeParse(protocol)
-      if (!parsed.success) { console.error((parsed.errors as string[])[0]) }
+      if (!parsed.success) {
+        console.error((parsed.errors as string[])[0])
+      }
       expect(parsed.success).toBeTruthy()
     })
     // expect(protocols).toStrictEqual(EXPECTED_PROTOCOLS)
@@ -126,7 +131,7 @@ describe('Protocols File to StoredSentences', () => {
   test('Happy path', () => {
     const { protocols } = readProtocolsYAMLFile(PROTOCOLS_FILE)
     const sentences = getStoreSentences({ protocols })
-    Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
+    Object.keys(EXPECTED_STORED_SENTECES).forEach((key) => {
     // sentences.forEach((value, key) => {
       const expected = EXPECTED_STORED_SENTECES[key]
       const value = sentences.get(key)
@@ -141,7 +146,7 @@ describe('Protocols content to StoredSentences', () => {
     const content = JSON.stringify(PROTOCOLS)
     const { protocols } = readProtocolsYAMLString(content)
     const sentences = getStoreSentences({ protocols })
-    Object.keys(EXPECTED_STORED_SENTECES).forEach(key => {
+    Object.keys(EXPECTED_STORED_SENTECES).forEach((key) => {
     // sentences.forEach((value, key) => {
       const expected = EXPECTED_STORED_SENTECES[key]
       const value = sentences.get(key)

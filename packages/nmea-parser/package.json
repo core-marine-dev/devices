@@ -44,8 +44,8 @@
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/nmea.yaml ./src/nmea.ts && node yaml-to-json.js ./protocols/norsub.yaml ./tests/norsub.ts",
     "build": "pnpm run format && tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
@@ -58,19 +58,5 @@
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9"
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "yaml-to-json.js",
-      "legacy"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
   }
 }

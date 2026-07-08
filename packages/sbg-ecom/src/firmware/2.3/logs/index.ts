@@ -1,5 +1,3 @@
-import { UNKNOWN_SBG_FRAME_DATA } from '../../../constants'
-import type { SBGDataParser, SBGFrameNameData } from '../../../types'
 import { SBG_ECOM_LOG_DEPTH } from './depth-sensor'
 import { SBG_ECOM_LOG_DVL_BOTTOM_TRACK, SBG_ECOM_LOG_DVL_WATER_TRACK } from './doppler-velocity'
 import { SBG_ECOM_LOG_EKF_EULER } from './ekf-euler'
@@ -19,6 +17,9 @@ import { SBG_ECOM_LOG_SHIP_MOTION, SBG_ECOM_LOG_SHIP_MOTION_HP } from './ship-mo
 import { SBG_ECOM_LOG_STATUS } from './status'
 import { SBG_ECOM_LOG_USBL } from './usbl-position'
 import { SBG_ECOM_LOG_UTC_TIME } from './utc-time'
+
+import { UNKNOWN_SBG_FRAME_DATA } from '../../../constants'
+import type { SBGDataParser, SBGFrameNameData } from '../../../types'
 
 const logs = new Map<number, SBGDataParser>()
 //  Message ID  LOG => Message CLASS = 0       Description
@@ -92,6 +93,6 @@ export const getSBGFrameData = (messageID: number, payload: Buffer): SBGFrameNam
   if (parser != null) return parser(payload)
   return {
     name: UNKNOWN_SBG_FRAME_DATA.name,
-    data: UNKNOWN_SBG_FRAME_DATA.data
+    data: UNKNOWN_SBG_FRAME_DATA.data,
   }
 }

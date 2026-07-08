@@ -8,12 +8,13 @@ import {
   Uint16Schema as ValibotUint16Schema,
   Uint32Schema as ValibotUint32Schema,
   Uint8Schema as ValibotUint8Schema,
-  UnsignedIntegerSchema as ValibotUnsignedIntegerSchema
+  UnsignedIntegerSchema as ValibotUnsignedIntegerSchema,
 } from '@schemasjs/valibot-numbers'
 import { ValibotValidator } from '@schemasjs/validator'
 import * as v from 'valibot'
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, FIELD_TYPES, NMEA_SENTENCE_LENGTH, SEPARATOR, START_FLAG } from './constants'
+
 import { stringChecksumToNumber } from './checksum'
+import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, FIELD_TYPES, NMEA_SENTENCE_LENGTH, SEPARATOR, START_FLAG } from './constants'
 
 // COMMONS ------------------------------------------------------------------------------------------------------------
 const ValibotStringSchema = v.string()
@@ -52,7 +53,7 @@ const ValibotProtocolFieldSchema = v.object({
   name: ValibotStringSchema,
   type: ValibotProtocolFieldTypeSchema,
   units: v.optional(ValibotStringSchema),
-  description: v.optional(ValibotStringSchema)
+  description: v.optional(ValibotStringSchema),
 })
 export const ProtocolFieldSchema = ValibotValidator<v.InferInput<typeof ValibotProtocolFieldSchema>>(ValibotProtocolFieldSchema)
 
@@ -62,7 +63,7 @@ export const ProtocolSentencePayloadSchema = ValibotValidator<v.InferOutput<type
 const ValibotProtocolSentenceSchema = v.object({
   id: ValibotStringSchema,
   payload: ValibotProtocolSentencePayloadSchema,
-  description: v.optional(ValibotStringSchema)
+  description: v.optional(ValibotStringSchema),
 })
 export const ProtocolSentenceSchema = ValibotValidator<v.InferInput<typeof ValibotProtocolSentenceSchema>>(ValibotProtocolSentenceSchema)
 
@@ -86,11 +87,11 @@ const ValibotValidPatch = v.check<`${number}.${number}.${number}`, 'VersionSchem
   return !Number.isNaN(patch) && patch > 0
 }, 'VersionSchema: Invalid patch')
 const ValibotVersionSchema = v.pipe(
-  v.custom<`${number}.${number}.${number}`>(val => v.is(ValibotStringSchema, val)),
+  v.custom<`${number}.${number}.${number}`>((val) => v.is(ValibotStringSchema, val)),
   ValibotMaxThreeFields,
   ValibotValidMajor,
   ValibotValidMinor,
-  ValibotValidPatch
+  ValibotValidPatch,
 )
 export const VersionSchema = ValibotValidator<v.InferInput<typeof ValibotVersionSchema>>(ValibotVersionSchema)
 
@@ -98,7 +99,7 @@ const ValibotProtocolSchema = v.object({
   protocol: ValibotStringSchema,
   version: v.optional(ValibotStringSchema),
   standard: v.optional(ValibotBooleanSchema, false),
-  sentences: v.array(ValibotProtocolSentenceSchema)
+  sentences: v.array(ValibotProtocolSentenceSchema),
 })
 export const ProtocolSchema = ValibotValidator<v.InferOutput<typeof ValibotProtocolSchema>>(ValibotProtocolSchema)
 
@@ -108,7 +109,7 @@ export const ProtocolsFileContentSchema = ValibotValidator<v.InferOutput<typeof 
 const ValibotProtocolsInputSchema = v.object({
   file: v.optional(ValibotStringSchema),
   content: v.optional(ValibotStringSchema),
-  protocols: v.optional(v.array(ValibotProtocolSchema))
+  protocols: v.optional(v.array(ValibotProtocolSchema)),
 })
 export const ProtocolsInputSchema = ValibotValidator<v.InferOutput<typeof ValibotProtocolsInputSchema>>(ValibotProtocolsInputSchema)
 
@@ -117,10 +118,10 @@ const ValibotStoredSentenceSchema = v.object({
   protocol: v.object({
     name: ValibotStringSchema,
     standard: v.optional(ValibotBooleanSchema, false),
-    version: v.optional(ValibotStringSchema)
+    version: v.optional(ValibotStringSchema),
   }),
   payload: v.array(ValibotProtocolFieldSchema),
-  description: v.optional(ValibotStringSchema)
+  description: v.optional(ValibotStringSchema),
 })
 export const StoredSentenceSchema = ValibotValidator<v.InferOutput<typeof ValibotStoredSentenceSchema>>(ValibotStoredSentenceSchema)
 
@@ -129,13 +130,13 @@ export const MapStoredSentencesSchema = ValibotValidator<v.InferOutput<typeof Va
 
 const ValibotJSONSchemaInputSchema = v.object({
   path: v.optional(ValibotStringSchema),
-  filename: v.optional(ValibotStringSchema, 'nmea_protocols_schema.json')
+  filename: v.optional(ValibotStringSchema, 'nmea_protocols_schema.json'),
 })
 export const JSONSchemaInputSchema = ValibotValidator<v.InferInput<typeof ValibotJSONSchemaInputSchema>>(ValibotJSONSchemaInputSchema)
 // SENTENCES ----------------------------------------------------------------------------------------------------------
 const ValibotChecksumSchema = v.object({
   sample: ValibotStringSchema,
-  value: ValibotUint8Schema
+  value: ValibotUint8Schema,
 })
 export const ChecksumSchema = ValibotValidator<v.InferInput<typeof ValibotChecksumSchema>>(ValibotChecksumSchema)
 
@@ -144,23 +145,37 @@ export const ValueSchema = ValibotValidator<v.InferInput<typeof ValibotValueSche
 
 const ValibotTalkerSchema = v.object({
   value: ValibotStringSchema,
-  description: ValibotStringSchema
+  description: ValibotStringSchema,
 })
 export const TalkerSchema = ValibotValidator<v.InferInput<typeof ValibotTalkerSchema>>(ValibotTalkerSchema)
 
-const ValibotNMEALikeSchema = v.custom<`$${string}*${string}\r\n`>(input => {
-  if (typeof input !== 'string') { return false }
-  if (!input.startsWith(START_FLAG)) { return false }
-  if (!input.endsWith(END_FLAG)) { return false }
+const ValibotNMEALikeSchema = v.custom<`$${string}*${string}\r\n`>((input) => {
+  if (typeof input !== 'string') {
+    return false
+  }
+  if (!input.startsWith(START_FLAG)) {
+    return false
+  }
+  if (!input.endsWith(END_FLAG)) {
+    return false
+  }
   const parts = input.split(DELIMITER)
-  if (parts.length !== 2) { return false }
+  if (parts.length !== 2) {
+    return false
+  }
   const [info, cs] = parts
-  if (cs.length !== CHECKSUM_LENGTH + END_FLAG.length) { return false }
+  if (cs.length !== CHECKSUM_LENGTH + END_FLAG.length) {
+    return false
+  }
   const checksum = cs.slice(0, CHECKSUM_LENGTH)
   const numChecksum = stringChecksumToNumber(checksum)
-  if (!v.safeParse(ValibotUint8Schema, numChecksum).success) { return false }
+  if (!v.safeParse(ValibotUint8Schema, numChecksum).success) {
+    return false
+  }
   const data = info.slice(START_FLAG.length)
-  if (data.length < NMEA_SENTENCE_LENGTH) { return false }
+  if (data.length < NMEA_SENTENCE_LENGTH) {
+    return false
+  }
   return info.includes(SEPARATOR)
 })
 export const NMEALikeSchema = ValibotValidator<v.InferOutput<typeof ValibotNMEALikeSchema>>(ValibotNMEALikeSchema)
@@ -172,7 +187,7 @@ const ValibotNMEAParsedFieldSchema = v.object({
   type: v.optional(v.union([v.picklist(FIELD_TYPES), v.literal('unknown')], 'payload type bad'), 'unknown'),
   units: v.optional(v.string('payload units bad'), 'unknown'),
   description: v.optional(v.string('payload description bad')),
-  metadata: v.optional(v.any())
+  metadata: v.optional(v.any()),
 })
 export const NMEAParsedFieldchema = ValibotValidator<v.InferOutput<typeof ValibotNMEAParsedFieldSchema>>(ValibotNMEAParsedFieldSchema)
 
@@ -191,10 +206,10 @@ const ValibotNMEASentenceSchema = v.object({
     v.object({
       name: ValibotStringSchema,
       standard: ValibotBooleanSchema,
-      version: v.optional(ValibotStringSchema)
+      version: v.optional(ValibotStringSchema),
     }),
-    { name: 'unknown', standard: false }
+    { name: 'unknown', standard: false },
   ),
-  talker: v.optional(ValibotTalkerSchema)
+  talker: v.optional(ValibotTalkerSchema),
 })
 export const NMEASentenceSchema = ValibotValidator<v.InferOutput<typeof ValibotNMEASentenceSchema>>(ValibotNMEASentenceSchema)

@@ -14,8 +14,8 @@ export const parseCommand = (input: string, timestamp: Timestamp): ParsedSentenc
         raw: input,
         name: 'command command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   if (input.toUpperCase() === COMMAND_MODE_102) {
@@ -29,8 +29,8 @@ export const parseCommand = (input: string, timestamp: Timestamp): ParsedSentenc
         raw: input,
         name: 'command command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   const errors: string[] = [`Command should be one of the following: ${[COMMAND_MODE_101, COMMAND_MODE_102].join(', ')} -> ${input}`]
@@ -45,9 +45,9 @@ export const parseCommand = (input: string, timestamp: Timestamp): ParsedSentenc
       name: 'command command',
       type: 'string',
       value: input,
-      errors
+      errors,
     }],
-    errors
+    errors,
   }
 }
 // 08. API
@@ -63,8 +63,8 @@ export const parseAPI = (input: string, timestamp: Timestamp): ParsedSentence =>
         raw: input,
         name: 'api command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   if (input === API_TYPICAL_CONTENT_102) {
@@ -78,8 +78,8 @@ export const parseAPI = (input: string, timestamp: Timestamp): ParsedSentence =>
         raw: input,
         name: 'api command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   const errors: string[] = [`API should be one of the following: \n${[API_TYPICAL_CONTENT_101, COMMAND_MODE_102].join('\n\n')}\n\n-> ${input}`]
@@ -94,12 +94,13 @@ export const parseAPI = (input: string, timestamp: Timestamp): ParsedSentence =>
       name: 'api command',
       type: 'string',
       value: input,
-      errors
+      errors,
     }],
-    errors
+    errors,
   }
 }
 // 09. SerialNumber
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const parseSerialNumber = (input: string, timestamp: Timestamp): ParsedSentence => {
   // Serial number should start with SN=
   if (!input.startsWith(SERIAL_NUMBER_START)) {
@@ -115,9 +116,9 @@ export const parseSerialNumber = (input: string, timestamp: Timestamp): ParsedSe
         name: 'serial_number',
         type: 'string',
         value: input,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const aux = input.replace(SERIAL_NUMBER_START, '').trim()
@@ -135,9 +136,9 @@ export const parseSerialNumber = (input: string, timestamp: Timestamp): ParsedSe
         name: 'serial_number',
         type: 'string',
         value: input,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const sn = aux.slice(0, SERIAL_NUMBER_LENGTH_MAX)
@@ -156,9 +157,9 @@ export const parseSerialNumber = (input: string, timestamp: Timestamp): ParsedSe
         name: 'serial_number',
         type: 'string',
         value: sn,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Serial number should be a positive integer
@@ -175,9 +176,9 @@ export const parseSerialNumber = (input: string, timestamp: Timestamp): ParsedSe
         name: 'serial_number',
         type: 'string',
         value: sn,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // No errors
@@ -191,11 +192,12 @@ export const parseSerialNumber = (input: string, timestamp: Timestamp): ParsedSe
       raw: sn,
       name: 'serial_number',
       type: 'string',
-      value: sn
-    }]
+      value: sn,
+    }],
   }
 }
 // 10. Firmware
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSentence => {
   // Firmware should start with FV=
   if (!input.startsWith(FIRMWARE_START)) {
@@ -211,9 +213,9 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
         name: 'firmware',
         type: 'string',
         value: input,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const tmp = input.replace(FIRMWARE_START, '').trim()
@@ -232,9 +234,9 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
         name: 'firmware',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Major
@@ -252,9 +254,9 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
         name: 'firmware',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Minor
@@ -272,15 +274,17 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
         name: 'firmware',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Patch
   let end = 0
   for (const char of aux.slice(minorIndex + 1)) {
-    if (Number.isNaN(Number(char))) { break }
+    if (Number.isNaN(Number(char))) {
+      break
+    }
     end++
   }
   if (end === 0) {
@@ -296,9 +300,9 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
         name: 'firmware',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Supported firmware
@@ -316,9 +320,9 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
         name: 'firmware',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // No errors
@@ -332,11 +336,12 @@ export const parseFirmware = (input: string, timestamp: Timestamp): ParsedSenten
       raw: aux,
       name: 'firmware',
       type: 'string',
-      value: firmware
-    }]
+      value: firmware,
+    }],
   }
 }
 // 11. Frequency
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const parseFrequency = (input: string, timestamp: Timestamp): ParsedSentence => {
   // Frequency should start with FC=
   if (!input.startsWith(FREQUENCY_START)) {
@@ -353,9 +358,9 @@ export const parseFrequency = (input: string, timestamp: Timestamp): ParsedSente
         type: 'string',
         value: input,
         units: 'kHz',
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const aux = input.replace(FREQUENCY_START, '').trim()
@@ -374,9 +379,9 @@ export const parseFrequency = (input: string, timestamp: Timestamp): ParsedSente
         type: 'string',
         value: aux,
         units: 'kHz',
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const raw = aux.slice(0, FREQUENCY_LENGTH)
@@ -396,9 +401,9 @@ export const parseFrequency = (input: string, timestamp: Timestamp): ParsedSente
         type: 'string',
         value: aux,
         units: 'kHz',
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Frequency should be an integer between 63 and 77
@@ -416,9 +421,9 @@ export const parseFrequency = (input: string, timestamp: Timestamp): ParsedSente
         type: 'string',
         value: aux,
         units: 'kHz',
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // No errors
@@ -433,11 +438,12 @@ export const parseFrequency = (input: string, timestamp: Timestamp): ParsedSente
       name: 'frequency',
       type: 'uint8',
       value: freq,
-      units: 'kHz'
-    }]
+      units: 'kHz',
+    }],
   }
 }
 // 12. Time
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const parseTime = (input: string, timestamp: Timestamp): ParsedSentence => {
   // Time should start with UT=
   if (!input.startsWith(TIMESTAMP_START)) {
@@ -454,9 +460,9 @@ export const parseTime = (input: string, timestamp: Timestamp): ParsedSentence =
         type: 'string',
         value: input,
         units: 'seconds',
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const MAX_LENGTH = Date.now().toString().length
@@ -476,23 +482,25 @@ export const parseTime = (input: string, timestamp: Timestamp): ParsedSentence =
         type: 'string',
         value: aux,
         units: 'seconds',
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
 
   let seconds = ''
   for (const c of aux) {
     const number = Number(c)
-    if (Number.isNaN(number)) { break }
+    if (Number.isNaN(number)) {
+      break
+    }
     seconds += c
   }
   // No errors
   const metadata = {
     seconds: Number(seconds),
     timestamp: Number(seconds) * 1000,
-    date: new Date(Number(seconds) * 1000).toISOString()
+    date: new Date(Number(seconds) * 1000).toISOString(),
   }
   return {
     raw: input,
@@ -506,12 +514,13 @@ export const parseTime = (input: string, timestamp: Timestamp): ParsedSentence =
       type: 'uint32',
       value: Number(seconds),
       units: 'seconds',
-      metadata
+      metadata,
     }],
-    metadata
+    metadata,
   }
 }
 // 13. Protocols
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSentence => {
   // Protocols should start with LM=
   if (!input.startsWith(PROTOCOLS_START)) {
@@ -527,9 +536,9 @@ export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSente
         name: 'protocols',
         type: 'string',
         value: input,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const aux = input.replace(PROTOCOLS_START, '').trim()
@@ -547,9 +556,9 @@ export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSente
         name: 'protocols',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const protocols = aux.slice(0, PROTOCOLS_LENGTH)
@@ -568,9 +577,9 @@ export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSente
         name: 'protocols',
         type: 'string',
         value: protocols,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Protocols should be a positive integer
@@ -587,13 +596,14 @@ export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSente
         name: 'protocols',
         type: 'string',
         value: protocols,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const content = PROTOCOLS[protocols]
   // Protocols should be one of the available protocols
+  // eslint-disable-next-line sonarjs/different-types-comparison -- intentional type check
   if (content === undefined) {
     const errors: string[] = [`Protocols should be one of the following: ${Object.keys(PROTOCOLS).join(', ')} -> ${protocols}`]
     return {
@@ -607,9 +617,9 @@ export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSente
         name: 'protocols',
         type: 'string',
         value: protocols,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // No errors
@@ -624,12 +634,13 @@ export const parseProtocols = (input: string, timestamp: Timestamp): ParsedSente
       name: 'protocols',
       type: 'string',
       value: protocols,
-      metadata: { ...content }
+      metadata: { ...content },
     }],
-    metadata: { protocols, ...content }
+    metadata: { protocols, ...content },
   }
 }
 // 14. Log Intervals
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSentence => {
   // Log Intervals should start with LI=
   if (!input.startsWith(LOG_INTERVAL_START)) {
@@ -645,9 +656,9 @@ export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSe
         name: 'log intervals',
         type: 'string',
         value: input,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const aux = input.replace(LOG_INTERVAL_START, '').trim()
@@ -665,9 +676,9 @@ export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSe
         name: 'log intervals',
         type: 'string',
         value: aux,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const log = aux.slice(0, LOG_INTERVAL_LENGTH)
@@ -686,9 +697,9 @@ export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSe
         name: 'log intervals',
         type: 'string',
         value: log,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // Log Intervals should be a positive integer
@@ -705,13 +716,14 @@ export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSe
         name: 'log intervals',
         type: 'string',
         value: log,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   const content = LOG_INTERVALS[log as keyof typeof LOG_INTERVALS]
   // Log Intervals should be one of the available intervals
+  // eslint-disable-next-line sonarjs/different-types-comparison -- intentional type check
   if (content === undefined) {
     const errors: string[] = [`Log Intervals should be one of the following: ${Object.keys(LOG_INTERVALS).join(', ')} -> ${log}`]
     return {
@@ -725,9 +737,9 @@ export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSe
         name: 'log intervals',
         type: 'string',
         value: log,
-        errors
+        errors,
       }],
-      errors
+      errors,
     }
   }
   // No errors
@@ -742,9 +754,9 @@ export const parseLogIntervals = (input: string, timestamp: Timestamp): ParsedSe
       name: 'log intervals',
       type: 'string',
       value: log,
-      metadata: { intervals: content }
+      metadata: { intervals: content },
     }],
-    metadata: { log, intervals: content }
+    metadata: { log, intervals: content },
   }
 }
 // 15. Restart
@@ -760,8 +772,8 @@ export const parseRestartDevice = (input: string, timestamp: Timestamp): ParsedS
         raw: input,
         name: 'restart device command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   const errors: string[] = [`Restart device command is ${RESTART_DEVICE} -> not ${input}`]
@@ -776,9 +788,9 @@ export const parseRestartDevice = (input: string, timestamp: Timestamp): ParsedS
       name: 'restart device command',
       type: 'string',
       value: input,
-      errors
+      errors,
     }],
-    errors
+    errors,
   }
 }
 // 16. Reset
@@ -794,8 +806,8 @@ export const parseFactoryReset = (input: string, timestamp: Timestamp): ParsedSe
         raw: input,
         name: 'factory reset command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   const errors: string[] = [`Factory reset command is ${RESTART_DEVICE} -> not ${input}`]
@@ -810,9 +822,9 @@ export const parseFactoryReset = (input: string, timestamp: Timestamp): ParsedSe
       name: 'factory reset command',
       type: 'string',
       value: input,
-      errors
+      errors,
     }],
-    errors
+    errors,
   }
 }
 // 17. Upgrade
@@ -828,8 +840,8 @@ export const parseUpgradeFirmware = (input: string, timestamp: Timestamp): Parse
         raw: input,
         name: 'upgrade firmware command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
   }
   const errors: string[] = [`Upgrade firmware command is ${UPGRADE_FIRMWARE} -> not ${input}`]
@@ -844,8 +856,8 @@ export const parseUpgradeFirmware = (input: string, timestamp: Timestamp): Parse
       name: 'upgrade firmware command',
       type: 'string',
       value: input,
-      errors
+      errors,
     }],
-    errors
+    errors,
   }
 }

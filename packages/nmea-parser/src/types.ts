@@ -28,7 +28,7 @@ import type {
   Uint8Schema,
   UnsignedIntegerSchema,
   ValueSchema,
-  VersionSchema
+  VersionSchema,
 } from './schemas'
 // COMMONS
 export type Integer = ReturnType<typeof IntegerSchema.parse>

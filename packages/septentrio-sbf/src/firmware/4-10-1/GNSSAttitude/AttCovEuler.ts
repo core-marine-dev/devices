@@ -69,7 +69,7 @@ export const ERROR_CODE = {
   NO: 'NO_ERROR',
   MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
   RESERVED: 'RESERVED',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 } as const
 export type ErrorCode = typeof ERROR_CODE[keyof typeof ERROR_CODE]
 
@@ -99,7 +99,7 @@ const getError = (error: number): Error => {
     mainAux1Baseline: getErrorCode(main1),
     mainAux2Baseline: getErrorCode(main2),
     reserved,
-    notRequestedAttitude
+    notRequestedAttitude,
   }
 }
 
@@ -139,7 +139,7 @@ export const attCovEuler = (blockRevision: number, data: Buffer): Response => {
     covHeadRoll: getData(data.readFloatLE(COV_HEAD_ROLL_INDEX)),
     covPitchRoll: getData(data.readFloatLE(COV_PITCH_ROLL_INDEX)),
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-    metadata: { error: getError(error) }
+    metadata: { error: getError(error) },
   }
   return { name, body }
 }

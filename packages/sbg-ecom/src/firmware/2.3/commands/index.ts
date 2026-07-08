@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-empty-collection -- placeholder maps for future parsers; CMA refactor will populate */
 import { UNKNOWN_SBG_FRAME_DATA } from '../../../constants'
 import type { SBGDataParser, SBGFrameNameData } from '../../../types'
 
@@ -8,6 +9,6 @@ export const getSBGFrameData = (messageID: number, payload: Buffer): SBGFrameNam
   if (parser != null) return parser(payload)
   return {
     name: UNKNOWN_SBG_FRAME_DATA.name,
-    data: UNKNOWN_SBG_FRAME_DATA.data
+    data: UNKNOWN_SBG_FRAME_DATA.data,
   }
 }

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import {
   parseAPI,
   parseCommand,
@@ -10,9 +11,8 @@ import {
   parseRestartDevice,
   parseSerialNumber,
   parseTime,
-  parseUpgradeFirmware
+  parseUpgradeFirmware,
 } from '../src/command'
-
 import {
   API_TYPICAL_CONTENT_101,
   API_TYPICAL_CONTENT_102,
@@ -26,7 +26,7 @@ import {
   RESTART_DEVICE,
   SERIAL_NUMBER_START,
   TIMESTAMP_START,
-  UPGRADE_FIRMWARE
+  UPGRADE_FIRMWARE,
 } from '../src/constants'
 import type { Timestamp } from '../src/types'
 
@@ -36,7 +36,7 @@ describe('parseCommand', () => {
   test('happy path - should parse command mode 1.0.1', () => {
     const input = COMMAND_MODE_101
     const result = parseCommand(input, timestamp)
-    
+
     expect(result).toEqual({
       raw: input,
       id: 'command',
@@ -47,15 +47,15 @@ describe('parseCommand', () => {
         raw: input,
         name: 'command command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     })
   })
 
   test('happy path - should parse command mode 1.0.2', () => {
     const input = COMMAND_MODE_102
     const result = parseCommand(input, timestamp)
-    
+
     expect(result).toEqual({
       raw: input,
       id: 'command',
@@ -66,8 +66,8 @@ describe('parseCommand', () => {
         raw: input,
         name: 'command command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     })
   })
 
@@ -86,7 +86,7 @@ describe('parseCommand', () => {
   test('should be case insensitive for valid commands', () => {
     const input = COMMAND_MODE_102.toLowerCase()
     const result = parseCommand(input, timestamp)
-    
+
     expect(result.errors).toBeUndefined()
     expect(result.firmware).toBe('1.0.2')
   })
@@ -228,7 +228,7 @@ describe('parseProtocols', () => {
 
   test('should handle invalid protocol - not a number', () => {
     const input = `${PROTOCOLS_START}ABC`
-    const result =parseProtocols(input, timestamp)
+    const result = parseProtocols(input, timestamp)
     expect(result.errors).toContain('Protocols should be a number -> ABC')
   })
 
@@ -279,8 +279,8 @@ describe('parseRestartDevice', () => {
         raw: input,
         name: 'restart device command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
     expect(result).toEqual(expected)
   })
@@ -312,8 +312,8 @@ describe('parseFactoryReset', () => {
         raw: input,
         name: 'factory reset command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
     expect(result).toEqual(expected)
   })
@@ -345,8 +345,8 @@ describe('parseUpgradeFirmware', () => {
         raw: input,
         name: 'upgrade firmware command',
         type: 'string',
-        value: input
-      }]
+        value: input,
+      }],
     }
     expect(result).toEqual(expected)
   })

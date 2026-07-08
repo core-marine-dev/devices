@@ -1,5 +1,6 @@
-import type { SBGFrameNameData } from '../../../types'
 import { getSolutionStatus } from './utils'
+
+import type { SBGFrameNameData } from '../../../types'
 /* Message ID 06 -> SBG_ECOM_LOG_EKF_EULER => Includes roll, pitch, yaw and their accuracies on each axis
  * Field            Offset  Size  Format  Unit  Description
  * TIME_STAMP            0     4  uint32    µs  Time since sensor is powered up
@@ -55,10 +56,10 @@ export const SBG_ECOM_LOG_EKF_EULER = (payload: Buffer): SBGFrameNameData => {
     pitchAcceleration: payload.readFloatLE(20),
     yawAcceleration: payload.readFloatLE(24),
     solutionStatus: payload.readUIntLE(28, 4),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    solutionStatus: getSolutionStatus(data.solutionStatus)
+    solutionStatus: getSolutionStatus(data.solutionStatus),
   }
   return { name, data }
 }

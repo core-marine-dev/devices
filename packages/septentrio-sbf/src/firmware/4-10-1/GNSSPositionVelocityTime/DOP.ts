@@ -101,7 +101,7 @@ export const dop = (blockRevision: number, data: Buffer): Response => {
     vDOP: data.readUIntLE(VDOP_INDEX, VDOP_LENGTH) / 100,
     hpl: getData(data.readFloatLE(HPL_INDEX)),
     vpl: getData(data.readFloatLE(VPL_INDEX)),
-    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH)
+    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
   }
   return { name, body }
 }

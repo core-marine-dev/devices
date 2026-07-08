@@ -8,7 +8,7 @@
 | Build | tsup 8.x | dual ESM + CJS output; ESM is the focus |
 | Test (libraries) | Vitest 3.x | root `vitest.config.ts` aggregates per-package configs via `test.projects` |
 | Test (Node-RED) | Mocha + node-red-node-test-helper | assertion lib varies (`should` / `chai`) |
-| Lint/format | ts-standard 12 | StandardJS style; `format` = `--fix` (migration to ESLint flat config planned) |
+| Lint/format | ESLint 10 (flat config) | `@stylistic` (house style: no-semi, single-quotes, 2-space, K&R) + `eslint-plugin-sonarjs` (code quality: complexity, cognitive-load, etc.) + `eslint-plugin-perfectionist` (import ordering). See [`eslint.config.js`](../eslint.config.js). Mirrors the Tracker repo setup. |
 | Runtime validation | Valibot via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` (ValibotValidator) + `@schemasjs/valibot-numbers`; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
 | TypeScript | 5.9.x | root tsconfig is mostly the annotated starter (target/module ESNext) |
 | Node | >= 18 | CI tests 18.x + 20.x, publishes on 20 |
@@ -50,6 +50,27 @@ Mirrors the Tracker repo decision — defense-in-depth for dependency lifecycle 
   the install (`ERR_PNPM_IGNORED_BUILDS`). `allowBuilds` explicitly lists reviewed packages:
   `esbuild: true` (tsup's bundler; trusted, dev-only).
 - **`.npmrc`** — `engine-strict=true` fails fast on Node version mismatches.
+
+## Linting (`eslint.config.js`)
+
+Flat config, four plugins (mirrors the Tracker repo):
+
+- **typescript-eslint** — TS parser + recommended rules.
+- **@stylistic** — house formatting: no semicolons, single quotes, 2-space indent,
+  K&R brace style (`} catch {`), `arrowParens: 'always'`. Same defaults as the old ts-standard.
+- **eslint-plugin-sonarjs** — SonarLint rules (`sonarjs/recommended`, ~120 rules:
+  complexity, cognitive-load, no-magic-numbers, no-duplicate-string, …). **Not
+  auto-fixed** — surfaced for manual triage. Disable a rule inline only with a
+  comment explaining why. Three rules Sonar ships as `recommended: false` are
+  **explicitly enabled** with tight thresholds to enforce the small-functions house
+  style: `max-lines-per-function` (50, **off for test files** — `describe()` blocks are
+  inherently setup-heavy), `cyclomatic-complexity` (10), `cognitive-complexity` (15).
+- **eslint-plugin-perfectionist** — import ordering: `// built-in` → `// installed`
+  → `// coded` blocks preserved via `partitionByComment`; alphabetical within each
+  block; `environment: 'node'` so `node:*` is classified as builtin.
+
+Run order after changes: **lint → tsc → test** (lint first so auto-fixes don't fight
+the type-checker; test last).
 
 ## Known tooling debt
 

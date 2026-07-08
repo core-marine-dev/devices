@@ -1,5 +1,6 @@
 import { Float64, NMEASentence, Uint32, Uint8 } from './types'
 
+// eslint-disable-next-line sonarjs/cognitive-complexity, sonarjs/max-lines-per-function, sonarjs/cyclomatic-complexity -- CMA refactor will address
 const metadataGGA = (sentence: NMEASentence): NMEASentence => {
   const getUTCPosition = /**
    * Description placeholder
@@ -7,18 +8,22 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
    * @param {string} utcPosition hhmmss.ss where hh hours, mm minutes and ss.ss seconds
    * @returns {Uint32 | null}
    */
-  (utcPosition: string): Uint32 | null => {
-    if (utcPosition.length !== 9) { return null }
-    if (Number.isNaN(Number(utcPosition))) { return null }
-    const hours = Number(utcPosition.slice(0, 2))
-    const minutes = Number(utcPosition.slice(2, 4))
-    const seconds = Number(utcPosition.slice(4, 6))
-    const millis = Number(utcPosition.slice(7))
+    (utcPosition: string): Uint32 | null => {
+      if (utcPosition.length !== 9) {
+        return null
+      }
+      if (Number.isNaN(Number(utcPosition))) {
+        return null
+      }
+      const hours = Number(utcPosition.slice(0, 2))
+      const minutes = Number(utcPosition.slice(2, 4))
+      const seconds = Number(utcPosition.slice(4, 6))
+      const millis = Number(utcPosition.slice(7))
 
-    const date = new Date()
-    date.setHours(hours, minutes, seconds, millis)
-    return date.getTime()
-  }
+      const date = new Date()
+      date.setHours(hours, minutes, seconds, millis)
+      return date.getTime()
+    }
 
   const getLatitudeDegrees = (latitude: string, letter: string): Float64 => {
     const [left, minutesRight] = latitude.split('.')
@@ -52,7 +57,7 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
       5: 'RTK Float, OmniSTAR XP/HP, Location RTK, RTX',
       6: 'INS Dead reckoning',
       7: 'Manual Input Mode',
-      8: 'Simulator Mode'
+      8: 'Simulator Mode',
     }
     return QUALITIES[quality as keyof typeof QUALITIES] ?? 'unknown'
   }
@@ -107,10 +112,12 @@ const metadataGGA = (sentence: NMEASentence): NMEASentence => {
 }
 
 const METADATA = {
-  GGA: metadataGGA
+  GGA: metadataGGA,
 }
 
 export const addMetadata = (sentence: NMEASentence): NMEASentence => {
-  if (sentence.id in METADATA) { return METADATA[sentence.id as keyof typeof METADATA](sentence) }
+  if (sentence.id in METADATA) {
+    return METADATA[sentence.id as keyof typeof METADATA](sentence)
+  }
   return sentence
 }

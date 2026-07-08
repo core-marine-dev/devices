@@ -1,44 +1,52 @@
 import crypto from 'node:crypto'
+
+import { Schema } from '@schemasjs/validator'
+
 import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, NMEA_ID_LENGTH, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from './constants'
+import { addMetadata } from './nmea-metadata'
 import { Float32Schema, Float64Schema, Int16Schema, Int32Schema, Int64Schema, Int8Schema, NMEASentenceSchema, Uint16Schema, Uint32Schema, Uint64Schema, Uint8Schema } from './schemas'
 import type { Checksum, NMEALike, NMEASentence, Payload, ProtocolFieldType, StoredSentence, Talker, Value } from './types'
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
-import { Schema } from '@schemasjs/validator'
-import { addMetadata } from './nmea-metadata'
 
 export const lastUncompletedFrame = (text: string): string | null => {
   // Start of last possible frame
   const lastStartIndex = text.lastIndexOf(START_FLAG)
-  if (lastStartIndex === -1) { return null }
+  if (lastStartIndex === -1) {
+    return null
+  }
   // Last possible frame
   const remainder = text.slice(lastStartIndex)
   // Complete frame -> discard
-  if (remainder.includes(END_FLAG)) { return null }
+  if (remainder.includes(END_FLAG)) {
+    return null
+  }
   // Incomplete frame
   return remainder
 }
 
 export const getUnparsedNMEAFrames = (text: string): NMEALike[] => {
   // Includes all flags
-  if ([START_FLAG, SEPARATOR, DELIMITER, END_FLAG].some(flag => !text.includes(flag))) { return [] }
+  if ([START_FLAG, SEPARATOR, DELIMITER, END_FLAG].some((flag) => !text.includes(flag))) {
+    return []
+  }
   return text
     // Split by END Flag
     .split(END_FLAG)
     // Remove empty or not enough string
-    .filter(str => str.length > MINIMAL_LENGTH)
+    .filter((str) => str.length > MINIMAL_LENGTH)
     // Contains START FLAG
-    .filter(str => str.includes(START_FLAG))
+    .filter((str) => str.includes(START_FLAG))
     // String from last START FLAG
-    .map(str => str.split(START_FLAG).at(-1) as string)
+    .map((str) => str.split(START_FLAG).at(-1) as string)
     // Contains just one DELIMITER FLAG
-    .filter(str => {
+    .filter((str) => {
       const first = str.indexOf(DELIMITER)
       const last = str.lastIndexOf(DELIMITER)
       return (first !== -1) && (first === last)
     })
     // Valid CHECKSUM
-    .filter(str => {
+    .filter((str) => {
       const [payload, checksum] = str.split(DELIMITER) as [string, string]
       // Checksum has two length
       if (checksum.length !== CHECKSUM_LENGTH) {
@@ -61,14 +69,16 @@ export const getUnparsedNMEAFrames = (text: string): NMEALike[] => {
       return true
     })
     // PAYLOAD contains valid characters
-    .filter(str => {
+    .filter((str) => {
       const payload = str.split(DELIMITER).at(0) as string
       if (!payload.includes(SEPARATOR)) {
         console.debug(`Invalid sentence: payload has not separator character "${SEPARATOR}" -> $${str}`)
         return false
       }
-      // Payload valid characters -> TODO: with regex
-      if (['\r', '\n'].some(char => payload.includes(char))) {
+      // Payload valid characters
+      // eslint-disable-next-line sonarjs/todo-tag -- regex validation deferred
+      // TODO: with regex
+      if (['\r', '\n'].some((char) => payload.includes(char))) {
         console.debug(`Invalid sentence: payload has invalid characters -> $${str}`)
         return false
       }
@@ -76,7 +86,7 @@ export const getUnparsedNMEAFrames = (text: string): NMEALike[] => {
       return true
     })
     // Return NMEA frames
-    .map(str => `${START_FLAG}${str}${END_FLAG}` as NMEALike)
+    .map((str) => `${START_FLAG}${str}${END_FLAG}` as NMEALike)
 }
 
 export const getIdPayloadAndChecksum = (frame: NMEALike): { id: string, payload: string, checksum: string } => {
@@ -102,32 +112,45 @@ const parseNumber = (value: string, type: ProtocolFieldType): Value | undefined 
     uint64: Uint64Schema,
     // Floats
     float32: Float32Schema,
-    float64: Float64Schema
+    float64: Float64Schema,
   }
-  const schema: Schema<number | bigint> | undefined = schemas[type as keyof typeof schemas]
-  if (schema === undefined) { return undefined }
+  const schema = schemas[type as keyof typeof schemas] as Schema<number | bigint> | undefined
+  if (schema === undefined) {
+    return undefined
+  }
   const num = (type.includes('int64')) ? BigInt(value) : Number(value)
   const result = schema.safeParse(num)
-  if (!result.success) { return undefined }
+  if (!result.success) {
+    return undefined
+  }
   return result.value
 }
 const parseBoolean = (value: string): Value | undefined => {
   if (value.toLowerCase() === 'false' || value === '0') return false
   if (value.toLowerCase() === 'true' || value === '1') return true
 }
+// eslint-disable-next-line sonarjs/function-return-type -- intentional union return: parser yields string|number|bigint|boolean|null per field type
 export const parseValue = (value: string, type: ProtocolFieldType): Value => {
-  if (value === '') { return null }
+  if (value === '') {
+    return null
+  }
   try {
     // String
-    if (type === 'string') { return value }
+    if (type === 'string') {
+      return value
+    }
     // Boolean
     if (type === 'boolean') {
       const b = parseBoolean(value)
-      if (b !== undefined) { return b }
+      if (b !== undefined) {
+        return b
+      }
     }
     // Number
     const num = parseNumber(value, type)
-    if (num !== undefined) { return num }
+    if (num !== undefined) {
+      return num
+    }
   } catch (error) {
     console.debug(`Error parsing value: ${value} is not ${type} -> ${(error as Error).message}`)
     // console.debug(error)
@@ -136,7 +159,7 @@ export const parseValue = (value: string, type: ProtocolFieldType): Value => {
 }
 
 export const getKnownNMEASentence = (
-  { received, sample, sentenceID, sentencePayload, checksum, model }: { received: number, sample: NMEALike, sentenceID: string, sentencePayload: string, checksum: Checksum, model: StoredSentence }
+  { received, sample, sentenceID, sentencePayload, checksum, model }: { received: number, sample: NMEALike, sentenceID: string, sentencePayload: string, checksum: Checksum, model: StoredSentence },
 ): NMEASentence | null => {
   // Invalid sentence
   if (!hasSameNumberOfFields(sentencePayload, model)) return null
@@ -148,6 +171,7 @@ export const getKnownNMEASentence = (
     return { name, sample, value, type, units: units ?? 'unknown', description }
   })
   const { protocol } = model
+  // eslint-disable-next-line sonarjs/todo-tag -- metadata expansion tracked separately
   // TODO: Metada -> GGA Latitude-Longitude degrees
   const nmeaSentence: NMEASentence = {
     received,
@@ -155,7 +179,7 @@ export const getKnownNMEASentence = (
     id: sentenceID,
     checksum,
     payload,
-    protocol
+    protocol,
   }
   const nmeaSentenceWithMetadata = addMetadata(nmeaSentence)
   return NMEASentenceSchema.parse(nmeaSentenceWithMetadata)
@@ -183,11 +207,11 @@ export const getTalker = (sentenceID: string): Talker | null => {
 }
 
 export const getUnknowNMEASentence = (
-  { received, sample, sentenceID, sentencePayload, checksum }: { received: number, sample: NMEALike, sentenceID: string, sentencePayload: string, checksum: Checksum }
+  { received, sample, sentenceID, sentencePayload, checksum }: { received: number, sample: NMEALike, sentenceID: string, sentencePayload: string, checksum: Checksum },
 ): NMEASentence => {
   const fields = sentencePayload.split(SEPARATOR)
-  const response: Payload = fields.map(field => ({
-    name: 'unknown', sample: field, value: (field.length > 0) ? field : null, type: 'string', units: 'unknown'
+  const response: Payload = fields.map((field) => ({
+    name: 'unknown', sample: field, value: (field.length > 0) ? field : null, type: 'string', units: 'unknown',
   }))
   const sent = NMEASentenceSchema.parse({
     received,
@@ -195,19 +219,23 @@ export const getUnknowNMEASentence = (
     id: sentenceID,
     checksum,
     payload: response,
-    description: 'unknown nmea sentence'
+    description: 'unknown nmea sentence',
   })
   return sent
 }
 
 // TESTING - GENERATE
+// eslint-disable-next-line sonarjs/function-return-type, sonarjs/cyclomatic-complexity -- intentional union return (number|bigint|null) per field type; CMA refactor will address
 const createNumberValue = (type: ProtocolFieldType): number | bigint | null => {
+  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
   const sign = ((Math.random() < 0.5) ? -1 : 1)
   // Unsigned integer
+  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
   const useed = Math.round(Math.random() * (Number.MAX_SAFE_INTEGER - Number.MIN_SAFE_INTEGER) + Number.MIN_SAFE_INTEGER)
   // Signed integer
   const seed = useed * sign
   // Float
+  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
   const fseed = Math.random() * sign
   // Big Int
   const uint64 = new BigUint64Array([0n])
@@ -245,17 +273,22 @@ const createNumberValue = (type: ProtocolFieldType): number | bigint | null => {
 }
 
 const createStringValue = (): string => {
+  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
   const text = Buffer.from(Math.random().toString(36).substring(2)).toString('ascii')
-  const array = Array.from(text).map(letter => {
-    if (isLowerCharASCII(letter) || isUpperCharASCII(letter) || isNumberCharASCII(letter)) { return letter }
+  const array = Array.from(text).map((letter) => {
+    if (isLowerCharASCII(letter) || isUpperCharASCII(letter) || isNumberCharASCII(letter)) {
+      return letter
+    }
     return 'a'
   })
   return array.join('')
 }
 
+// eslint-disable-next-line sonarjs/function-return-type -- intentional union return: generator yields string|number|bigint|boolean|null per field type
 export const createValue = (type: ProtocolFieldType): string | number | bigint | boolean | null => {
   switch (type) {
     case 'boolean':
+      // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
       return Math.random() > 0.5
     case 'string':
       return createStringValue()
@@ -265,7 +298,7 @@ export const createValue = (type: ProtocolFieldType): string | number | bigint |
 
 export const createPayload = (model: StoredSentence): string => {
   let payload = ''
-  model.payload.forEach(field => {
+  model.payload.forEach((field) => {
     const value = createValue(field.type)
     payload += (value !== null) ? `${value.toString()},` : ','
   })

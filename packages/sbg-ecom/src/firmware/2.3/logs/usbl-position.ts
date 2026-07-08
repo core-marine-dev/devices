@@ -27,7 +27,7 @@ interface USBStatus {
 const getUSBLStatus = (usblStatus: number): USBStatus => ({
   SBG_ECOM_USBL_TIME_SYNC: bitStatus(usblStatus, 0),
   SBG_ECOM_USBL_POSITION_VALID: bitStatus(usblStatus, 1),
-  SBG_ECOM_USBL_DEPTH_VALID: bitStatus(usblStatus, 1)
+  SBG_ECOM_USBL_DEPTH_VALID: bitStatus(usblStatus, 1),
 })
 
 export const SBG_ECOM_LOG_USBL = (payload: Buffer): SBGFrameNameData => {
@@ -41,10 +41,10 @@ export const SBG_ECOM_LOG_USBL = (payload: Buffer): SBGFrameNameData => {
     latitudeSTD: payload.readFloatLE(26),
     longitudeSTD: payload.readFloatLE(30),
     depthSTD: payload.readFloatLE(34),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    odometerStatus: getUSBLStatus(data.usblStatus)
+    odometerStatus: getUSBLStatus(data.usblStatus),
   }
   return { name, data }
 }

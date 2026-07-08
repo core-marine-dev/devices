@@ -81,7 +81,7 @@ const getGeneralStatus = (generalStatus: number): object => {
     settingsOK: bitStatus(generalStatus, 3),
     temperatureOK: bitStatus(generalStatus, 4),
     dataloggerOK: bitStatus(generalStatus, 5),
-    cpuOK: bitStatus(generalStatus, 6)
+    cpuOK: bitStatus(generalStatus, 6),
   }
 }
 
@@ -90,7 +90,7 @@ const CANBUS_STATUSES = [
   'SBG_ECOM_CAN_BUS_TX_RX_ERR',
   'SBG_ECOM_CAN_BUS_OK',
   'SBG_ECOM_CAN_BUS_ERROR',
-  'UNKNOWN'
+  'UNKNOWN',
 ] as const
 type CANBusStatus = typeof CANBUS_STATUSES[number]
 
@@ -132,7 +132,7 @@ const getComStatus = (comStatus: number): object => {
     canValid: bitStatus(comStatus, 25),
     canRXOK: bitStatus(comStatus, 26),
     canTXOK: bitStatus(comStatus, 27),
-    canBus: getCANBusStatus(comStatus)
+    canBus: getCANBusStatus(comStatus),
   }
 }
 
@@ -151,7 +151,7 @@ const getAidingStatus = (aidingStatus: number): object => {
     dvl: bitStatus(aidingStatus, 10),
     usbl: bitStatus(aidingStatus, 11),
     depthSensor: bitStatus(aidingStatus, 12),
-    airData: bitStatus(aidingStatus, 13)
+    airData: bitStatus(aidingStatus, 13),
   }
 }
 
@@ -169,13 +169,13 @@ export const SBG_ECOM_LOG_STATUS = (payload: Buffer): SBGFrameNameData => {
     metadata: {
       generalStatus: {},
       comStatus: {},
-      aidingStatus: {}
-    }
+      aidingStatus: {},
+    },
   }
   data.metadata = {
     generalStatus: getGeneralStatus(data.generalStatus),
     comStatus: getComStatus(data.comStatus),
-    aidingStatus: getAidingStatus(data.aidingStatus)
+    aidingStatus: getAidingStatus(data.aidingStatus),
   }
   return { name, data }
 }

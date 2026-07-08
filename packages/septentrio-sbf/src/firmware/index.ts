@@ -1,5 +1,6 @@
-import type { Firmware, SBFBodyDataParser } from '../types'
 import { getSBFFrame as getSBFFrame_4_10_1 } from './4-10-1'
+
+import type { Firmware, SBFBodyDataParser } from '../types'
 
 // Firmwares
 const firmwareParsers = new Map<Firmware, SBFBodyDataParser>()
@@ -23,5 +24,5 @@ export {
   getFirmwares,
   getFirmareParser,
   isAvailableFirmware,
-  throwFirmwareError
+  throwFirmwareError,
 }

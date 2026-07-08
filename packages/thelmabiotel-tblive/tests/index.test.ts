@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { TBLive, tbliveFirmwares } from '../src/index'
 
 describe('firmwares available', () => {
@@ -8,7 +9,7 @@ describe('firmwares available', () => {
     expect(firmwares).toContain('1.0.1')
     expect(firmwares).toContain('1.0.2')
   })
-  
+
   test('TBLive.firmwares', () => {
     const tblive = new TBLive()
     expect(tblive.firmwares).not.toContain('unknown')
@@ -18,7 +19,6 @@ describe('firmwares available', () => {
 })
 
 describe('TBLive', () => {
-
   const firmwareSentence = 'FV=1.0.1alpha'
   const pingSentence = 'SN=1234567><>\r'
   const serialnumberSentence = 'SN=1234567'
@@ -27,7 +27,7 @@ describe('TBLive', () => {
     const tblive = new TBLive()
     const input = firmwareSentence + pingSentence + serialnumberSentence + 'sdlkjghsdkl'
     const results = tblive.parseData(input)
-    
+
     expect(results).toHaveLength(3)
   })
 
@@ -36,7 +36,7 @@ describe('TBLive', () => {
     const input = ';aslfj;' + pingSentence + 'lsdfjghl'
     tblive.addData(input)
     const results = tblive.parseData()
-    
+
     expect(results).toHaveLength(1)
     const [result] = results
     expect(result.id).toBe('ping')
@@ -45,11 +45,11 @@ describe('TBLive', () => {
 
   test('should accumulate with memory enabled and parse data', () => {
     const tblive = new TBLive({ memory: true })
-    
+
     // Send partial data
     tblive.addData(pingSentence.slice(0, 5))
     expect(tblive.parseData()).toHaveLength(0) // Incomplete data, nothing to parse yet
-    
+
     // Complete the data
     tblive.addData(pingSentence.slice(5))
     const results = tblive.parseData()
@@ -59,11 +59,11 @@ describe('TBLive', () => {
 
   test('should not accumulate with memory disabled and parse data', () => {
     const tblive = new TBLive({ memory: false })
-    
+
     // Send partial data
     tblive.addData(pingSentence.slice(0, 5))
     expect(tblive.parseData()).toHaveLength(0) // Incomplete data, nothing to parse yet
-    
+
     // Complete the data
     tblive.addData(pingSentence.slice(5))
     const results = tblive.parseData()

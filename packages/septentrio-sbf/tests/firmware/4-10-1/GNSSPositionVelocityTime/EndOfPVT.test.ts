@@ -1,7 +1,8 @@
 import { describe, test, expect } from 'vitest'
+
 import { endOfPVT } from '../../../../src/firmware/4-10-1/GNSSPositionVelocityTime/EndOfPVT'
 /* EndOfPVT -> Number: 5921 => "OnChange" interval: default PVT output rate
-  This block marks the end of transmission of all PVT related blocks 
+  This block marks the end of transmission of all PVT related blocks
   belonging to the same epoch.
 
   EndOfAtt -------------------------------------------------------------

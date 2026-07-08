@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs'
-import { SBGParser, availableFirmwares } from '../src/index'
 import path from 'node:path'
+
+import { SBGParser } from '../src/index'
 
 const DIR = path.join(__dirname, '..')
 const SBG_FILE = path.join(DIR, 'tests', 'sbg-raw.bin')
@@ -23,7 +24,7 @@ console.log('parsed')
 console.log(`responses = ${response.length}`)
 let unknown = 0
 let known = 0
-response.forEach(res => {
+response.forEach((res) => {
   // if (res.name !== 'unknown') { console.dir(res) }
   (res.name !== 'unknown') ? known++ : unknown++
 })

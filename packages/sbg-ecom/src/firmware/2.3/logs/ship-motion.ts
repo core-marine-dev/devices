@@ -46,7 +46,7 @@ const getHeaveStatus = (heaveStatus: number): HeaveStatus => ({
   SBG_ECOM_HEAVE_SURGE_SWAY_INCLUDED: bitStatus(heaveStatus, 2),
   SBG_ECOM_HEAVE_PERIOD_INCLUDED: bitStatus(heaveStatus, 3),
   SBG_ECOM_HEAVE_PERIOD_VALID: bitStatus(heaveStatus, 4),
-  SBG_ECOM_HEAVE_SWELL_MODE: bitStatus(heaveStatus, 5)
+  SBG_ECOM_HEAVE_SWELL_MODE: bitStatus(heaveStatus, 5),
 })
 
 const getData = (payload: Buffer): object => {
@@ -63,10 +63,10 @@ const getData = (payload: Buffer): object => {
     velocityY: payload.readFloatLE(36),
     velocityZ: payload.readFloatLE(40),
     heaveStatus: payload.readUIntLE(44, 2),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    heaveStatus: getHeaveStatus(data.heaveStatus)
+    heaveStatus: getHeaveStatus(data.heaveStatus),
   }
   return data
 }

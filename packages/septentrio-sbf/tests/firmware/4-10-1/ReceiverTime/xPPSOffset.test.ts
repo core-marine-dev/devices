@@ -1,17 +1,18 @@
 import { describe, test, expect } from 'vitest'
+
 import { TIME_SCALE, TimeScale, XPPSOffset, xppsOffset } from '../../../../src/firmware/4-10-1/ReceiverTime/xPPSOffset'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 
 /* xPPSOffset -> Number: 5911 => "OnChange" interval: PPS rate
-  The xPPSOffset block contains the offset between the true xPPS pulse and 
+  The xPPSOffset block contains the offset between the true xPPS pulse and
   the actual pulse output by the receiver. It is output right after each xPPS pulse.
 
-  On receivers with more than one independent PPS outputs, this block always 
+  On receivers with more than one independent PPS outputs, this block always
   refers to the ﬁrst PPS output.
 
   xPPSOffset ----------------------------------------------------------------
   Block fields  Type        Units  Do-Not-Use  Description
-  SyncAge      uint8          sec              Age of the last synchronization to system time. 
+  SyncAge      uint8          sec              Age of the last synchronization to system time.
                                                The xPPS pulse is regularly resynchronized with system time.
                                                This ﬁeld indicates the number of seconds elapsed since the last resynchronization.
                                                SyncAge is constrained to the 0-255s range.
@@ -30,13 +31,13 @@ import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } fro
 */
 
 type Input = {
-  timescale: number,
+  timescale: number
   meta: TimeScale
 }
 
 const defaultInput: Input = {
   timescale: 2,
-  meta: TIME_SCALE.UTC
+  meta: TIME_SCALE.UTC,
 }
 
 const getNameFrameData = (input: Input = defaultInput) => {
@@ -55,14 +56,14 @@ const getNameFrameData = (input: Input = defaultInput) => {
 
   const frame: XPPSOffset = {
     syncAge, timeScale, offset, padding,
-    metadata: { timeScale: metadataTimeScale }
+    metadata: { timeScale: metadataTimeScale },
   }
 
   const data: Buffer = Buffer.concat([
     syncAgeBuffer,
     timeScaleBuffer,
     offsetBuffer,
-    paddingBuffer
+    paddingBuffer,
   ])
 
   return { frameName, frame, data }
@@ -91,7 +92,7 @@ describe('Testing xPPSOffset', () => {
     // TimeScale Receiver = 3
     input.timescale = 3
     input.meta = TIME_SCALE.RECEIVER
-    const { frame: frame3, data: data3 } = getNameFrameData(input)
+    const { data: data3 } = getNameFrameData(input)
     const { body: body3 } = xppsOffset(0, data3)
     expect(body3.syncAge).toStrictEqual(0)
     expect(body3.metadata.timeScale).toStrictEqual(TIME_SCALE.RECEIVER)

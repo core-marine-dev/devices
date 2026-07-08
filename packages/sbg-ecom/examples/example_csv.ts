@@ -1,7 +1,8 @@
 import { readFileSync } from 'fs'
-import { SBGParser, availableFirmwares} from '../src/index'
-import type { SBGFrameResponse } from '../src/types'
 import path from 'node:path'
+
+import { SBGParser } from '../src/index'
+import type { SBGFrameResponse } from '../src/types'
 
 const DIR = path.join(__dirname, '..')
 
@@ -16,7 +17,7 @@ const parseFile = (path: string): SBGFrameResponse[] => {
   const lines = content.split('\n')
   lines.forEach((line, lineNumber) => {
     if (line.length && lineNumber) {
-      const [_id, timestamp, data] = line.split(',')
+      const [, timestamp, data] = line.split(',')
       if (data.includes('x')) {
         const buffer = Buffer.from(data.split('x')[1], 'hex')
         map.set(timestamp, buffer)
@@ -26,7 +27,7 @@ const parseFile = (path: string): SBGFrameResponse[] => {
   })
   // const parser = new SBGParser()
   // parser.memory = true
-  map.forEach((value, key) => {
+  map.forEach((value) => {
     parser.addData(value)
     // console.log(`Added data of ${key}`)
   })
@@ -39,7 +40,7 @@ const infoFrames = (frames: SBGFrameResponse[]): void => {
   // console.log(`frames = ${frames.length}`)
   let unknown = 0
   let known = 0
-  frames.forEach(frame => {
+  frames.forEach((frame) => {
     // if (res.name !== 'unknown') { console.dir(res) }
     (frame.name !== 'unknown') ? known++ : unknown++
     // if (frame.name.includes('POS')) { console.dir(frame) }
@@ -51,7 +52,7 @@ const infoFrames = (frames: SBGFrameResponse[]): void => {
 const sbgframes = new Map<string, number>()
 
 const updateFramesCounter = (frames: SBGFrameResponse[]): void => {
-  frames.forEach(frame => {
+  frames.forEach((frame) => {
     const { name, type, format } = frame
     const key = `${type}_${format}_${name}`
     const prevCounter = sbgframes.get(key)

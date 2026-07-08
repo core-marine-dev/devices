@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { AttEuler, ERROR_CODE, Error, type Mode, MODE, attEuler } from '../../../../src/firmware/4-10-1/GNSSAttitude/AttEuler'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 /* AttEuler -> Number: 5938 => "OnChange" interval: default PVT output rate
@@ -65,7 +66,7 @@ const getNameFrameData = () => {
     mainAux1Baseline: ERROR_CODE.NO,
     mainAux2Baseline: ERROR_CODE.NO,
     reserved: 0b111,
-    notRequestedAttitude: false
+    notRequestedAttitude: false,
   }
   const metadataMode: Mode = MODE.HEADING_PICH_ROLL_FIXED
 
@@ -74,8 +75,8 @@ const getNameFrameData = () => {
     padding,
     metadata: {
       error: metadataError,
-      mode: metadataMode
-    }
+      mode: metadataMode,
+    },
   }
   const data: Buffer = Buffer.concat([
     nrSVBuffer,
@@ -87,20 +88,19 @@ const getNameFrameData = () => {
     rollBuffer,
     headingDotBuffer,
     pitchDotBuffer,
-    rollDotBuffer
+    rollDotBuffer,
   ])
   return { frameName, frame, data }
 }
 
 describe('Testing AttEuler', () => {
-
   test('Regular body', () => {
     const { frameName, frame, data } = getNameFrameData()
     const { name, body } = attEuler(0, data)
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -114,7 +114,7 @@ describe('Testing AttEuler', () => {
       mainAux1Baseline: ERROR_CODE.NO,
       mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     let body = attEuler(0, data).body
@@ -127,7 +127,7 @@ describe('Testing AttEuler', () => {
       mainAux1Baseline: ERROR_CODE.MEASUREMENTS,
       mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -140,7 +140,7 @@ describe('Testing AttEuler', () => {
       mainAux1Baseline: ERROR_CODE.RESERVED,
       mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -153,7 +153,7 @@ describe('Testing AttEuler', () => {
       mainAux1Baseline: ERROR_CODE.NO,
       mainAux2Baseline: ERROR_CODE.MEASUREMENTS,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -166,7 +166,7 @@ describe('Testing AttEuler', () => {
       mainAux1Baseline: ERROR_CODE.NO,
       mainAux2Baseline: ERROR_CODE.RESERVED,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -179,7 +179,7 @@ describe('Testing AttEuler', () => {
       mainAux1Baseline: ERROR_CODE.NO,
       mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: true
+      notRequestedAttitude: true,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body

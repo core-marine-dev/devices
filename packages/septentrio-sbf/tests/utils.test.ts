@@ -1,5 +1,6 @@
-import { describe, test, expect } from 'vitest'
 import { crc16xmodem } from 'crc'
+import { describe, test, expect } from 'vitest'
+
 import { bitState, computedCRC, getNullableValue, getPadding } from '../src/utils'
 
 describe('Test shared utils', () => {
@@ -8,7 +9,6 @@ describe('Test shared utils', () => {
     const crc = crc16xmodem(buffer)
     expect(computedCRC(buffer)).toBe(crc)
   }),
-  
 
   test('bitState', () => {
     const number = 0b11001010
@@ -24,9 +24,7 @@ describe('Test shared utils', () => {
 
   test('getPadding', () => {
     const buffer = Buffer.from([0, 1, 2, 3, 4])
-    let index = 0
-    let length = 0
-    for (let index = 0; index < buffer.byteLength; index ++) {
+    for (let index = 0; index < buffer.byteLength; index++) {
       const subLength = buffer.byteLength - index
       for (let length = 0; length < subLength; length++) {
         const result = getPadding(buffer, index, length)

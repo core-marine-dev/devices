@@ -1,9 +1,10 @@
 import { describe, test, expect } from 'vitest'
-import { TypeData, getTypedData } from "./testUtils"
+
+import { TypeData, getTypedData } from './testUtils'
 
 describe('Test typed data', () => {
   const num = -945645646.84546464646456465
-  
+
   test('int8', () => {
     const data = getTypedData(num, TypeData.INT8)
     if (data !== null) {
@@ -30,7 +31,7 @@ describe('Test typed data', () => {
     const data = getTypedData(num, TypeData.INT64)
     if (data !== null) {
       const { number, buffer } = data
-      expect(number).toBe(buffer.readBigInt64LE())
+      expect(number).toBe(Number(buffer.readBigInt64LE()))
     }
     // expect(data).toBe(null)
   })
@@ -62,7 +63,7 @@ describe('Test typed data', () => {
     //   const { number, buffer } = data
     //   expect(number).toBe(buffer.readBigUInt64LE())
     // }
-    expect(data).toBe(null)
+    expect(data).toBeNull()
   })
   test('float', () => {
     const data = getTypedData(num, TypeData.FLOAT)

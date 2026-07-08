@@ -10,7 +10,7 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD `f6444c3`, not pushed) · Repo was idle
+> **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD not pushed) · Repo was idle
 > 2025-12-15 → 2026-07-08.
 
 ## How to use this doc
@@ -33,10 +33,12 @@ Refresh the whole monorepo in strokes:
 1. **CMA format rollout** — every parser emits the same output shape ([`docs/CMA.md`](CMA.md)).
    Today only `thelmabiotel-tblive` conforms.
 2. ~~**pnpm migration**~~ — ✅ DONE (2026-07-08). See [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md).
-3. **Linter + formatter migration** — ts-standard → ESLint flat config with @stylistic +
-   sonarjs + perfectionist plugins (mirrors Tracker repo). In progress.
-4. **Dependency refresh** — deps are from ~2025; audit + bump per package.
-5. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
+3. ~~**Linter + formatter migration**~~ — ✅ DONE (2026-07-08). ESLint flat config with
+   @stylistic + sonarjs + perfectionist plugins (mirrors Tracker repo).
+4. **Documentation** — `docs/CodeStyle.md` (rationale + examples), AGENTS.md code-style
+   section, codify lint→tsc→test run order.
+5. **Dependency refresh** — deps are from ~2025; audit + bump per package.
+6. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
    Later track, after linter + CMA.
 
 ## Done
@@ -80,12 +82,35 @@ Refresh the whole monorepo in strokes:
   - Verified: all 5 builds pass, all 4 test suites with specs pass (nmea 60/60, septentrio
     54/54, tblive 134/134, norsub 8/8; sbg-ecom has no specs — pre-existing).
   - Docs updated: TOOLING, COMMANDS, PNPM-MIGRATION (marked done), CONTRIBUTING, AGENTS.
+- **2026-07-08 — ESLint flat config migration (step 2 of refactor):**
+  - Root `eslint.config.js` with 4 plugins: typescript-eslint, @stylistic, eslint-plugin-sonarjs,
+    eslint-plugin-perfectionist (mirrors Tracker repo). House style: no-semi, single-quotes,
+    2-space, K&R braces, arrowParens: always. Sonar thresholds: max-lines-per-function 50,
+    cyclomatic-complexity 10, cognitive-complexity 15 (tests exempt from max-lines). Import
+    ordering: `// built-in` → `// installed` → `// coded` via perfectionist partitionByComment.
+  - ts-standard removed; per-package `ts-standard`/`eslintConfig` blocks removed.
+  - `lint` = `eslint`, `format` = `eslint --fix`; root `lint`/`lint:fix` scripts added.
+  - `.vscode/settings.json` updated: ESLint flat config integration, `source.fixAll.eslint`
+    on save, dropped `standard.*` settings.
+  - Per-package `tsconfig.json` updated to include `tests/**/*` (for projectService).
+  - ~2596 auto-fixable violations fixed (quotes, semicolons, trailing commas, indentation).
+  - ~180 non-fixable violations triaged:
+    - Mechanical fixes: split multi-statement lines (66), unused vars/imports (25), test
+      assertion specificity (20).
+    - Complexity violations (max-lines-per-function, cyclomatic-complexity, cognitive-complexity):
+      inline-disabled with `-- CMA refactor will address` comments.
+    - Sonar findings: `===` type-mismatch (fixed a real type bug in nmea-parser/sentences.ts;
+      intentional ones disabled with comments), `Math.random()` in tests (disabled), TODO tags
+      (disabled), empty collections (disabled), hardcoded IP (disabled), dead stores (removed).
+  - Verified: all 5 builds pass, all 4 test suites pass (nmea 60/60, septentrio 54/54,
+    tblive 134/134, norsub 8/8). `pnpm lint` clean across the whole monorepo.
+  - Docs updated: TOOLING (linting section), COMMANDS, CONTRIBUTING, AGENTS.
 
 ## Where we are now
 
-Working tree is clean (pnpm migration committed on `dev` as `f6444c3`, not pushed). The pnpm
-migration is complete and verified. Next up: **step 2 — ESLint flat config replacing
-ts-standard**, then **step 3 — documentation (CodeStyle.md + AGENTS code-style section)**.
+Working tree has uncommitted ESLint migration changes on `dev`. Steps 1 (pnpm) and 2 (ESLint)
+are complete and verified. Next up: **step 3 — documentation (CodeStyle.md + AGENTS code-style
+section + lint→tsc→test run order)**.
 
 No parser code has been refactored yet — CMA rollout, Result pattern, and dep refresh are all
 still pending, in that discussion order.
@@ -103,19 +128,15 @@ still pending, in that discussion order.
 
 ## Next steps (in order)
 
-1. **Commit the pnpm migration** (all changes are staged/unstaged on `dev`).
-2. **ESLint flat config** replacing ts-standard — root `eslint.config.js` with 4 plugins
-   (typescript-eslint, @stylistic, eslint-plugin-sonarjs, eslint-plugin-perfectionist),
-   remove per-`package.json` `ts-standard`/`eslintConfig` blocks, update `lint`/`format`
-   scripts + CI, add `.vscode` ESLint integration.
-3. **Documentation** — `docs/CodeStyle.md` (rationale + examples), AGENTS.md code-style
+1. **Commit the ESLint migration** (all changes on `dev`).
+2. **Documentation** — `docs/CodeStyle.md` (rationale + examples), AGENTS.md code-style
    section, codify lint→tsc→test run order.
-4. **Dependency refresh** package by package.
-5. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
+3. **Dependency refresh** package by package.
+4. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
    start with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work
    already exists in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru),
    and align thelmabiotel-tblive's extra top-level keys.
-6. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
+5. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
 
 ## Open threads / known bugs (report before fixing)
 

@@ -1,10 +1,10 @@
-import * as v from 'valibot'
-import { ValibotValidator } from '@schemasjs/validator'
 import {
   UnsignedIntegerSchema as ValibotUnsignedIntegerSchema,
   Uint16Schema as ValibotUint16Schema,
-  Uint32Schema as ValibotUint32Schema
+  Uint32Schema as ValibotUint32Schema,
 } from '@schemasjs/valibot-numbers'
+import { ValibotValidator } from '@schemasjs/validator'
+import * as v from 'valibot'
 
 const ValibotBooleanSchema = v.boolean()
 export const BooleanSchema = ValibotValidator<v.InferInput<typeof ValibotBooleanSchema>>(ValibotBooleanSchema)
@@ -15,7 +15,7 @@ export const UnsignedIntegerSchema = ValibotValidator<v.InferInput<typeof Valibo
 const ValibotStatusInputSchema = v.object({
   status: v.optional(ValibotUint32Schema),
   status_a: v.optional(ValibotUint16Schema),
-  status_b: v.optional(ValibotUint16Schema)
+  status_b: v.optional(ValibotUint16Schema),
 })
 export const StatusInputSchema = ValibotValidator<v.InferInput<typeof ValibotStatusInputSchema>>(ValibotStatusInputSchema)
 /** STATUS
@@ -56,16 +56,16 @@ export const StatusInputSchema = ValibotValidator<v.InferInput<typeof ValibotSta
 const ValibotStatusSchema = v.object({
   main: v.object({
     ok: ValibotBooleanSchema,
-    health: ValibotBooleanSchema
+    health: ValibotBooleanSchema,
   }),
   system: v.object({
     ok: ValibotBooleanSchema,
     health: ValibotBooleanSchema,
     synchronized: v.object({
       time: ValibotBooleanSchema,
-      clock: ValibotBooleanSchema
+      clock: ValibotBooleanSchema,
     }),
-    cpu: ValibotBooleanSchema
+    cpu: ValibotBooleanSchema,
   }),
   sensor: v.object({
     ok: ValibotBooleanSchema,
@@ -73,46 +73,46 @@ const ValibotStatusSchema = v.object({
     limits: ValibotBooleanSchema,
     environmental: v.object({
       vibration: ValibotBooleanSchema,
-      temperature: ValibotBooleanSchema
-    })
+      temperature: ValibotBooleanSchema,
+    }),
   }),
   algorithms: v.object({
     ok: ValibotBooleanSchema,
     health: ValibotBooleanSchema,
     initialization: v.object({
       observer: ValibotBooleanSchema,
-      heading: ValibotBooleanSchema
+      heading: ValibotBooleanSchema,
     }),
     roll_pitch: v.object({
       ok: ValibotBooleanSchema,
-      health: ValibotBooleanSchema
+      health: ValibotBooleanSchema,
     }),
     heading: v.object({
       ok: ValibotBooleanSchema,
-      health: ValibotBooleanSchema
+      health: ValibotBooleanSchema,
     }),
     surge_sway: v.object({
       ok: ValibotBooleanSchema,
-      health: ValibotBooleanSchema
+      health: ValibotBooleanSchema,
     }),
     heave: v.object({
       ok: ValibotBooleanSchema,
-      health: ValibotBooleanSchema
-    })
+      health: ValibotBooleanSchema,
+    }),
   }),
   aiding: v.object({
     received: v.object({
       position: ValibotBooleanSchema,
       velocity: ValibotBooleanSchema,
-      heading: ValibotBooleanSchema
+      heading: ValibotBooleanSchema,
     }),
     valid: v.object({
       position: ValibotBooleanSchema,
       velocity: ValibotBooleanSchema,
       heading: ValibotBooleanSchema,
       vertical: ValibotBooleanSchema,
-      horizontal: ValibotBooleanSchema
-    })
-  })
+      horizontal: ValibotBooleanSchema,
+    }),
+  }),
 })
 export const StatusSchema = ValibotValidator<v.InferInput<typeof ValibotStatusSchema>>(ValibotStatusSchema)

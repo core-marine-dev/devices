@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { PING_END, PING_START } from '../src/constants'
 import { parseClockRound, parseClockSet, parseListening, parsePing } from '../src/listening'
 import type { Timestamp, ParsedSentence } from '../src/types'
@@ -20,7 +21,7 @@ describe('parsePing', () => {
         name: 'serial number',
         type: 'uint16',
         value: 123456,
-        description: 'Receiver serial number'
+        description: 'Receiver serial number',
       }],
     }
 
@@ -46,7 +47,7 @@ describe('parsePing', () => {
           errors: ['Invalid serial number -> it should be a number'],
         },
       ],
-      errors: ['Invalid serial number -> it should be a number']
+      errors: ['Invalid serial number -> it should be a number'],
     }
 
     expect(result).toEqual(expected)
@@ -71,7 +72,7 @@ describe('parsePing', () => {
           errors: ['Invalid serial number -> it should be a positive integer'],
         },
       ],
-      errors: ['Invalid serial number -> it should be a positive integer']
+      errors: ['Invalid serial number -> it should be a positive integer'],
     }
 
     expect(result).toEqual(expected)
@@ -92,7 +93,7 @@ describe('parseClockRound', () => {
         raw: 'ack01',
         name: 'clock round ack',
         type: 'string',
-        value: 'ack01'
+        value: 'ack01',
       }],
     }
 
@@ -114,7 +115,7 @@ describe('parseClockSet', () => {
         raw: 'ack02',
         name: 'clock set ack',
         type: 'string',
-        value: 'ack02'
+        value: 'ack02',
       }],
     }
 
@@ -136,7 +137,7 @@ describe('parseListening', () => {
         raw: input,
         name: 'listening command',
         type: 'string',
-        value: input
+        value: input,
       }],
     }
     expect(result).toEqual(expected)

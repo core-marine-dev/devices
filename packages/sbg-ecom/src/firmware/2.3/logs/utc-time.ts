@@ -39,7 +39,7 @@ const CLOCK_STATUSES = [
   'SBG_ECOM_CLOCK_FREE_RUNNING',
   'SBG_ECOM_CLOCK_STEERINGA',
   'SBG_ECOM_CLOCK_VALID',
-  'UNKWNOWN'
+  'UNKWNOWN',
 ] as const
 type ClockStatus = typeof CLOCK_STATUSES[number]
 
@@ -60,7 +60,7 @@ const UTC_STATUSES = [
   'SBG_ECOM_UTC_INVALID',
   'SBG_ECOM_UTC_NO_LEAP_SEC',
   'SBG_ECOM_UTC_VALID',
-  'UNKNOWN'
+  'UNKNOWN',
 ] as const
 type UTCStatus = typeof UTC_STATUSES[number]
 
@@ -90,16 +90,16 @@ export const SBG_ECOM_LOG_UTC_TIME = (payload: Buffer): SBGFrameNameData => {
     nanosec: payload.readUIntLE(13, 4),
     gpsTOW: payload.readUIntLE(17, 4),
     metadata: {
-      clockStatus: {}
-    }
+      clockStatus: {},
+    },
   }
   data.metadata = {
     clockStatus: {
       stableInput: bitStatus(data.clockStatus, 0),
       status: getClockStatus(data.clockStatus),
       utcSync: bitStatus(data.clockStatus, 5),
-      utcStatus: getUTCStatus(data.clockStatus)
-    }
+      utcStatus: getUTCStatus(data.clockStatus),
+    },
   }
   return { name, data }
 }

@@ -13,7 +13,7 @@ import {
   FOOTER_LENGTH,
   HEADER_LENGTH,
   SBG_PARSING_STATUS,
-  SBG_FRAME_FORMATS
+  SBG_FRAME_FORMATS,
 } from './constants'
 import { getFirmareParser, getFirmwares, isAvailableFirmware, throwFirmwareError } from './firmware'
 import type { SBGLargeFrameDataBuffer, SBGFrameData, SBGHeader, SBGFooter, SBGFrameResponse, SBGFrameParser, SBGParsingStatus } from './types'
@@ -22,11 +22,11 @@ import { getCalculatedCRC, isLargeFrame } from './utils'
 export class Parser {
   // Internal Buffer
   protected _buffer: Buffer = Buffer.from([])
-  get bufferSize (): number { return this._buffer.length }
+  get bufferSize(): number { return this._buffer.length }
 
   protected _bufferLimit: number = TWO_BYTES_MAX
-  get bufferLimit (): typeof this._bufferLimit { return this._bufferLimit }
-  set bufferLimit (limit: number) {
+  get bufferLimit(): typeof this._bufferLimit { return this._bufferLimit }
+  set bufferLimit(limit: number) {
     if (typeof limit !== 'number') throw new Error('limit has to be a number')
     if (limit < 0) throw new Error('limit has to be a positive integer')
     if (limit < 1) throw new Error('limit has to be a positive integer greater than zero')
@@ -39,8 +39,8 @@ export class Parser {
   // Firmware
   protected _firmware: string = '2.3'
   protected _parser: SBGFrameParser = getFirmareParser('2.3')
-  get firmware (): typeof this._firmware { return this._firmware }
-  set firmware (fw: string) {
+  get firmware(): typeof this._firmware { return this._firmware }
+  set firmware(fw: string) {
     if (typeof fw !== 'string') throw new Error('firmware has to be a string')
     if (!isAvailableFirmware(fw)) throwFirmwareError()
     this._firmware = fw
@@ -49,30 +49,32 @@ export class Parser {
 
   // Memory
   protected _memory: boolean = false
-  get memory (): typeof this._memory { return this._memory }
-  set memory (mem: boolean) {
+  get memory(): typeof this._memory { return this._memory }
+  set memory(mem: boolean) {
     if (typeof mem !== 'boolean') throw new Error('memory has to be boolean')
     this._memory = mem
   }
 
-  constructor (firmware: string = '2.3', memory: boolean = false) {
+  constructor(firmware: string = '2.3', memory: boolean = false) {
     this.firmware = firmware
     this.memory = memory
   }
 
-  getAvailableFirmwares (): string[] {
+  getAvailableFirmwares(): string[] {
     return getFirmwares()
   }
 
-  getFrames (): SBGFrameResponse[] {
+  getFrames(): SBGFrameResponse[] {
     const frames = structuredClone(this._frames)
     this._frames = []
     return frames
   }
 
-  addData (data: Buffer): void {
+  addData(data: Buffer): void {
     // Check input data is Buffer
-    if (!Buffer.isBuffer(data)) { throw new Error('data has to be a Buffer') }
+    if (!Buffer.isBuffer(data)) {
+      throw new Error('data has to be a Buffer')
+    }
     // If input data may have a frame, it will be stored
     if (data.includes(SYNC_FLAG)) {
       this._buffer = (this._memory) ? Buffer.concat([this._buffer, data]) : data
@@ -81,7 +83,7 @@ export class Parser {
     }
   }
 
-  protected parseData (): void {
+  protected parseData(): void {
     const frames = [] as SBGFrameResponse[]
     let pivot = 0
     // Get last Index
@@ -124,15 +126,14 @@ export class Parser {
     this.setBuffer()
   }
 
-  protected getSBGFrame (info: Buffer): { status: SBGParsingStatus, frame: SBGFrameResponse } {
+  protected getSBGFrame(info: Buffer): { status: SBGParsingStatus, frame: SBGFrameResponse } {
     let status: SBGParsingStatus = SBG_PARSING_STATUS.OK
-    let sbgFrame = {} as any
     // HEADER
     const header = this.getHeader(info)
     const payloadLength = header.length
     const frame = { header }
     const buffer = info.subarray(0, HEADER_LENGTH + payloadLength + FOOTER_LENGTH)
-    sbgFrame = { frame, buffer }
+    const sbgFrame: any = { frame, buffer }
     // Check length
     if (info.subarray(PAYLOAD_INDEX).length < (payloadLength + FOOTER_LENGTH)) {
       // if (buffer.subarray(PAYLOAD_INDEX).length < (payloadLength + CRC_LENGTH)) {
@@ -167,26 +168,27 @@ export class Parser {
     return { status, frame: sbgFrame as SBGFrameResponse }
   }
 
-  protected getHeader (buffer: Buffer): SBGHeader {
+  protected getHeader(buffer: Buffer): SBGHeader {
     return {
       sync: buffer.subarray(0, SYNC_LENTGH),
       messageID: buffer.readUIntLE(ID_INDEX, ID_LENGTH),
       messageClass: buffer.readUIntLE(CLASS_INDEX, CLASS_LENGTH),
-      length: buffer.readUIntLE(LENGTH_INDEX, LENGTH_LENGTH)
+      length: buffer.readUIntLE(LENGTH_INDEX, LENGTH_LENGTH),
     }
   }
 
-  protected getFooter (footer: Buffer): SBGFooter {
+  protected getFooter(footer: Buffer): SBGFooter {
     return {
       crc: footer.readUIntLE(0, CRC_LENGTH),
-      ext: footer.subarray(CRC_LENGTH, FOOTER_LENGTH)
+      ext: footer.subarray(CRC_LENGTH, FOOTER_LENGTH),
     }
   }
 
-  protected getPayloadData (messageClass: number, messageID: number, payload: Buffer): SBGFrameData {
+  protected getPayloadData(messageClass: number, messageID: number, payload: Buffer): SBGFrameData {
     const sbgFrame: SBGFrameData = UNKNOWN_SBG_FRAME_DATA
     if (isLargeFrame(payload.length)) {
-      const { data: subpayload, ...largedata } = this.getLargeFrameMetadata(payload)
+      // eslint-disable-next-line sonarjs/no-unused-vars -- rest pattern discard, only largedata is needed
+      const { data: _subpayload, ...largedata } = this.getLargeFrameMetadata(payload)
       const { name, type, data } = this._parser(messageClass, messageID, payload)
       sbgFrame.name = name
       sbgFrame.format = SBG_FRAME_FORMATS.LARGE
@@ -202,7 +204,7 @@ export class Parser {
     return sbgFrame
   }
 
-  protected getLargeFrameMetadata (payload: Buffer): SBGLargeFrameDataBuffer {
+  protected getLargeFrameMetadata(payload: Buffer): SBGLargeFrameDataBuffer {
     const transmissionIDIndex = 0
     const pageIndex = transmissionIDIndex + TRANSMISSION_ID_LENGTH
     const pagesIndex = pageIndex + PAGE_INDEX_LENGTH
@@ -211,11 +213,11 @@ export class Parser {
       transmissionID: payload.readUIntLE(transmissionIDIndex, TRANSMISSION_ID_LENGTH),
       pageIndex: payload.readUIntLE(pageIndex, PAGE_INDEX_LENGTH),
       pages: payload.readUIntLE(pagesIndex, PAGES_LENGTH),
-      data: payload.subarray(dataIndex)
+      data: payload.subarray(dataIndex),
     }
   }
 
-  protected updateFrames (frames: SBGFrameResponse[]): void {
+  protected updateFrames(frames: SBGFrameResponse[]): void {
     if (frames.length > 0) {
       if (this._memory) {
         this._frames = this._frames.concat(frames)
@@ -225,7 +227,7 @@ export class Parser {
     }
   }
 
-  protected setBuffer (): void {
+  protected setBuffer(): void {
     if (this._buffer.length > this._bufferLimit) {
       this._buffer = this._buffer.subarray(-this._bufferLimit)
     }

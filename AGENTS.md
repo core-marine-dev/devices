@@ -40,7 +40,7 @@ Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thel
 ```bash
 pnpm run <package>:test            # vitest (watch)
 pnpm run <package>:build           # format + tsup (ESM + CJS)
-pnpm run <package>:lint            # ts-standard
+pnpm run <package>:lint            # eslint
 pnpm run <package>:nodered:test    # mocha (Node-RED wrapper)
 ```
 
@@ -52,7 +52,8 @@ Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](doc
 - Output-format changes are **breaking changes** for Tracker — never change a parser's output
   shape casually; that's the CMA refactor's job, done deliberately per package.
 - Stack: pnpm workspaces (supply-chain hardened), tsup build, Vitest (libs) / Mocha (nodered),
-  ts-standard style, Valibot via SchemasJS wrapper, Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
+  ESLint flat config (@stylistic + sonarjs + perfectionist), Valibot via SchemasJS wrapper,
+  Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
 - Git: branch from `dev`, PR to `dev`; merging `main` **publishes to npm** via GitHub Actions.
 - The working tree currently has uncommitted work from old sessions — check
   [`docs/STATUS.md`](docs/STATUS.md) before cleaning or committing anything.

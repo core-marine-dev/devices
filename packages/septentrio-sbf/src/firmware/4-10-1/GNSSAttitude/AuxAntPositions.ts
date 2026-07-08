@@ -76,14 +76,14 @@ export const ERROR = {
   NO: 'NO_ERROR',
   MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
   RESERVED: 'RESERVED',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 } as const
 export type Error = typeof ERROR[keyof typeof ERROR]
 
 export const AMBIGUITY = {
   FIXED: 'FIXED',
   FLOAT: 'FLOAT',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 } as const
 export type Ambiguity = typeof AMBIGUITY[keyof typeof AMBIGUITY]
 
@@ -159,12 +159,12 @@ const getAuxAntPositionSub = (data: Buffer): AuxAntPositionSub => {
     padding: (PADDING_SUB_LENGTH > 0) ? data.readUIntLE(PADDING_SUB_INDEX, PADDING_SUB_LENGTH) : null,
     metadata: {
       error: getError(error),
-      ambiguityType: getAmbiguityType(ambiguityType)
-    }
+      ambiguityType: getAmbiguityType(ambiguityType),
+    },
   }
   body.metadata = {
     error: getError(body.error),
-    ambiguityType: getAmbiguityType(body.ambiguityType)
+    ambiguityType: getAmbiguityType(body.ambiguityType),
   }
   if (body.error !== 0) {
     body.deltaEast = null
@@ -212,7 +212,7 @@ export const auxAntPositions = (blockRevision: number, data: Buffer): Response =
     n: antennas,
     sbLength,
     auxAntPositionSub: subBodies,
-    padding
+    padding,
   }
   return { name, body }
 }

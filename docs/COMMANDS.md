@@ -6,12 +6,14 @@ Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thel
 ## Libraries
 
 ```bash
-pnpm run <package>:build           # format (ts-standard) + tsup transpile to ESM + CJS
+pnpm run <package>:build           # format (eslint) + tsup transpile to ESM + CJS
 pnpm run <package>:test            # vitest (watch mode)
 pnpm run <package>:test:coverage   # vitest coverage (NOTE: sbg-ecom/septentrio use "<package>:coverage")
-pnpm run <package>:lint            # ts-standard check
-pnpm run <package>:format          # ts-standard --fix
+pnpm run <package>:lint            # eslint check
+pnpm run <package>:format          # eslint --fix
 pnpm run nmea-parser:protocols     # regenerate src/nmea.ts from protocols YAML (nmea-parser only)
+pnpm lint                          # eslint — whole monorepo
+pnpm lint:fix                      # eslint --fix — whole monorepo
 ```
 
 ## Node-RED components

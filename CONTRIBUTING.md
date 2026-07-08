@@ -9,9 +9,11 @@ The whole repository it is an opinionated monorepository:
 - Schema validation to guarantee runtime type checking
     - Type validation in TypeScript is only true at devtime not in runtime so it is necessary a schema validator
     - Before was [Zod](https://zod.dev/), now is [Valibot](https://valibot.dev/), then who knows
-- [ts-standard](https://github.com/standard/ts-standard) as linter + formatter
+- [ESLint](https://eslint.org/) (flat config) as linter + formatter with 4 plugins:
     - No dealing with complicated setup
-    - [StandardJS](https://standardjs.com/) as code style
+    - [StandardJS](https://standardjs.com/) as code style (via `@stylistic`)
+    - [SonarLint](https://github.com/SonarSource/eslint-plugin-sonarjs) rules for code quality
+    - [Perfectionist](https://github.com/azat-io/eslint-plugin-perfectionist) for import ordering
 - [Vitest](https://vitest.dev/) as test suite
     - Faster
     - Quite easy to setup
