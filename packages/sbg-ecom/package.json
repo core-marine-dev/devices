@@ -69,6 +69,6 @@
     }
   },
   "devDependencies": {
-    "@schemasjs/valibot-numbers": "^1.0.8"
+    "@schemasjs/valibot-numbers": "^1.0.17"
   }
 }

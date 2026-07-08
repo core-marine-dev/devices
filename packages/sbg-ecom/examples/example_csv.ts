@@ -1,6 +1,9 @@
 import { readFileSync } from 'fs'
 import { SBGParser, availableFirmwares} from '../src/index'
-import { SBGFrameResponse } from '../src/types'
+import type { SBGFrameResponse } from '../src/types'
+import path from 'node:path'
+
+const DIR = path.join(__dirname, '..')
 
 const parser = new SBGParser()
 parser.memory = true
@@ -9,7 +12,7 @@ const parseFile = (path: string): SBGFrameResponse[] => {
   const content = readFileSync(path, 'ascii')
   // console.log(content)
   const map = new Map<string, any>()
-  
+
   const lines = content.split('\n')
   lines.forEach((line, lineNumber) => {
     if (line.length && lineNumber) {
@@ -47,10 +50,10 @@ const infoFrames = (frames: SBGFrameResponse[]): void => {
 
 const sbgframes = new Map<string, number>()
 
-const updateFramesCounter = (frames: SBGFrameResponse[]) => {
+const updateFramesCounter = (frames: SBGFrameResponse[]): void => {
   frames.forEach(frame => {
     const { name, type, format } = frame
-    const key = `${type}_${format}_${name}}`
+    const key = `${type}_${format}_${name}`
     const prevCounter = sbgframes.get(key)
     const counter = (prevCounter === undefined) ? 0 : prevCounter + 1
     sbgframes.set(key, counter)
@@ -60,7 +63,8 @@ const updateFramesCounter = (frames: SBGFrameResponse[]) => {
 // const SBG_CSV = 'test/sbg_50.csv'
 // const SBG_CSV = 'test/sbg_100.csv'
 // const SBG_CSV = 'test/sbg_1000.csv'
-const SBG_CSV = 'test/sbg_2000.csv'
+const SBG_CSV = path.join(DIR, 'tests', 'sbg_2000.csv')
+console.log(`CSV -> ${SBG_CSV}`)
 const parsedFrames = parseFile(SBG_CSV)
 infoFrames(parsedFrames)
 updateFramesCounter(parsedFrames)
