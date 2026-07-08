@@ -1,157 +1,58 @@
 # AGENTS.md
 
-This file provides guidance to AI coding assistants when working with code in this repository.
+Guidance for AI coding assistants in this repository. Keep this file **under 80 lines** —
+details live in small docs under [`docs/`](docs/README.md); add/update those instead of growing this file.
 
-## Repository Overview
+## Read first
 
-This is the CoreMarine devices monorepo - a collection of open source TypeScript libraries for parsing marine/IoT device protocols and their corresponding Node-RED wrappers. It uses NPM workspaces.
+1. **[`docs/STATUS.md`](docs/STATUS.md)** — living handoff log: where work stands, next steps,
+   uncommitted-work triage. **Read it before touching anything, and keep it updated in the same
+   turn as any meaningful change** (its maintenance rule applies to you).
+2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — what this repo is and how it's laid out.
+3. [`docs/PACKAGES.md`](docs/PACKAGES.md) — per-package state and known issues.
 
-All of them are inside `packages` folder.
+## What this repo is (one paragraph)
 
-`templates` is just a folder with some blurred guidelines of how to do it the TS libray and then its Node-RED component / wrapper.
+CoreMarine monorepo (npm workspaces → pnpm migration planned) of TypeScript **marine device
+protocol parsers** + their **Node-RED wrappers**, under `packages/`. They are the parsing layer
+of the Tracker telemetry product, so output shapes are contracts. A deep refactor is in
+progress: all parsers must converge on the unified **CMA output format** —
+[`docs/CMA.md`](docs/CMA.md). Today only `thelmabiotel-tblive` conforms.
 
-`todo` is a folder just a reminder about what to do next.
+## Docs map
 
-**Curent state**: Deep refactor in progress -> The idea is that all the parser libraries from now on gives the same output format (CMA format) independent of the protocol it parses.
+| Need | Doc |
+| --- | --- |
+| Current state / next steps | [`docs/STATUS.md`](docs/STATUS.md) |
+| Repo layout & package patterns | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
+| Package inventory & issues | [`docs/PACKAGES.md`](docs/PACKAGES.md) |
+| CMA output format | [`docs/CMA.md`](docs/CMA.md) |
+| Commands | [`docs/COMMANDS.md`](docs/COMMANDS.md) |
+| Stack, CI, templates | [`docs/TOOLING.md`](docs/TOOLING.md) |
+| npm→pnpm migration plan | [`docs/PNPM-MIGRATION.md`](docs/PNPM-MIGRATION.md) |
+| Protocol wire formats | [`docs/PROTOCOLS.md`](docs/PROTOCOLS.md) |
+| New packages | `CONTRIBUTING.md` + `templates/` (follow `TODO:` markers) |
 
-## CMA Format
+## Essential commands
 
-It is not completely defined but the goal is to have the same structure of a JSON which gives information about which protocol and which data contains.
-
-A first draft of this format:
-
-```typescript
-type CMA = {
-  timestamp: Timestamp,
-  raw: Raw,
-  protocol: Protocol,
-  id: ID,
-  payload: Field[],
-  errors?: Error[],
-  metadata?: Metadata,
-  description?: string,
-}
-
-type Timestamp = number | string // Unix Epoch in millis or ISO String UTC format
-type Raw = string // UTF-8 or ASCII for text protocols or Base64 for binary protocols
-type Protocol = {
-  name: string,
-  version?: string
-} & Record<string, any>
-type Field = {
-  raw: Raw,
-  name: string,
-  type: 'bool' | 'char' | 'string' | 'int8'  | ... |  'int64' | 'uint8' | ... | 'uint64' | 'float32' | 'float64',
-  value: boolean | string | number | null,
-  units?: string,
-  description?: string,
-  errors?: Error[],
-  metadata?: Metadata
-}
-type Error = string // For now on is just an string but it could be an object in the future
-type Metada = Record<string, any>
-```
-
-All the data sources / hardware devices just gives sentences in a raw format (NMEA, propietary binary / text), so its parser gives and agnostic output just telling which sentence is parsed and what is its information (payload mainly).
-Payload is an array instead of an object because as a user I can go to the protocol definition and know what is the order of the fields but the name could be a problematic convention to define (what name, what case, etc).
-
-## Commands
-
-### Working with a specific package
-
-All commands are run from the repository root using npm workspace scripts:
+Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thelmabiotel-tblive`.
 
 ```bash
-# Build a library (formats code first, then transpiles to ESM + CJS)
-npm run <package-name>:build
-# Example: npm run nmea-parser:build
-
-# Run tests (runs vitest in watch mode)
-npm run <package-name>:test
-# Example: npm run septentrio-sbf:test
-
-# Run tests with coverage
-npm run <package-name>:test:coverage
-
-# Lint check
-npm run <package-name>:lint
-
-# Format code (auto-fix linting)
-npm run <package-name>:format
-
-# Run Node-RED component tests (uses mocha)
-npm run <package-name>:nodered:test
-
-# Launch Node-RED docker environment for manual testing
-npm run <package-name>:nodered:docker
+npm run <package>:test            # vitest (watch)
+npm run <package>:build           # format + tsup (ESM + CJS)
+npm run <package>:lint            # ts-standard
+npm run <package>:nodered:test    # mocha (Node-RED wrapper)
 ```
 
-Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thelmabiotel-tblive`
+Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](docs/COMMANDS.md).
 
-### Running a single test file
+## Ground rules
 
-```bash
-# Using npm from root with workspace flag
-npm run <package-name>:test <file or pattern>
-
-# Using npx from root with workspace flag
-npm run --workspace=@coremarine/<package-name> vitest run tests/<test-file>.test.ts
-
-
-# Or cd into the package and run directly
-cd packages/<package-name>
-npx vitest run tests/<specific-test>.test.ts
-```
-
-## Architecture
-
-### Package Structure
-
-Each device has two packages:
-
-1. **TypeScript library** (`packages/<device>`) - Core parsing logic, transpiled to ESM + CJS but the focus is on ESM estandard
-2. **Node-RED component** (`packages/<device>-nodered`) - Wrapper using the CJS library
-
-### Library Internal Structure
-
-Libraries follow a consistent pattern:
-
-- `src/index.ts` - Public exports
-- `src/parser.ts` - Main Parser class
-- `src/schemas.ts` - Valibot schemas for runtime type validation
-- `src/types.ts` - TypeScript type definitions
-- `src/constants.ts` - Protocol constants
-- `tests/` - Vitest test files
-
-### Node-RED Component Structure
-
-- `src/parser.js` - Node implementation
-- `src/parser.html` - Node-RED editor UI
-- `src/icons/` - Component icons
-- `tests/nodered/` - Docker-based test environment
-- `docker-compose.yml` + `Dockerfile` - Local Node-RED testing setup
-
-## Tech Stack
-
-- **Build**: tsup (ESM + CJS dual output)
-- **Testing**: Vitest (libraries), Mocha + node-red-node-test-helper (Node-RED components)
-- **Linting/Formatting**: ts-standard (StandardJS style)
-- **Schema Validation**: Valibot (runtime type checking)
-- **Node requirement**: >= 18
-
-If we had a whislist, some goals would be:
-
-- Runtime agnostic -> to run in browser, node, deno, bun, etc or at least in node-deno-bun (browser is not the main target but it would be nice)
-- Type / Schema validation agnostic -> At this moment it is used mainly Valibot but it would be nice to be able to change for another without deep refactor. For that purpose one dev (the main contributor of this repo) create a side project called SchemasJS with custom schemas and a Validator (a Schema validator wrapper for Valibot and Zod) -> [SchemasJS](https://github.com/crisconru/schemasjs)
-
-## Creating New Packages
-
-It is not fully documented, this is just an starting point but:
-
-Use templates from `templates/` folder. See CONTRIBUTING.md for detailed steps. Look for `TODO:` markers in template files for required customizations.
-
-## Git Workflow
-
-- Create branches from `dev`
-- PRs go to `dev` branch
-- Packages publish when PRs merge to `main`
+- **Discuss before coding.** The user (cru) wants decisions converged first, one step at a time.
+- Output-format changes are **breaking changes** for Tracker — never change a parser's output
+  shape casually; that's the CMA refactor's job, done deliberately per package.
+- Stack: tsup build, Vitest (libs) / Mocha (nodered), ts-standard style, Valibot via SchemasJS
+  wrapper, Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
+- Git: branch from `dev`, PR to `dev`; merging `main` **publishes to npm** via GitHub Actions.
+- The working tree currently has uncommitted work from old sessions — check
+  [`docs/STATUS.md`](docs/STATUS.md) before cleaning or committing anything.
