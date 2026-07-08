@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { AttCovEuler, Error, ErrorCode, attCovEuler } from "../../../../src/firmware/4-10-1/GNSSAttitude/AttCovEuler"
+import { AttCovEuler, Error, ERROR_CODE, attCovEuler } from "../../../../src/firmware/4-10-1/GNSSAttitude/AttCovEuler"
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from "../../../testUtils"
 /* AttCovEuler -> Number: 5939 => "OnChange" interval: default PVT output rate
 This block contains the elements of the symmetric variance-covariance matrix 
@@ -61,8 +61,8 @@ const getNameFrameData = () => {
   const padding = null
   // Metadata
   const metadataError: Error = {
-    mainAux1Baseline: ErrorCode.NO,
-    mainAux2Baseline: ErrorCode.NO,
+    mainAux1Baseline: ERROR_CODE.NO,
+    mainAux2Baseline: ERROR_CODE.NO,
     reserved: 0b0111,
     notRequestedAttitude: false
   }
@@ -107,8 +107,8 @@ describe('Testing AttCovEuler', () => {
     let aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
       notRequestedAttitude: false
     }
@@ -120,8 +120,8 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.MEASUREMENTS,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.MEASUREMENTS,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
       notRequestedAttitude: false
     }
@@ -133,8 +133,8 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.RESERVED,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.RESERVED,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
       notRequestedAttitude: false
     }
@@ -146,8 +146,8 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.MEASUREMENTS,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.MEASUREMENTS,
       reserved: 0b000,
       notRequestedAttitude: false
     }
@@ -159,8 +159,8 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.RESERVED,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.RESERVED,
       reserved: 0b000,
       notRequestedAttitude: false
     }
@@ -172,8 +172,8 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
       notRequestedAttitude: true
     }
