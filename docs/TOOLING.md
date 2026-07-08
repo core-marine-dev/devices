@@ -5,12 +5,12 @@
 | Concern | Tool | Notes |
 | --- | --- | --- |
 | Package manager | pnpm 11.x (workspaces) | `packageManager: pnpm@11.10.0`; supply-chain hardened (`strictDepBuilds` + `allowBuilds` in `pnpm-workspace.yaml`, `engine-strict` in `.npmrc`) |
-| Build | tsup 8.x | dual ESM + CJS output; ESM is the focus |
-| Test (libraries) | Vitest 3.x | root `vitest.config.ts` aggregates per-package configs via `test.projects` |
+| Build | tsup 8.5.1 (patched) | dual ESM + CJS output; ESM is the focus. Patched to not inject `baseUrl` (TS 6 deprecation, see `patches/tsup@8.5.1.patch`) |
+| Test (libraries) | Vitest 4.x | root `vitest.config.ts` aggregates per-package configs via `test.projects` |
 | Test (Node-RED) | Mocha + node-red-node-test-helper | assertion lib varies (`should` / `chai`) |
 | Lint/format | ESLint 10 (flat config) | `@stylistic` (house style: no-semi, single-quotes, 2-space, K&R) + `eslint-plugin-sonarjs` (code quality: complexity, cognitive-load, etc.) + `eslint-plugin-perfectionist` (import ordering). See [`eslint.config.js`](../eslint.config.js). Mirrors the Tracker repo setup. |
-| Runtime validation | Valibot via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` (ValibotValidator) + `@schemasjs/valibot-numbers`; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
-| TypeScript | 5.9.x | root tsconfig is mostly the annotated starter (target/module ESNext) |
+| Runtime validation | Valibot 1.4.2 via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` 2.0.5 + `@schemasjs/valibot-numbers` 1.1.1; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
+| TypeScript | 6.0.3 | root tsconfig: clean modern config (`moduleResolution: bundler`, `types: ["node"]`) |
 | Node | >= 18 | CI tests 18.x + 20.x, publishes on 20 |
 
 Wishlist (long-term): runtime-agnostic libraries (node / deno / bun, maybe browser).

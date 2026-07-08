@@ -24,7 +24,7 @@ export class NorsubParser extends NMEAParser {
     return sentence
   }
 
-  parseData(data: string): NMEASentence[] {
+  override parseData(data: string): NMEASentence[] {
     const sentences = super.parseData(data)
     if (sentences.length === 0) return sentences
     return sentences.map((sentence) => {

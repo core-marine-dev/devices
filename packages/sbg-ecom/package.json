@@ -56,6 +56,6 @@
     "crc": "^4.3.2"
   },
   "devDependencies": {
-    "@schemasjs/valibot-numbers": "^1.0.17"
+    "@schemasjs/valibot-numbers": "^1.1.1"
   }
 }

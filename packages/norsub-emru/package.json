@@ -53,8 +53,8 @@
   },
   "dependencies": {
     "@coremarine/nmea-parser": "workspace:^",
-    "@schemasjs/valibot-numbers": "^1.0.18",
-    "@schemasjs/validator": "^2.0.2"
+    "@schemasjs/valibot-numbers": "^1.1.1",
+    "@schemasjs/validator": "^2.0.5"
   },
   "peerDependencies": {
     "valibot": ">=1.0.0"

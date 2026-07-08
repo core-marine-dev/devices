@@ -13,8 +13,7 @@
 > **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD not pushed) · Repo was idle
 > 2025-12-15 → 2026-07-08.
 >
-> **Step 3 (documentation) complete.** Steps 1-3 of the refactor are done. Next: dep refresh,
-> CMA rollout, Result pattern (in that order).
+> **Steps 1-3 complete + dependency refresh done.** Next: CMA rollout, Result pattern.
 
 ## How to use this doc
 
@@ -40,7 +39,8 @@ Refresh the whole monorepo in strokes:
    @stylistic + sonarjs + perfectionist plugins (mirrors Tracker repo).
 4. ~~**Documentation**~~ — ✅ DONE (2026-07-08). `docs/CodeStyle.md` + AGENTS.md code-style
    section + lint→tsc→test run order codified.
-5. **Dependency refresh** — deps are from ~2025; audit + bump per package.
+5. ~~**Dependency refresh**~~ — ✅ DONE (2026-07-08). TypeScript 6.0.3, Vitest 4.x,
+   Valibot 1.4.2, @schemasjs/* latest, tsup 8.5.1 (patched), safe dep bumps.
 6. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
    Later track, after CMA.
 
@@ -117,14 +117,30 @@ Refresh the whole monorepo in strokes:
   - `AGENTS.md` — added "Code style (enforced)" condensed checklist section (73 lines total,
     under the 80-line cap) + CodeStyle.md added to docs map.
   - `docs/STATUS.md` — updated to reflect step 3 done.
+- **2026-07-08 — dependency refresh (step 5 of refactor):**
+  - **TypeScript 5.9.3 → 6.0.3.** Root `tsconfig.json` replaced the annotated starter template
+    with a clean modern config: `moduleResolution: "bundler"`, `moduleDetection: "force"`,
+    `types: ["node"]`, `noFallthroughCasesInSwitch`, `noImplicitOverride`. Per-package
+    tsconfigs updated. `norsub-emru` needed `override` on `parseData()`.
+  - **tsup 8.5.0 → 8.5.1 (patched).** tsup injects `baseUrl: "."` in its DTS build, which TS 6
+    deprecated (TS5101). Patched via `pnpm patch` to skip the injection when using
+    `moduleResolution: "bundler"` (see `patches/tsup@8.5.1.patch`).
+  - **Vitest 3.2.4 → 4.1.10** + `@vitest/coverage-v8` 3.2.4 → 4.1.10. Zero code changes needed.
+  - **Valibot** — `nmea-parser` `valibot: ^1.4.0` → `1.4.2`; `@valibot/to-json-schema`
+    `1.3.0` → `1.7.1`; `@schemasjs/valibot-numbers` → `1.1.1`; `@schemasjs/validator` → `2.0.5`.
+  - **Other deps:** `@types/node` 24.8.1 → 26.0.1, `mocha` 11.7.4 → 11.7.6, `chai` 6.2.0 → 6.2.2,
+    `deep-equal-in-any-order` 2.1.0 → 2.2.0, `node-red-node-test-helper` 0.3.5 → 0.3.6.
+  - Verified: all 5 builds pass, all 4 test suites pass (nmea 60/60, septentrio 54/54,
+    tblive 134/134, norsub 8/8), `pnpm lint` clean, `pnpm install --frozen-lockfile` clean.
+  - Docs updated: TOOLING, STATUS.
 
 ## Where we are now
 
-Steps 1-3 of the refactor are complete and committed on `dev` (not pushed). Next up:
-**dependency refresh** (deps are from ~2025), then **CMA rollout**, then **Result pattern**.
+Steps 1-5 of the refactor are complete and committed on `dev` (not pushed): pnpm migration,
+ESLint migration, documentation, and dependency refresh (TS 6.0.3 + Vitest 4.x + Valibot
+1.4.2 + safe bumps). Next up: **CMA rollout**, then **Result pattern**.
 
-No parser code has been refactored yet — CMA rollout, Result pattern, and dep refresh are all
-still pending, in that discussion order.
+No parser code has been refactored yet — CMA rollout and Result pattern are still pending.
 
 ## Decisions (locked unless cru says otherwise)
 
@@ -141,12 +157,13 @@ still pending, in that discussion order.
 
 1. **Push `dev`** when cru is ready (publishing only happens on merge to `main`, so pushing
    `dev` is safe).
-2. **Dependency refresh** package by package.
-3. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
+2. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
    start with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work
    already exists in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru),
    and align thelmabiotel-tblive's extra top-level keys.
-4. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
+3. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
+4. **Strictness pass** (deferred) — add `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
+   `verbatimModuleSyntax` to tsconfig (the tracker has them; needs ~218 code fixes).
 
 ## Open threads / known bugs (report before fixing)
 
