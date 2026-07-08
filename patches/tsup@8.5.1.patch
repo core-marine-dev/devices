@@ -1,0 +1,15 @@
+diff --git a/dist/rollup.js b/dist/rollup.js
+index e128b61b9558318b9f86dc11d72c31f09a8eb7db..b7dfd2392e750e147389a811219e16df77377e7d 100644
+--- a/dist/rollup.js
++++ b/dist/rollup.js
+@@ -6834,7 +6834,9 @@ var getRollupConfig = async (options) => {
+           tsconfig: options.tsconfig,
+           compilerOptions: {
+             ...compilerOptions,
+-            baseUrl: compilerOptions.baseUrl || ".",
++            // TS 6 deprecated baseUrl; do not inject it — with
++            // moduleResolution "bundler" (our default) it's unnecessary,
++            // and injecting it triggers TS5101 under TS 6.
+             // Ensure ".d.ts" modules are generated
+             declaration: true,
+             // Skip ".js" generation

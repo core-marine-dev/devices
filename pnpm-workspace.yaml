@@ -12,3 +12,5 @@ allowBuilds:
   # esbuild: tsup's bundler — its postinstall installs the platform-specific
   # binary. Trusted, dev-only, needed for all library builds.
   esbuild: true
+patchedDependencies:
+  tsup@8.5.1: patches/tsup@8.5.1.patch
