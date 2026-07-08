@@ -42,6 +42,6 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/nmea-parser": "^2.2.1"
+    "@coremarine/nmea-parser": "workspace:^"
   }
 }

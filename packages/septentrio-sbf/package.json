@@ -45,10 +45,9 @@
     "node": ">= 18"
   },
   "scripts": {
-    "build": "npm run types && npm run format && tsup",
+    "build": "pnpm run format && tsup",
     "lint": "ts-standard",
     "format": "ts-standard --fix",
-    "types": "mkdir -p ../../node_modules/@types/gpstime && cp gpstime.d.ts ../../node_modules/@types/gpstime/index.d.ts",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },

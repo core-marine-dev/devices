@@ -41,7 +41,7 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/thelmabiotel-tblive": ">=1.0.2"
+    "@coremarine/thelmabiotel-tblive": "workspace:^"
   },
   "peerDependencies": {
     "valibot": ">=1.0.0"

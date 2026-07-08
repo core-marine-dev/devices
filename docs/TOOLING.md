@@ -4,11 +4,11 @@
 
 | Concern | Tool | Notes |
 | --- | --- | --- |
-| Package manager | npm workspaces | migration to pnpm planned → [PNPM-MIGRATION.md](PNPM-MIGRATION.md) |
+| Package manager | pnpm 11.x (workspaces) | `packageManager: pnpm@11.10.0`; supply-chain hardened (`strictDepBuilds` + `allowBuilds` in `pnpm-workspace.yaml`, `engine-strict` in `.npmrc`) |
 | Build | tsup 8.x | dual ESM + CJS output; ESM is the focus |
 | Test (libraries) | Vitest 3.x | root `vitest.config.ts` aggregates per-package configs via `test.projects` |
 | Test (Node-RED) | Mocha + node-red-node-test-helper | assertion lib varies (`should` / `chai`) |
-| Lint/format | ts-standard 12 | StandardJS style; `format` = `--fix` |
+| Lint/format | ts-standard 12 | StandardJS style; `format` = `--fix` (migration to ESLint flat config planned) |
 | Runtime validation | Valibot via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` (ValibotValidator) + `@schemasjs/valibot-numbers`; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
 | TypeScript | 5.9.x | root tsconfig is mostly the annotated starter (target/module ESNext) |
 | Node | >= 18 | CI tests 18.x + 20.x, publishes on 20 |
@@ -20,8 +20,9 @@ Wishlist (long-term): runtime-agnostic libraries (node / deno / bun, maybe brows
 One workflow per package, copied from `templates/library.yml` / `templates/nodered.yml`:
 
 - **Trigger:** `push` filtered to `paths: packages/<pkg>/**` + `workflow_dispatch`.
-- **Library workflows:** `test` job (Node 18.x/20.x matrix, `npm install`, test + build) →
-  `publish` job (only on `main`): `npm publish --access public --workspace=@coremarine/<pkg>`
+- **Each job:** `pnpm/action-setup@v4` → `actions/setup-node@v4` (`cache: 'pnpm'`) → `pnpm install --frozen-lockfile`.
+- **Library workflows:** `test` job (Node 18.x/20.x matrix, test + build) →
+  `publish` job (only on `main`): `pnpm publish --access public --filter @coremarine/<pkg> --no-git-checks`
   with `secrets.NPM_TOKEN`.
 - **Publish rule:** merging to `main` publishes whatever packages changed. PRs target `dev`.
 
@@ -41,10 +42,19 @@ Scaffolding for new packages — see CONTRIBUTING.md for the step-by-step recipe
 New package checklist: copy template → replace `TODO:` markers → add the workspace-proxy
 scripts to root `package.json` → copy + rename the workflow yml into `.github/workflows/`.
 
+## Supply-chain hardening
+
+Mirrors the Tracker repo decision — defense-in-depth for dependency lifecycle scripts:
+
+- **`pnpm-workspace.yaml`** — `strictDepBuilds: true` makes any unreviewed build-script dep FAIL
+  the install (`ERR_PNPM_IGNORED_BUILDS`). `allowBuilds` explicitly lists reviewed packages:
+  `esbuild: true` (tsup's bundler; trusted, dev-only).
+- **`.npmrc`** — `engine-strict=true` fails fast on Node version mismatches.
+
 ## Known tooling debt
 
-- Tracked `package-lock.json` files at `packages/nmea-parser/`, `packages/thelmabiotel-tblive-nodered/`,
-  and two docker `tests/nodered/data/` folders (inconsistent; remove with pnpm migration).
 - `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
-- septentrio-sbf's `types` script copies `gpstime.d.ts` into root `node_modules/@types/` (breaks under pnpm).
-- No `.nvmrc` / `packageManager` field — nothing pins toolchain versions.
+- Node-RED docker `Dockerfile`s still use `npm i` inside the container (install the published
+  package from the npm registry, not the workspace — unaffected by the pnpm migration, but
+  inconsistent; could switch to pnpm inside the image if desired).
+- No `.nvmrc` / `.node-version` — Node version only constrained via `engines` + CI matrix.

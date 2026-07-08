@@ -3,6 +3,7 @@
 .DS_Store
 packages/**/lib/
 imgs/discards
+package-lock.json
 
 # Logs
 logs

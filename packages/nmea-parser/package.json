@@ -43,7 +43,7 @@
   },
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/nmea.yaml ./src/nmea.ts && node yaml-to-json.js ./protocols/norsub.yaml ./tests/norsub.ts",
-    "build": "npm run format && tsup",
+    "build": "pnpm run format && tsup",
     "lint": "ts-standard",
     "format": "ts-standard --fix",
     "test": "vitest",
@@ -54,7 +54,7 @@
     "@schemasjs/valibot-numbers": "^1.0.17",
     "@schemasjs/validator": "^2.0.1",
     "js-yaml": "4.1.0",
-    "valibot": "1.1.0"
+    "valibot": "^1.4.0"
   },
   "devDependencies": {
     "@types/js-yaml": "4.0.9"

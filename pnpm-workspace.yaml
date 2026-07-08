@@ -1,0 +1,14 @@
+packages:
+  - 'packages/*'
+
+# Supply-chain hardening — DENY all dependency build/lifecycle scripts.
+# strictDepBuilds makes a NEW, unreviewed build-script dependency FAIL the
+# install (ERR_PNPM_IGNORED_BUILDS) so it can never run silently. Each
+# package below is reviewed and explicitly allowed or denied. To allow one,
+# set it to true DELIBERATELY (and only after reviewing what its build
+# script does).
+strictDepBuilds: true
+allowBuilds:
+  # esbuild: tsup's bundler — its postinstall installs the platform-specific
+  # binary. Trusted, dev-only, needed for all library builds.
+  esbuild: true
