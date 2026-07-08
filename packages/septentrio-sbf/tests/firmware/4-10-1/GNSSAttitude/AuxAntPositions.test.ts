@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
-import { Ambiguity, AuxAntPositionSub, AuxAntPositions, Error, auxAntPositions } from '../../../../src/firmware/4-10-1/GNSSAttitude/AuxAntPositions'
+import { AMBIGUITY, Ambiguity, AuxAntPositionSub, AuxAntPositions, ERROR, Error, auxAntPositions } from '../../../../src/firmware/4-10-1/GNSSAttitude/AuxAntPositions'
 
 /* AuxAntPositions -> Number: 5942 => "OnChange" interval: default PVT output rate
   The AuxAntPositions block contains the relative position and velocity of the 
@@ -86,14 +86,14 @@ type ErrorTest = {
   error: ErrorNumber,
   type: Error
 }
-const errorTestDefault: ErrorTest = { error: 0, type: Error.NO }
+const errorTestDefault: ErrorTest = { error: 0, type: ERROR.NO }
 
 type Ambiguitynumber = 0 | 1 | 2
 type AmbiguityTest = {
   ambiguity: Ambiguitynumber,
   type: Ambiguity
 }
-const ambiguityTestDefault: AmbiguityTest = { ambiguity: 0, type: Ambiguity.FIXED }
+const ambiguityTestDefault: AmbiguityTest = { ambiguity: 0, type: AMBIGUITY.FIXED }
 
 type InputData = {
   antennas: number,
@@ -171,8 +171,8 @@ describe('Testing AuxAntPositions', () => {
   test('Error field', () => {
     const antennas = 2
     const subFramesLength = 52
-    const errorTest: ErrorTest = { error: 1, type: Error.MEASUREMENTS }
-    const ambiguityTest: AmbiguityTest = { ambiguity: 0, type: Ambiguity.FIXED }
+    const errorTest: ErrorTest = { error: 1, type: ERROR.MEASUREMENTS }
+    const ambiguityTest: AmbiguityTest = { ambiguity: 0, type: AMBIGUITY.FIXED }
 
     const { frame: frame1, data: data1 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body1 } = auxAntPositions(0, data1) as { name: string, body: AuxAntPositions }
@@ -185,7 +185,7 @@ describe('Testing AuxAntPositions', () => {
     })
 
     errorTest.error = 2 
-    errorTest.type = Error.RESERVED
+    errorTest.type = ERROR.RESERVED
     const { frame: frame2, data: data2 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body2 } = auxAntPositions(0, data2) as { name: string, body: AuxAntPositions }
     expect(body2).not.toStrictEqual(frame2)
@@ -208,7 +208,7 @@ describe('Testing AuxAntPositions', () => {
     })
 
     errorTest.error = 4
-    errorTest.type = Error.UNKNOWN
+    errorTest.type = ERROR.UNKNOWN
     const { frame: frame4, data: data4 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body4 } = auxAntPositions(0, data4) as { name: string, body: AuxAntPositions }
     expect(body4).not.toStrictEqual(frame4)
@@ -223,21 +223,21 @@ describe('Testing AuxAntPositions', () => {
   test('Ambiguity field', () => {
     const antennas = 2
     const subFramesLength = 52
-    const errorTest: ErrorTest = { error: 0, type: Error.NO }
-    const ambiguityTest: AmbiguityTest = { ambiguity: 0, type: Ambiguity.FIXED }
+    const errorTest: ErrorTest = { error: 0, type: ERROR.NO }
+    const ambiguityTest: AmbiguityTest = { ambiguity: 0, type: AMBIGUITY.FIXED }
 
     const { frame: frame1, data: data1 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body1 } = auxAntPositions(0, data1) as { name: string, body: AuxAntPositions }
     expect(body1).toStrictEqual(frame1)
 
     ambiguityTest.ambiguity = 1
-    ambiguityTest.type = Ambiguity.FLOAT
+    ambiguityTest.type = AMBIGUITY.FLOAT
     const { frame: frame2, data: data2 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body2 } = auxAntPositions(0, data2) as { name: string, body: AuxAntPositions }
     expect(body2).toStrictEqual(frame2)
 
     ambiguityTest.ambiguity = 2
-    ambiguityTest.type = Ambiguity.UNKNOWN
+    ambiguityTest.type = AMBIGUITY.UNKNOWN
     const { frame: frame3, data: data3 } = getNameFrameData({ antennas, subFramesLength, errorTest, ambiguityTest })
     const { body: body3 } = auxAntPositions(0, data3) as { name: string, body: AuxAntPositions }
     expect(body3).toStrictEqual(frame3)

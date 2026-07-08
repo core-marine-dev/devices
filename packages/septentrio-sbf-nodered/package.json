@@ -41,6 +41,6 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/septentrio-sbf": "^1.0.0"
+    "@coremarine/septentrio-sbf": "^1.0.1"
   }
 }

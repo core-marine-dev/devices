@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { TimeScale, xPPSOffset, xppsOffset } from '../../../../src/firmware/4-10-1/ReceiverTime/xPPSOffset'
+import { TIME_SCALE, TimeScale, XPPSOffset, xppsOffset } from '../../../../src/firmware/4-10-1/ReceiverTime/xPPSOffset'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 
 /* xPPSOffset -> Number: 5911 => "OnChange" interval: PPS rate
@@ -36,7 +36,7 @@ type Input = {
 
 const defaultInput: Input = {
   timescale: 2,
-  meta: TimeScale.UTC
+  meta: TIME_SCALE.UTC
 }
 
 const getNameFrameData = (input: Input = defaultInput) => {
@@ -53,7 +53,7 @@ const getNameFrameData = (input: Input = defaultInput) => {
   // Metadata
   const metadataTimeScale: TimeScale = input.meta
 
-  const frame: xPPSOffset = {
+  const frame: XPPSOffset = {
     syncAge, timeScale, offset, padding,
     metadata: { timeScale: metadataTimeScale }
   }
@@ -84,38 +84,38 @@ describe('Testing xPPSOffset', () => {
     expect(body1).toStrictEqual(frame1)
     // TimeScale GPS = 1
     input.timescale = 1
-    input.meta = TimeScale.GPS
+    input.meta = TIME_SCALE.GPS
     const { frame: frame2, data: data2 } = getNameFrameData(input)
     const { body: body2 } = xppsOffset(0, data2)
     expect(body2).toStrictEqual(frame2)
     // TimeScale Receiver = 3
     input.timescale = 3
-    input.meta = TimeScale.RECEIVER
+    input.meta = TIME_SCALE.RECEIVER
     const { frame: frame3, data: data3 } = getNameFrameData(input)
     const { body: body3 } = xppsOffset(0, data3)
     expect(body3.syncAge).toStrictEqual(0)
-    expect(body3.metadata.timeScale).toStrictEqual(TimeScale.RECEIVER)
+    expect(body3.metadata.timeScale).toStrictEqual(TIME_SCALE.RECEIVER)
     // TimeScale GLONASS = 4
     input.timescale = 4
-    input.meta = TimeScale.GLONASS
+    input.meta = TIME_SCALE.GLONASS
     const { frame: frame4, data: data4 } = getNameFrameData(input)
     const { body: body4 } = xppsOffset(0, data4)
     expect(body4).toStrictEqual(frame4)
     // TimeScale Galileo = 5
     input.timescale = 5
-    input.meta = TimeScale.GALILEO
+    input.meta = TIME_SCALE.GALILEO
     const { frame: frame5, data: data5 } = getNameFrameData(input)
     const { body: body5 } = xppsOffset(0, data5)
     expect(body5).toStrictEqual(frame5)
     // TimeScale BeiDou = 6
     input.timescale = 6
-    input.meta = TimeScale.BEIDOU
+    input.meta = TIME_SCALE.BEIDOU
     const { frame: frame6, data: data6 } = getNameFrameData(input)
     const { body: body6 } = xppsOffset(0, data6)
     expect(body6).toStrictEqual(frame6)
     // TimeScale UNKNOWN > 6
     input.timescale = 8
-    input.meta = TimeScale.UNKNOWN
+    input.meta = TIME_SCALE.UNKNOWN
     const { frame: frame7, data: data7 } = getNameFrameData(input)
     const { body: body7 } = xppsOffset(0, data7)
     expect(body7).toStrictEqual(frame7)

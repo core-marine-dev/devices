@@ -78,35 +78,35 @@ describe('Testing Parser', () => {
     sbf.memory = false
     sbf.addData(buffer)
     expect(sbf.bufferLength).toBe(0)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(1)
     expect(frames[0].frame).toMatchObject(frame)
     
     sbf.addData(firstHalf)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     expect(sbf.bufferLength).toBe(pivot)
     
     sbf.addData(secondHalf)
     expect(sbf.bufferLength).toBe(0)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     
     // Memory
     sbf.memory = true
     sbf.addData(buffer)
     expect(sbf.bufferLength).toBe(0)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(1)
     
     sbf.addData(firstHalf)
     expect(sbf.bufferLength).toBe(pivot)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     
     sbf.addData(secondHalf)
     expect(sbf.bufferLength).toBe(0)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(1)
     expect(frames[0].frame).toMatchObject(frame)
   })
@@ -122,12 +122,12 @@ describe('Testing Parser', () => {
     // Not enough data
     const notMinimalData = buffer.subarray(0, TOW_INDEX)
     sbf.addData(notMinimalData)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     // Incomplete Frame
     const incomplete = buffer.subarray(0, buffer.byteLength - 2)
     sbf.addData(incomplete)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     // Length is wrong
     const wrongLength = Buffer.from(buffer)
@@ -136,7 +136,7 @@ describe('Testing Parser', () => {
     wrongLength[LENGTH_INDEX] = wrongLenght8[0]
     wrongLength[LENGTH_INDEX + 1] = wrongLenght8[1]
     sbf.addData(wrongLength)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     // Length is not multiple of 4
     const not4multipleLength = Buffer.from(buffer)
@@ -145,7 +145,7 @@ describe('Testing Parser', () => {
     not4multipleLength[LENGTH_INDEX] = not4multipleLength8[0]
     not4multipleLength[LENGTH_INDEX + 1] = not4multipleLength8[1]
     sbf.addData(not4multipleLength)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     // CRC is wrong
     const crcError = Buffer.from(buffer)
@@ -154,7 +154,7 @@ describe('Testing Parser', () => {
     crcError[CRC_INDEX] = crc8[0]
     crcError[CRC_INDEX + 1] = crc8[1]
     sbf.addData(crcError)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
   })
 
@@ -168,14 +168,14 @@ describe('Testing Parser', () => {
     // Frames
     let frames: SBFResponse[]
     // Example frame
-    const { frame, buffer } = getSampleFrame()
+    const { buffer } = getSampleFrame()
     // 
     const pivot = Math.trunc(buffer.byteLength / 2)
     const firstHalf = buffer.subarray(0, pivot)
     // const secondHalf = buffer.subarray(pivot)
     sbf.bufferLimit = pivot - 2
     sbf.addData(firstHalf)
-    frames = sbf.getFrames()
+    frames = sbf.parseData()
     expect(frames.length).toBe(0)
     expect(sbf.bufferLength).toBe(pivot - 2)
   })
