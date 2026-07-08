@@ -29,6 +29,7 @@ progress: all parsers must converge on the unified **CMA output format** —
 | CMA output format | [`docs/CMA.md`](docs/CMA.md) |
 | Commands | [`docs/COMMANDS.md`](docs/COMMANDS.md) |
 | Stack, CI, templates | [`docs/TOOLING.md`](docs/TOOLING.md) |
+| Code style | [`docs/CodeStyle.md`](docs/CodeStyle.md) |
 | npm→pnpm migration | [`docs/PNPM-MIGRATION.md`](docs/PNPM-MIGRATION.md) |
 | Protocol wire formats | [`docs/PROTOCOLS.md`](docs/PROTOCOLS.md) |
 | New packages | `CONTRIBUTING.md` + `templates/` (follow `TODO:` markers) |
@@ -45,6 +46,19 @@ pnpm run <package>:nodered:test    # mocha (Node-RED wrapper)
 ```
 
 Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](docs/COMMANDS.md).
+
+## Code style (enforced — apply to every new line)
+
+> Condensed checklist; the dev explainer with rationale + examples is
+> [`docs/CodeStyle.md`](docs/CodeStyle.md).
+
+- **No semicolons**, **single quotes**, **2-space** indent, **K&R** braces, `arrowParens: always`.
+- **Import groups** (`// built-in` → `// installed` → `// coded`), each with a comment, blank
+  line between, alphabetical within. Built-ins always prefixed: `node:<module>`.
+- **Arrow functions** everywhere. One statement per line — never `const a = 1; const b = 2`.
+- **Small functions:** max 50 lines, cyclomatic complexity ≤ 10, cognitive complexity ≤ 15
+  (tests exempt from max-lines). Inline-disable with a `-- rationale` only when unavoidable.
+- **Run order after changes:** lint → tsc → test.
 
 ## Ground rules
 

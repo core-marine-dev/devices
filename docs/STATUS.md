@@ -12,6 +12,9 @@
 >
 > **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD not pushed) · Repo was idle
 > 2025-12-15 → 2026-07-08.
+>
+> **Step 3 (documentation) complete.** Steps 1-3 of the refactor are done. Next: dep refresh,
+> CMA rollout, Result pattern (in that order).
 
 ## How to use this doc
 
@@ -35,11 +38,11 @@ Refresh the whole monorepo in strokes:
 2. ~~**pnpm migration**~~ — ✅ DONE (2026-07-08). See [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md).
 3. ~~**Linter + formatter migration**~~ — ✅ DONE (2026-07-08). ESLint flat config with
    @stylistic + sonarjs + perfectionist plugins (mirrors Tracker repo).
-4. **Documentation** — `docs/CodeStyle.md` (rationale + examples), AGENTS.md code-style
-   section, codify lint→tsc→test run order.
+4. ~~**Documentation**~~ — ✅ DONE (2026-07-08). `docs/CodeStyle.md` + AGENTS.md code-style
+   section + lint→tsc→test run order codified.
 5. **Dependency refresh** — deps are from ~2025; audit + bump per package.
 6. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
-   Later track, after linter + CMA.
+   Later track, after CMA.
 
 ## Done
 
@@ -105,12 +108,20 @@ Refresh the whole monorepo in strokes:
   - Verified: all 5 builds pass, all 4 test suites pass (nmea 60/60, septentrio 54/54,
     tblive 134/134, norsub 8/8). `pnpm lint` clean across the whole monorepo.
   - Docs updated: TOOLING (linting section), COMMANDS, CONTRIBUTING, AGENTS.
+- **2026-07-08 — documentation (step 3 of refactor):**
+  - `docs/CodeStyle.md` created — dev explainer with rationale + examples for: formatting,
+    import groups, arrow functions, one-statement-per-line, small-function thresholds,
+    validation & types (Valibot/SchemasJS), per-package five-file structure, tooling commands,
+    inline eslint-disable policy. Adapted from the Tracker repo's CodeStyle.md, tailored for
+    Node/monorepo (no Bun built-ins, no Result pattern yet — that's a later track).
+  - `AGENTS.md` — added "Code style (enforced)" condensed checklist section (73 lines total,
+    under the 80-line cap) + CodeStyle.md added to docs map.
+  - `docs/STATUS.md` — updated to reflect step 3 done.
 
 ## Where we are now
 
-Working tree has uncommitted ESLint migration changes on `dev`. Steps 1 (pnpm) and 2 (ESLint)
-are complete and verified. Next up: **step 3 — documentation (CodeStyle.md + AGENTS code-style
-section + lint→tsc→test run order)**.
+Steps 1-3 of the refactor are complete and committed on `dev` (not pushed). Next up:
+**dependency refresh** (deps are from ~2025), then **CMA rollout**, then **Result pattern**.
 
 No parser code has been refactored yet — CMA rollout, Result pattern, and dep refresh are all
 still pending, in that discussion order.
@@ -128,15 +139,14 @@ still pending, in that discussion order.
 
 ## Next steps (in order)
 
-1. **Commit the ESLint migration** (all changes on `dev`).
-2. **Documentation** — `docs/CodeStyle.md` (rationale + examples), AGENTS.md code-style
-   section, codify lint→tsc→test run order.
-3. **Dependency refresh** package by package.
-4. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
+1. **Push `dev`** when cru is ready (publishing only happens on merge to `main`, so pushing
+   `dev` is safe).
+2. **Dependency refresh** package by package.
+3. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
    start with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work
    already exists in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru),
    and align thelmabiotel-tblive's extra top-level keys.
-5. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
+4. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
 
 ## Open threads / known bugs (report before fixing)
 
