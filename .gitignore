@@ -134,3 +134,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Dev helpers (not committed on purpose — see docs/ARCHITECTURE.md)
+misc/
