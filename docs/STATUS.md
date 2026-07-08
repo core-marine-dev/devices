@@ -10,8 +10,8 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-08 · **Branch:** `dev` (pushed) · Repo was idle 2025-12-15 →
-> 2026-07-08.
+> **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD `f6444c3`, not pushed) · Repo was idle
+> 2025-12-15 → 2026-07-08.
 
 ## How to use this doc
 
@@ -83,9 +83,9 @@ Refresh the whole monorepo in strokes:
 
 ## Where we are now
 
-Working tree has uncommitted pnpm migration changes on `dev`. The pnpm migration is complete
-and verified. Next up: **step 2 — ESLint flat config replacing ts-standard**, then **step 3 —
-documentation (CodeStyle.md + AGENTS code-style section)**.
+Working tree is clean (pnpm migration committed on `dev` as `f6444c3`, not pushed). The pnpm
+migration is complete and verified. Next up: **step 2 — ESLint flat config replacing
+ts-standard**, then **step 3 — documentation (CodeStyle.md + AGENTS code-style section)**.
 
 No parser code has been refactored yet — CMA rollout, Result pattern, and dep refresh are all
 still pending, in that discussion order.
