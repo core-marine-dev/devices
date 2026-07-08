@@ -41,6 +41,6 @@
     "test": "mocha \"tests/**/*.test.js\""
   },
   "dependencies": {
-    "@coremarine/norsub-emru": "^2.1.0"
+    "@coremarine/norsub-emru": "workspace:^"
   }
 }

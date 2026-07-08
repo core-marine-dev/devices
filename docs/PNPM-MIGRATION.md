@@ -1,45 +1,44 @@
-# pnpm migration (planned, NOT started)
+# pnpm migration (DONE)
 
 **Why:** npm is considered a risk (supply-chain: install scripts run by default, lockfile churn).
-pnpm gives strict node_modules isolation and (as done in the Tracker repo) lets us **deny all
-dependency build scripts** by default.
+pnpm gives strict node_modules isolation and lets us **deny all dependency build scripts** by
+default (mirroring the Tracker repo decision).
 
-Status: **not started** — this doc is the plan + hit-list gathered on 2026-07-08.
+Status: **complete** — migrated on 2026-07-08. This doc kept as historical reference.
 
-## Target setup
+## What was done
 
 - `pnpm-workspace.yaml` with `packages: ['packages/*']`.
-- Root `package.json`: add `"packageManager": "pnpm@<pinned>"`; drop the npm `workspaces` field
-  (pnpm ignores it; keep only if npm compatibility is wanted).
-- Supply-chain hardening (mirror the Tracker repo decision): `.npmrc` with `ignore-scripts=true`
-  (or pnpm >=10 default) and explicit `allowBuilds`/`onlyBuiltDependencies` review — deny by default.
-- One `pnpm-lock.yaml` at root; **no per-package lockfiles**.
+- Root `package.json`: added `"packageManager": "pnpm@11.10.0"`; dropped the npm `workspaces`
+  field and `main: index.js`; rewrote ~36 proxy scripts to `pnpm --filter @coremarine/<pkg>
+  run <action>`.
+- Supply-chain hardening (mirrors Tracker repo):
+  - `pnpm-workspace.yaml`: `strictDepBuilds: true` + `allowBuilds: { esbuild: true }` (tsup's
+    bundler; trusted, dev-only; all other build scripts denied).
+  - `.npmrc`: `engine-strict=true`.
+- One `pnpm-lock.yaml` at root; all `package-lock.json` removed (5 tracked + untracked
+  strays). `package-lock.json` added to `.gitignore`.
+- Sibling deps converted to `workspace:^` protocol: `norsub-emru` → `@coremarine/nmea-parser`,
+  all 5 nodered packages → their sibling library.
+- septentrio-sbf `types` hack (copied `gpstime.d.ts` into root `node_modules/@types/`)
+  **removed** — replaced with a local ambient declaration (`declare module 'gpstime'` without
+  the `import 'gpstime'` line) included in `tsconfig.json`.
+- valibot ERESOLVE dep rot fixed: `nmea-parser` `valibot: 1.1.0` → `^1.4.0`; `norsub-emru`
+  peer `valibot: 1.1.0` → `>=1.0.0`.
+- 10 CI workflows + 2 templates rewritten: `pnpm/action-setup@v4` step, `cache: 'pnpm'`,
+  `pnpm install --frozen-lockfile`, `pnpm publish --filter --no-git-checks`.
 
-## Hit-list (everything that references npm mechanics)
+## Verification (all passed)
 
-1. **Root `package.json`** — ~36 proxy scripts use `npm run <action> --workspace=@coremarine/<pkg>`
-   → `pnpm --filter @coremarine/<pkg> run <action>` (or replace the whole proxy-script pattern
-   with direct `pnpm --filter` usage).
-2. **`.github/workflows/*.yml` (10)** + **`templates/library.yml` / `nodered.yml`**:
-   - add `pnpm/action-setup` step; `setup-node` `cache: 'npm'` → `cache: 'pnpm'`
-   - `npm install` → `pnpm install --frozen-lockfile`
-   - `npm publish --access public --workspace=@coremarine/<pkg>` → `pnpm publish --filter @coremarine/<pkg> --access public --no-git-checks`
-3. **Lockfiles** — tracked `package-lock.json` remain at root, `packages/nmea-parser/`,
-   `packages/thelmabiotel-tblive-nodered/`, and two docker `tests/nodered/data/` folders
-   → remove all, commit only the root `pnpm-lock.yaml`. (Untracked lockfile noise was already
-   purged in the 2026-07-08 triage.)
-4. **septentrio-sbf `types` script** — copies `gpstime.d.ts` into `../../node_modules/@types/`;
-   pnpm's strict store breaks this. Replace with a proper local ambient declaration
-   (`typesVersions`/`files` inside the package, or vendor the types in `src/`).
-5. **Docs** — CONTRIBUTING.md, docs/COMMANDS.md, AGENTS.md command examples.
-6. **Node-RED docker envs** — `tests/nodered/` Dockerfiles/scripts run npm installs inside
-   containers; check each `Dockerfile` + `manual_tests.sh`.
+- `pnpm install` clean from scratch.
+- All 5 library builds produce dist ESM+CJS.
+- All 4 library test suites with specs pass (nmea 60/60, septentrio 54/54, tblive 134/134,
+  norsub 8/8; sbg-ecom has no specs — pre-existing).
+- `norsub-emru` resolves workspace sibling `@coremarine/nmea-parser` via `workspace:^`.
+- No peer dependency conflicts (valibot 1.4.2 installed).
 
-## Verification checklist (after migrating)
+## Not changed (deferred)
 
-- `pnpm install` clean from scratch → `clean_monorepo.sh` first (extend it to nodered packages).
-- All 5 library test suites pass; all 5 builds produce dist ESM+CJS.
-- `norsub-emru` resolves workspace sibling `@coremarine/nmea-parser` correctly
-  (consider `workspace:^` protocol for internal deps).
-- Mocha nodered tests still resolve the sibling library CJS build.
-- One dry-run publish (`pnpm publish --dry-run`) per package.
+- Node-RED docker `Dockerfile`s still use `npm i` inside the container (installs the published
+  package from the npm registry, not the workspace — unaffected, but inconsistent).
+- `clean_monorepo.sh` still only covers library packages (not nodered).

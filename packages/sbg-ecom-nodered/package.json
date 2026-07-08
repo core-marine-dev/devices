@@ -44,6 +44,6 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/sbg-ecom": ">=0.0.1"
+    "@coremarine/sbg-ecom": "workspace:^"
   }
 }

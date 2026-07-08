@@ -13,8 +13,8 @@ details live in small docs under [`docs/`](docs/README.md); add/update those ins
 
 ## What this repo is (one paragraph)
 
-CoreMarine monorepo (npm workspaces → pnpm migration planned) of TypeScript **marine device
-protocol parsers** + their **Node-RED wrappers**, under `packages/`. They are the parsing layer
+CoreMarine monorepo (pnpm workspaces) of TypeScript **marine device protocol parsers**
++ their **Node-RED wrappers**, under `packages/`. They are the parsing layer
 of the Tracker telemetry product, so output shapes are contracts. A deep refactor is in
 progress: all parsers must converge on the unified **CMA output format** —
 [`docs/CMA.md`](docs/CMA.md). Today only `thelmabiotel-tblive` conforms.
@@ -29,7 +29,7 @@ progress: all parsers must converge on the unified **CMA output format** —
 | CMA output format | [`docs/CMA.md`](docs/CMA.md) |
 | Commands | [`docs/COMMANDS.md`](docs/COMMANDS.md) |
 | Stack, CI, templates | [`docs/TOOLING.md`](docs/TOOLING.md) |
-| npm→pnpm migration plan | [`docs/PNPM-MIGRATION.md`](docs/PNPM-MIGRATION.md) |
+| npm→pnpm migration | [`docs/PNPM-MIGRATION.md`](docs/PNPM-MIGRATION.md) |
 | Protocol wire formats | [`docs/PROTOCOLS.md`](docs/PROTOCOLS.md) |
 | New packages | `CONTRIBUTING.md` + `templates/` (follow `TODO:` markers) |
 
@@ -38,10 +38,10 @@ progress: all parsers must converge on the unified **CMA output format** —
 Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thelmabiotel-tblive`.
 
 ```bash
-npm run <package>:test            # vitest (watch)
-npm run <package>:build           # format + tsup (ESM + CJS)
-npm run <package>:lint            # ts-standard
-npm run <package>:nodered:test    # mocha (Node-RED wrapper)
+pnpm run <package>:test            # vitest (watch)
+pnpm run <package>:build           # format + tsup (ESM + CJS)
+pnpm run <package>:lint            # ts-standard
+pnpm run <package>:nodered:test    # mocha (Node-RED wrapper)
 ```
 
 Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](docs/COMMANDS.md).
@@ -51,8 +51,8 @@ Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](doc
 - **Discuss before coding.** The user (cru) wants decisions converged first, one step at a time.
 - Output-format changes are **breaking changes** for Tracker — never change a parser's output
   shape casually; that's the CMA refactor's job, done deliberately per package.
-- Stack: tsup build, Vitest (libs) / Mocha (nodered), ts-standard style, Valibot via SchemasJS
-  wrapper, Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
+- Stack: pnpm workspaces (supply-chain hardened), tsup build, Vitest (libs) / Mocha (nodered),
+  ts-standard style, Valibot via SchemasJS wrapper, Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
 - Git: branch from `dev`, PR to `dev`; merging `main` **publishes to npm** via GitHub Actions.
 - The working tree currently has uncommitted work from old sessions — check
   [`docs/STATUS.md`](docs/STATUS.md) before cleaning or committing anything.

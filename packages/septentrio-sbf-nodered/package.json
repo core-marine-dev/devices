@@ -41,6 +41,6 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/septentrio-sbf": "^1.0.1"
+    "@coremarine/septentrio-sbf": "workspace:^"
   }
 }

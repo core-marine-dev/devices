@@ -10,7 +10,7 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-08 · **Branch:** `dev` (not pushed) · Repo was idle 2025-12-15 →
+> **Last updated:** 2026-07-08 · **Branch:** `dev` (pushed) · Repo was idle 2025-12-15 →
 > 2026-07-08.
 
 ## How to use this doc
@@ -22,19 +22,22 @@
    - Per-package state + known issues: [`docs/PACKAGES.md`](PACKAGES.md)
    - The target output format: [`docs/CMA.md`](CMA.md)
    - Commands: [`docs/COMMANDS.md`](COMMANDS.md) · Stack/CI: [`docs/TOOLING.md`](TOOLING.md)
-   - Planned migration: [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md)
+   - pnpm migration (done): [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md)
 3. Working method the user (cru) expects: **discuss decisions before coding, one step at a
    time; this repo feeds the Tracker product, so output-format changes are breaking changes.**
 
 ## Mission
 
-Refresh the whole monorepo in three big strokes:
+Refresh the whole monorepo in strokes:
 
 1. **CMA format rollout** — every parser emits the same output shape ([`docs/CMA.md`](CMA.md)).
    Today only `thelmabiotel-tblive` conforms.
-2. **pnpm migration** — npm workspaces → pnpm, supply-chain hardened ([`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md)).
-3. **Dependency refresh** — deps are from ~2025; audit + bump per package. First evidence of
-   rot: fresh `npm install` hits ERESOLVE (see Open threads).
+2. ~~**pnpm migration**~~ — ✅ DONE (2026-07-08). See [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md).
+3. **Linter + formatter migration** — ts-standard → ESLint flat config with @stylistic +
+   sonarjs + perfectionist plugins (mirrors Tracker repo). In progress.
+4. **Dependency refresh** — deps are from ~2025; audit + bump per package.
+5. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
+   Later track, after linter + CMA.
 
 ## Done
 
@@ -53,19 +56,39 @@ Refresh the whole monorepo in three big strokes:
     templates).
   - **Restored** the root `package-lock.json` (its deletion was uncommitted and unexplained;
     we stay on npm until the pnpm migration). `npm install` then refreshed it (committed with
-    the sbg-ecom bump).
+      the sbg-ecom bump).
   - **Verified then committed** the pre-idle threads: septentrio-sbf test modernization
     (`getFrames()→parseData()`, `ErrorCode→ERROR_CODE`, `Mode→MODE`) — **54/54 tests pass**;
     sbg-ecom dep bump + vitest `include` + example fixes (trailing `}` in template strings —
     also fixed a real one in `example_csv.ts` map keys) — lint + build clean;
     septentrio-sbf-nodered sibling bump `^1.0.1`; tblive-nodered expanded docker flows +
     its previously-untracked docker components mirror.
+- **2026-07-08 — pnpm migration (step 1 of refactor):**
+  - Root `package.json`: `packageManager: pnpm@11.10.0`, dropped npm `workspaces` + `main`,
+    rewrote ~36 proxy scripts to `pnpm --filter @coremarine/<pkg> run <action>`.
+  - `.npmrc` (`engine-strict=true`) + `pnpm-workspace.yaml` (`strictDepBuilds: true` +
+    `allowBuilds: { esbuild: true }`) — supply-chain hardened (mirrors Tracker repo).
+  - 5 tracked `package-lock.json` removed; `package-lock.json` added to `.gitignore`.
+  - Sibling deps → `workspace:^` (norsub-emru + all 5 nodered packages).
+  - septentrio-sbf `types` hack removed — `gpstime.d.ts` is now a local ambient declaration
+    (`declare module 'gpstime'`) included in `tsconfig.json` (no more copying to root
+    `node_modules/@types/`).
+  - valibot ERESOLVE dep rot fixed: `nmea-parser` `valibot: 1.1.0` → `^1.4.0`; `norsub-emru`
+    peer `valibot: 1.1.0` → `>=1.0.0` (valibot 1.4.2 now installs cleanly).
+  - 10 CI workflows + 2 templates rewritten: `pnpm/action-setup@v4`, `cache: 'pnpm'`,
+    `pnpm install --frozen-lockfile`, `pnpm publish --filter --no-git-checks`.
+  - Verified: all 5 builds pass, all 4 test suites with specs pass (nmea 60/60, septentrio
+    54/54, tblive 134/134, norsub 8/8; sbg-ecom has no specs — pre-existing).
+  - Docs updated: TOOLING, COMMANDS, PNPM-MIGRATION (marked done), CONTRIBUTING, AGENTS.
 
 ## Where we are now
 
-Working tree is **clean** (everything above committed on `dev`, not pushed). The docs in this
-folder describe the repo accurately as of today. No parser code has been refactored yet —
-CMA rollout, pnpm migration and dep refresh are all still pending, in that discussion order.
+Working tree has uncommitted pnpm migration changes on `dev`. The pnpm migration is complete
+and verified. Next up: **step 2 — ESLint flat config replacing ts-standard**, then **step 3 —
+documentation (CodeStyle.md + AGENTS code-style section)**.
+
+No parser code has been refactored yet — CMA rollout, Result pattern, and dep refresh are all
+still pending, in that discussion order.
 
 ## Decisions (locked unless cru says otherwise)
 
@@ -73,31 +96,36 @@ CMA rollout, pnpm migration and dep refresh are all still pending, in that discu
   `protocol.version` required) — open questions listed there must be settled before rollout.
 - **Docs live in `docs/`, one small doc per concern; `AGENTS.md` stays ≤80 lines** (index only).
 - **`misc/` is gitignored** — raw sensor captures and dev helpers are never committed.
-- **pnpm migration happens as its own step** (not mixed with CMA refactor commits).
+- **pnpm migration is done** — no more npm in the repo (except Node-RED Dockerfiles, deferred).
+- **ESLint sonar thresholds: strict from day one** (Option A: max-lines-per-function 50,
+  cyclomatic-complexity 10, cognitive-complexity 15; tests exempt from max-lines).
+- **Result pattern will be adopted** as a later track, after linter + CMA.
 
 ## Next steps (in order)
 
-1. **Push `dev`** when cru is ready (publishing only happens on merge to `main`, so pushing
-   `dev` is safe).
-2. **pnpm migration** per [`docs/PNPM-MIGRATION.md`](PNPM-MIGRATION.md).
-3. **Dependency refresh** package by package — start from the ERESOLVE conflict below.
-4. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then start
-   with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work already exists
-   in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru), and align
-   thelmabiotel-tblive's extra top-level keys.
+1. **Commit the pnpm migration** (all changes are staged/unstaged on `dev`).
+2. **ESLint flat config** replacing ts-standard — root `eslint.config.js` with 4 plugins
+   (typescript-eslint, @stylistic, eslint-plugin-sonarjs, eslint-plugin-perfectionist),
+   remove per-`package.json` `ts-standard`/`eslintConfig` blocks, update `lint`/`format`
+   scripts + CI, add `.vscode` ESLint integration.
+3. **Documentation** — `docs/CodeStyle.md` (rationale + examples), AGENTS.md code-style
+   section, codify lint→tsc→test run order.
+4. **Dependency refresh** package by package.
+5. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
+   start with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work
+   already exists in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru),
+   and align thelmabiotel-tblive's extra top-level keys.
+6. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow).
 
 ## Open threads / known bugs (report before fixing)
 
-- **Dep rot (ERESOLVE):** fresh resolve fails — `norsub-emru` pins peer `valibot@1.1.0` exactly
-  while `@schemasjs/valibot-numbers@^1.0.18` resolves to 1.1.1 requiring `valibot@^1.4.0`.
-  Currently worked around with `npm install --legacy-peer-deps`. Fix during dep refresh
-  (widen/bump valibot peers across packages).
+- **Dep rot:** resolved for valibot (1.4.2 now installs); other deps still from ~2025 —
+  audit during dep refresh.
 - `nmea-parser/src/types.ts`: `Float32`/`Float64` types are swapped (each aliases the other's schema).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
 - `thelmabiotel-tblive-nodered` has a `test` script but **no mocha specs** (`No test files found`).
 - All 5 nodered CI workflows have their test jobs commented out — they publish untested.
-- septentrio-sbf `types` script hack (copies `gpstime.d.ts` into root node_modules) — dies with pnpm.
 - nmea-parser ships a committed `legacy/` folder + stray root files (`morenmea.tss`).
-- Nodered sibling dep ranges inconsistent (`^exact` vs `>=`); `main: index.js` points to a
-  non-existent file in all five.
+- Nodered sibling dep ranges now use `workspace:^` (was inconsistent `^exact` vs `>=`).
+- `main: index.js` removed from root `package.json` (was pointing to a non-existent file).
 - P08-Trident harness (`misc/tests/p08trident/`) status unknown — ask cru if still live.

@@ -17,19 +17,22 @@ jobs:
 
   #   steps:
   #     - name: 👍 Checkout
-  #       uses: actions/checkout@v3
-        
+  #       uses: actions/checkout@v4
+
+  #     - name: 📦 Setup pnpm
+  #       uses: pnpm/action-setup@v4
+
   #     - name: ❇️ Setup node.js
-  #       uses: actions/setup-node@v3
+  #       uses: actions/setup-node@v4
   #       with:
   #         node-version: ${{ matrix.node-version }}
-  #         cache: 'npm'
-          
+  #         cache: 'pnpm'
+
   #     - name: 📥 Install Dependencies
-  #       run: npm install
+  #       run: pnpm install --frozen-lockfile
 
   #     - name: 🧑‍🔬 Tests
-  #       run: "npm run nmea-parser-nodered:test"
+  #       run: "pnpm run nmea-parser-nodered:test"
 
   publish:
     name: 🚀 Publish
@@ -40,20 +43,23 @@ jobs:
     steps:
       - name: 👍 Checkout
         uses: actions/checkout@v4
-        
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ❇️ Setup node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
- 
+
       - name: 📥 Install Dependencies
-        run: npm install
-    
+        run: pnpm install --frozen-lockfile
+
       # - name: 🛠️ Build
-      #   run: "npm run nmea-parser-nodered:build"
-        
+      #   run: "pnpm run nmea-parser-nodered:build"
+
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/nmea-parser-nodered"
+        run: "pnpm publish --access public --filter @coremarine/nmea-parser-nodered --no-git-checks"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

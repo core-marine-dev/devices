@@ -2,9 +2,10 @@
 
 The whole repository it is an opinionated monorepository:
 
-- [NPM workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) to manage monorepo:
-    - Flat learning curve
-    - No depedencies, just npm
+- [pnpm workspaces](https://pnpm.io/workspaces) to manage monorepo:
+    - Fast, disk-efficient, strict node_modules isolation
+    - Supply-chain hardened: dependency build scripts denied by default (`strictDepBuilds`
+      + `allowBuilds` in `pnpm-workspace.yaml`)
 - Schema validation to guarantee runtime type checking
     - Type validation in TypeScript is only true at devtime not in runtime so it is necessary a schema validator
     - Before was [Zod](https://zod.dev/), now is [Valibot](https://valibot.dev/), then who knows
@@ -21,7 +22,7 @@ The whole repository it is an opinionated monorepository:
     - All packages are published with scope `@coremarine`
     - The library is called typically as `<manufacturer>-<protocol>` or something like that
     - The NodeRED component is called the same as the library with `-nodered` ending
-    - Example: `@coremarine/nmea-parser` and `@coremarine/nmea-parser-ndoered`
+    - Example: `@coremarine/nmea-parser` and `@coremarine/nmea-parser-nodered`
 
 ## Create new Component
 
@@ -36,12 +37,12 @@ New packages will be publish when a pull request into `main` branch is accepted.
 
 1. Copy the `library` folder inside `templates` and paste as a new folder inside `packages` -> `packages/<your-library>`
 2. Look for the keyword `TODO:` in your IDE / Editor inside that folder, this is a hint to places you need to setup.
-3. Setup npm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
+3. Setup pnpm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
     1. `name` to `@coremarine/<your-library>`
     2. `description`
     3. `homepage`
     4. `keywords`
-4. Setup npm workspaces -> Add scripts in global / monorepo `package.json`:
+4. Setup pnpm workspaces -> Add scripts in global / monorepo `package.json`:
     1. `lint`
     2. `format`
     3. `build`
@@ -58,14 +59,14 @@ New packages will be publish when a pull request into `main` branch is accepted.
 
 1. Copy the `nodered` folder inside `templates` and paste as a new folder ending with `-nodered` inside `packages` -> `packages/<your-library>-nodered`
 2. Look for the keyword `TODO:` in your IDE / Editor inside that folder, this is a hint to places you need to setup.
-3. Setup npm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
+3. Setup pnpm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
     1. `name` to `@coremarine/<your-library>`
     2. `description`
     3. `homepage`
     4. `keywords`
     5. `node-red.nodes.cma-<your-component>`
-    6. `dependencies.@coremarine/<your-library>`
-4. Setup npm workspaces -> Add scripts in global / monorepo `package.json`:
+    6. `dependencies.@coremarine/<your-library>`: `workspace:^`
+4. Setup pnpm workspaces -> Add scripts in global / monorepo `package.json`:
     1. `nodered:docker`
     2. `nodered:test`
 5. Setup CI/CD (Github Actions)

@@ -18,18 +18,21 @@ jobs:
   #   steps:
   #     - name: 👍 Checkout
   #       uses: actions/checkout@v4
-        
+
+  #     - name: 📦 Setup pnpm
+  #       uses: pnpm/action-setup@v4
+
   #     - name: ❇️ Setup node.js
   #       uses: actions/setup-node@v4
   #       with:
   #         node-version: ${{ matrix.node-version }}
-  #         cache: 'npm'
-          
+  #         cache: 'pnpm'
+
   #     - name: 📥 Install Dependencies
-  #       run: npm install
+  #       run: pnpm install --frozen-lockfile
 
   #     - name: 🧑‍🔬 Tests
-  #       run: "npm run sbg-ecom:test"
+  #       run: "pnpm run sbg-ecom:test"
 
   publish:
     name: 🚀 Publish
@@ -40,20 +43,23 @@ jobs:
     steps:
       - name: 👍 Checkout
         uses: actions/checkout@v4
-        
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: ❇️ Setup node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
- 
+
       - name: 📥 Install Dependencies
-        run: npm install
-    
+        run: pnpm install --frozen-lockfile
+
       - name: 🛠️ Build
-        run: "npm run sbg-ecom:build"
-        
+        run: "pnpm run sbg-ecom:build"
+
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/sbg-ecom"
+        run: "pnpm publish --access public --filter @coremarine/sbg-ecom --no-git-checks"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
