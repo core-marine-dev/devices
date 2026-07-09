@@ -204,9 +204,10 @@ Strokes:
 Steps 1-6 are complete and pushed to `dev` (HEAD `4c14b41`). Modern stack: pnpm 11,
 TypeScript 6.0.3, ESLint 10 + sonar + perfectionist, Vitest 4, Valibot 1.4.2, zero known vulns.
 
-**CMA rollout has begun.** The working tree now has an **uncommitted** new package
-`packages/core/` (the shared contract — see Done, 2026-07-09). It lints, typechecks,
-tests (5/5) and builds green. No existing parser has been refactored yet — NMEA is next.
+**CMA rollout in progress.** `packages/core/` (the shared contract) is committed & pushed
+(`174e4cc`). **NMEA refactor is now underway** — the full locked design is in the section below
+(§"NMEA refactor — locked design & plan"). If interrupted mid-code, follow the Resume prompt
+there.
 
 ## Decisions (locked unless cru says otherwise)
 
@@ -235,6 +236,84 @@ tests (5/5) and builds green. No existing parser has been refactored yet — NME
   cyclomatic-complexity 10, cognitive-complexity 15; tests exempt from max-lines).
 - **Valibot pinned to 1.4.2** (exact) in all peerDependencies — no `>=1.0.0` ranges.
 - **Result pattern will be adopted** as a later track, after CMA.
+
+## NMEA refactor — locked design & plan (IN PROGRESS, started 2026-07-09)
+
+First parser onto `@coremarine/protocol-core`. It becomes the reference model for the other
+four. **Every decision below is locked with cru.** Output shape changes `NMEASentence` → `CMA`
+(breaking for Tracker — deliberate; no PR to `main` until at least NMEA is done).
+
+**Terminology:** "sentence", never "frame". Rename symbols (`getUnparsedNMEAFrames` →
+`getUnparsedNMEASentences`, `lastUncompletedFrame` → `lastUncompletedSentence`, etc.). Grep to
+confirm zero "frame" remains in `src/`.
+
+**API / contract:**
+- `class NMEAParser extends StringParser` (from core). Constructor `({ memory?, bufferLimit? })`.
+  Core supplies `addData(string)` / `parseData(string?): CMA[]`. NMEA implements only
+  `protected extractSentences(buffer: string): { sentences: CMA[], remainder: string }`.
+- **Single knowledge-feed input:** `addSentences(yaml: string): void` — a YAML **string** (works
+  on web: `await file.text()`; on node: read the file yourself). Parsed with `js-yaml`
+  (isomorphic). DROP the old file-path and pre-parsed-object modes.
+- Keep useful NMEA-only extras (`getSentence`, etc.), renamed to sentence terminology.
+
+**Knowledge model:**
+- Author in YAML: `protocols/nmea.yaml` = single source of truth. A build step generates
+  `src/nmea.ts` (`export const NMEA_PROTOCOLS = {...} as const`) — bundled, web-safe (no runtime
+  fs). **Delete the hand-written `src/nmea-sentences.ts`** (it's a stale duplicate; the generated
+  `src/nmea.ts`/`PROTOCOLS` is currently dead code — collapse to one source). Update
+  `yaml-to-json.js` to emit the typed `.ts`.
+- Storage: `Map<id, KnownSentence[]>` — **multiple definitions per id** (same id, different field
+  counts across NMEA versions). In YAML, author variants under separate protocol-version blocks
+  (same `protocol: NMEA`, different `version`).
+
+**Pipeline (`extractSentences`, per candidate — decision 4a: upgrade inline, one pass):**
+1. Split buffer → candidate sentence strings + `remainder` (`lastUncompletedSentence` keeps the
+   incomplete tail when `memory` on).
+2. `parseGenericSentence(raw)`: verify NMEA format + checksum; split talker off the id → a
+   generic CMA sentence:
+   - root `raw` = whole sentence; `timestamp` = `Date.now()`; `id` = base id (talker removed);
+     `protocol = { name:'NMEA', version:'unknown' }`;
+   - `payload` fields = `{ raw: <field slice>, name:'unknown', type:'string', value: <field slice> }`
+     (unknown field: `raw === value`; empty field `value: null`);
+   - `metadata = { checksum, standard:false, talker? }` (talker key only if present);
+   - `errors: [...]` if format/checksum invalid (4b: **emit-with-errors, never drop**).
+   - Default unknown strings = `'unknown'`.
+3. `upgradeKnownSentence(generic)`: look up id → definitions; keep those whose
+   `payload.length === generic field count`; if ≥1 → pick **newest** (compare protocol version,
+   semver-tolerant, highest wins; if not comparable, first); apply field name/type/units/
+   description; parse each value via core `TYPE_SCHEMAS[type]`; set `protocol = matched {name,
+   version}`, `metadata.standard` from the def. **No length match (incl. id known but wrong
+   length) → stays generic, no error.**
+
+**CMA mapping specifics:** protocol closed to `{name, version}`; ALL extras → root `metadata`
+(same for every parser); legacy field `sample` → `raw`.
+
+**Cross-runtime:** remove `import fs from 'node:fs'` (drop `protocols.ts` file mode) and
+`import crypto from 'node:crypto'` in `sentences.ts` (use global `crypto.getRandomValues`).
+`yaml-to-json.js` keeps `node:fs` — build-only script, never bundled. Goal: **zero `node:`
+imports in `src/`**.
+
+**Build/pkg:** `tsup.config.ts` add `noExternal: [/@coremarine\/protocol-core/]` + `platform:
+'neutral'`; add dep `@coremarine/protocol-core: workspace:*`; keep js-yaml/valibot/@schemasjs;
+update the `protocols` npm script. Add root proxy scripts if needed.
+
+**Tests:** the existing ~60 specs assert the legacy `NMEASentence` shape — rewrite them to assert
+`CMA`. Run order: lint → tsc → test.
+
+### Resume prompt (if this session is interrupted)
+
+> Continue the NMEA parser refactor onto `@coremarine/protocol-core`. **Read `docs/STATUS.md`
+> §"NMEA refactor — locked design & plan" top to bottom — every decision is locked with cru; do
+> NOT re-litigate them.** Then run `git status` and `git log --oneline -5` to see how far coding
+> got. The shared core is committed (`174e4cc`) and exports `Parser`/`StringParser`/`BinaryParser`,
+> `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`. Work in `packages/nmea-parser/`. Order: (A) wire
+> `noExternal` + `@coremarine/protocol-core` dep + regenerate `src/nmea.ts` from `protocols/nmea.yaml`
+> via an updated `yaml-to-json.js`, delete `src/nmea-sentences.ts`; (B) rewrite `parser.ts` to
+> `extends StringParser` with `extractSentences` + `addSentences(yaml)`; (C) rewrite
+> `sentences.ts` helpers (generic-parse then upgrade-if-known, "sentence" naming) to emit `CMA`;
+> (D) drop `node:fs`/`node:crypto`; (E) rewrite tests to assert CMA. Verify lint → tsc → test →
+> build. cru works one step at a time, discuss-before-deciding, but the design here is already
+> agreed — just implement it. Update this doc + HEAD in the same turn as meaningful changes.
 
 ## Next steps (in order)
 
