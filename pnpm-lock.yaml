@@ -69,6 +69,18 @@ importers:
         specifier: 4.1.10
         version: 4.1.10(@types/node@26.0.1)(@vitest/coverage-v8@4.1.10)(vite@7.3.6(@types/node@26.0.1)(yaml@2.9.0))
 
+  packages/core:
+    dependencies:
+      '@schemasjs/valibot-numbers':
+        specifier: ^1.1.1
+        version: 1.1.1(valibot@1.4.2(typescript@6.0.3))
+      '@schemasjs/validator':
+        specifier: ^2.0.5
+        version: 2.0.5(valibot@1.4.2(typescript@6.0.3))
+      valibot:
+        specifier: 1.4.2
+        version: 1.4.2(typescript@6.0.3)
+
   packages/nmea-parser:
     dependencies:
       '@schemasjs/valibot-numbers':
