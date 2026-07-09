@@ -50,6 +50,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@coremarine/protocol-core": "workspace:*",
     "@schemasjs/valibot-numbers": "^1.1.1",
     "@schemasjs/validator": "^2.0.5",
     "@valibot/to-json-schema": "1.7.1",
