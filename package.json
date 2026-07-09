@@ -36,6 +36,11 @@
   "type": "module",
   "packageManager": "pnpm@11.10.0",
   "scripts": {
+    "protocol-core:lint": "pnpm --filter @coremarine/protocol-core run lint",
+    "protocol-core:format": "pnpm --filter @coremarine/protocol-core run format",
+    "protocol-core:build": "pnpm --filter @coremarine/protocol-core run build",
+    "protocol-core:test": "pnpm --filter @coremarine/protocol-core run test",
+    "protocol-core:test:coverage": "pnpm --filter @coremarine/protocol-core run test:coverage",
     "nmea-parser:protocols": "pnpm --filter @coremarine/nmea-parser run protocols",
     "nmea-parser:lint": "pnpm --filter @coremarine/nmea-parser run lint",
     "nmea-parser:format": "pnpm --filter @coremarine/nmea-parser run format",

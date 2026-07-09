@@ -10,11 +10,12 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-08 · **Branch:** `dev` (HEAD `31b52c3`, pushed) · Repo was idle
-> 2025-12-15 → 2026-07-08.
+> **Last updated:** 2026-07-09 · **Branch:** `dev` (HEAD `4c14b41`, pushed; **working tree has
+> uncommitted `packages/core/`**) · Repo was idle 2025-12-15 → 2026-07-08.
 >
 > **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
-> Next: CMA rollout, Result pattern, strictness pass.
+> **CMA rollout STARTED (2026-07-09):** `@coremarine/protocol-core` scaffolded — shared
+> parser contract + locked CMA format. Next: refactor parsers onto it, starting with NMEA.
 
 ## How to use this doc
 
@@ -32,7 +33,17 @@
 
 ## Mission
 
-Refresh the whole monorepo in strokes:
+Refresh the whole monorepo in strokes. **cru's two end goals for the deep refactor:**
+
+- **Goal 1 — same output:** every parser emits the identical CMA shape ([`docs/CMA.md`](CMA.md)),
+  regardless of protocol.
+- **Goal 2 — same API:** every parser has the same internal/external API — `new X(opts)` →
+  `addData(input)` / `parseData(input): CMA[]`. Only the protocol-decode logic differs. This is
+  enforced by a shared base class in `@coremarine/protocol-core`.
+- **Cross-runtime:** the libraries (not the `-nodered` wrappers) must run on node, deno, bun
+  **and** the web — no `node:fs`/`Buffer` in the hot path; input is `string | Uint8Array`.
+
+Strokes:
 
 1. **CMA format rollout** — every parser emits the same output shape ([`docs/CMA.md`](CMA.md)).
    Today only `thelmabiotel-tblive` conforms.
@@ -53,6 +64,36 @@ Refresh the whole monorepo in strokes:
 
 ## Done
 
+- **2026-07-09 — `@coremarine/protocol-core` scaffolded (CMA rollout foundation, uncommitted).**
+  New private workspace package `packages/core/` — the shared contract both refactor
+  goals build on. Not published (`"private": true`); each parser will bundle it into its own
+  `dist` via tsup `noExternal: [/@coremarine\/protocol-core/]`, so published parsers carry no
+  runtime dep on it.
+  - `src/cma.ts` — canonical CMA valibot schemas (house idiom: `ValibotXSchema` → `ValibotValidator`),
+    the definitive format cru locked (see [`docs/CMA.md`](CMA.md) §Locked decisions). Field
+    `value` union is `string | number | boolean | null`.
+  - `src/schemas.ts` — config schemas (`Boolean`/`Natural`) **plus one field-value validator per
+    CMA `Type`** (`Char`, `String`, `Uint8/16/32`, `Int8/16/32`, `Float32/64` from
+    `@schemasjs/valibot-numbers`; `Int64`/`Uint64` as decimal strings) and a
+    `TYPE_SCHEMAS: Record<Type, Schema<Value>>` lookup for table-driven, identical field
+    validation across parsers. This is also the correct single source that fixes NMEA's
+    `Float32`/`Float64` swap bug when NMEA is refactored.
+  - `src/types.ts` — CMA types **inferred** from the schemas (`ReturnType<typeof …Schema.parse>`),
+    plus `Input = string | Uint8Array`, `ParserOptions`, `ExtractedSentences<B>`.
+  - `src/parser.ts` — `abstract Parser<B>` owns the whole `memory`/buffer/drain machinery; the
+    ONE protocol-specific method is `protected extractSentences(buffer): { sentences, remainder }`.
+    Two flavor bases supply buffer mechanics: `StringParser` (NMEA/Norsub/TB Live) and
+    `BinaryParser` (Septentrio/SBG, Uint8Array via `DataView`, no Node `Buffer`).
+  - `tsup.config.ts` `platform: 'neutral'` (runtime-agnostic). Root proxy scripts added
+    (`protocol-core:{lint,format,build,test,test:coverage}` — prefix follows the package name,
+    not the folder).
+  - **Folder is `packages/core/`; package name is `@coremarine/protocol-core`** (cru's choice —
+    short folder, descriptive package name). They intentionally differ.
+  - Verified: lint clean, `tsc --noEmit` clean, 5/5 tests pass, build emits ESM+CJS+dts.
+- **2026-07-09 — housekeeping (uncommitted):** moved each parser's `docs/` datasheet PDFs out
+  of the packages into `misc/datasheets/<package>/` (gitignored; septentrio's nested `4-10-1/`
+  folder preserved). No package `docs/` folders remain. These PDFs were untracked, so it's a
+  pure filesystem move. See [`docs/ARCHITECTURE.md`](ARCHITECTURE.md) `misc/` convention.
 - **2026-07-08 — full repo revision + docs reset.** Three exploration passes (packages,
   uncommitted work, tooling/CI) written into `docs/` (was empty); `AGENTS.md` slimmed to a
   ≤80-line index; this STATUS.md created as the handoff log.
@@ -160,17 +201,33 @@ Refresh the whole monorepo in strokes:
 
 ## Where we are now
 
-Working tree is **clean**. All refactor steps 1-6 are complete, committed, and pushed to
-`dev` (HEAD `31b52c3`). The repo is on a modern stack: pnpm 11, TypeScript 6.0.3, ESLint 10
-with sonar + perfectionist, Vitest 4, Valibot 1.4.2, zero known vulnerabilities.
+Steps 1-6 are complete and pushed to `dev` (HEAD `4c14b41`). Modern stack: pnpm 11,
+TypeScript 6.0.3, ESLint 10 + sonar + perfectionist, Vitest 4, Valibot 1.4.2, zero known vulns.
 
-No parser code has been refactored yet — CMA rollout and Result pattern are the remaining
-tracks.
+**CMA rollout has begun.** The working tree now has an **uncommitted** new package
+`packages/core/` (the shared contract — see Done, 2026-07-09). It lints, typechecks,
+tests (5/5) and builds green. No existing parser has been refactored yet — NMEA is next.
 
 ## Decisions (locked unless cru says otherwise)
 
-- **CMA draft of record is [`docs/CMA.md`](CMA.md) §Current draft** (timestamp = epoch ms,
-  `protocol.version` required) — open questions listed there must be settled before rollout.
+- **CMA format is LOCKED** — [`docs/CMA.md`](CMA.md) §Current draft + §Locked decisions
+  (2026-07-09, cru): timestamp = epoch ms only; `protocol` closed with required `version`;
+  per-protocol extras go in `metadata` (so tblive's `mode`/`firmware` move there); `Type` uses
+  `boolean`. Canonical schema is `packages/core/src/cma.ts`.
+- **Terminology: "sentence", not "frame"** — a unit of input data is a *sentence*. Applies to
+  all new/refactored code and docs.
+- **Field `value` = `string | number | boolean | null`** (2026-07-09): `null` = present-but-empty
+  field; **no bigint** — `int64`/`uint64` carried as decimal strings (JSON-safe). No protocol
+  currently uses 64-bit ints. Per-`Type` validators + `TYPE_SCHEMAS` lookup live in core.
+- **Shared core (Decision A1):** sameness lives in a private, unpublished
+  `@coremarine/protocol-core`, bundled into each parser via tsup `noExternal`. Not template-only.
+- **Unified API contract:** object-arg constructor `new X({ memory?, bufferLimit? })`,
+  `addData(input): void` + `parseData(input?): CMA[]`; input is `string | Uint8Array`. Protocol
+  parsers extend `StringParser` or `BinaryParser` and implement only `extractSentences`.
+- **Cross-runtime target** (node/deno/bun/web): the one blocker in NMEA is `node:fs`
+  (`readProtocolsYAMLFile`, isolate as a node-only path) — `node:crypto` there is already Web
+  Crypto (`getRandomValues`), just drop the import. Buffer→Uint8Array work is in the two binary
+  parsers (Septentrio/SBG), done last.
 - **Docs live in `docs/`, one small doc per concern; `AGENTS.md` stays ≤80 lines** (index only).
 - **`misc/` is gitignored** — raw sensor captures and dev helpers are never committed.
 - **pnpm migration is done** — no more npm in the repo (except Node-RED Dockerfiles, deferred).
@@ -183,10 +240,18 @@ tracks.
 
 1. **Merge `dev` → `main`** when cru is ready — this publishes to npm via GitHub Actions and
    clears the 75 dependabot vulnerabilities on the default branch.
-2. **CMA rollout** — lock the [`docs/CMA.md`](CMA.md) open questions with cru first, then
-   start with **sbg-ecom** (pre-release 0.0.1, no tests to break, SBG→CMA design work
-   already exists in `misc/tests/sbg/`); then septentrio-sbf, nmea-parser (+norsub-emru),
-   and align thelmabiotel-tblive's extra top-level keys.
+2. **CMA rollout** — format is locked; `@coremarine/protocol-core` is scaffolded. Refactor the
+   parsers onto it in **cru's order** (easiest-first, NMEA becomes the model):
+   1. **nmea-parser** — extend `StringParser`, implement `extractSentences`, emit `CMA[]`,
+      isolate `node:fs` file-read as node-only, drop `node:crypto` import (use global).
+      **This is the reference implementation** — get it right, the rest clone it.
+      ⚠️ output-shape change (`NMEASentence` → `CMA`) is breaking for Tracker — deliberate.
+   2. **norsub-emru** — thin extension of NMEA (adds status metadata); nearly free once NMEA lands.
+   3. **thelmabiotel-tblive** — already CMA-ish; move `mode`/`firmware` into `metadata`,
+      adopt the base class. Protocol-version matching is the hard part (least-clean protocol).
+   4. **septentrio-sbf** — binary; extend `BinaryParser`, migrate `Buffer`→`Uint8Array`/`DataView`,
+      verify/replace the `crc` dep. Mature, well-tested (54/54).
+   5. **sbg-ecom** — binary; same Buffer migration; SBG→CMA design exists in `misc/tests/sbg/`.
 3. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow). Read the
    Tracker repo's `docs/CodeStyle.md` §Errors and `src/core/tracker/src/types.ts` for the
    `Result<T,E>` type.

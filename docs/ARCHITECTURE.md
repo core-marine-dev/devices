@@ -31,6 +31,8 @@ misc/tests/       CMA-refactor scratch harness (tests/cma.ts draft, SBG binary c
                   P08-Trident synthetic-data project)
 misc/todo/        parked future parsers (ublox-ubx, vectornav) — scaffolds + datasheet PDFs
 misc/data/        raw sensor data moved out of packages (sbg bin/csv samples, tblive runtime outputs)
+misc/datasheets/  protocol datasheets / vendor manuals (PDFs), one folder per package — moved
+                  out of each package's old docs/ folder (2026-07-09)
 misc/drafts/      draft test files, helper nodes, diagrams
 misc/archive/     superseded design drafts (old frame model, SBG→CMA comparison dump)
 ```
