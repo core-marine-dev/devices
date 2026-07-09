@@ -239,6 +239,10 @@ there.
 
 ## NMEA refactor — locked design & plan (IN PROGRESS, started 2026-07-09)
 
+> **State:** build wiring done & committed (`c143f31`, tree GREEN, 60/60 legacy tests pass).
+> The interdependent `src/` rewrite (parser/sentences/schemas/tests) is NOT started — see the
+> Resume prompt at the end of this section for the exact remaining steps.
+
 First parser onto `@coremarine/protocol-core`. It becomes the reference model for the other
 four. **Every decision below is locked with cru.** Output shape changes `NMEASentence` → `CMA`
 (breaking for Tracker — deliberate; no PR to `main` until at least NMEA is done).
@@ -306,14 +310,30 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 > §"NMEA refactor — locked design & plan" top to bottom — every decision is locked with cru; do
 > NOT re-litigate them.** Then run `git status` and `git log --oneline -5` to see how far coding
 > got. The shared core is committed (`174e4cc`) and exports `Parser`/`StringParser`/`BinaryParser`,
-> `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`. Work in `packages/nmea-parser/`. Order: (A) wire
-> `noExternal` + `@coremarine/protocol-core` dep + regenerate `src/nmea.ts` from `protocols/nmea.yaml`
-> via an updated `yaml-to-json.js`, delete `src/nmea-sentences.ts`; (B) rewrite `parser.ts` to
-> `extends StringParser` with `extractSentences` + `addSentences(yaml)`; (C) rewrite
-> `sentences.ts` helpers (generic-parse then upgrade-if-known, "sentence" naming) to emit `CMA`;
-> (D) drop `node:fs`/`node:crypto`; (E) rewrite tests to assert CMA. Verify lint → tsc → test →
-> build. cru works one step at a time, discuss-before-deciding, but the design here is already
-> agreed — just implement it. Update this doc + HEAD in the same turn as meaningful changes.
+> `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`. Work in `packages/nmea-parser/`.
+>
+> **DONE this session (committed; tree is GREEN, 60/60 legacy tests still pass):** `c143f31`
+> wired the `@coremarine/protocol-core` dep + tsup `noExternal:[/@coremarine\/protocol-core/]` +
+> `platform:'neutral'`. `src/` is otherwise UNTOUCHED (still emits legacy `NMEASentence`).
+>
+> **REMAINING — the interdependent core rewrite; do it as one slice and verify at the end:**
+> (A) collapse knowledge to one source — the generator (`yaml-to-json.js`) already emits
+> `src/nmea.ts` as `export const PROTOCOLS = {...}`; point `parser.ts` at `PROTOCOLS` from
+> `./nmea` and **delete `src/nmea-sentences.ts`** (stale duplicate). (B) rewrite `parser.ts` →
+> `extends StringParser`, implement `extractSentences`, add `addSentences(yaml: string)`, keep
+> renamed extras (`getSentence`…). (C) rewrite `sentences.ts` → generic-parse then
+> upgrade-if-known ("sentence" naming, emit `CMA`, parse values via core `TYPE_SCHEMAS`,
+> multi-def `Map<id, KnownSentence[]>` + newest-wins on length tie). (D) trim
+> `schemas.ts`/`types.ts`: drop legacy OUTPUT schemas (`NMEASentenceSchema`, `NMEAParsedField*`,
+> local `Int8Schema…Float64Schema`, the file/object arms of `ProtocolsInputSchema`); KEEP the
+> YAML-input schemas (`ProtocolFieldSchema`, `ProtocolSentenceSchema`, `ProtocolSchema`,
+> `ProtocolsFileContentSchema`, `NMEALikeSchema`, `TalkerSchema`, `ChecksumSchema`). (E) drop
+> `node:fs` (`protocols.ts` file mode) + `node:crypto` (`sentences.ts` → global
+> `crypto.getRandomValues`); grep `src/` for `node:` and "frame" — both must end at zero. (F)
+> rewrite the ~60 specs to assert `CMA`. Verify lint → tsc → test → build. `nmea-metadata.ts`
+> (GGA lat/long enrichment) is DEFERRED — leave it out of the pipeline (follow-up). cru works
+> one step at a time, but everything above is already agreed — just implement it. Update this
+> doc + HEAD in the same turn as meaningful changes.
 
 ## Next steps (in order)
 
