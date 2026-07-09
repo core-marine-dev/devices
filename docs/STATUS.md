@@ -10,8 +10,8 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-09 · **Branch:** `dev` (HEAD `4c14b41`, pushed; **working tree has
-> uncommitted `packages/core/`**) · Repo was idle 2025-12-15 → 2026-07-08.
+> **Last updated:** 2026-07-09 · **Branch:** `dev` (pushed; latest meaningful commit `174e4cc` —
+> `@coremarine/protocol-core`) · Repo was idle 2025-12-15 → 2026-07-08.
 >
 > **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
 > **CMA rollout STARTED (2026-07-09):** `@coremarine/protocol-core` scaffolded — shared
