@@ -83,6 +83,9 @@ importers:
 
   packages/nmea-parser:
     dependencies:
+      '@coremarine/protocol-core':
+        specifier: workspace:*
+        version: link:../core
       '@schemasjs/valibot-numbers':
         specifier: ^1.1.1
         version: 1.1.1(valibot@1.4.2(typescript@6.0.3))
