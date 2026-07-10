@@ -1,48 +1,41 @@
-import fs from 'node:fs'
-
+// installed
 import yaml from 'js-yaml'
 
-import { ProtocolsFileContentSchema, StringSchema } from './schemas'
+// coded
+import { ProtocolsFileContentSchema } from './schemas'
 import type { MapStoredSentences, Protocol, ProtocolsFileContent, StoredSentence } from './types'
 
-export const readProtocolsYAMLString = (content: string): ProtocolsFileContent => {
-  const fileData = yaml.load(content)
-  const parsed = ProtocolsFileContentSchema.safeParse(fileData)
+// Parse a protocols YAML string into the validated knowledge model. Web-safe:
+// callers pass the file's text (read it yourself on the server; `await file.text()` on the web).
+export const parseProtocols = (content: string): ProtocolsFileContent => {
+  const data = yaml.load(content)
+  const parsed = ProtocolsFileContentSchema.safeParse(data)
   if (!parsed.success) {
     throw new Error(parsed.errors?.toString())
   }
   return parsed.value
-  // Valibot version to debug
-  // const parsed = safeParse(ValibotProtocolsFileContentSchema, fileData)
-  // if (parsed.success) { return parsed.output }
-  // throw new Error(parsed.issues?.toString())
 }
 
-export const readProtocolsYAMLFile = (file: string): ProtocolsFileContent => {
-  const filename = StringSchema.parse(file)
-  const content = fs.readFileSync(filename, 'utf-8')
-  return readProtocolsYAMLString(content)
-}
-
-const getStoreSentencesFromProtocol = (protocol: Protocol): MapStoredSentences => {
+const storedSentencesFromProtocol = (protocol: Protocol): StoredSentence[] => {
   const { protocol: name, standard, version, sentences } = protocol
-  const storedSentences: MapStoredSentences = new Map()
-  for (const element of sentences) {
-    const obj: StoredSentence = {
-      id: element.id,
-      payload: element.payload,
-      protocol: { name, standard, version },
-      description: element?.description,
-    }
-    storedSentences.set(element.id, obj)
-  }
-  return storedSentences
+  return sentences.map((element) => ({
+    id: element.id,
+    payload: element.payload,
+    protocol: { name, standard, version },
+    description: element?.description,
+  }))
 }
 
-export const getStoreSentences = ({ protocols }: ProtocolsFileContent): MapStoredSentences => {
-  let storedSentences: MapStoredSentences = new Map()
+// Build the in-memory knowledge base: id -> definitions. Multiple definitions
+// per id are appended (same id can differ in field count across versions).
+export const getStoredSentences = ({ protocols }: ProtocolsFileContent): MapStoredSentences => {
+  const store: MapStoredSentences = new Map()
   for (const protocol of protocols) {
-    storedSentences = new Map([...storedSentences, ...getStoreSentencesFromProtocol(protocol)])
+    for (const sentence of storedSentencesFromProtocol(protocol)) {
+      const definitions = store.get(sentence.id) ?? []
+      definitions.push(sentence)
+      store.set(sentence.id, definitions)
+    }
   }
-  return storedSentences
+  return store
 }

@@ -10,12 +10,16 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-09 · **Branch:** `dev` (pushed; latest meaningful commit `174e4cc` —
-> `@coremarine/protocol-core`) · Repo was idle 2025-12-15 → 2026-07-08.
+> **Last updated:** 2026-07-10 · **Branch:** `dev` (pushed). **NMEA CMA refactor (slice A–F) is
+> COMMITTED & green** (`git log -1`). Repo was idle 2025-12-15 → 2026-07-08.
 >
 > **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
-> **CMA rollout STARTED (2026-07-09):** `@coremarine/protocol-core` scaffolded — shared
-> parser contract + locked CMA format. Next: refactor parsers onto it, starting with NMEA.
+> **CMA rollout IN PROGRESS:** `@coremarine/protocol-core` scaffolded (`174e4cc`); **nmea-parser
+> refactored onto it (2026-07-10, slice A–F) — the reference implementation, committed & green**
+> (lint + tsc + 56/56 tests + build ESM+CJS+DTS). Journey doc: [`docs/NMEA.md`](NMEA.md).
+> **NEXT (design LOCKED with cru, NOT built): (i) 3-level metadata via dev-authored aggregators,
+> (ii) the no-throw Result pattern.** See the Resume prompt at the end of the NMEA section. Then
+> clone the pattern to the other four parsers (norsub-emru next — it no longer builds; see Open threads).
 
 ## How to use this doc
 
@@ -64,6 +68,41 @@ Strokes:
 
 ## Done
 
+- **2026-07-10 — nmea-parser refactored onto `@coremarine/protocol-core` (slice A–F, committed & green).**
+  The reference CMA implementation. Output shape changed `NMEASentence` → `CMA` (breaking for
+  Tracker — deliberate). Verified: `pnpm lint` clean, `tsc --noEmit` clean, **56/56 tests pass**,
+  build emits ESM+CJS+DTS. Zero `node:` imports and zero "frame" in `src/`.
+  - **`parser.ts`** — `class NMEAParser extends StringParser` (core owns memory/buffer/drain +
+    `addData`/`parseData`). Implements only `extractSentences(buffer) → { sentences: CMA[], remainder }`.
+    New single knowledge-feed input `addSentences(yaml: string)` (js-yaml; web-safe — caller reads
+    the file). **Constructor is now object-arg `new NMEAParser({ memory?, bufferLimit? })` and
+    `memory` DEFAULTS TO `true`** (core default; old NMEA default was `false` — tests needing
+    independence pass `{ memory: false }`). Kept renamed extras: `getSentences`,
+    `getSentencesByProtocol`, `getSentence`, `getFakeSentenceByID`.
+  - **`sentences.ts`** — `parseSentence = upgradeKnownSentence(parseGenericSentence(raw))`. Generic
+    parse emits a CMA (all fields `type:'string'`, empty field → `value:null`, `metadata:{checksum,
+    standard:false, talker?}`, `protocol:{name:'NMEA', version:'unknown'}`); a **bad checksum is
+    emitted WITH a sentence-level error, never dropped** (locked decision 4b). Upgrade looks up the
+    KB, filters defs by field count, and applies the **newest** by version (semver-tolerant
+    `compareVersions`). Values parsed via core `TYPE_SCHEMAS` (fixes the old Float32/Float64 swap);
+    int64/uint64 ride as decimal strings.
+  - **Talker/id semantics (my call — flagging; the locked design under-specified proprietary +
+    full-id-registered sentences):** upgrade lookup order = `[fullId, strippedId]`; the MATCHED
+    definition's id becomes the CMA `id`; `talker` (from `getTalker`) always goes to `metadata`.
+    Unmatched → generic with `id = fullId`. This reproduces the old full-id-first behavior exactly
+    (`HEHDT`→GYROCOMPAS1 not standard `HDT`; proprietary `PNORSUB8`) and passes every test. **If cru
+    wants different talker/id handling, it's a localized change in `upgradeKnownSentence`.**
+  - **Knowledge base** is now `Map<id, StoredSentence[]>` (multiple defs per id). `protocols.ts`
+    keeps `parseProtocols(yaml)` + `getStoredSentences` (multi-def), **dropped `node:fs`** (no more
+    file-path mode).
+  - **`schemas.ts`/`types.ts` trimmed** — dropped legacy OUTPUT schemas (`NMEASentenceSchema`,
+    `NMEAParsedField*`, local numeric field validators, the file/object arms of the old
+    `ProtocolsInputSchema`, `JSONSchemaInputSchema`, `ChecksumSchema`); kept the YAML-input +
+    KB + sentence-structure schemas. `MapStoredSentencesSchema` now maps id → array.
+  - **Deleted:** `src/nmea-sentences.ts` (stale duplicate — knowledge now flows YAML →
+    `yaml-to-json.js` → generated `src/nmea.ts` `PROTOCOLS` only), `src/nmea_protocols_schema.json`
+    (unused), and **`src/nmea-metadata.ts`** (GGA lat/long/quality enrichment — DEFERRED; it
+    referenced now-deleted types, so it's removed and must be reimplemented on CMA as a follow-up).
 - **2026-07-09 — `@coremarine/protocol-core` scaffolded (CMA rollout foundation, uncommitted).**
   New private workspace package `packages/core/` — the shared contract both refactor
   goals build on. Not published (`"private": true`); each parser will bundle it into its own
@@ -235,13 +274,24 @@ there.
 - **ESLint sonar thresholds: strict from day one** (Option A: max-lines-per-function 50,
   cyclomatic-complexity 10, cognitive-complexity 15; tests exempt from max-lines).
 - **Valibot pinned to 1.4.2** (exact) in all peerDependencies — no `>=1.0.0` ranges.
-- **Result pattern will be adopted** as a later track, after CMA.
+- **Metadata has 3 levels (LOCKED 2026-07-10):** sentence (`cma.metadata`: `checksum` always,
+  `talker` optional — DONE), field (`cma.payload[i].metadata`: 1-field decode), payload
+  (`cma.metadata.payload`, flat: aggregated from ≥2 fields). Field/payload metadata is **known-only**
+  and **dev-authored**: aggregators registered by **`id + payload length`** (NOT field names — those
+  are unofficial), reading fields **by index**. Free-form `Record<string,unknown>`; core CMA schema
+  unchanged. Contract = `MetadataAggregator` in [`docs/CMA.md`](CMA.md) / [`docs/NMEA.md`](NMEA.md).
+- **Result pattern is NEXT, not a later track (LOCKED 2026-07-10):** parsers **never throw**;
+  `Result<T,E> = { success:true, value:T } | { success:false, error:E }` lives in
+  `@coremarine/protocol-core` (ported from Tracker `src/core/tracker/src/types.ts`). Every function
+  that threw pre-refactor returns a `Result` after; `try/catch` nested only where strictly necessary,
+  never propagated. Parse hot-path already never throws (null value / `errors[]`) — stays as-is.
 
 ## NMEA refactor — locked design & plan (IN PROGRESS, started 2026-07-09)
 
-> **State:** build wiring done & committed (`c143f31`, tree GREEN, 60/60 legacy tests pass).
-> The interdependent `src/` rewrite (parser/sentences/schemas/tests) is NOT started — see the
-> Resume prompt at the end of this section for the exact remaining steps.
+> **State (2026-07-10): slice A–F DONE, committed & green** (lint + tsc + 56/56 tests + build). See
+> the Done entry above for what shipped and the one flagged talker/id decision. The A–F design below
+> is historical (finished). **The live to-do is the Resume prompt at the end of this section:
+> STEP 1 metadata aggregators → STEP 2 Result pattern.**
 
 First parser onto `@coremarine/protocol-core`. It becomes the reference model for the other
 four. **Every decision below is locked with cru.** Output shape changes `NMEASentence` → `CMA`
@@ -306,34 +356,44 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 
 ### Resume prompt (if this session is interrupted)
 
-> Continue the NMEA parser refactor onto `@coremarine/protocol-core`. **Read `docs/STATUS.md`
-> §"NMEA refactor — locked design & plan" top to bottom — every decision is locked with cru; do
-> NOT re-litigate them.** Then run `git status` and `git log --oneline -5` to see how far coding
-> got. The shared core is committed (`174e4cc`) and exports `Parser`/`StringParser`/`BinaryParser`,
-> `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`. Work in `packages/nmea-parser/`.
+> Continue the NMEA parser work. **Slice A–F (the CMA rewrite) is DONE, committed & green** — do
+> NOT redo it. Read [`docs/NMEA.md`](NMEA.md) (the journey/code-map) + the two LOCKED decisions in
+> §Decisions above (3-level metadata + Result). **Everything below is agreed with cru — implement,
+> don't re-litigate.** Run `git log --oneline -5` first. cru works one step at a time; do STEP 1,
+> verify (lint → tsc → test → build), commit, then STEP 2. Update this doc same-turn.
 >
-> **DONE this session (committed; tree is GREEN, 60/60 legacy tests still pass):** `c143f31`
-> wired the `@coremarine/protocol-core` dep + tsup `noExternal:[/@coremarine\/protocol-core/]` +
-> `platform:'neutral'`. `src/` is otherwise UNTOUCHED (still emits legacy `NMEASentence`).
+> **STEP 1 — 3-level metadata (dev-authored aggregators).** New file
+> `packages/nmea-parser/src/metadata.ts`. Type `MetadataAggregator = (sentence: CMA) => { fields?:
+> Record<number, Metadata>, payload?: Metadata }`. A registry keyed by **`${id}:${payloadLength}`**
+> (stable identity — NOT field names) maps to an aggregator that reads fields **by index**. Export
+> `aggregateMetadata(cma): CMA` that: looks up `${cma.id}:${cma.payload.length}`; if found, runs the
+> aggregator; attaches each `fields[i]` to `cma.payload[i].metadata`; merges `payload` into
+> `cma.metadata.payload` (flat); no-op otherwise (so unknown sentences are untouched → known-only).
+> Wire into `sentences.ts`: `parseSentence = aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw)))`.
+> Seed one real aggregator — **GGA (length 14)**: field metadata for `gps_quality` (idx 5, quality
+> label) + `utc_position` (idx 0, hhmmss.ss→epoch ms); payload metadata `latitude`/`longitude` in
+> decimal degrees (idx 1+2, 3+4). This resurrects the deleted `nmea-metadata.ts` logic on the new
+> shape. Metadata is free-form `Record<string,unknown>`; core CMA schema stays unchanged. Add tests
+> asserting `payload[i].metadata` and `metadata.payload` for GGA; confirm unknown sentences have no
+> `metadata.payload`. (Naming `MetadataAggregator`/`aggregateMetadata`/`METADATA_AGGREGATORS` was
+> proposed by the prior agent — cru wanted self-describing, disliked "Enricher"; rename freely if cru
+> prefers `PayloadMetadataAggregator` etc.)
 >
-> **REMAINING — the interdependent core rewrite; do it as one slice and verify at the end:**
-> (A) collapse knowledge to one source — the generator (`yaml-to-json.js`) already emits
-> `src/nmea.ts` as `export const PROTOCOLS = {...}`; point `parser.ts` at `PROTOCOLS` from
-> `./nmea` and **delete `src/nmea-sentences.ts`** (stale duplicate). (B) rewrite `parser.ts` →
-> `extends StringParser`, implement `extractSentences`, add `addSentences(yaml: string)`, keep
-> renamed extras (`getSentence`…). (C) rewrite `sentences.ts` → generic-parse then
-> upgrade-if-known ("sentence" naming, emit `CMA`, parse values via core `TYPE_SCHEMAS`,
-> multi-def `Map<id, KnownSentence[]>` + newest-wins on length tie). (D) trim
-> `schemas.ts`/`types.ts`: drop legacy OUTPUT schemas (`NMEASentenceSchema`, `NMEAParsedField*`,
-> local `Int8Schema…Float64Schema`, the file/object arms of `ProtocolsInputSchema`); KEEP the
-> YAML-input schemas (`ProtocolFieldSchema`, `ProtocolSentenceSchema`, `ProtocolSchema`,
-> `ProtocolsFileContentSchema`, `NMEALikeSchema`, `TalkerSchema`, `ChecksumSchema`). (E) drop
-> `node:fs` (`protocols.ts` file mode) + `node:crypto` (`sentences.ts` → global
-> `crypto.getRandomValues`); grep `src/` for `node:` and "frame" — both must end at zero. (F)
-> rewrite the ~60 specs to assert `CMA`. Verify lint → tsc → test → build. `nmea-metadata.ts`
-> (GGA lat/long enrichment) is DEFERRED — leave it out of the pipeline (follow-up). cru works
-> one step at a time, but everything above is already agreed — just implement it. Update this
-> doc + HEAD in the same turn as meaningful changes.
+> **STEP 2 — Result pattern (no throws, ever).** Add `Result<T,E> = { success:true, value:T } |
+> { success:false, error:E }` to `@coremarine/protocol-core` (mirror Tracker
+> `src/core/tracker/src/types.ts`; bare literals, no ok/err helpers) and export it. Define
+> `NMEAError = { kind: 'invalid-yaml' | 'invalid-schema' | ..., message: string }`. Convert every
+> throwing NMEA function to return `Result`: `parseProtocols(yaml) → Result<ProtocolsFileContent,
+> NMEAError>` (wrap `yaml.load` in try/catch → error; `safeParse` failure → error); `addSentences(yaml)
+> → Result<void, NMEAError>`. Constructor loads the trusted bundled built-in with `safeParse` (never
+> throws). Grep `src/` for `throw` and for throwing `.parse(` calls → replace with `safeParse`/`.is`
+> guards returning Result. Leave the parse hot-path as-is (bad value → `null`; bad checksum →
+> `cma.errors[]` — already no-throw). Update tests that expected `addSentences`/`parseProtocols` to
+> throw → assert `.success === false`. Verify lint → tsc → test → build.
+>
+> **Then:** clone the pattern to the other parsers (norsub-emru first — it no longer builds; it uses
+> the removed old NMEA API). Shared core exports: `Parser`/`StringParser`/`BinaryParser`,
+> `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`, and (after STEP 2) `Result`.
 
 ## Next steps (in order)
 
@@ -361,7 +421,14 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 
 ## Open threads / known bugs (report before fixing)
 
-- `nmea-parser/src/types.ts`: `Float32`/`Float64` types are swapped (each aliases the other's schema).
+- **`norsub-emru` no longer builds** (expected — it's next in the rollout). It imports the removed
+  NMEA API (`NMEASentence`, `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`) and calls
+  `addProtocols`/overrides the old `parseData`. Refactor it onto CMA + `addSentences` next.
+- **DEFERRED: GGA metadata enrichment** — `nmea-metadata.ts` (lat/long decimal degrees, UTC
+  timestamp, quality label) was deleted in the NMEA refactor and must be reimplemented on the CMA
+  shape (as field-level `metadata` and/or sentence `metadata`) as a follow-up.
+- ~~`nmea-parser/src/types.ts`: `Float32`/`Float64` types are swapped~~ — RESOLVED by the NMEA
+  refactor (values now validate via core `TYPE_SCHEMAS`; the swapped local aliases are gone).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
 - `thelmabiotel-tblive-nodered` has a `test` script but **no mocha specs** (`No test files found`).
 - All 5 nodered CI workflows have their test jobs commented out — they publish untested.

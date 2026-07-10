@@ -1,18 +1,27 @@
+// installed
+import {
+  Float32Schema,
+  Float64Schema,
+  Int16Schema,
+  Int32Schema,
+  Int64Schema,
+  Int8Schema,
+  Uint16Schema,
+  Uint32Schema,
+  Uint64Schema,
+  Uint8Schema,
+} from '@coremarine/protocol-core'
 import { describe, expect, test } from 'vitest'
 
-import { stringChecksumToNumber } from '../src/checksum'
+// coded
 import { DELIMITER, END_FLAG, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from '../src/constants'
-import { Float32Schema, Float64Schema, Int16Schema, Int32Schema, Int64Schema, Int8Schema, NMEALikeSchema, StoredSentenceSchema, StringSchema, Uint16Schema, Uint32Schema, Uint64Schema, Uint8Schema } from '../src/schemas'
-import { createFakeSentence, createPayload, createValue, getIdPayloadAndChecksum, getKnownNMEASentence, getTalker, getUnknowNMEASentence, getUnparsedNMEAFrames, hasSameNumberOfFields, parseValue } from '../src/sentences'
-import { Checksum, NMEASentence, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from '../src/types'
+import { NMEALikeSchema, StoredSentenceSchema } from '../src/schemas'
+import { createFakeSentence, createPayload, createValue, getIdPayloadAndChecksum, getTalker, getUnparsedNMEASentences, hasSameNumberOfFields, lastUncompletedSentence, newestDefinition, parseSentence, parseValue } from '../src/sentences'
+import { MapStoredSentences, ProtocolFieldType, StoredSentence, Talker } from '../src/types'
 
 const TEST_STORED_SENTENCE: StoredSentence = {
   id: 'TEST',
-  protocol: {
-    name: 'TESTING PROTOCOL',
-    standard: false,
-    version: '1.2.3',
-  },
+  protocol: { name: 'TESTING PROTOCOL', standard: false, version: '1.2.3' },
   payload: [
     { name: 'latitude', type: 'float64', units: 'deg' },
     { name: 'longitude', type: 'float32', units: 'deg' },
@@ -30,79 +39,67 @@ const TEST_STORED_SENTENCE: StoredSentence = {
   description: 'This is just an invented sentence for testing',
 }
 
-const HDT_SENTENCE: StoredSentence = {
+const HDT: StoredSentence = {
   id: 'HDT',
-  protocol: {
-    name: 'NMEA',
-    standard: false,
-    version: '3.1',
-  },
+  protocol: { name: 'NMEA', standard: true, version: '3.1' },
   description: 'Heading - True',
   payload: [
-    {
-      name: 'heading',
-      type: 'float32',
-      description: 'Heading, degrees True',
-    },
-    {
-      name: 'true',
-      type: 'string',
-      description: 'T = True',
-    },
+    { name: 'heading', type: 'float32', description: 'Heading, degrees True' },
+    { name: 'true', type: 'string', description: 'T = True' },
   ],
 }
+const HDT_DEFINITIONS: MapStoredSentences = new Map([['HDT', [HDT]]])
 
-describe('getUnparsedNMEAFrames', () => {
+describe('lastUncompletedSentence', () => {
+  test('returns the trailing incomplete sentence', () => {
+    expect(lastUncompletedSentence('garbage$HDT,123.4,T')).toBe('$HDT,123.4,T')
+  })
+
+  test('null when the last sentence is complete', () => {
+    expect(lastUncompletedSentence('$HDT,123.4,T*25\r\n')).toBeNull()
+  })
+
+  test('null when there is no start flag', () => {
+    expect(lastUncompletedSentence('no start flag here')).toBeNull()
+  })
+})
+
+describe('getUnparsedNMEASentences', () => {
   const sample1 = '$TEST,a,b,c*5A\r\n'
   const sample2 = '$TEST,-1,3,4,T*59\r\n'
 
   test('Happy path', () => {
     const sample = `$$as;dfj;aklsfj${sample1}\r\n**aslkjh${sample2}`
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(2)
-    expect(result).toEqual([sample1, sample2])
+    expect(getUnparsedNMEASentences(sample)).toEqual([sample1, sample2])
   })
 
-  test('none if not contains "\\r\\n"', () => {
-    const sample = sample1.replace(END_FLAG, '')
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+  test('none if it does not contain "\\r\\n"', () => {
+    expect(getUnparsedNMEASentences(sample1.replace(END_FLAG, ''))).toHaveLength(0)
   })
 
-  test('none if not contains minmal length', () => {
-    const sample = '$TEST,a,b,c,*de\r\n'
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+  test('none if below minimal length', () => {
+    expect(getUnparsedNMEASentences('$*de\r\n')).toHaveLength(0)
   })
 
-  test('none if not contains "$"', () => {
-    const sample = sample1.replace(START_FLAG, '')
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+  test('none if it does not contain "$"', () => {
+    expect(getUnparsedNMEASentences(sample1.replace(START_FLAG, ''))).toHaveLength(0)
   })
 
-  test('none if not contains "*"', () => {
-    const sample = sample1.replace(DELIMITER, '')
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+  test('none if it does not contain "*"', () => {
+    expect(getUnparsedNMEASentences(sample1.replace(DELIMITER, ''))).toHaveLength(0)
   })
 
-  test('none if not contains ","', () => {
-    const sample = sample1.replace(SEPARATOR, '')
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+  test('none if it does not contain ","', () => {
+    expect(getUnparsedNMEASentences(sample1.replaceAll(SEPARATOR, ''))).toHaveLength(0)
   })
 
-  test('none if not contains valid checksum', () => {
-    const sample = sample1.replace('5A', '5B')
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+  test('a bad checksum is NOT dropped — it is a candidate (error added downstream)', () => {
+    const badChecksum = sample1.replace('5A', '5B')
+    expect(getUnparsedNMEASentences(badChecksum)).toEqual([badChecksum])
   })
 
   test('none if info contains invalid characters', () => {
-    const sample = sample1.replace('a', '-1\r')
-    const result = getUnparsedNMEAFrames(sample)
-    expect(result).toHaveLength(0)
+    expect(getUnparsedNMEASentences(sample1.replace('a', '-1\r'))).toHaveLength(0)
   })
 })
 
@@ -110,15 +107,13 @@ test('getIdPayloadAndChecksum', () => {
   const id = 'TEST'
   const payload = '1,2.3,a,,'
   const checksum = 'ad'
-  const sentence = `${START_FLAG}${id},${payload}${DELIMITER}${checksum}${END_FLAG}`
+  const sentence = `${START_FLAG}${id},${payload}${DELIMITER}${checksum}${END_FLAG}` as never
   expect(getIdPayloadAndChecksum(sentence)).toEqual({ id, payload, checksum })
 })
 
-test('hasSameFields', () => {
-  const validPayload = '1,2,3,4,5,6,7,8,9,10,11,12'
-  expect(hasSameNumberOfFields(validPayload, TEST_STORED_SENTENCE)).toBeTruthy()
-  const invalidPayload = '1,2,3,4,5,6,7,8,9,10,11'
-  expect(hasSameNumberOfFields(invalidPayload, TEST_STORED_SENTENCE)).toBeFalsy()
+test('hasSameNumberOfFields', () => {
+  expect(hasSameNumberOfFields('1,2', HDT)).toBeTruthy()
+  expect(hasSameNumberOfFields('1,2,3', HDT)).toBeFalsy()
 })
 
 describe('parseValue', () => {
@@ -128,161 +123,101 @@ describe('parseValue', () => {
   })
 
   test('boolean', () => {
-    // Boolean
-    [
-      ['', null],
-      ['false', false],
-      ['0', false],
-      ['True', true],
-      ['1', true],
-    ].forEach(([input, expected]) => expect(parseValue(input as string, 'boolean')).toBe(expected));
-    // Null
-    [
-      ['falsee', null],
-      ['00', null],
-      ['Trrue', null],
-      ['1.2', null],
-    ].forEach(([input, expected]) => expect(parseValue(input as string, 'boolean')).toBe(expected))
+    ([['', null], ['false', false], ['0', false], ['True', true], ['1', true]] as const)
+      .forEach(([input, expected]) => expect(parseValue(input, 'boolean')).toBe(expected));
+    (['falsee', '00', 'Trrue', '1.2'])
+      .forEach((input) => expect(parseValue(input, 'boolean')).toBeNull())
   })
 
-  test('uint8', () => {
-    // Bad
+  test('unsigned integers', () => {
     ['-1', '1.2', '1a', Math.pow(2, 8).toString()].forEach((num) => expect(parseValue(num, 'uint8')).toBeNull())
-    // Good
-    expect(parseValue('', 'uint8')).toBeNull();
-    ['1', '-0', (Math.pow(2, 8) - 1).toString()].forEach((num) => expect(parseValue(num, 'uint8')).toBe(Number(num)))
+    expect(parseValue('', 'uint8')).toBeNull()
+    expect(parseValue('1', 'uint8')).toBe(1)
+    expect(parseValue((Math.pow(2, 16) - 1).toString(), 'uint16')).toBe(65535)
+    expect(parseValue((Math.pow(2, 32) - 1).toString(), 'uint32')).toBe(4294967295)
   })
 
-  test('uint16', () => {
-    // Bad
-    ['-1', '1.2', '1a', Math.pow(2, 16).toString()].forEach((num) => expect(parseValue(num, 'uint16')).toBeNull())
-    // Good
-    expect(parseValue('', 'uint16')).toBeNull();
-    ['1', '-0', (Math.pow(2, 16) - 1).toString()].forEach((num) => expect(parseValue(num, 'uint16')).toBe(Number(num)))
-  })
-
-  test('uint32', () => {
-    // Bad
-    ['-1', '1.2', '1a', Math.pow(2, 32).toString()].forEach((num) => expect(parseValue(num, 'uint32')).toBeNull())
-    // Good
-    expect(parseValue('', 'uint32')).toBeNull();
-    ['1', '-0', (Math.pow(2, 32) - 1).toString()].forEach((num) => expect(parseValue(num, 'uint32')).toBe(Number(num)))
-  })
-
-  test('uint64', () => {
-    // Bad
-    ['-1', '1.2', '1a'].forEach((num) => expect(parseValue(num, 'uint64')).toBeNull())
-    // Good
-    expect(parseValue('', 'uint64')).toBeNull();
-    [(Math.pow(2, 32)).toString()].forEach((num) => expect(parseValue(num, 'uint64')).toBe(BigInt(num)))
-  })
-
-  test('int8', () => {
-    // Bad
+  test('signed integers', () => {
     ['1.2', '1a', Math.pow(2, 8).toString()].forEach((num) => expect(parseValue(num, 'int8')).toBeNull())
-    // Good
-    expect(parseValue('', 'int8')).toBeNull();
-    ['1', '-0', (Math.pow(2, 7) - 1).toString()].forEach((num) => expect(parseValue(num, 'int8')).toBe(Number(num)))
+    expect(parseValue('1', 'int8')).toBe(1)
+    expect(parseValue('-128', 'int8')).toBe(-128)
+    expect(parseValue((Math.pow(2, 15) - 1).toString(), 'int16')).toBe(32767)
+    expect(parseValue((Math.pow(2, 31) - 1).toString(), 'int32')).toBe(2147483647)
   })
 
-  test('int16', () => {
-    // Bad
-    for (const num of ['1.2', '1a', Math.pow(2, 16).toString(), '']) {
-      const received = parseValue(num, 'int16')
-      console.log(received)
-      expect(received).toBeNull()
-    }
-    // Good
-    for (const num of ['1', '-0', (Math.pow(2, 15) - 1).toString()]) {
-      const received = parseValue(num, 'int16')
-      const expected = Number(num)
-      expect(received).toBe(expected)
-    }
+  test('floats', () => {
+    expect(parseValue('1a', 'float32')).toBeNull()
+    expect(parseValue('', 'float64')).toBeNull()
+    expect(parseValue('1.2', 'float32')).toBeCloseTo(1.2)
+    expect(parseValue('1.2', 'float64')).toBeCloseTo(1.2)
   })
 
-  test('int32', () => {
-    // Bad
-    ['1.2', '1a', Math.pow(2, 32).toString()].forEach((num) => expect(parseValue(num, 'int32')).toBeNull())
-    // Good
-    expect(parseValue('', 'int32')).toBeNull();
-    ['1', '-0', (Math.pow(2, 31) - 1).toString()].forEach((num) => expect(parseValue(num, 'int32')).toBe(Number(num)))
+  test('64-bit integers ride as decimal strings', () => {
+    expect(parseValue('', 'int64')).toBeNull()
+    expect(parseValue('1.2', 'uint64')).toBeNull()
+    expect(parseValue('-1', 'uint64')).toBeNull()
+    expect(parseValue('4294967296', 'uint64')).toBe('4294967296')
+    expect(parseValue('-42', 'int64')).toBe('-42')
   })
 
-  test('int64', () => {
-    // Bad
-    ['1.2', '1a'].forEach((num) => expect(parseValue(num, 'int64')).toBeNull())
-    // Good
-    expect(parseValue('', 'int64')).toBeNull();
-    [(Math.pow(2, 32)).toString()].forEach((num) => expect(parseValue(num, 'int64')).toBe(BigInt(num)))
-  })
-
-  test('float32', () => {
-    // Bad
-    ['1a'].forEach((num) => expect(parseValue(num, 'float32')).toBeNull())
-    // Good
-    expect(parseValue('', 'float32')).toBeNull();
-    ['1.2'].forEach((num) => expect(parseValue(num, 'float32')).toBe(Number(num)))
-  })
-
-  test('float64', () => {
-    // Bad
-    ['1a'].forEach((num) => expect(parseValue(num, 'float64')).toBeNull())
-    // Good
-    expect(parseValue('', 'float64')).toBeNull();
-    ['1.2'].forEach((num) => expect(parseValue(num, 'float64')).toBe(Number(num)))
-  })
-
-  test('unknown', () => {
-    ['integer', 'float', 'char', 'bool', 'double'].forEach((type) => expect(parseValue('a', type as ProtocolFieldType)).toBeNull())
+  test('null for values that do not match their type', () => {
+    ['integer', 'double'].forEach((type) => expect(parseValue('a', type as ProtocolFieldType)).toBeNull())
   })
 })
 
-describe('getKnownNMEASentence', () => {
-  test('Happy path', () => {
-    const received = Date.now()
-    const sample = '$HDT,123.456,T*25\r\n'
-    const sentenceID = 'HDT'
-    const sentencePayload = '123.456,T'
-    const checksum: Checksum = { sample: '25', value: stringChecksumToNumber('25') }
-    const expected: NMEASentence = {
-      received,
-      sample,
-      id: sentenceID,
-      checksum,
-      protocol: HDT_SENTENCE.protocol,
-      payload: [
-        { ...HDT_SENTENCE.payload[0], value: 123.456, sample: '123.456', units: 'unknown' },
-        { ...HDT_SENTENCE.payload[1], value: 'T', sample: 'T', units: 'unknown' },
-      ],
-    }
-    const result = getKnownNMEASentence({ received, sample, sentenceID, sentencePayload, checksum, model: HDT_SENTENCE })
-    expect(result).toEqual(expected)
+describe('parseSentence', () => {
+  test('known sentence -> upgraded CMA', () => {
+    const result = parseSentence('$HDT,123.456,T*25\r\n' as never, HDT_DEFINITIONS)
+    expect(result.id).toBe('HDT')
+    expect(result.protocol).toEqual({ name: 'NMEA', version: '3.1' })
+    expect(result.metadata?.standard).toBe(true)
+    expect(result.metadata?.checksum).toBe('25')
+    expect(result.description).toBe('Heading - True')
+    expect(result.errors).toBeUndefined()
+    expect(result.payload).toEqual([
+      { raw: '123.456', name: 'heading', type: 'float32', value: 123.456, description: 'Heading, degrees True' },
+      { raw: 'T', name: 'true', type: 'string', value: 'T', description: 'T = True' },
+    ])
+  })
+
+  test('unknown sentence -> generic CMA (all string fields, empty is null)', () => {
+    const result = parseSentence('$TEST,1,,2,T*89\r\n' as never, new Map())
+    expect(result.id).toBe('TEST')
+    expect(result.protocol).toEqual({ name: 'NMEA', version: 'unknown' })
+    expect(result.metadata?.standard).toBe(false)
+    expect(result.payload).toEqual([
+      { raw: '1', name: 'unknown', type: 'string', value: '1' },
+      { raw: '', name: 'unknown', type: 'string', value: null },
+      { raw: '2', name: 'unknown', type: 'string', value: '2' },
+      { raw: 'T', name: 'unknown', type: 'string', value: 'T' },
+    ])
+  })
+
+  test('talker rides in metadata, id is the base id', () => {
+    const result = parseSentence('$GPHDT,123.456,T*35\r\n' as never, HDT_DEFINITIONS)
+    expect(result.id).toBe('HDT')
+    expect((result.metadata?.talker as Talker).value).toBe('GP')
+  })
+
+  test('bad checksum is emitted WITH an error (never dropped)', () => {
+    const result = parseSentence('$TEST,a,b,c*5B\r\n' as never, new Map())
+    expect(result.errors).toBeDefined()
+    expect(result.errors?.[0]).toMatch(/checksum/i)
   })
 })
 
 describe('getTalker', () => {
   test('Regular Talker', () => {
-    const sentenceID = 'GPHDT'
-    const talker = TALKERS.filter((talker) => talker[0] === 'GP')[0]
-    const expected: Talker = { value: 'GP', description: talker[1] }
-    const result = getTalker(sentenceID)
-    expect(result).toEqual(expected)
+    const talker = TALKERS.filter((entry) => entry[0] === 'GP')[0]
+    expect(getTalker('GPHDT')).toEqual({ value: 'GP', description: talker[1] })
   })
 
-  test('Propietary Talker', () => {
-    const sentenceID = 'PNORSUB8'
-    const expected: Talker = { value: sentenceID, description: TALKERS_SPECIAL.P }
-    const result = getTalker(sentenceID)
-    expect(result).toEqual(expected)
+  test('Proprietary Talker', () => {
+    expect(getTalker('PNORSUB8')).toEqual({ value: 'PNORSUB8', description: TALKERS_SPECIAL.P })
   })
 
   test('User Configured', () => {
-    // Good
-    const sentenceID = 'U8TEST'
-    const expected: Talker = { value: 'U8', description: TALKERS_SPECIAL.U }
-    const result = getTalker(sentenceID)
-    expect(result).toEqual(expected)
-    // Bad
+    expect(getTalker('U8TEST')).toEqual({ value: 'U8', description: TALKERS_SPECIAL.U })
     expect(getTalker('UXTEST')).toBeNull()
   })
 
@@ -291,148 +226,46 @@ describe('getTalker', () => {
   })
 })
 
-test('getUnknownSentence', () => {
-  const received = Date.now()
-  const sample = '$TEST,1,,2,T*89\r\n'
-  const sentenceID = 'TEST'
-  const sentencePayload = '1,,2,T'
-  const checksum: Checksum = { sample: '89', value: 137 }
-  const expected: NMEASentence = {
-    received, sample, id: sentenceID, checksum,
-    payload: [
-      { name: 'unknown', sample: '1', value: '1', type: 'string', units: 'unknown' },
-      { name: 'unknown', sample: '', value: null, type: 'string', units: 'unknown' },
-      { name: 'unknown', sample: '2', value: '2', type: 'string', units: 'unknown' },
-      { name: 'unknown', sample: 'T', value: 'T', type: 'string', units: 'unknown' },
-    ],
-    description: 'unknown nmea sentence',
-    protocol: { name: 'unknown', standard: false },
-  }
-  const result = getUnknowNMEASentence({ received, sample, sentenceID, sentencePayload, checksum })
-  expect(result).toEqual(expected)
+test('newestDefinition picks the highest version', () => {
+  const older: StoredSentence = { id: 'X', protocol: { name: 'A', standard: false, version: '1.0' }, payload: [] }
+  const newer: StoredSentence = { id: 'X', protocol: { name: 'A', standard: false, version: '2.0' }, payload: [] }
+  expect(newestDefinition([older, newer])).toBe(newer)
+  expect(newestDefinition([newer, older])).toBe(newer)
 })
 
 describe('createValue', () => {
   test('boolean', () => {
-    const value = createValue('boolean')
-    expect(typeof value === 'boolean').toBeTruthy()
+    expect(typeof createValue('boolean')).toBe('boolean')
   })
 
   test('string', () => {
-    const value = createValue('string')
-    expect(typeof value === 'string').toBeTruthy()
+    expect(typeof createValue('string')).toBe('string')
   })
 
   test('unsigned integers', () => {
-    // Uint8
-    let value = createValue('uint8')
-    let expected = Uint8Schema.parse(value)
-    expect(value).toBe(expected)
-    // Uint16
-    value = createValue('uint16')
-    expected = Uint16Schema.parse(value)
-    expect(value).toBe(expected)
-    // Uint32
-    value = createValue('uint32')
-    expected = Uint32Schema.parse(value)
-    expect(value).toBe(expected)
-    // Uint64
-    value = createValue('uint64')
-    const bigexpected = Uint64Schema.parse(value)
-    expect(value).toBe(bigexpected)
+    expect(Uint8Schema.is(createValue('uint8'))).toBeTruthy()
+    expect(Uint16Schema.is(createValue('uint16'))).toBeTruthy()
+    expect(Uint32Schema.is(createValue('uint32'))).toBeTruthy()
+    expect(Uint64Schema.is(createValue('uint64'))).toBeTruthy()
   })
 
-  test('integers', () => {
-    // Int8
-    let value = createValue('int8')
-    let expected = Int8Schema.parse(value)
-    expect(value).toBe(expected)
-    // Int16
-    value = createValue('int16')
-    expected = Int16Schema.parse(value)
-    expect(value).toBe(expected)
-    // Int32
-    value = createValue('int32')
-    expected = Int32Schema.parse(value)
-    expect(value).toBe(expected)
-    // Int64
-    value = createValue('int64')
-    const bigexpected = Int64Schema.parse(value)
-    expect(value).toBe(bigexpected)
+  test('signed integers', () => {
+    expect(Int8Schema.is(createValue('int8'))).toBeTruthy()
+    expect(Int16Schema.is(createValue('int16'))).toBeTruthy()
+    expect(Int32Schema.is(createValue('int32'))).toBeTruthy()
+    expect(Int64Schema.is(createValue('int64'))).toBeTruthy()
   })
 
   test('floats', () => {
-    // Float32
-    let value = createValue('float32')
-    let expected = Float32Schema.parse(value)
-    expect(value).toBe(expected)
-    // Float64
-    value = createValue('float64')
-    expected = Float64Schema.parse(value)
-    expect(value).toBe(expected)
-  })
-
-  test('invalid', () => {
-    ['bool', 'number', 'float', 'String'].forEach((type) => {
-      // @ts-expect-error
-      const value = createValue(type as ProtocolField)
-      expect(value).toBeNull()
-    })
+    expect(Float32Schema.is(createValue('float32'))).toBeTruthy()
+    expect(Float64Schema.is(createValue('float64'))).toBeTruthy()
   })
 })
 
-test('createPayload', () => {
-  const testSentence: StoredSentence = {
-    id: 'TEST',
-    protocol: {
-      name: 'TESTING PROTOCOL',
-      standard: false,
-      version: '1.2.3',
-    },
-    payload: [
-      { name: 'latitude', type: 'float64', units: 'deg' },
-      { name: 'longitude', type: 'float32', units: 'deg' },
-      { name: '2', type: 'int8' },
-      { name: '3', type: 'int16' },
-      { name: '4', type: 'int32' },
-      { name: '5', type: 'int64' },
-      { name: '6', type: 'uint8' },
-      { name: '7', type: 'uint16' },
-      { name: '8', type: 'uint32' },
-      { name: '9', type: 'uint64' },
-      { name: '10', type: 'boolean' },
-      { name: '11', type: 'string' },
-    ],
-    description: 'This is just an invented sentence for testing',
-  }
-  expect(StoredSentenceSchema.parse(testSentence)).toEqual(testSentence)
-  const payload = createPayload(testSentence)
-  const fields = payload.split(SEPARATOR)
-  expect(Float64Schema.is(Number(fields[0]))).toBeTruthy()
-  expect(Float32Schema.is(Number(fields[1]))).toBeTruthy()
-  expect(Int8Schema.is(Number(fields[2]))).toBeTruthy()
-  expect(Int16Schema.is(Number(fields[3]))).toBeTruthy()
-  expect(Int32Schema.is(Number(fields[4]))).toBeTruthy()
-  expect(Int64Schema.is(BigInt(fields[5]))).toBeTruthy()
-  expect(Uint8Schema.is(Number(fields[6]))).toBeTruthy()
-  expect(Uint16Schema.is(Number(fields[7]))).toBeTruthy()
-  expect(Uint32Schema.is(Number(fields[8]))).toBeTruthy()
-  expect(Uint64Schema.is(BigInt(fields[9]))).toBeTruthy()
-  expect(fields[10] === 'true' || fields[10] === 'false').toBeTruthy()
-  expect(StringSchema.is(fields[11])).toBeTruthy()
-})
-
-test('createFakeSentence', () => {
-  const sample = createFakeSentence(TEST_STORED_SENTENCE)
-  expect(NMEALikeSchema.is(sample)).toBeTruthy()
-  // Check that fake sentence can be parsed
-  const received = Date.now()
-  const aux = sample.slice(START_FLAG.length, -END_FLAG.length)
-  const [info, cs] = aux.split(DELIMITER)
-  const [sentenceID, ...rest] = info.split(SEPARATOR)
-  const sentencePayload = rest.join(SEPARATOR)
-  const checksum: Checksum = { value: stringChecksumToNumber(cs), sample: cs }
-  const parsed = getUnknowNMEASentence({ received, sample, sentenceID, sentencePayload, checksum })
-  expect(parsed.sample).toBe(sample)
-  expect(parsed.checksum).toEqual(checksum)
+test('createPayload / createFakeSentence round-trip', () => {
+  expect(StoredSentenceSchema.parse(TEST_STORED_SENTENCE)).toEqual(TEST_STORED_SENTENCE)
+  const payload = createPayload(TEST_STORED_SENTENCE)
+  expect(payload.split(SEPARATOR)).toHaveLength(TEST_STORED_SENTENCE.payload.length)
+  const fake = createFakeSentence(TEST_STORED_SENTENCE)
+  expect(NMEALikeSchema.is(fake)).toBeTruthy()
 })

@@ -82,6 +82,32 @@ The canonical schema + inferred types now live in code:
 [`packages/core/src/cma.ts`](../packages/core/src/cma.ts) — every parser
 imports `CMA`/`CMASchema` from `@coremarine/protocol-core` rather than re-declaring them.
 
+## Metadata levels (LOCKED 2026-07-10, cru)
+
+Metadata exists at three levels; all are free-form `Record<string, unknown>` (never a fixed
+schema). This applies to every parser, not just NMEA.
+
+| Level | Where | Contents | When |
+| --- | --- | --- | --- |
+| **Sentence** | `cma.metadata` | protocol-level facts: `checksum` (always), `talker` (optional), crc, class… | every sentence |
+| **Field** | `cma.payload[i].metadata` | a **single** field decoded into a richer form / converted units | known sentences, on demand |
+| **Payload** | `cma.metadata.payload` (flat) | a value **aggregated from ≥2 fields** (e.g. GGA lat/long in decimal degrees) | known sentences, on demand |
+
+- **Mandatory output is the fields' `value`**; field/payload metadata is a nice-to-have added
+  deliberately by devs.
+- Field/payload metadata is produced by **dev-authored aggregators registered by `id + payload
+  length`** (the stable identity) that read fields **by index** — field *names* are unofficial and
+  may change, so they are never used as keys. See [`docs/NMEA.md`](NMEA.md) §Planned for the
+  `MetadataAggregator` contract (nmea-parser is the reference).
+
+## Result pattern (LOCKED 2026-07-10, cru)
+
+Parsers **never throw**. `Result<T,E> = { success: true, value: T } | { success: false, error: E }`
+lives in `@coremarine/protocol-core` and is shared by all parsers (ported from the Tracker repo:
+bare literals, structured `{ kind, message }` errors, `await p.then(ok).catch(err)` + early-return
+chaining; `try/catch` nested only where strictly necessary, never propagated). Any function that
+threw before the refactor returns a `Result` after it.
+
 ## Reference material
 
 - `misc/tests/sbg/` (local, gitignored) — SBG binary corpus + `sbg-to-cma.ts` /
