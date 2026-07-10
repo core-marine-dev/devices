@@ -55,22 +55,32 @@ const EXPECTED_STORED: Record<string, StoredSentence> = {
 
 describe('parseProtocols', () => {
   test('validates every protocol in the file', () => {
-    const { protocols } = parseProtocols(readNorsub())
-    protocols.forEach((protocol: Protocol) => {
+    const result = parseProtocols(readNorsub())
+    expect(result.success).toBeTruthy()
+    if (!result.success) return
+    result.value.protocols.forEach((protocol: Protocol) => {
       expect(ProtocolSchema.safeParse(protocol).success).toBeTruthy()
     })
   })
 
-  test('throws on invalid content', () => {
-    expect(() => parseProtocols('')).toThrow()
-    expect(() => parseProtocols('foo: bar')).toThrow()
+  test('returns a Result error on invalid content (never throws)', () => {
+    expect(parseProtocols('').success).toBe(false)
+    expect(parseProtocols('foo: bar').success).toBe(false)
+    // malformed YAML -> invalid-yaml; valid YAML but wrong shape -> invalid-schema
+    const malformed = parseProtocols('foo: [')
+    expect(malformed.success).toBe(false)
+    if (!malformed.success) expect(malformed.error.kind).toBe('invalid-yaml')
+    const wrongShape = parseProtocols('foo: bar')
+    if (!wrongShape.success) expect(wrongShape.error.kind).toBe('invalid-schema')
   })
 })
 
 describe('getStoredSentences', () => {
   test('builds a multi-definition knowledge base keyed by id', () => {
-    const content = parseProtocols(readNorsub())
-    const store = getStoredSentences(content)
+    const result = parseProtocols(readNorsub())
+    expect(result.success).toBeTruthy()
+    if (!result.success) return
+    const store = getStoredSentences(result.value)
     Object.keys(EXPECTED_STORED).forEach((key) => {
       const definitions = store.get(key)
       expect(Array.isArray(definitions)).toBeTruthy()

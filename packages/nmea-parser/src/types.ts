@@ -34,3 +34,10 @@ export type NMEALike = ReturnType<typeof NMEALikeSchema.parse>
 // matched under (used by the nice-to-have lookup helpers).
 export type Sentence = StoredSentence & { talker?: Talker }
 export type ProtocolOutput = Record<string, StoredSentence[]>
+
+// ERRORS (Result pattern — see @coremarine/protocol-core `Result`). Returned,
+// never thrown, by the knowledge-feed functions.
+export interface NMEAError {
+  kind: 'invalid-yaml' | 'invalid-schema'
+  message: string
+}

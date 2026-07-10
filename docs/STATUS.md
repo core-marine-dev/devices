@@ -11,17 +11,17 @@
 > current is the entire purpose of this file.
 >
 > **Last updated:** 2026-07-10 · **Branch:** `dev` (pushed). **NMEA CMA refactor (slice A–F) +
-> STEP 1 (3-level metadata) are committed/staged & green** (`git log -1`). Repo was idle
+> STEP 1 (3-level metadata) + STEP 2 (Result pattern) are done & green.** Repo was idle
 > 2025-12-15 → 2026-07-08.
 >
 > **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
 > **CMA rollout IN PROGRESS:** `@coremarine/protocol-core` scaffolded (`174e4cc`); **nmea-parser
 > refactored onto it (2026-07-10, slice A–F) — the reference implementation, committed & green**
 > (lint + tsc + 56/56 tests + build ESM+CJS+DTS). Journey doc: [`docs/NMEA.md`](NMEA.md).
-> **STEP 1 DONE (2026-07-10): 3-level metadata via dev-authored aggregators** (`src/metadata.ts`,
-> seeded GGA; 62/62 tests). **NEXT (design LOCKED with cru, NOT built): STEP 2 — the no-throw
-> Result pattern.** See the Resume prompt at the end of the NMEA section. Then clone the pattern to
-> the other four parsers (norsub-emru next — it no longer builds; see Open threads).
+> **STEP 1 DONE: 3-level metadata via dev-authored aggregators** (`src/metadata.ts`, seeded GGA).
+> **STEP 2 DONE: no-throw Result pattern** (`Result<T,E>` in core; `parseProtocols`/`addSentences`
+> return `Result`; 62/62 tests). **NEXT: clone the reference implementation to the other four
+> parsers — norsub-emru first (it no longer builds; see Open threads).**
 
 ## How to use this doc
 
@@ -65,11 +65,28 @@ Strokes:
    All 27 known vulnerabilities fixed (0 remaining). node-red 4→5, js-yaml bump, pnpm
    overrides for transitive vulns, valibot pinned to 1.4.2 everywhere, rootDir added to
    all per-package tsconfigs (TS 6 requirement).
-7. **Result pattern** — adopt `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo).
-   Later track, after CMA.
+7. ~~**Result pattern**~~ — ✅ DONE (2026-07-10) in `@coremarine/protocol-core` + nmea-parser;
+   `Result<T,E>` no-exceptions-as-control-flow (from Tracker repo). Cloned per parser as they refactor.
 
 ## Done
 
+- **2026-07-10 — STEP 2: Result pattern (no throws) in core + nmea-parser.**
+  New `packages/core/src/result.ts`: `Result<T,E> = { success:true, value:T } | { success:false,
+  error:E }` (bare literals, no `ok`/`err` helpers), exported from `@coremarine/protocol-core`.
+  nmea-parser `NMEAError = { kind: 'invalid-yaml' | 'invalid-schema', message }` (`src/types.ts`).
+  `parseProtocols(yaml)` now returns `Result<ProtocolsFileContent, NMEAError>` — `yaml.load` wrapped
+  in try/catch (→ `invalid-yaml`), `safeParse` miss → `invalid-schema`; the lone `throw` is gone.
+  `addSentences(yaml)` returns `Result<void, NMEAError>` (non-string input or a failing
+  `parseProtocols` → error; else registers + `{ success:true, value:undefined }`). Constructor loads
+  the trusted built-in via `safeParse` (was throwing `.parse`) — never throws. Parse hot-path
+  unchanged (already no-throw). Tests updated: `parseProtocols`/`addSentences` invalid-content specs
+  now assert `.success === false` (+ `error.kind`). Verified: core lint+tsc+12/12+build,
+  nmea-parser lint+tsc+62/62+build ESM+CJS+DTS. **Remaining throw in core:** the `set memory` /
+  `set bufferLimit` setters still `.parse()` (throw on bad assignment) — out of STEP 2's NMEA scope;
+  a setter can't return a Result. Flagged for cru (see Open threads).
+- **2026-07-10 — protocols renamed `.yaml` → `.yml` + `nmea.yml` expanded (cru), regenerated.**
+  `protocols/{nmea,norsub}.yml`; updated the `protocols` generator script and the two tests that
+  read norsub by path; regenerated `src/nmea.ts` + `tests/norsub.ts`. 62/62 green.
 - **2026-07-10 — STEP 1: 3-level metadata via dev-authored aggregators (nmea-parser).**
   New `packages/nmea-parser/src/metadata.ts`. `type MetadataAggregator = (cma) => { fields?:
   Record<number, Metadata>, payload?: Metadata }`; registry `METADATA_AGGREGATORS` keyed by
@@ -297,18 +314,20 @@ there.
   and **dev-authored**: aggregators registered by **`id + payload length`** (NOT field names — those
   are unofficial), reading fields **by index**. Free-form `Record<string,unknown>`; core CMA schema
   unchanged. Contract = `MetadataAggregator` in `nmea-parser/src/metadata.ts` (see [`docs/NMEA.md`](NMEA.md)).
-- **Result pattern is NEXT, not a later track (LOCKED 2026-07-10):** parsers **never throw**;
+- **Result pattern (LOCKED 2026-07-10, DONE for core + nmea-parser):** parsers **never throw**;
   `Result<T,E> = { success:true, value:T } | { success:false, error:E }` lives in
   `@coremarine/protocol-core` (ported from Tracker `src/core/tracker/src/types.ts`). Every function
   that threw pre-refactor returns a `Result` after; `try/catch` nested only where strictly necessary,
   never propagated. Parse hot-path already never throws (null value / `errors[]`) — stays as-is.
+  Each newly-refactored parser adopts the same pattern.
 
 ## NMEA refactor — locked design & plan (IN PROGRESS, started 2026-07-09)
 
-> **State (2026-07-10): slice A–F + STEP 1 (3-level metadata) DONE & green** (lint + tsc + 62/62
-> tests + build). See the Done entries above for what shipped and the one flagged talker/id
+> **State (2026-07-10): slice A–F + STEP 1 (3-level metadata) + STEP 2 (Result pattern) DONE &
+> green** (lint + tsc + 62/62 tests + build). nmea-parser is now the complete reference
+> implementation. See the Done entries above for what shipped and the one flagged talker/id
 > decision. The A–F design below is historical (finished). **The live to-do is the Resume prompt at
-> the end of this section: STEP 2 — the Result pattern.**
+> the end of this section: clone the reference to the other four parsers, norsub-emru first.**
 
 First parser onto `@coremarine/protocol-core`. It becomes the reference model for the other
 four. **Every decision below is locked with cru.** Output shape changes `NMEASentence` → `CMA`
@@ -373,29 +392,24 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 
 ### Resume prompt (if this session is interrupted)
 
-> Continue the NMEA parser work. **Slice A–F (the CMA rewrite) AND STEP 1 (3-level metadata) are
-> DONE, green** — do NOT redo them. STEP 1 shipped `src/metadata.ts` (`MetadataAggregator` registry
-> keyed by `${id}:${payloadLength}`, seeded GGA) + `tests/metadata.test.ts`; 62/62 tests. Read
-> [`docs/NMEA.md`](NMEA.md) (the journey/code-map) + the two LOCKED decisions in §Decisions above.
-> **Everything below is agreed with cru — implement, don't re-litigate.** Run `git log --oneline -5`
-> first. cru works one step at a time; do STEP 2, verify (lint → tsc → test → build), commit. Update
-> this doc same-turn.
+> **nmea-parser is DONE — the complete reference implementation** (slice A–F CMA rewrite + STEP 1
+> 3-level metadata + STEP 2 Result pattern), committed & green (lint + tsc + 62/62 + build). Do NOT
+> redo it. Read [`docs/NMEA.md`](NMEA.md) (the journey/code-map) — it is the spec for the rest.
+> **The task now is to clone the reference to the other four parsers**, in cru's order, starting with
+> **norsub-emru**. Run `git log --oneline -8` first. cru works one step at a time and wants decisions
+> converged before coding — discuss, then implement. Update this doc same-turn.
 >
-> **STEP 2 — Result pattern (no throws, ever).** Add `Result<T,E> = { success:true, value:T } |
-> { success:false, error:E }` to `@coremarine/protocol-core` (mirror Tracker
-> `src/core/tracker/src/types.ts`; bare literals, no ok/err helpers) and export it. Define
-> `NMEAError = { kind: 'invalid-yaml' | 'invalid-schema' | ..., message: string }`. Convert every
-> throwing NMEA function to return `Result`: `parseProtocols(yaml) → Result<ProtocolsFileContent,
-> NMEAError>` (wrap `yaml.load` in try/catch → error; `safeParse` failure → error); `addSentences(yaml)
-> → Result<void, NMEAError>`. Constructor loads the trusted bundled built-in with `safeParse` (never
-> throws). Grep `src/` for `throw` and for throwing `.parse(` calls → replace with `safeParse`/`.is`
-> guards returning Result. Leave the parse hot-path as-is (bad value → `null`; bad checksum →
-> `cma.errors[]` — already no-throw). Update tests that expected `addSentences`/`parseProtocols` to
-> throw → assert `.success === false`. Verify lint → tsc → test → build.
->
-> **Then:** clone the pattern to the other parsers (norsub-emru first — it no longer builds; it uses
-> the removed old NMEA API). Shared core exports: `Parser`/`StringParser`/`BinaryParser`,
-> `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`, and (after STEP 2) `Result`.
+> **norsub-emru (next).** It no longer builds: it imports the removed old NMEA API (`NMEASentence`,
+> `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`), calls `addProtocols`, and overrides the old
+> `parseData`. norsub is a thin extension of NMEA (adds status metadata). Refactor it onto core the
+> same way nmea-parser is built: `class NorsubParser extends StringParser`, implement
+> `extractSentences`, emit `CMA[]`, feed knowledge via `addSentences(yaml)`, adopt `Result` for the
+> throwing paths, and port any norsub-specific derivations as metadata aggregators
+> (`src/metadata.ts`, keyed by `${id}:${payloadLength}`). Reuse core exports:
+> `Parser`/`StringParser`/`BinaryParser`, `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`, `Result`.
+> Then tblive, then the two binary parsers (septentrio-sbf, sbg-ecom — `BinaryParser`,
+> `Buffer`→`Uint8Array`/`DataView`). Each parser's Node-RED wrapper also uses the removed old API
+> (`addProtocols`) and must be updated alongside its lib.
 
 ## Next steps (in order)
 
@@ -403,19 +417,17 @@ update the `protocols` npm script. Add root proxy scripts if needed.
    clears the 75 dependabot vulnerabilities on the default branch.
 2. **CMA rollout** — format is locked; `@coremarine/protocol-core` is scaffolded. Refactor the
    parsers onto it in **cru's order** (easiest-first, NMEA becomes the model):
-   1. **nmea-parser** — extend `StringParser`, implement `extractSentences`, emit `CMA[]`,
-      isolate `node:fs` file-read as node-only, drop `node:crypto` import (use global).
-      **This is the reference implementation** — get it right, the rest clone it.
-      ⚠️ output-shape change (`NMEASentence` → `CMA`) is breaking for Tracker — deliberate.
-   2. **norsub-emru** — thin extension of NMEA (adds status metadata); nearly free once NMEA lands.
+   1. ~~**nmea-parser**~~ — ✅ DONE (2026-07-10): the reference implementation (CMA rewrite +
+      3-level metadata + Result pattern). ⚠️ output-shape change (`NMEASentence` → `CMA`) is
+      breaking for Tracker — deliberate.
+   2. **norsub-emru** (NEXT) — thin extension of NMEA (adds status metadata); nearly free now NMEA lands.
    3. **thelmabiotel-tblive** — already CMA-ish; move `mode`/`firmware` into `metadata`,
       adopt the base class. Protocol-version matching is the hard part (least-clean protocol).
    4. **septentrio-sbf** — binary; extend `BinaryParser`, migrate `Buffer`→`Uint8Array`/`DataView`,
       verify/replace the `crc` dep. Mature, well-tested (54/54).
    5. **sbg-ecom** — binary; same Buffer migration; SBG→CMA design exists in `misc/tests/sbg/`.
-3. **Result pattern** — port from Tracker repo (no-exceptions-as-control-flow). Read the
-   Tracker repo's `docs/CodeStyle.md` §Errors and `src/core/tracker/src/types.ts` for the
-   `Result<T,E>` type.
+3. ~~**Result pattern**~~ — ✅ DONE (2026-07-10): `Result<T,E>` in `@coremarine/protocol-core`;
+   nmea-parser's throwing paths converted. Each newly-refactored parser adopts it.
 4. **Strictness pass** (deferred) — add `noUncheckedIndexedAccess`,
    `exactOptionalPropertyTypes`, `verbatimModuleSyntax` to root tsconfig (the Tracker repo
    has them; needs ~218 code fixes in the parsers — mostly array access returning `T |
@@ -426,6 +438,13 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 - **`norsub-emru` no longer builds** (expected — it's next in the rollout). It imports the removed
   NMEA API (`NMEASentence`, `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`) and calls
   `addProtocols`/overrides the old `parseData`. Refactor it onto CMA + `addSentences` next.
+- **`nmea-parser-nodered` wrapper uses the removed old API** — `src/parser.js` calls
+  `parser.addProtocols({ file, ... })`, which no longer exists (replaced by `addSentences(yaml)` in
+  slice A–F). Broken at runtime like norsub-emru; update each wrapper alongside its refactored lib.
+- **Core `set memory` / `set bufferLimit` still throw** — they validate assignment with `.parse()`
+  (`packages/core/src/parser.ts`), so `parser.memory = <bad>` throws. Out of STEP 2's NMEA scope and
+  a setter can't return a `Result`; decide with cru whether to keep the throw (programmer-error
+  guard) or switch to `safeParse` + silently ignore invalid assignments.
 - ~~**DEFERRED: GGA metadata enrichment**~~ — RESOLVED 2026-07-10 (STEP 1): reimplemented in
   `nmea-parser/src/metadata.ts` as the seeded `GGA:14` aggregator (lat/long decimal degrees →
   payload metadata; UTC timestamp + quality label → field metadata).

@@ -6,8 +6,9 @@
 > reference implementation — the other four parsers will follow the same shape.
 >
 > Everything here reflects the **current committed-or-working code**, including the 3 metadata
-> levels (STEP 1, done 2026-07-10). A short [§Planned](#planned-under-discussion) section at the
-> end points at the next change (the Result pattern) — **not built yet**.
+> levels (STEP 1) and the no-throw Result pattern (STEP 2), both done 2026-07-10. The §Planned
+> section at the end points at the next work: cloning this reference implementation to the other
+> four parsers.
 
 ---
 
@@ -331,10 +332,25 @@ Metadata is free-form (`Record<string, unknown>`); core CMA schema unchanged. Se
 `gps_quality`→`{ label }` (idx 5); payload metadata `{ latitude, longitude }` in decimal degrees
 (idx 1+2, 3+4). This resurrects the deleted `nmea-metadata.ts` on the CMA shape.
 
-## Planned (design LOCKED 2026-07-10, not built yet)
+## Result pattern (STEP 2 — DONE 2026-07-10)
 
-1. **Result pattern (no exceptions, ever)** — `Result<T,E> = { success: true, value: T } |
-   { success: false, error: E }` lives in `@coremarine/protocol-core`. Every function that currently
-   throws returns a `Result` instead (`parseProtocols`, `addSentences`, …); `try/catch` is nested and
-   used only where strictly necessary, never propagated. The parse hot-path already never throws
-   (bad value → `null`; bad checksum → `errors[]`) and stays as-is.
+`Result<T,E> = { success: true, value: T } | { success: false, error: E }` lives in
+`@coremarine/protocol-core` (bare literals, no `ok`/`err` helpers). The knowledge-feed functions no
+longer throw:
+
+- `parseProtocols(yaml): Result<ProtocolsFileContent, NMEAError>` — `yaml.load` wrapped in try/catch
+  (→ `kind: 'invalid-yaml'`); a `safeParse` miss → `kind: 'invalid-schema'`.
+- `NMEAParser.addSentences(yaml): Result<void, NMEAError>` — non-string input or a failing
+  `parseProtocols` come back as an error; on success the definitions are registered and it returns
+  `{ success: true, value: undefined }`.
+- The constructor loads the **trusted** bundled built-in with `safeParse` (never throws; on the
+  impossible validation miss it registers nothing).
+
+`NMEAError = { kind: 'invalid-yaml' | 'invalid-schema', message: string }` (in `src/types.ts`). The
+parse hot-path already never throws (bad value → `null`; bad checksum → `errors[]`) and is unchanged.
+
+## Planned (next parsers)
+
+Clone the reference implementation to the other four parsers — **norsub-emru first** (it no longer
+builds; it still uses the removed old NMEA API). Shared core exports to reuse:
+`Parser`/`StringParser`/`BinaryParser`, `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`, `Result`.
