@@ -42,7 +42,7 @@
     "node": ">= 18"
   },
   "scripts": {
-    "protocols": "node yaml-to-json.js ./protocols/nmea.yaml ./src/nmea.ts && node yaml-to-json.js ./protocols/norsub.yaml ./tests/norsub.ts",
+    "protocols": "node yaml-to-json.js ./protocols/nmea.yml ./src/nmea.ts && node yaml-to-json.js ./protocols/norsub.yml ./tests/norsub.ts",
     "build": "pnpm run format && tsup",
     "lint": "eslint",
     "format": "eslint --fix",
