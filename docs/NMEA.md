@@ -5,9 +5,9 @@
 > journey) and, at each step, **where the code goes** (the internal path). nmea-parser is the
 > reference implementation — the other four parsers will follow the same shape.
 >
-> Everything here reflects the **current committed-or-working code**. A short
-> [§Planned](#planned-under-discussion) section at the end points at the next changes (field /
-> payload metadata + the Result pattern) — those are **not built yet**.
+> Everything here reflects the **current committed-or-working code**, including the 3 metadata
+> levels (STEP 1, done 2026-07-10). A short [§Planned](#planned-under-discussion) section at the
+> end points at the next change (the Result pattern) — **not built yet**.
 
 ---
 
@@ -305,32 +305,35 @@ Unknown sentences look the same but `protocol.version` is `"unknown"`, every fie
 
 ---
 
+## Three metadata levels (STEP 1 — DONE 2026-07-10)
+
+- **Sentence** `cma.metadata` → `checksum` (always) + `talker` (optional). ✅
+- **Field** `cma.payload[i].metadata` → single-field derived metadata (decode a primitive into a
+  richer form / unit conversion). Known sentences only. ✅
+- **Payload** `cma.metadata.payload` (flat) → derivations needing ≥2 fields (e.g. GGA
+  latitude/longitude in decimal degrees). Known sentences only. ✅
+
+Field + payload metadata are produced by **dev-authored aggregators** (`src/metadata.ts`), keyed by
+**`${id}:${payloadLength}`** (the stable identity — NOT field names), reading fields **by index**:
+
+```ts
+type MetadataAggregator = (sentence: CMA) => {
+  fields?: Record<number, Metadata>   // field INDEX -> metadata → merged into payload[index].metadata
+  payload?: Metadata                  // flat            → merged into cma.metadata.payload
+}
+// registry METADATA_AGGREGATORS keyed by `${id}:${payloadLength}`; aggregateMetadata(cma) runs
+// after upgrade, no-ops when no aggregator is registered (unknown/wrong-length sentences untouched).
+```
+
+Pipeline is now `parseSentence = aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw)))`.
+Metadata is free-form (`Record<string, unknown>`); core CMA schema unchanged. Seeded aggregator:
+**GGA (`GGA:14`)** — field metadata `utc_position`→`{ timestamp }` (epoch ms, idx 0) and
+`gps_quality`→`{ label }` (idx 5); payload metadata `{ latitude, longitude }` in decimal degrees
+(idx 1+2, 3+4). This resurrects the deleted `nmea-metadata.ts` on the CMA shape.
+
 ## Planned (design LOCKED 2026-07-10, not built yet)
 
-1. **Three metadata levels**
-   - **Sentence** `cma.metadata` → `checksum` (always) + `talker` (optional). ✅ done.
-   - **Field** `cma.payload[i].metadata` → single-field derived metadata (decode a primitive into a
-     richer form / unit conversion). Known sentences only.
-   - **Payload** `cma.metadata.payload` (flat) → derivations needing ≥2 fields (e.g. GGA
-     latitude/longitude in decimal degrees). Known sentences only.
-
-   Produced by **dev-authored aggregators**, registered on demand and keyed by **`id + payload
-   length`** (the stable identity — NOT field names). The aggregator accesses fields **by index**.
-   New file `src/metadata.ts`:
-
-   ```ts
-   type MetadataAggregator = (sentence: CMA) => {
-     fields?: Record<number, Metadata>   // field INDEX -> metadata → attached to payload[index].metadata
-     payload?: Metadata                  // flat            → merged into cma.metadata.payload
-   }
-   // registry keyed by `${id}:${payloadLength}`; aggregateMetadata(cma) runs after upgrade,
-   // no-ops when no aggregator is registered (so unknown sentences are untouched).
-   ```
-
-   Pipeline becomes `parseSentence = aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw)))`.
-   Metadata is free-form (`Record<string, unknown>`); core CMA schema unchanged.
-
-2. **Result pattern (no exceptions, ever)** — `Result<T,E> = { success: true, value: T } |
+1. **Result pattern (no exceptions, ever)** — `Result<T,E> = { success: true, value: T } |
    { success: false, error: E }` lives in `@coremarine/protocol-core`. Every function that currently
    throws returns a `Result` instead (`parseProtocols`, `addSentences`, …); `try/catch` is nested and
    used only where strictly necessary, never propagated. The parse hot-path already never throws

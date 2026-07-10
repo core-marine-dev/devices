@@ -5,6 +5,7 @@ import type { CMA, Field, Type, Value } from '@coremarine/protocol-core'
 // coded
 import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, NMEA_ID_LENGTH, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from './constants'
+import { aggregateMetadata } from './metadata'
 import type { MapStoredSentences, NMEALike, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from './types'
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
 
@@ -200,7 +201,7 @@ const upgradeKnownSentence = (generic: CMA, definitions: MapStoredSentences): CM
 }
 
 export const parseSentence = (raw: NMEALike, definitions: MapStoredSentences): CMA => (
-  upgradeKnownSentence(parseGenericSentence(raw), definitions)
+  aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw), definitions))
 )
 
 // TESTING — FAKE SENTENCE GENERATION ---------------------------------------------------------------------------------
