@@ -1,19 +1,26 @@
 // installed
+import type { Result } from '@coremarine/protocol-core'
 import yaml from 'js-yaml'
 
 // coded
 import { ProtocolsFileContentSchema } from './schemas'
-import type { MapStoredSentences, Protocol, ProtocolsFileContent, StoredSentence } from './types'
+import type { MapStoredSentences, NMEAError, Protocol, ProtocolsFileContent, StoredSentence } from './types'
 
 // Parse a protocols YAML string into the validated knowledge model. Web-safe:
 // callers pass the file's text (read it yourself on the server; `await file.text()` on the web).
-export const parseProtocols = (content: string): ProtocolsFileContent => {
-  const data = yaml.load(content)
+// Never throws — malformed YAML or an invalid schema come back as a Result error.
+export const parseProtocols = (content: string): Result<ProtocolsFileContent, NMEAError> => {
+  let data: unknown
+  try {
+    data = yaml.load(content)
+  } catch (error) {
+    return { success: false, error: { kind: 'invalid-yaml', message: (error as Error).message } }
+  }
   const parsed = ProtocolsFileContentSchema.safeParse(data)
   if (!parsed.success) {
-    throw new Error(parsed.errors?.toString())
+    return { success: false, error: { kind: 'invalid-schema', message: parsed.errors?.toString() ?? 'invalid protocols schema' } }
   }
-  return parsed.value
+  return { success: true, value: parsed.value }
 }
 
 const storedSentencesFromProtocol = (protocol: Protocol): StoredSentence[] => {

@@ -1,6 +1,6 @@
 // installed
 import { StringParser } from '@coremarine/protocol-core'
-import type { ExtractedSentences, ParserOptions } from '@coremarine/protocol-core'
+import type { ExtractedSentences, ParserOptions, Result } from '@coremarine/protocol-core'
 
 // coded
 import { NMEA_ID_LENGTH } from './constants'
@@ -8,7 +8,7 @@ import { PROTOCOLS } from './nmea'
 import { getStoredSentences, parseProtocols } from './protocols'
 import { ProtocolsFileContentSchema, StringSchema } from './schemas'
 import { createFakeSentence, getTalker, getUnparsedNMEASentences, lastUncompletedSentence, newestDefinition, parseSentence } from './sentences'
-import type { MapStoredSentences, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence } from './types'
+import type { MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence } from './types'
 
 // NMEA 0183 parser. Extends the shared StringParser (which owns the
 // memory/buffer/drain machinery and the addData/parseData contract) and
@@ -19,8 +19,11 @@ export class NMEAParser extends StringParser {
 
   constructor(options: ParserOptions = {}) {
     super(options)
-    // Load the built-in, bundled NMEA standard sentences.
-    this.registerProtocols(ProtocolsFileContentSchema.parse(PROTOCOLS))
+    // Load the built-in, bundled NMEA standard sentences. The built-in is
+    // trusted and validated at build time, so this never throws: on the
+    // (impossible-in-practice) validation miss we simply register nothing.
+    const builtin = ProtocolsFileContentSchema.safeParse(PROTOCOLS)
+    if (builtin.success) this.registerProtocols(builtin.value)
   }
 
   private registerProtocols(content: ProtocolsFileContent): void {
@@ -32,8 +35,15 @@ export class NMEAParser extends StringParser {
 
   // Single knowledge-feed input: a protocols YAML string. On the web use
   // `await file.text()`; on node read the file yourself, then pass the text.
-  addSentences(yaml: string): void {
-    this.registerProtocols(parseProtocols(StringSchema.parse(yaml)))
+  // Never throws — a non-string input or invalid YAML/schema is a Result error.
+  addSentences(yaml: string): Result<void, NMEAError> {
+    if (!StringSchema.is(yaml)) {
+      return { success: false, error: { kind: 'invalid-yaml', message: 'addSentences expects a YAML string' } }
+    }
+    const parsed = parseProtocols(yaml)
+    if (!parsed.success) return parsed
+    this.registerProtocols(parsed.value)
+    return { success: true, value: undefined }
   }
 
   protected extractSentences(buffer: string): ExtractedSentences<string> {

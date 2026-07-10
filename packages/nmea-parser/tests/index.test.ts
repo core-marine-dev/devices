@@ -40,10 +40,10 @@ describe('Parser', () => {
     NORSUB_PROTOCOL_NAMES.forEach((name) => expect(name in protocols).toBeTruthy())
   })
 
-  test('addSentences throws on invalid content', () => {
+  test('addSentences returns a Result error on invalid content (never throws)', () => {
     const parser = new Parser()
-    expect(() => parser.addSentences('')).toThrow()
-    expect(() => parser.addSentences('foo: bar')).toThrow()
+    expect(parser.addSentences('').success).toBe(false)
+    expect(parser.addSentences('foo: bar').success).toBe(false)
   })
 
   test('Parsing NMEA + NorSub sentences', () => {
