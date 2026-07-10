@@ -10,16 +10,18 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-10 · **Branch:** `dev` (pushed). **NMEA CMA refactor (slice A–F) is
-> COMMITTED & green** (`git log -1`). Repo was idle 2025-12-15 → 2026-07-08.
+> **Last updated:** 2026-07-10 · **Branch:** `dev` (pushed). **NMEA CMA refactor (slice A–F) +
+> STEP 1 (3-level metadata) are committed/staged & green** (`git log -1`). Repo was idle
+> 2025-12-15 → 2026-07-08.
 >
 > **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
 > **CMA rollout IN PROGRESS:** `@coremarine/protocol-core` scaffolded (`174e4cc`); **nmea-parser
 > refactored onto it (2026-07-10, slice A–F) — the reference implementation, committed & green**
 > (lint + tsc + 56/56 tests + build ESM+CJS+DTS). Journey doc: [`docs/NMEA.md`](NMEA.md).
-> **NEXT (design LOCKED with cru, NOT built): (i) 3-level metadata via dev-authored aggregators,
-> (ii) the no-throw Result pattern.** See the Resume prompt at the end of the NMEA section. Then
-> clone the pattern to the other four parsers (norsub-emru next — it no longer builds; see Open threads).
+> **STEP 1 DONE (2026-07-10): 3-level metadata via dev-authored aggregators** (`src/metadata.ts`,
+> seeded GGA; 62/62 tests). **NEXT (design LOCKED with cru, NOT built): STEP 2 — the no-throw
+> Result pattern.** See the Resume prompt at the end of the NMEA section. Then clone the pattern to
+> the other four parsers (norsub-emru next — it no longer builds; see Open threads).
 
 ## How to use this doc
 
@@ -68,6 +70,21 @@ Strokes:
 
 ## Done
 
+- **2026-07-10 — STEP 1: 3-level metadata via dev-authored aggregators (nmea-parser).**
+  New `packages/nmea-parser/src/metadata.ts`. `type MetadataAggregator = (cma) => { fields?:
+  Record<number, Metadata>, payload?: Metadata }`; registry `METADATA_AGGREGATORS` keyed by
+  **`${id}:${payloadLength}`** (stable identity, NOT field names); aggregators read fields **by
+  index**. `aggregateMetadata(cma)` runs after upgrade — merges `fields[i]` into
+  `payload[i].metadata` and `payload` (flat) into `cma.metadata.payload`; **no-ops when no
+  aggregator is registered**, so unknown/wrong-length sentences pass through untouched (known-only).
+  Wired: `parseSentence = aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw)))`.
+  Seeded **GGA (`GGA:14`)** — resurrects the deleted `nmea-metadata.ts` on the CMA shape: field
+  metadata `utc_position`→`{ timestamp }` (hhmmss.ss→epoch ms, UTC, dated today; idx 0) +
+  `gps_quality`→`{ label }` (idx 5); payload metadata `{ latitude, longitude }` in decimal degrees
+  (idx 1+2, 3+4). Free-form metadata; **core CMA schema unchanged**. Verified: lint clean, tsc
+  clean, **62/62 tests** (+6 in `tests/metadata.test.ts`), build ESM+CJS+DTS. Kept the prior
+  agent's proposed names (`MetadataAggregator`/`aggregateMetadata`/`METADATA_AGGREGATORS`); quality
+  field metadata key is `label` (avoids clashing with the field's own `description`).
 - **2026-07-10 — nmea-parser refactored onto `@coremarine/protocol-core` (slice A–F, committed & green).**
   The reference CMA implementation. Output shape changed `NMEASentence` → `CMA` (breaking for
   Tracker — deliberate). Verified: `pnpm lint` clean, `tsc --noEmit` clean, **56/56 tests pass**,
@@ -274,12 +291,12 @@ there.
 - **ESLint sonar thresholds: strict from day one** (Option A: max-lines-per-function 50,
   cyclomatic-complexity 10, cognitive-complexity 15; tests exempt from max-lines).
 - **Valibot pinned to 1.4.2** (exact) in all peerDependencies — no `>=1.0.0` ranges.
-- **Metadata has 3 levels (LOCKED 2026-07-10):** sentence (`cma.metadata`: `checksum` always,
-  `talker` optional — DONE), field (`cma.payload[i].metadata`: 1-field decode), payload
+- **Metadata has 3 levels (LOCKED 2026-07-10, all DONE for nmea-parser):** sentence (`cma.metadata`:
+  `checksum` always, `talker` optional), field (`cma.payload[i].metadata`: 1-field decode), payload
   (`cma.metadata.payload`, flat: aggregated from ≥2 fields). Field/payload metadata is **known-only**
   and **dev-authored**: aggregators registered by **`id + payload length`** (NOT field names — those
   are unofficial), reading fields **by index**. Free-form `Record<string,unknown>`; core CMA schema
-  unchanged. Contract = `MetadataAggregator` in [`docs/CMA.md`](CMA.md) / [`docs/NMEA.md`](NMEA.md).
+  unchanged. Contract = `MetadataAggregator` in `nmea-parser/src/metadata.ts` (see [`docs/NMEA.md`](NMEA.md)).
 - **Result pattern is NEXT, not a later track (LOCKED 2026-07-10):** parsers **never throw**;
   `Result<T,E> = { success:true, value:T } | { success:false, error:E }` lives in
   `@coremarine/protocol-core` (ported from Tracker `src/core/tracker/src/types.ts`). Every function
@@ -288,10 +305,10 @@ there.
 
 ## NMEA refactor — locked design & plan (IN PROGRESS, started 2026-07-09)
 
-> **State (2026-07-10): slice A–F DONE, committed & green** (lint + tsc + 56/56 tests + build). See
-> the Done entry above for what shipped and the one flagged talker/id decision. The A–F design below
-> is historical (finished). **The live to-do is the Resume prompt at the end of this section:
-> STEP 1 metadata aggregators → STEP 2 Result pattern.**
+> **State (2026-07-10): slice A–F + STEP 1 (3-level metadata) DONE & green** (lint + tsc + 62/62
+> tests + build). See the Done entries above for what shipped and the one flagged talker/id
+> decision. The A–F design below is historical (finished). **The live to-do is the Resume prompt at
+> the end of this section: STEP 2 — the Result pattern.**
 
 First parser onto `@coremarine/protocol-core`. It becomes the reference model for the other
 four. **Every decision below is locked with cru.** Output shape changes `NMEASentence` → `CMA`
@@ -356,28 +373,13 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 
 ### Resume prompt (if this session is interrupted)
 
-> Continue the NMEA parser work. **Slice A–F (the CMA rewrite) is DONE, committed & green** — do
-> NOT redo it. Read [`docs/NMEA.md`](NMEA.md) (the journey/code-map) + the two LOCKED decisions in
-> §Decisions above (3-level metadata + Result). **Everything below is agreed with cru — implement,
-> don't re-litigate.** Run `git log --oneline -5` first. cru works one step at a time; do STEP 1,
-> verify (lint → tsc → test → build), commit, then STEP 2. Update this doc same-turn.
->
-> **STEP 1 — 3-level metadata (dev-authored aggregators).** New file
-> `packages/nmea-parser/src/metadata.ts`. Type `MetadataAggregator = (sentence: CMA) => { fields?:
-> Record<number, Metadata>, payload?: Metadata }`. A registry keyed by **`${id}:${payloadLength}`**
-> (stable identity — NOT field names) maps to an aggregator that reads fields **by index**. Export
-> `aggregateMetadata(cma): CMA` that: looks up `${cma.id}:${cma.payload.length}`; if found, runs the
-> aggregator; attaches each `fields[i]` to `cma.payload[i].metadata`; merges `payload` into
-> `cma.metadata.payload` (flat); no-op otherwise (so unknown sentences are untouched → known-only).
-> Wire into `sentences.ts`: `parseSentence = aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw)))`.
-> Seed one real aggregator — **GGA (length 14)**: field metadata for `gps_quality` (idx 5, quality
-> label) + `utc_position` (idx 0, hhmmss.ss→epoch ms); payload metadata `latitude`/`longitude` in
-> decimal degrees (idx 1+2, 3+4). This resurrects the deleted `nmea-metadata.ts` logic on the new
-> shape. Metadata is free-form `Record<string,unknown>`; core CMA schema stays unchanged. Add tests
-> asserting `payload[i].metadata` and `metadata.payload` for GGA; confirm unknown sentences have no
-> `metadata.payload`. (Naming `MetadataAggregator`/`aggregateMetadata`/`METADATA_AGGREGATORS` was
-> proposed by the prior agent — cru wanted self-describing, disliked "Enricher"; rename freely if cru
-> prefers `PayloadMetadataAggregator` etc.)
+> Continue the NMEA parser work. **Slice A–F (the CMA rewrite) AND STEP 1 (3-level metadata) are
+> DONE, green** — do NOT redo them. STEP 1 shipped `src/metadata.ts` (`MetadataAggregator` registry
+> keyed by `${id}:${payloadLength}`, seeded GGA) + `tests/metadata.test.ts`; 62/62 tests. Read
+> [`docs/NMEA.md`](NMEA.md) (the journey/code-map) + the two LOCKED decisions in §Decisions above.
+> **Everything below is agreed with cru — implement, don't re-litigate.** Run `git log --oneline -5`
+> first. cru works one step at a time; do STEP 2, verify (lint → tsc → test → build), commit. Update
+> this doc same-turn.
 >
 > **STEP 2 — Result pattern (no throws, ever).** Add `Result<T,E> = { success:true, value:T } |
 > { success:false, error:E }` to `@coremarine/protocol-core` (mirror Tracker
@@ -424,9 +426,9 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 - **`norsub-emru` no longer builds** (expected — it's next in the rollout). It imports the removed
   NMEA API (`NMEASentence`, `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`) and calls
   `addProtocols`/overrides the old `parseData`. Refactor it onto CMA + `addSentences` next.
-- **DEFERRED: GGA metadata enrichment** — `nmea-metadata.ts` (lat/long decimal degrees, UTC
-  timestamp, quality label) was deleted in the NMEA refactor and must be reimplemented on the CMA
-  shape (as field-level `metadata` and/or sentence `metadata`) as a follow-up.
+- ~~**DEFERRED: GGA metadata enrichment**~~ — RESOLVED 2026-07-10 (STEP 1): reimplemented in
+  `nmea-parser/src/metadata.ts` as the seeded `GGA:14` aggregator (lat/long decimal degrees →
+  payload metadata; UTC timestamp + quality label → field metadata).
 - ~~`nmea-parser/src/types.ts`: `Float32`/`Float64` types are swapped~~ — RESOLVED by the NMEA
   refactor (values now validate via core `TYPE_SCHEMAS`; the swapped local aliases are gone).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
