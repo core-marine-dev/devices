@@ -27,6 +27,7 @@ progress: all parsers must converge on the unified **CMA output format** —
 | Repo layout & package patterns | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
 | Package inventory & issues | [`docs/PACKAGES.md`](docs/PACKAGES.md) |
 | CMA output format | [`docs/CMA.md`](docs/CMA.md) |
+| nmea-parser journey (how it works) | [`docs/NMEA.md`](docs/NMEA.md) |
 | Commands | [`docs/COMMANDS.md`](docs/COMMANDS.md) |
 | Stack, CI, templates | [`docs/TOOLING.md`](docs/TOOLING.md) |
 | Code style | [`docs/CodeStyle.md`](docs/CodeStyle.md) |
