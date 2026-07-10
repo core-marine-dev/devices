@@ -8,7 +8,7 @@ import { NMEALikeSchema } from '../src/schemas'
 import { createFakeSentence } from '../src/sentences'
 import type { Talker } from '../src/types'
 
-const NORSUB_FILE = path.join(__dirname, '..', 'protocols', 'norsub.yaml')
+const NORSUB_FILE = path.join(__dirname, '..', 'protocols', 'norsub.yml')
 const NORSUB_YAML = fs.readFileSync(NORSUB_FILE, 'utf-8')
 
 const NORSUB_SENTENCE_IDS = [

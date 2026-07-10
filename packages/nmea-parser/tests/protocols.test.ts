@@ -7,7 +7,7 @@ import { getStoredSentences, parseProtocols } from '../src/protocols'
 import { ProtocolSchema } from '../src/schemas'
 import { Protocol, StoredSentence } from '../src/types'
 
-const PROTOCOLS_FILE = path.join(__dirname, '..', 'protocols', 'norsub.yaml')
+const PROTOCOLS_FILE = path.join(__dirname, '..', 'protocols', 'norsub.yml')
 const readNorsub = (): string => fs.readFileSync(PROTOCOLS_FILE, 'utf-8')
 
 const EXPECTED_STORED: Record<string, StoredSentence> = {

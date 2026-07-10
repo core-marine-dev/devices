@@ -64,7 +64,7 @@ flowchart TB
         CST["constants.ts · checksum.ts · utils.ts"]
     end
     subgraph author["authoring (build-time only)"]
-        YAML["protocols/nmea.yaml (source of truth)"]
+        YAML["protocols/nmea.yml (source of truth)"]
         Y2J["yaml-to-json.js (generator)"]
     end
     YAML --> Y2J --> GEN
@@ -101,7 +101,7 @@ the same id can have several definitions (different field counts across NMEA ver
 ### Step 2 — Feed the knowledge (YAML string)
 
 ```ts
-parser.addSentences(yamlString)   // e.g. norsub.yaml contents
+parser.addSentences(yamlString)   // e.g. norsub.yml contents
 ```
 
 ```mermaid
