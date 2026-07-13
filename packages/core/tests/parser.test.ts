@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 
 // coded
 import { StringParser } from '../src/parser'
-import type { CMA, ExtractedSentences } from '../src/types'
+import type { DraftCMA, ExtractedSentences } from '../src/types'
 
 // Minimal concrete parser: newline-delimited sentences. Anything after the
 // last newline is an incomplete sentence and becomes the remainder.
@@ -11,7 +11,7 @@ class LineParser extends StringParser {
   protected extractSentences(buffer: string): ExtractedSentences<string> {
     const parts = buffer.split('\n')
     const remainder = parts.pop() ?? ''
-    const sentences: CMA[] = parts.map((raw) => ({
+    const sentences: DraftCMA[] = parts.map((raw) => ({
       raw,
       timestamp: 0,
       id: raw,
@@ -51,6 +51,19 @@ describe('Parser base contract', () => {
     parser.addData('BBB\n')
     expect(parser.parseData().map((s) => s.id)).toEqual(['AAA', 'BBB'])
     expect(parser.parseData()).toEqual([])
+  })
+
+  test('core stamps metadata.timestamp on every emitted sentence', () => {
+    const before = Date.now()
+    const [sentence] = new LineParser().parseData('AAA\n')
+    const after = Date.now()
+    // received: when addData ran; bounded by this test's window.
+    expect(sentence.metadata.timestamp.received).toBeGreaterThanOrEqual(before)
+    expect(sentence.metadata.timestamp.received).toBeLessThanOrEqual(after)
+    // parsed mirrors the draft's root timestamp (LineParser used 0).
+    expect(sentence.metadata.timestamp.parsed).toBe(0)
+    // no protocol sentence timestamp by default.
+    expect(sentence.metadata.timestamp.sentence).toBeUndefined()
   })
 
   test('options: bufferLimit defaults and is settable', () => {

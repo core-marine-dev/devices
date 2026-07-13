@@ -1,6 +1,6 @@
 // installed
 import { StringParser } from '@coremarine/protocol-core'
-import type { ExtractedSentences, ParserOptions, Result } from '@coremarine/protocol-core'
+import type { DraftCMA, ExtractedSentences, ParserOptions, Result, Timestamp } from '@coremarine/protocol-core'
 
 // coded
 import { NMEA_ID_LENGTH } from './constants'
@@ -50,6 +50,18 @@ export class NMEAParser extends StringParser {
     const remainder = lastUncompletedSentence(buffer) ?? ''
     const sentences = getUnparsedNMEASentences(buffer).map((raw) => parseSentence(raw, this._definitions))
     return { sentences, remainder }
+  }
+
+  // The sentence's own time (-> metadata.timestamp.sentence). NMEA sentences
+  // carry it in a field (GGA's utc_position), decoded to epoch ms by the
+  // aggregators into field metadata; we promote the first such field. Sentences
+  // with no time field (most) return undefined and get no `sentence` timestamp.
+  protected override sentenceTimestamp(sentence: DraftCMA): Timestamp | undefined {
+    for (const field of sentence.payload) {
+      const value = field.metadata?.timestamp
+      if (typeof value === 'number') return value
+    }
+    return undefined
   }
 
   // Nice to have -----------------------------------------------------------------------------------------------------

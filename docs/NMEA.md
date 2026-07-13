@@ -308,7 +308,8 @@ Unknown sentences look the same but `protocol.version` is `"unknown"`, every fie
 
 ## Three metadata levels (STEP 1 — DONE 2026-07-10)
 
-- **Sentence** `cma.metadata` → `checksum` (always) + `talker` (optional). ✅
+- **Sentence** `cma.metadata` → `timestamp` (always — see below) + `checksum` (always) + `talker`
+  (optional). ✅
 - **Field** `cma.payload[i].metadata` → single-field derived metadata (decode a primitive into a
   richer form / unit conversion). Known sentences only. ✅
 - **Payload** `cma.metadata.payload` (flat) → derivations needing ≥2 fields (e.g. GGA
@@ -331,6 +332,69 @@ Metadata is free-form (`Record<string, unknown>`); core CMA schema unchanged. Se
 **GGA (`GGA:14`)** — field metadata `utc_position`→`{ timestamp }` (epoch ms, idx 0) and
 `gps_quality`→`{ label }` (idx 5); payload metadata `{ latitude, longitude }` in decimal degrees
 (idx 1+2, 3+4). This resurrects the deleted `nmea-metadata.ts` on the CMA shape.
+
+### How to add an aggregator (field / payload metadata for a new sentence)
+
+Everything lives in one file: **`packages/nmea-parser/src/metadata.ts`**. Adding metadata for a
+sentence is always the same four steps — no other file changes.
+
+1. **Find the registry key `${id}:${payloadLength}`.** `id` is the matched id (talker stripped, e.g.
+   `HDT`, not `GPHDT`); `payloadLength` is the field count of the definition (count the fields in
+   `protocols/nmea.yml`, or log a parsed sample). Two lengths for the same id → two entries.
+2. **Write small pure helpers that read fields BY INDEX** — never by name (field names are
+   unofficial; that is *why* the key is `id + length`). Always type-guard `field.value` (it is
+   `string | number | boolean | null`) and **return `{}` when you can't derive anything** — degrade
+   gracefully, never throw. Put single-field derivations under `fields`, ≥2-field ones under
+   `payload`.
+3. **Compose them into one `MetadataAggregator`** returning `{ fields?, payload? }`.
+4. **Register it** in `METADATA_AGGREGATORS` under the key from step 1.
+
+Worked example — payload-level heading for **HDT** (2 fields: `heading`, `T`, so key `HDT:2`):
+
+```ts
+// HDT --------------------------------------------------------------------------------------------------------------
+const hdtHeading = (payload: Field[]): Metadata => {
+  const heading = payload[0].value
+  return (typeof heading === 'number') ? { heading } : {}   // guard, else {}
+}
+
+const aggregateHDT: MetadataAggregator = (sentence) => ({
+  payload: hdtHeading(sentence.payload),
+})
+
+// REGISTRY
+const METADATA_AGGREGATORS: Record<string, MetadataAggregator> = {
+  'GGA:14': aggregateGGA,
+  'HDT:2': aggregateHDT,   // ← new
+}
+```
+
+`aggregateMetadata` picks it up automatically after upgrade; add a spec in
+`tests/metadata.test.ts` asserting the derived `cma.metadata.payload` / `payload[i].metadata`. This
+aggregator pattern is nmea-parser's, and the reference every other parser clones for its own
+derived metadata.
+
+### Sentence timestamp — `metadata.timestamp` (STEP 3 — DONE 2026-07-13)
+
+Every emitted sentence carries `cma.metadata.timestamp = { received, parsed, sentence? }` (all epoch
+ms). This is a **core** feature (shared by all parsers), defined in `@coremarine/protocol-core`
+([`docs/CMA.md`](CMA.md) §Timestamp metadata):
+
+- `received`/`parsed` are stamped by the core base in `addData` — the only place a `CMA` gains its
+  timestamp. To avoid a placeholder while keeping the CMA type authoritative, `extractSentences`
+  returns `DraftCMA[]` (a `CMA` minus the metadata timestamp) and the core finalises each into a
+  `CMA`. That's why the whole nmea pipeline (`parseGenericSentence` → `upgradeKnownSentence` →
+  `aggregateMetadata` → `parseSentence`) is typed `DraftCMA`, not `CMA`.
+- `sentence` (optional) is supplied by the protocol through the core hook
+  `protected sentenceTimestamp(sentence): Timestamp | undefined`. nmea-parser overrides it
+  (`src/parser.ts`) to **promote the first field-level `timestamp`** it finds — so GGA's
+  `utc_position` epoch (produced as field metadata by the `GGA:14` aggregator) surfaces at
+  `metadata.timestamp.sentence`. Sentences with no time field return `undefined` and get no
+  `sentence` key. A new protocol with a per-sentence clock (e.g. Septentrio TOW+WNc) just overrides
+  the same hook.
+
+`NMEASentenceMetadata` (`src/types.ts`) narrows the core `SentenceMetadata` with NMEA's own keys
+(`checksum`, `standard`, optional `talker`).
 
 ## Result pattern (STEP 2 — DONE 2026-07-10)
 

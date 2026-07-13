@@ -1,5 +1,5 @@
 // installed
-import type { CMA, Field, Metadata, Value } from '@coremarine/protocol-core'
+import type { DraftCMA, Field, Metadata, Value } from '@coremarine/protocol-core'
 
 // Field-level + payload-level metadata for known sentences (the two derived
 // metadata levels above the always-present sentence metadata — checksum/talker).
@@ -10,7 +10,7 @@ import type { CMA, Field, Metadata, Value } from '@coremarine/protocol-core'
 // returns:
 //   - `fields`  : field index -> metadata, merged into payload[index].metadata
 //   - `payload` : flat metadata (needs ≥2 fields), merged into cma.metadata.payload
-export type MetadataAggregator = (sentence: CMA) => {
+export type MetadataAggregator = (sentence: DraftCMA) => {
   fields?: Record<number, Metadata>
   payload?: Metadata
 }
@@ -92,11 +92,11 @@ const applyFields = (payload: Field[], fields: Record<number, Metadata>): Field[
 
 // Runs after upgrade. No-ops when no aggregator is registered for the sentence,
 // so unknown (and unrecognised-length) sentences pass through untouched.
-export const aggregateMetadata = (sentence: CMA): CMA => {
+export const aggregateMetadata = (sentence: DraftCMA): DraftCMA => {
   const key = `${sentence.id}:${sentence.payload.length}`
   if (!(key in METADATA_AGGREGATORS)) return sentence
   const { fields = {}, payload = {} } = METADATA_AGGREGATORS[key](sentence)
-  const result: CMA = { ...sentence, payload: applyFields(sentence.payload, fields) }
+  const result: DraftCMA = { ...sentence, payload: applyFields(sentence.payload, fields) }
   if (Object.keys(payload).length > 0) {
     const previous = (sentence.metadata?.payload ?? {}) as Metadata
     result.metadata = { ...sentence.metadata, payload: { ...previous, ...payload } }

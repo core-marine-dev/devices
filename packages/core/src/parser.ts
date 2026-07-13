@@ -1,7 +1,7 @@
 // coded
 import { MAX_BYTES, MAX_CHARACTERS } from './constants'
 import { BooleanSchema, NaturalSchema } from './schemas'
-import type { CMA, ExtractedSentences, Input, ParserOptions } from './types'
+import type { CMA, DraftCMA, ExtractedSentences, Input, ParserOptions, Timestamp, TimestampMetadata } from './types'
 
 // Shared parser contract. Every CoreMarine device parser is created with an
 // options object, fed bytes/chars with `addData`, and drained with
@@ -31,9 +31,16 @@ export abstract class Parser<B extends Input> {
   get buffer(): B { return this._buffer }
 
   addData(data: B): void {
+    // `received` is stamped the moment the input reaches the parser. Since
+    // `addData` parses immediately, `received` and `parsed` sit microseconds
+    // apart in the happy path — a visible gap is a built-in "something's
+    // lagging" signal.
+    const received = Date.now()
     this._buffer = this._memory ? this.concat(this._buffer, data) : data
     const { sentences, remainder } = this.extractSentences(this._buffer)
-    this._sentences.push(...sentences)
+    for (const draft of sentences) {
+      this._sentences.push(this.stampTimestamp(draft, received))
+    }
     this._buffer = remainder
   }
 
@@ -44,6 +51,24 @@ export abstract class Parser<B extends Input> {
     const sentences = [...this._sentences]
     this._sentences = []
     return sentences
+  }
+
+  // Turn a DraftCMA into a CMA by stamping the sentence-level timestamp
+  // metadata. This is the ONLY place a CMA gains its `metadata.timestamp`, so
+  // the contract (required timestamp) can never be violated by a protocol.
+  private stampTimestamp(draft: DraftCMA, received: Timestamp): CMA {
+    const sentence = this.sentenceTimestamp(draft)
+    const timestamp: TimestampMetadata = (sentence === undefined)
+      ? { received, parsed: draft.timestamp }
+      : { received, parsed: draft.timestamp, sentence }
+    return { ...draft, metadata: { ...draft.metadata, timestamp } }
+  }
+
+  // Protocol hook: the sentence's own time (epoch ms) if it carries one, else
+  // undefined. Default = no sentence timestamp. Overridden per protocol (NMEA:
+  // GGA UTC; Septentrio: TOW+WNc). Reads a DraftCMA — timestamp not stamped yet.
+  protected sentenceTimestamp(_sentence: DraftCMA): Timestamp | undefined {
+    return undefined
   }
 
   // Protocol-specific — the one method a concrete parser must implement.
