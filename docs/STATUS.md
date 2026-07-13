@@ -402,17 +402,32 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 > **norsub-emru**. Run `git log --oneline -8` first. cru works one step at a time and wants decisions
 > converged before coding — discuss, then implement. Update this doc same-turn.
 >
-> **norsub-emru (next).** It no longer builds: it imports the removed old NMEA API (`NMEASentence`,
-> `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`), calls `addProtocols`, and overrides the old
-> `parseData`. norsub is a thin extension of NMEA (adds status metadata). Refactor it onto core the
-> same way nmea-parser is built: `class NorsubParser extends StringParser`, implement
-> `extractSentences`, emit `CMA[]`, feed knowledge via `addSentences(yaml)`, adopt `Result` for the
-> throwing paths, and port any norsub-specific derivations as metadata aggregators
-> (`src/metadata.ts`, keyed by `${id}:${payloadLength}`). Reuse core exports:
-> `Parser`/`StringParser`/`BinaryParser`, `CMA`/`CMASchema`, `TYPE_SCHEMAS`, `Input`, `Result`.
+> **norsub-emru (next).** It no longer builds. Today (`packages/norsub-emru/src/parser.ts`) it
+> `extends NMEAParser` with the OLD API: positional `super(memory, limit)`, `ProtocolsInputSchema.parse`,
+> `this.addProtocols(NORSUB_SENTENCES)`, and an `override parseData` that post-processes every
+> `PNORSUB*` sentence through `addStatus` — decoding a status bitfield (`status_a`/`status_b` for
+> `…b` variants via the last two fields, else a single `status` from the last field; see
+> `src/status.ts` `getStatus`) and attaching it to `sentence.metadata.status` + the last field's
+> `metadata`. norsub is otherwise a thin NMEA extension (its own generated `src/norsub.ts` knowledge).
+>
+> Target shape: `class NorsubParser extends NMEAParser` still works (NMEAParser now extends
+> `StringParser`), object-arg constructor `{ memory?, bufferLimit? }`, emit `CMA[]`, adopt `Result`.
+> **Converge these design questions with cru BEFORE coding — they aren't settled by the NMEA
+> reference:**
+> 1. **How a subclass loads its own built-in.** NMEAParser loads `PROTOCOLS` via the **private**
+>    `registerProtocols` + `safeParse`. norsub's `NORSUB_SENTENCES` is a generated JS object, not YAML,
+>    so `addSentences(yaml)` doesn't fit. Cleanest: make `registerProtocols` **`protected`** so
+>    `NorsubParser`'s constructor can register `ProtocolsFileContentSchema.safeParse(NORSUB_SENTENCES)`.
+> 2. **How norsub injects its status metadata.** The NMEA `METADATA_AGGREGATORS` registry is a
+>    module-level const in `nmea-parser/src/metadata.ts` — not extensible by a subclass, and keyed by
+>    exact `${id}:${payloadLength}` (norsub status spans many `PNORSUB*` ids/lengths). Options to
+>    discuss: (a) make the registry instance-level / mergeable so a subclass adds aggregators;
+>    (b) generalise the key to allow a predicate/prefix (`PNORSUB*`); (c) keep norsub's own light
+>    post-process. Prefer folding it into the aggregator model (no `override parseData`) if clean.
+>
 > Then tblive, then the two binary parsers (septentrio-sbf, sbg-ecom — `BinaryParser`,
 > `Buffer`→`Uint8Array`/`DataView`). Each parser's Node-RED wrapper also uses the removed old API
-> (`addProtocols`) and must be updated alongside its lib.
+> (`addProtocols`) and is updated alongside its lib (cru: wrappers come after each lib is finished).
 
 ## Next steps (in order)
 
