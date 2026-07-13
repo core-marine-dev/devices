@@ -4,7 +4,7 @@
   "description": "Library to work with Thlema Biotel TB-Lives hydrophones",
   "author": "CoreMarine",
   "license": "MIT",
-  "homepage": "https://github.com/core-marine-dev/tree/main/packages/thelmabiotel-tblive",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/thelmabiotel-tblive",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-marine-dev/devices.git",
