@@ -5,6 +5,15 @@
   "author": "CoreMarine",
   "license": "MIT",
   "private": true,
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/core",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
