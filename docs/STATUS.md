@@ -306,44 +306,69 @@ reference implementation** — CMA output + 3-level metadata + Result pattern + 
 metadata** (`metadata.timestamp = { received, parsed, sentence? }`, core-wide; see the top Done
 entry + [`docs/CMA.md`](CMA.md) §Timestamp metadata). Core = 14/14, nmea = 65/65, both build clean.
 
-**Next: refactor `norsub-emru` onto core** (it no longer builds — uses the removed old NMEA API).
-Full context + the two locked design questions are in §"NMEA refactor — locked design & plan" →
-Resume prompt. Note STEP 3 gives norsub `received`/`parsed` for free (core), and since it extends
-`NMEAParser` it also inherits the GGA-style `sentenceTimestamp` promotion — no timestamp work needed
-there. The next binary parser (septentrio-sbf) will want its own `sentenceTimestamp` override
-(TOW+WNc). **See the "Prompt for the next agent" block right below.**
+**Next (cru's plan, 2026-07-13): release nmea-parser as a new major BEFORE norsub.** The lib is
+done; now ship it. Sequence: (1) fix nmea-parser CI/CD — migrate publish to **npm Trusted Publishing
+(OIDC) + provenance**, no token; (2) bump nmea-parser to a new **major** (`2.2.1` → `3.0.0`; CMA
+output is breaking); (3) PR `dev` → `main` (merge publishes via GH Actions); (4) after it's
+published, upgrade the `nmea-parser-nodered` wrapper (deps → `^3`, same OIDC CI/CD, publish);
+(5) THEN start `norsub-emru`. **See the "Prompt for the next agent" block right below.** The norsub
+refactor itself (still the next *code* task after the release) is specified in §"NMEA refactor —
+locked design & plan" → Resume prompt (two design questions still open; STEP 3 timestamp metadata is
+inherited from core, no work needed there).
 
 ### Prompt for the next agent (paste-ready)
 
-> Continue the CoreMarine **devices** monorepo refactor (branch `dev`, pushed). Run
-> `git log --oneline -8` first, then read **`docs/STATUS.md`** top-to-bottom (esp. the top Done
-> entry + Decisions) and **`docs/NMEA.md`** (the reference-implementation spec). cru works **one step
-> at a time and wants design decisions converged BEFORE coding** — discuss, then implement, then
-> verify **lint → tsc → test → build per package (run from the package dir)**, then commit **and
-> update `docs/STATUS.md` in the same turn**. Do NOT touch the `-nodered` wrappers (cru updates each
-> wrapper only after its lib is done).
+> Continue the CoreMarine **devices** monorepo refactor (branch `dev`, pushed, HEAD is a
+> `docs(status)` commit — run `git log --oneline -8` first). Read **`docs/STATUS.md`** top-to-bottom
+> (esp. the top Done entries + Decisions). cru works **one step at a time and wants decisions
+> converged BEFORE acting**; verify per package from the package dir; update `docs/STATUS.md`
+> **same-turn**. **Repo rule: for any npm / pnpm / GitHub-Actions specifics, fetch current docs with
+> the `ctx7` CLI — do not rely on memory** (these features are recent and change fast).
 >
-> **nmea-parser is DONE — the complete reference** (CMA output via `@coremarine/protocol-core`,
-> 3-level dev-authored metadata aggregators, no-throw `Result` pattern, and STEP 3 sentence timestamp
-> metadata). Do NOT redo it.
+> **nmea-parser is a FINISHED library** (CMA output, 3-level metadata, Result pattern, STEP 3
+> timestamp metadata). Do NOT refactor it. **cru's task now is to RELEASE it**, then its wrapper,
+> then move to norsub. Do the steps in order, converging each with cru:
 >
-> **Your task: refactor `norsub-emru` onto core, cloning the nmea-parser shape.** It currently does
-> not build — `packages/norsub-emru/src/parser.ts` uses the removed old NMEA API (positional
-> `super(memory, limit)`, `ProtocolsInputSchema.parse`, `this.addProtocols(...)`, `override
-> parseData`, `NMEASentence`/`Uint16`/`Uint32`/`Field`). norsub is a thin NMEA extension: for every
-> `PNORSUB*` sentence it decodes a status bitfield (`src/status.ts` `getStatus`) and attaches it to
-> `sentence.metadata.status` + the last field's `metadata`. Target: `class NorsubParser extends
-> NMEAParser`, object-arg constructor `{ memory?, bufferLimit? }`, emit `CMA[]`, adopt `Result`.
-> Rewrite tests to assert the CMA shape. **Two design questions to converge with cru first** (details
-> in §"NMEA refactor — locked design & plan" → Resume prompt): (1) how a subclass loads its own
-> generated built-in (`NORSUB_SENTENCES` is a JS object, not YAML — likely make `registerProtocols`
-> `protected`); (2) how norsub injects its status metadata without an `override parseData` (fold into
-> the aggregator model if clean, or a light post-process). **Timestamp metadata is already inherited
-> from core — no work needed there.**
+> **1 — nmea-parser CI/CD (`.github/workflows/nmea-parser.yml`).** Install/test/build already use
+> pnpm ✅. Only the **publish** job needs migrating off `NODE_AUTH_TOKEN: secrets.NPM_TOKEN` to **npm
+> Trusted Publishing (OIDC)**, which also emits **provenance** automatically (no `--provenance` flag
+> needed). Changes: add `permissions: { id-token: write, contents: read }` to the publish job; drop
+> the `NODE_AUTH_TOKEN`/`NPM_TOKEN` env; keep `registry-url: https://registry.npmjs.org`; use a
+> modern node; set `package-manager-cache: false` on the release job. **VERIFY FIRST (ctx7):** does
+> `pnpm publish` (pnpm 11.10.0) support OIDC trusted publishing? If yes, keep `pnpm publish --access
+> public --filter @coremarine/nmea-parser --no-git-checks`; if not, use `npm publish` for the publish
+> step while keeping pnpm for install/build. Install of public deps needs no token.
+> **MANUAL PREREQUISITE (cru, on npmjs.com — cannot be scripted):** configure the *Trusted Publisher*
+> for `@coremarine/nmea-parser` → repo `core-marine-dev/devices`, workflow file `nmea-parser.yml`
+> (+ environment if used). Trusted publishing fails until this exists.
 >
-> After norsub: thelmabiotel-tblive, then the binary parsers septentrio-sbf & sbg-ecom
-> (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio will want a `sentenceTimestamp`
-> override for TOW+WNc).
+> **2 — Major version bump.** nmea-parser `package.json` `2.2.1` → **`3.0.0`** (CMA output shape is a
+> breaking change for Tracker). Leave `@coremarine/protocol-core: workspace:*` (private, bundled via
+> tsup `noExternal`, never published). Re-verify lint→tsc→test→build, commit, push `dev`.
+>
+> **3 — PR `dev` → `main`.** Merging `main` publishes via GH Actions. **⚠️ CAUTION — converge with
+> cru before merging:** the per-package workflows trigger on `paths: packages/<pkg>/**` and publish
+> `if: ref == main`. `dev` has changed almost every package (pnpm/eslint/deps + the CMA work), so the
+> merge may fire *several* package workflows, not just nmea-parser. `norsub-emru` will fail its
+> test/build (it's broken) so its publish is safely skipped, but tblive/septentrio/sbg may still
+> build and could **re-publish**, and the `-nodered` workflows have their `needs: test`/build steps
+> commented out (untested publish). Decide with cru how to scope the first merge (narrow triggers,
+> temporarily gate other publishes, or accept + bump only intended packages). This also clears the 74
+> dependabot alerts on `main`.
+>
+> **4 — nmea-parser-nodered wrapper** (only after 3.0.0 is live on npm). Bump its dep
+> `@coremarine/nmea-parser` → `^3.0.0` (pnpm rewrites `workspace:^` to the real version on publish),
+> apply the same OIDC/provenance CI/CD migration to `.github/workflows/nmea-parser-nodered.yml`,
+> **re-enable its commented-out `needs: test` + build steps**, configure its own Trusted Publisher on
+> npm, bump its version, publish. NOTE the wrapper's `src/parser.js` still calls the removed old API
+> (`parser.addProtocols({...})`) — it must be updated to `addSentences(yaml)` + CMA output before it
+> can work at runtime.
+>
+> **5 — THEN norsub-emru** (the next *code* refactor): §"NMEA refactor — locked design & plan" →
+> Resume prompt has the full spec + two open design questions. Timestamp metadata is inherited from
+> core; no work there. After norsub: thelmabiotel-tblive, then binary parsers septentrio-sbf &
+> sbg-ecom (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio will want a
+> `sentenceTimestamp` override for TOW+WNc).
 
 ## Decisions (locked unless cru says otherwise)
 
