@@ -296,13 +296,54 @@ Strokes:
 
 ## Where we are now
 
-Steps 1-6 are complete and pushed to `dev` (HEAD `4c14b41`). Modern stack: pnpm 11,
-TypeScript 6.0.3, ESLint 10 + sonar + perfectionist, Vitest 4, Valibot 1.4.2, zero known vulns.
+**HEAD `e265180`, branch `dev`, PUSHED to `origin/dev`, working tree clean (2026-07-13).**
+Steps 1-6 complete. Modern stack: pnpm 11, TypeScript 6.0.3, ESLint 10 + sonar + perfectionist,
+Vitest 4, Valibot 1.4.2, zero known vulns on `dev` (the 74 dependabot alerts are on `main`, clear
+on merge).
 
-**CMA rollout in progress.** `packages/core/` (the shared contract) is committed & pushed
-(`174e4cc`). **NMEA refactor is now underway** — the full locked design is in the section below
-(§"NMEA refactor — locked design & plan"). If interrupted mid-code, follow the Resume prompt
-there.
+**CMA rollout in progress.** `packages/core/` (shared contract) done. **nmea-parser is the finished
+reference implementation** — CMA output + 3-level metadata + Result pattern + **STEP 3 timestamp
+metadata** (`metadata.timestamp = { received, parsed, sentence? }`, core-wide; see the top Done
+entry + [`docs/CMA.md`](CMA.md) §Timestamp metadata). Core = 14/14, nmea = 65/65, both build clean.
+
+**Next: refactor `norsub-emru` onto core** (it no longer builds — uses the removed old NMEA API).
+Full context + the two locked design questions are in §"NMEA refactor — locked design & plan" →
+Resume prompt. Note STEP 3 gives norsub `received`/`parsed` for free (core), and since it extends
+`NMEAParser` it also inherits the GGA-style `sentenceTimestamp` promotion — no timestamp work needed
+there. The next binary parser (septentrio-sbf) will want its own `sentenceTimestamp` override
+(TOW+WNc). **See the "Prompt for the next agent" block right below.**
+
+### Prompt for the next agent (paste-ready)
+
+> Continue the CoreMarine **devices** monorepo refactor (branch `dev`, pushed). Run
+> `git log --oneline -8` first, then read **`docs/STATUS.md`** top-to-bottom (esp. the top Done
+> entry + Decisions) and **`docs/NMEA.md`** (the reference-implementation spec). cru works **one step
+> at a time and wants design decisions converged BEFORE coding** — discuss, then implement, then
+> verify **lint → tsc → test → build per package (run from the package dir)**, then commit **and
+> update `docs/STATUS.md` in the same turn**. Do NOT touch the `-nodered` wrappers (cru updates each
+> wrapper only after its lib is done).
+>
+> **nmea-parser is DONE — the complete reference** (CMA output via `@coremarine/protocol-core`,
+> 3-level dev-authored metadata aggregators, no-throw `Result` pattern, and STEP 3 sentence timestamp
+> metadata). Do NOT redo it.
+>
+> **Your task: refactor `norsub-emru` onto core, cloning the nmea-parser shape.** It currently does
+> not build — `packages/norsub-emru/src/parser.ts` uses the removed old NMEA API (positional
+> `super(memory, limit)`, `ProtocolsInputSchema.parse`, `this.addProtocols(...)`, `override
+> parseData`, `NMEASentence`/`Uint16`/`Uint32`/`Field`). norsub is a thin NMEA extension: for every
+> `PNORSUB*` sentence it decodes a status bitfield (`src/status.ts` `getStatus`) and attaches it to
+> `sentence.metadata.status` + the last field's `metadata`. Target: `class NorsubParser extends
+> NMEAParser`, object-arg constructor `{ memory?, bufferLimit? }`, emit `CMA[]`, adopt `Result`.
+> Rewrite tests to assert the CMA shape. **Two design questions to converge with cru first** (details
+> in §"NMEA refactor — locked design & plan" → Resume prompt): (1) how a subclass loads its own
+> generated built-in (`NORSUB_SENTENCES` is a JS object, not YAML — likely make `registerProtocols`
+> `protected`); (2) how norsub injects its status metadata without an `override parseData` (fold into
+> the aggregator model if clean, or a light post-process). **Timestamp metadata is already inherited
+> from core — no work needed there.**
+>
+> After norsub: thelmabiotel-tblive, then the binary parsers septentrio-sbf & sbg-ecom
+> (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio will want a `sentenceTimestamp`
+> override for TOW+WNc).
 
 ## Decisions (locked unless cru says otherwise)
 
