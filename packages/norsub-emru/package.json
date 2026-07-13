@@ -45,7 +45,7 @@
   },
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/norsub.yaml ./src/norsub.ts",
-    "build": "pnpm run format && tsup",
+    "build": "pnpm run protocols && pnpm run format && tsup",
     "lint": "eslint",
     "format": "eslint --fix",
     "test": "vitest",
