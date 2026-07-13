@@ -22,10 +22,11 @@ export abstract class Parser<B extends Input> {
   }
 
   get memory(): boolean { return this._memory }
-  set memory(value: boolean) { this._memory = BooleanSchema.parse(value) }
+  // Never throws (legacy behaviour we avoid): validate, set if valid, else keep the current value.
+  set memory(value: boolean) { if (BooleanSchema.is(value)) this._memory = value }
 
   get bufferLimit(): number { return this._bufferLimit }
-  set bufferLimit(value: number) { this._bufferLimit = NaturalSchema.parse(value) }
+  set bufferLimit(value: number) { if (NaturalSchema.is(value)) this._bufferLimit = value }
 
   get buffer(): B { return this._buffer }
 

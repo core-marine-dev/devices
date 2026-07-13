@@ -81,9 +81,12 @@ Strokes:
   the trusted built-in via `safeParse` (was throwing `.parse`) — never throws. Parse hot-path
   unchanged (already no-throw). Tests updated: `parseProtocols`/`addSentences` invalid-content specs
   now assert `.success === false` (+ `error.kind`). Verified: core lint+tsc+12/12+build,
-  nmea-parser lint+tsc+62/62+build ESM+CJS+DTS. **Remaining throw in core:** the `set memory` /
-  `set bufferLimit` setters still `.parse()` (throw on bad assignment) — out of STEP 2's NMEA scope;
-  a setter can't return a Result. Flagged for cru (see Open threads).
+  nmea-parser lint+tsc+62/62+build ESM+CJS+DTS.
+- **2026-07-10 — core setters no longer throw (cru).** `set memory` / `set bufferLimit`
+  (`packages/core/src/parser.ts`) now use `BooleanSchema.is` / `NaturalSchema.is` guards: a valid
+  assignment is set, an invalid one is **discarded** (current value kept), never thrown — the legacy
+  throw-on-bad-assignment behaviour is removed. Test added (13/13 core). Setters can't return a
+  `Result`, so discard-and-keep is the no-throw contract.
 - **2026-07-10 — protocols renamed `.yaml` → `.yml` + `nmea.yml` expanded (cru), regenerated.**
   `protocols/{nmea,norsub}.yml`; updated the `protocols` generator script and the two tests that
   read norsub by path; regenerated `src/nmea.ts` + `tests/norsub.ts`. 62/62 green.
@@ -441,10 +444,6 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 - **`nmea-parser-nodered` wrapper uses the removed old API** — `src/parser.js` calls
   `parser.addProtocols({ file, ... })`, which no longer exists (replaced by `addSentences(yaml)` in
   slice A–F). Broken at runtime like norsub-emru; update each wrapper alongside its refactored lib.
-- **Core `set memory` / `set bufferLimit` still throw** — they validate assignment with `.parse()`
-  (`packages/core/src/parser.ts`), so `parser.memory = <bad>` throws. Out of STEP 2's NMEA scope and
-  a setter can't return a `Result`; decide with cru whether to keep the throw (programmer-error
-  guard) or switch to `safeParse` + silently ignore invalid assignments.
 - ~~**DEFERRED: GGA metadata enrichment**~~ — RESOLVED 2026-07-10 (STEP 1): reimplemented in
   `nmea-parser/src/metadata.ts` as the seeded `GGA:14` aggregator (lat/long decimal degrees →
   payload metadata; UTC timestamp + quality label → field metadata).
