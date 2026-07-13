@@ -7,32 +7,28 @@ on:
       - packages/septentrio-sbf-nodered/**
 
 jobs:
+  # Test job stays disabled until the wrapper is refactored onto the new lib API
+  # (it still calls the removed addProtocols API). Re-enable during that refactor.
   # test:
   #   name: 🧪 Test
   #   runs-on: ubuntu-latest
-
   #   strategy:
   #     matrix:
-  #       node-version: [18.x, 20.x]
-
+  #       node-version: [22.x, 24.x]
   #   steps:
   #     - name: 👍 Checkout
-  #       uses: actions/checkout@v4
-
+  #       uses: actions/checkout@v7
   #     - name: 📦 Setup pnpm
-  #       uses: pnpm/action-setup@v4
-
+  #       uses: pnpm/action-setup@v6
   #     - name: ❇️ Setup node.js
-  #       uses: actions/setup-node@v4
+  #       uses: actions/setup-node@v6
   #       with:
   #         node-version: ${{ matrix.node-version }}
   #         cache: 'pnpm'
-
   #     - name: 📥 Install Dependencies
   #       run: pnpm install --frozen-lockfile
-
   #     - name: 🧑‍🔬 Tests
-  #       run: "pnpm run septentrio-sbf-nodered:test"
+  #       run: "pnpm run septentrio-sbf:nodered:test"
 
   publish:
     name: 🚀 Publish
@@ -40,26 +36,42 @@ jobs:
     # needs: test
     if: github.ref == 'refs/heads/main'
 
+    # OIDC trusted publishing to npm (no NPM_TOKEN); provenance is emitted automatically.
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: 👍 Checkout
-        uses: actions/checkout@v4
-
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: actions/checkout@v7
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
 
+      - name: 🔎 Check published version
+        id: check
+        run: |
+          NAME=$(node -p "require('./packages/septentrio-sbf-nodered/package.json').name")
+          VERSION=$(node -p "require('./packages/septentrio-sbf-nodered/package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION already on npm — skipping publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$NAME@$VERSION not on npm — will publish"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 📦 Setup pnpm
+        if: steps.check.outputs.publish == 'true'
+        uses: pnpm/action-setup@v6
+
       - name: 📥 Install Dependencies
+        if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
 
-      # - name: 🛠️ Build
-      #   run: "pnpm run septentrio-sbf-nodered:build"
-
       - name: 🚀 Publish to npm
+        if: steps.check.outputs.publish == 'true'
         run: "pnpm publish --access public --filter @coremarine/septentrio-sbf-nodered --no-git-checks"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
