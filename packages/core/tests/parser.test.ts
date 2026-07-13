@@ -59,4 +59,18 @@ describe('Parser base contract', () => {
     parser.bufferLimit = 2048
     expect(parser.bufferLimit).toBe(2048)
   })
+
+  test('setters never throw: an invalid assignment is discarded, the value is kept', () => {
+    const parser = new LineParser({ memory: true, bufferLimit: 2048 })
+    expect(() => {
+      // @ts-expect-error — runtime guard against a bad (non-boolean) assignment
+      parser.memory = 'nope'
+    }).not.toThrow()
+    expect(parser.memory).toBe(true)
+    // -1 is a valid number to TS but not a natural: rejected at runtime, no throw
+    expect(() => {
+      parser.bufferLimit = -1
+    }).not.toThrow()
+    expect(parser.bufferLimit).toBe(2048)
+  })
 })
