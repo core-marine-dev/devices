@@ -8,6 +8,8 @@ import * as v from 'valibot'
 // keys live in `metadata`, never at the top level.
 
 // COMMONS
+// Free-form metadata — used for FIELD-level metadata (payload[i].metadata),
+// where keys are protocol-specific and unconstrained.
 const ValibotMetadataSchema = v.record(v.string(), v.unknown())
 export const MetadataSchema = ValibotValidator<v.InferInput<typeof ValibotMetadataSchema>>(ValibotMetadataSchema)
 
@@ -20,6 +22,30 @@ const ValibotTimestampSchema = v.pipe(
   v.minValue(0, 'Timestamp: It should be a positive integer (Unix epoch in milliseconds)'),
 )
 export const TimestampSchema = ValibotValidator<v.InferInput<typeof ValibotTimestampSchema>>(ValibotTimestampSchema)
+
+// SENTENCE-LEVEL TIMESTAMP METADATA (cma.metadata.timestamp)
+// Three epoch-ms timings, common to every parser:
+//   - received: when the input reached the parser (the addData call that
+//     completed this sentence). Stamped by the core base.
+//   - parsed:   when the sentence was decoded (equals cma.timestamp). Core.
+//   - sentence: OPTIONAL, the sentence's own time if it carries one (e.g. NMEA
+//     GGA UTC, Septentrio TOW+WNc). Supplied by the protocol.
+const ValibotTimestampMetadataSchema = v.object({
+  received: ValibotTimestampSchema,
+  parsed: ValibotTimestampSchema,
+  sentence: v.optional(ValibotTimestampSchema),
+})
+export const TimestampMetadataSchema = ValibotValidator<v.InferInput<typeof ValibotTimestampMetadataSchema>>(ValibotTimestampMetadataSchema)
+
+// SENTENCE-LEVEL METADATA (cma.metadata) — a LOOSE object: the `timestamp`
+// block is always present and typed; any other keys (checksum, talker, payload
+// aggregates, per-protocol extras) are free-form. Protocols narrow this with
+// their own required keys (see nmea-parser NMEASentenceMetadata) by extending
+// `ValibotSentenceMetadataSchema.entries`.
+export const ValibotSentenceMetadataSchema = v.looseObject({
+  timestamp: ValibotTimestampMetadataSchema,
+})
+export const SentenceMetadataSchema = ValibotValidator<v.InferInput<typeof ValibotSentenceMetadataSchema>>(ValibotSentenceMetadataSchema)
 
 // A field value: string | number | boolean | null. `null` = a field that is
 // present but empty (common in NMEA). No `bigint`: 64-bit integers (int64/
@@ -62,7 +88,7 @@ const ValibotCMASchema = v.object({
   id: v.string(),
   protocol: ValibotProtocolSchema,
   payload: v.array(ValibotFieldSchema),
-  metadata: v.optional(ValibotMetadataSchema),
+  metadata: ValibotSentenceMetadataSchema,
   errors: v.optional(ValibotErrorsSchema),
   description: v.optional(v.string()),
 })

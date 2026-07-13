@@ -1,6 +1,6 @@
 // installed
 import { TYPE_SCHEMAS } from '@coremarine/protocol-core'
-import type { CMA, Field, Type, Value } from '@coremarine/protocol-core'
+import type { DraftCMA, Field, Type, Value } from '@coremarine/protocol-core'
 
 // coded
 import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
@@ -120,13 +120,13 @@ const checksumErrors = (info: string, checksum: string): string[] => {
   return [`Invalid checksum: computed ${numberChecksumToString(computed)}, received ${checksum}`]
 }
 
-const parseGenericSentence = (raw: NMEALike): CMA => {
+const parseGenericSentence = (raw: NMEALike): DraftCMA => {
   const { id, payload, checksum } = getIdPayloadAndChecksum(raw)
   const info = `${id}${SEPARATOR}${payload}`
   const talker = getTalker(id)
   const metadata: Record<string, unknown> = { checksum, standard: false }
   if (talker !== null) metadata.talker = talker
-  const generic: CMA = {
+  const generic: DraftCMA = {
     raw,
     timestamp: Date.now(),
     id,
@@ -176,9 +176,9 @@ const buildField = (field: ProtocolField, raw: string): Field => {
   return result
 }
 
-const applyDefinition = (generic: CMA, id: string, model: StoredSentence): CMA => {
+const applyDefinition = (generic: DraftCMA, id: string, model: StoredSentence): DraftCMA => {
   const payload = model.payload.map((field, index) => buildField(field, generic.payload[index].raw))
-  const upgraded: CMA = {
+  const upgraded: DraftCMA = {
     ...generic,
     id,
     protocol: { name: model.protocol.name, version: model.protocol.version ?? 'unknown' },
@@ -189,7 +189,7 @@ const applyDefinition = (generic: CMA, id: string, model: StoredSentence): CMA =
   return upgraded
 }
 
-const upgradeKnownSentence = (generic: CMA, definitions: MapStoredSentences): CMA => {
+const upgradeKnownSentence = (generic: DraftCMA, definitions: MapStoredSentences): DraftCMA => {
   const talker = getTalker(generic.id)
   const fieldCount = generic.payload.length
   for (const id of candidateIds(generic.id, talker)) {
@@ -200,7 +200,7 @@ const upgradeKnownSentence = (generic: CMA, definitions: MapStoredSentences): CM
   return generic
 }
 
-export const parseSentence = (raw: NMEALike, definitions: MapStoredSentences): CMA => (
+export const parseSentence = (raw: NMEALike, definitions: MapStoredSentences): DraftCMA => (
   aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw), definitions))
 )
 

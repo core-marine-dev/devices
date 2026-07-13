@@ -10,9 +10,9 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-10 · **Branch:** `dev` (pushed). **NMEA CMA refactor (slice A–F) +
-> STEP 1 (3-level metadata) + STEP 2 (Result pattern) are done & green.** Repo was idle
-> 2025-12-15 → 2026-07-08.
+> **Last updated:** 2026-07-13 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
+> STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
+> done & green.** Repo was idle 2025-12-15 → 2026-07-08.
 >
 > **Steps 1-6 complete: pnpm, ESLint, docs, dep refresh, security audit, tsconfig fixes.**
 > **CMA rollout IN PROGRESS:** `@coremarine/protocol-core` scaffolded (`174e4cc`); **nmea-parser
@@ -70,6 +70,25 @@ Strokes:
 
 ## Done
 
+- **2026-07-13 — STEP 3: sentence timestamp metadata (`metadata.timestamp`), core-wide (cru).**
+  Every emitted CMA now carries `cma.metadata.timestamp = { received, parsed, sentence? }` (epoch
+  ms). **Core** (`@coremarine/protocol-core`): new `ValibotTimestampMetadataSchema` +
+  `ValibotSentenceMetadataSchema` (a **loose** object — typed `timestamp` + free-form extras) in
+  `src/cma.ts`; **`CMA.metadata` promoted optional → required** (single source of truth — the
+  timestamp is not optional because of internal logic). New types `TimestampMetadata`,
+  `SentenceMetadata`, and **`DraftCMA`** (= `CMA` minus its metadata timestamp — what a protocol's
+  `extractSentences` returns). `Parser.addData` stamps `received` (call time) + `parsed`
+  (= `draft.timestamp`) into every sentence — the **only** place a `CMA` gains its timestamp, so the
+  required contract can't be violated and no placeholder is needed. New protocol hook
+  `protected sentenceTimestamp(draft): Timestamp | undefined` (default: none) supplies the optional
+  `sentence`. **nmea-parser**: whole pipeline retyped `CMA` → `DraftCMA`
+  (`sentences.ts`/`metadata.ts`); overrides `sentenceTimestamp` to promote the first field-level
+  `timestamp` (GGA `utc_position`) → `metadata.timestamp.sentence`; added `NMEASentenceMetadata`
+  type. **Decision B (cru): kept the GGA field-level `timestamp` as-is** (it's the source the hook
+  promotes — deliberate redundancy, gives field-decoders freedom). Verified: core lint+tsc+14/14
+  +build, nmea lint+tsc+**65/65**+build ESM+CJS+DTS; real-run confirms GGA has all three, HDT has
+  received+parsed only. Docs: [`docs/CMA.md`](CMA.md) §Timestamp metadata, [`docs/NMEA.md`](NMEA.md)
+  §Sentence timestamp. **No `-nodered` wrappers touched; norsub not touched.**
 - **2026-07-10 — STEP 2: Result pattern (no throws) in core + nmea-parser.**
   New `packages/core/src/result.ts`: `Result<T,E> = { success:true, value:T } | { success:false,
   error:E }` (bare literals, no `ok`/`err` helpers), exported from `@coremarine/protocol-core`.
@@ -317,6 +336,17 @@ there.
   and **dev-authored**: aggregators registered by **`id + payload length`** (NOT field names — those
   are unofficial), reading fields **by index**. Free-form `Record<string,unknown>`; core CMA schema
   unchanged. Contract = `MetadataAggregator` in `nmea-parser/src/metadata.ts` (see [`docs/NMEA.md`](NMEA.md)).
+- **Timestamp metadata (LOCKED 2026-07-13, DONE core + nmea-parser):** every CMA carries
+  `cma.metadata.timestamp = { received, parsed, sentence? }` (epoch ms). `received` = `addData` call
+  time; `parsed` = decode time (`=== cma.timestamp`); `sentence` = optional, the sentence's own time
+  (protocol-supplied). **`addData` parses immediately** (Option B) so received/parsed are ~equal — a
+  gap is a built-in lag metric. **CMA is the single source of truth: `metadata` and its `timestamp`
+  are REQUIRED, never optional-because-of-internal-logic.** Core owns received/parsed (stamped in
+  `addData`, the only place a CMA gets its timestamp); protocols supply `sentence` via the
+  `sentenceTimestamp` hook. `extractSentences` returns `DraftCMA` (= CMA minus metadata timestamp) so
+  no placeholder is needed. Sentence metadata schema is a **loose** object (typed timestamp +
+  free-form extras); field metadata (`payload[i].metadata`) stays free-form `Record`. See
+  [`docs/CMA.md`](CMA.md) §Timestamp metadata.
 - **Result pattern (LOCKED 2026-07-10, DONE for core + nmea-parser):** parsers **never throw**;
   `Result<T,E> = { success:true, value:T } | { success:false, error:E }` lives in
   `@coremarine/protocol-core` (ported from Tracker `src/core/tracker/src/types.ts`). Every function

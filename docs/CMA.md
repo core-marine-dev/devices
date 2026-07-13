@@ -22,7 +22,17 @@ type Type = 'char' | 'string' | 'boolean'
           | 'float32' | 'float64'
 
 type Errors = string[]
-type Metadata = Record<string, unknown>
+type Metadata = Record<string, unknown>   // FIELD-level metadata (payload[i].metadata) — free-form
+
+// Sentence-level timestamp metadata (cma.metadata.timestamp) — common to EVERY parser.
+interface TimestampMetadata {
+  received: Timestamp    // when the input reached the parser (the addData call). Core-stamped.
+  parsed: Timestamp      // when the sentence was decoded (=== cma.timestamp). Core-stamped.
+  sentence?: Timestamp   // OPTIONAL: the sentence's own time if it carries one (NMEA GGA, SBF TOW+WNc). Protocol-supplied.
+}
+// Sentence-level metadata (cma.metadata) — a LOOSE object: the typed `timestamp`
+// block is always present; other keys (checksum, talker, crc, payload aggregates…) are free-form.
+type SentenceMetadata = { timestamp: TimestampMetadata } & Record<string, unknown>
 
 interface Field {
   raw: string | Base64      // this field's raw slice (Base64 for binary protocols)
@@ -37,11 +47,11 @@ interface Field {
 
 interface CMA {
   raw: string | Base64      // whole frame: UTF-8/ASCII for text protocols, Base64 for binary
-  timestamp: Timestamp      // reception time
+  timestamp: Timestamp      // decode time (=== metadata.timestamp.parsed)
   id: string                // sentence/frame identifier, e.g. 'GGA', 'SBG_ECOM_LOG_DEPTH'
   protocol: Protocol        // e.g. { name: 'sbgECom', version: '2.3' }
   payload: Field[]
-  metadata?: Metadata       // protocol-level extras (class, crc, format, status bitmask decodes…)
+  metadata: SentenceMetadata  // ALWAYS present: the timestamp block + protocol extras (checksum, talker, crc…)
   errors?: Errors
   description?: string
 }
@@ -84,12 +94,13 @@ imports `CMA`/`CMASchema` from `@coremarine/protocol-core` rather than re-declar
 
 ## Metadata levels (LOCKED 2026-07-10, cru)
 
-Metadata exists at three levels; all are free-form `Record<string, unknown>` (never a fixed
-schema). This applies to every parser, not just NMEA.
+Metadata exists at three levels. Field and payload metadata are free-form `Record<string,
+unknown>`; sentence metadata (`cma.metadata`) is a **loose** object — a typed, always-present
+`timestamp` block plus free-form extras. This applies to every parser, not just NMEA.
 
 | Level | Where | Contents | When |
 | --- | --- | --- | --- |
-| **Sentence** | `cma.metadata` | protocol-level facts: `checksum` (always), `talker` (optional), crc, class… | every sentence |
+| **Sentence** | `cma.metadata` | `timestamp` (always — see below), plus protocol-level facts: `checksum`, `talker` (optional), crc, class… | every sentence |
 | **Field** | `cma.payload[i].metadata` | a **single** field decoded into a richer form / converted units | known sentences, on demand |
 | **Payload** | `cma.metadata.payload` (flat) | a value **aggregated from ≥2 fields** (e.g. GGA lat/long in decimal degrees) | known sentences, on demand |
 
@@ -97,8 +108,29 @@ schema). This applies to every parser, not just NMEA.
   deliberately by devs.
 - Field/payload metadata is produced by **dev-authored aggregators registered by `id + payload
   length`** (the stable identity) that read fields **by index** — field *names* are unofficial and
-  may change, so they are never used as keys. See [`docs/NMEA.md`](NMEA.md) §Planned for the
-  `MetadataAggregator` contract (nmea-parser is the reference).
+  may change, so they are never used as keys. See [`docs/NMEA.md`](NMEA.md) for the
+  `MetadataAggregator` contract + "How to add an aggregator" recipe (nmea-parser is the reference).
+
+### Timestamp metadata (LOCKED 2026-07-13, cru)
+
+`cma.metadata.timestamp` is present on **every** emitted sentence, for every parser, and holds
+up to three epoch-ms timings (`TimestampMetadata` above):
+
+- **`received`** (required) — when the input reached the parser: the `Date.now()` of the `addData`
+  call that completed the sentence. Because `addData` parses immediately, `received` and `parsed`
+  sit microseconds apart in the happy path — a visible gap is a built-in "the pipeline is lagging"
+  signal.
+- **`parsed`** (required) — when the sentence was decoded. Equals the top-level `cma.timestamp`.
+- **`sentence`** (optional) — the sentence's own time, only when the protocol carries one (NMEA:
+  GGA's UTC; Septentrio SBF: TOW + WNc, for every sentence). Absent otherwise.
+
+**Ownership:** the shared core base owns `received`/`parsed` — it stamps them for every parser in
+`addData`, which is the *only* place a `CMA` gains its timestamp. A protocol supplies the optional
+`sentence` value through the `protected sentenceTimestamp(sentence)` hook (default: none). To keep
+the CMA type the single source of truth without a placeholder, `extractSentences` returns a
+`DraftCMA` (a `CMA` minus its metadata timestamp) that the core turns into a `CMA` — so the
+required-`timestamp` contract can never be violated by a protocol. nmea-parser overrides the hook
+to promote a field-level timestamp (GGA) up to `metadata.timestamp.sentence`.
 
 ## Result pattern (LOCKED 2026-07-10, cru)
 

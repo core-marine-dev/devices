@@ -1,5 +1,6 @@
 // installed
 export type { CMA } from '@coremarine/protocol-core'
+import type { SentenceMetadata } from '@coremarine/protocol-core'
 
 // coded
 import type {
@@ -34,6 +35,14 @@ export type NMEALike = ReturnType<typeof NMEALikeSchema.parse>
 // matched under (used by the nice-to-have lookup helpers).
 export type Sentence = StoredSentence & { talker?: Talker }
 export type ProtocolOutput = Record<string, StoredSentence[]>
+// NMEA's sentence-level metadata (cma.metadata): the core contract — the
+// always-present `timestamp` block plus free-form extras — narrowed with the
+// keys NMEA always sets (`checksum`, `standard`) and optionally sets (`talker`).
+export type NMEASentenceMetadata = SentenceMetadata & {
+  checksum: string
+  standard: boolean
+  talker?: Talker
+}
 
 // ERRORS (Result pattern — see @coremarine/protocol-core `Result`). Returned,
 // never thrown, by the knowledge-feed functions.

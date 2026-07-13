@@ -36,6 +36,29 @@ describe('GGA metadata aggregation', () => {
   })
 })
 
+describe('sentence timestamp metadata (metadata.timestamp)', () => {
+  test('every sentence carries received + parsed (parsed === root timestamp)', () => {
+    const before = Date.now()
+    const [gga] = new NMEAParser().parseData(GGA)
+    const after = Date.now()
+    expect(gga.metadata.timestamp.received).toBeGreaterThanOrEqual(before)
+    expect(gga.metadata.timestamp.received).toBeLessThanOrEqual(after)
+    expect(gga.metadata.timestamp.parsed).toBe(gga.timestamp)
+  })
+
+  test('GGA promotes its field-level UTC time to metadata.timestamp.sentence', () => {
+    const [gga] = new NMEAParser().parseData(GGA)
+    expect(gga.metadata.timestamp.sentence).toBe(gga.payload[0].metadata?.timestamp)
+    expect(typeof gga.metadata.timestamp.sentence).toBe('number')
+  })
+
+  test('a sentence with no time field has no sentence timestamp', () => {
+    const [hdt] = new NMEAParser().parseData('$INHDT,308.81,T*17\r\n')
+    expect(hdt.metadata.timestamp.received).toBeGreaterThan(0)
+    expect(hdt.metadata.timestamp.sentence).toBeUndefined()
+  })
+})
+
 describe('non-GGA / unknown sentences are untouched', () => {
   test('a known non-aggregated sentence has no payload metadata', () => {
     const [hdt] = new NMEAParser().parseData('$INHDT,308.81,T*17\r\n')
