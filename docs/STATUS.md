@@ -78,6 +78,26 @@ Strokes:
 
 ## Done
 
+- **2026-07-13 — post-release cleanup + safe dep bumps (cru).** HEAD `ee08691`.
+  - **`c39f233` — strip private core from published manifests.** New **`.pnpmfile.mjs`** with a
+    `beforePacking` hook that deletes `@coremarine/protocol-core` from any packed package's
+    dependencies/devDependencies/peerDependencies. Replaces the earlier harmless-but-ugly dangling
+    `@coremarine/protocol-core@0.0.0` in nmea-parser's published devDeps. Verified: `pnpm pack`
+    manifest now contains **zero** `protocol-core` references. (Stays in the workspace package.json
+    for local builds; only the *published* manifest is cleaned.)
+  - **`b16b7c0` — fixed `thelmabiotel-tblive` `homepage`** (was `github.com/core-marine-dev/tree/…`,
+    missing `/devices`).
+  - **`ee08691` — safe dep bumps:** `packageManager` pnpm `11.10.0→11.12.0`, `@types/node`
+    `26.0.1→26.1.1`, `eslint` `10.6.0→10.7.0`. Verified: nmea 65/65, core 14/14, both lint+tsc+build
+    clean, whole-repo `pnpm lint` clean, `--frozen-lockfile` clean.
+  - **Deferred deliberately (NOT risk-free — see the CI/CD & versions decisions):**
+    - **TypeScript 7** (native Go rewrite, GA 2026-07-08): held at `6.0.3`. TS7 has **no stable
+      programmatic API until 7.1** (~Oct 2026); `typescript-eslint@8.63` peers `typescript
+      >=4.8.4 <6.1.0` and tsup's dts uses the TS API — both break on 7. `tsc` itself is fine/~10× faster;
+      revisit when 7.1 ships and typescript-eslint/tsup add support.
+    - **js-yaml 5**: held at 4.x. The workspace **security override** `js-yaml: '>=4.1.1'` pins the
+      whole workspace to 4.3.0; bumping nmea-parser to 5 would need to change that override, dragging
+      mocha/node-red's transitive js-yaml to v5 too. No CVE on 4.3.0 → no benefit, real risk.
 - **2026-07-13 — nmea-parser 3.0.0 release prep + repo-wide CI/CD modernization (cru).** Four
   commits on `dev`, in order A→B→D→C (HEAD `65bec81`):
   - **A `aca7a37` — CI/CD (all 11 workflows).** Bumped `actions/checkout@v4→v7`,
@@ -106,9 +126,10 @@ Strokes:
     JS) — the published `.d.ts` now has zero reference to the unpublished core. Verified: `pnpm pack`
     tarball has NO protocol-core in `dependencies`, self-contained types, all 4 dist files.
   - Verified end-to-end: nmea-parser lint+tsc+**65/65**+build ESM+CJS+DTS; core lint+tsc+**14/14**
-    +build; all 11 workflow YAMLs parse; `pnpm install --frozen-lockfile` clean. (Note: published
-    `devDependencies` still lists `@coremarine/protocol-core@0.0.0` after pnpm's `workspace:*`
-    rewrite — harmless, consumers never install a dep's devDeps.)
+    +build; all 11 workflow YAMLs parse; `pnpm install --frozen-lockfile` clean. (The published
+    `devDependencies` initially still listed `@coremarine/protocol-core@0.0.0` after pnpm's
+    `workspace:*` rewrite — now stripped by the `.pnpmfile.mjs` `beforePacking` hook, see the newer
+    Done entry above.)
 - **2026-07-13 — STEP 3: sentence timestamp metadata (`metadata.timestamp`), core-wide (cru).**
   Every emitted CMA now carries `cma.metadata.timestamp = { received, parsed, sentence? }` (epoch
   ms). **Core** (`@coremarine/protocol-core`): new `ValibotTimestampMetadataSchema` +
@@ -335,9 +356,10 @@ Strokes:
 
 ## Where we are now
 
-**HEAD `65bec81` (+ this docs commit), branch `dev`, working tree clean (2026-07-13).** Steps 1-6
-complete. Modern stack: pnpm 11, TypeScript 6.0.3, ESLint 10 + sonar + perfectionist, Vitest 4,
-Valibot 1.4.2, zero known vulns on `dev` (the 74 dependabot alerts are on `main`, clear on merge).
+**HEAD `ee08691` (+ this docs commit), branch `dev`, working tree clean (2026-07-13).** Steps 1-6
+complete. Modern stack: pnpm 11.12.0, TypeScript 6.0.3 (TS7 deferred), ESLint 10.7 + sonar +
+perfectionist, Vitest 4, Valibot 1.4.2, zero known vulns on `dev` (the 74 dependabot alerts are on
+`main`, clear on merge).
 
 **CMA rollout in progress.** `packages/core/` (shared contract) done. **nmea-parser is the finished
 reference implementation** — CMA output + 3-level metadata + Result pattern + STEP 3 timestamp
@@ -446,7 +468,12 @@ upgrade `nmea-parser-nodered` (dep → `^3`, re-enable its test/build, fix its `
   regenerates its `protocols/*.yml` first, so workflows stay uniform. `protocol-core.yml` is
   test-only (private). Node-RED workflows are modernized but keep their **test jobs disabled** until
   each wrapper is refactored. Bundled private deps (`@coremarine/protocol-core`) go in
-  **devDependencies** (not runtime deps) and need tsup `dts.resolve` to inline their TYPES.
+  **devDependencies** (not runtime deps), need tsup `dts.resolve` to inline their TYPES, and are
+  stripped from the published manifest by `.pnpmfile.mjs` `beforePacking`.
+- **Toolchain versions (2026-07-13):** node CI = two latest LTS `[22.x, 24.x]`; pnpm `11.12.0`;
+  **TypeScript held at `6.0.3`** (TS7 native rewrite needs 7.1's stable programmatic API before
+  typescript-eslint/tsup work — revisit ~Oct 2026); **js-yaml held at 4.x** (workspace security
+  override `js-yaml: '>=4.1.1'` pins it; going to 5 would drag mocha/node-red transitive js-yaml).
 
 ## NMEA refactor — locked design & plan (IN PROGRESS, started 2026-07-09)
 
