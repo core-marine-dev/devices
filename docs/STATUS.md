@@ -78,6 +78,23 @@ Strokes:
 
 ## Done
 
+- **2026-07-22 — git history rewritten to strip AI co-author trailers (cru).** cru uses multiple
+  AI agents from different providers and does **not** want any single one credited in authorship.
+  Removed the `Co-Authored-By: Claude …` trailer from all **9** commits that carried it (via
+  `git filter-branch --msg-filter`; messages-only — content byte-identical, `git diff` empty,
+  topology preserved). Force-pushed **both** branches: `origin/dev` `2811a4b→02c3e3a`, `origin/main`
+  `d2d8a28→0f0191c`; remote verified 0 trailers. Also set globally in `~/.claude/settings.json`:
+  `attribution.commit=""`, `attribution.pr=""`, `attribution.sessionUrl=false`,
+  `includeCoAuthoredBy=false` (Claude Code adds no attribution anywhere, all repos, going forward).
+  **⚠️ Consequences for the next agent:**
+  - **All commit SHAs changed.** Every short hash cited in the Done entries below (`ee08691`,
+    `65bec81`, `c39f233`, etc.) is a **pre-rewrite** reference and **no longer resolves** on the
+    branches — treat them as historical labels, not lookups. Current tips: `dev` `02c3e3a`,
+    `main` `0f0191c`.
+  - **Anyone with an existing clone must** `git fetch origin && git reset --hard origin/<branch>`
+    before working, or they'll re-push the old history.
+  - **GitHub still retains the old SHAs** via the merged PR's `refs/pull/*` + caches (force-push
+    can't purge those; would need GH Support or repo recreate). Nothing was on npm, so no pkg impact.
 - **2026-07-22 — FIX: nmea-parser CI couldn't resolve the private core in a fresh checkout (cru).**
   After the pnpm fix, running the workflow locally with **`act`** surfaced a *second*, pre-existing
   break: nmea-parser's tests/build import `@coremarine/protocol-core`, whose `package.json`
