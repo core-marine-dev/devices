@@ -3,5 +3,5 @@ import { Parser } from './parser'
 
 export {
   getFirmwares as availableFirmwares,
-  Parser as SBFParser
+  Parser as SBFParser,
 }

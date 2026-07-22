@@ -38,7 +38,7 @@ const SOLUTION_MODES = [
   'SBG_ECOM_SOL_MODE_AHRS',
   'SBG_ECOM_SOL_MODE_NAV_VELOCITY',
   'SBG_ECOM_SOL_MODE_NAV_POSITION',
-  'UNKNOWN'
+  'UNKNOWN',
 ] as const
 type SolutionMode = typeof SOLUTION_MODES[number]
 
@@ -101,5 +101,5 @@ export const getSolutionStatus = (number: number): SolutionStatus => ({
   airData: bitStatus(number, 25),
   zupt: bitStatus(number, 26),
   align: bitStatus(number, 27),
-  depth: bitStatus(number, 28)
+  depth: bitStatus(number, 28),
 })

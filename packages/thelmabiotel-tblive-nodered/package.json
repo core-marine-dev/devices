@@ -7,7 +7,8 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/thelmabiotel-tblive-nodered",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/thelmabiotel-tblive-nodered"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -41,9 +42,9 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/thelmabiotel-tblive": ">=1.0.2"
+    "@coremarine/thelmabiotel-tblive": "workspace:^"
   },
   "peerDependencies": {
-    "valibot": ">=1.0.0"
+    "valibot": "1.4.2"
   }
 }

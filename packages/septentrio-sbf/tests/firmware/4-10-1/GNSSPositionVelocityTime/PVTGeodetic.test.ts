@@ -1,34 +1,35 @@
 import { describe, test, expect } from 'vitest'
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
+
 import { DO_NOT_USE_FLOAT, DO_NOT_USE_UINT16, DO_NOT_USE_UINT32, DO_NOT_USE_UINT8, Datum, ErrorPVT, PVTGeodeticRev0, PVTGeodeticRev1, PVTGeodeticRev2, PVTSolution, RAIMIntegrityFlag, SignalInfo, TimeSystem, pvtGeodetic } from '../../../../src/firmware/4-10-1/GNSSPositionVelocityTime/PVTGeodetic'
-import { bitState } from '../../../../src/utils'
 import { GNSSSignal } from '../../../../src/firmware/4-10-1/types'
 import { getGNSSSignal } from '../../../../src/firmware/4-10-1/utils'
+import { bitState } from '../../../../src/utils'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 /* PVTGeodetic -> Number: 4007 => "OnChange" interval: default PVT output rate
-  This block contains the GNSS-based position, velocity and time (PVT) solution 
-  at the timespeciﬁed in the TOW and WNc ﬁelds. The time of applicability is 
+  This block contains the GNSS-based position, velocity and time (PVT) solution
+  at the timespeciﬁed in the TOW and WNc ﬁelds. The time of applicability is
   speciﬁed in the receiver time frame.
 
-  The computed position (ϕ,λ,h) and velocity (vn , ve , vu ) are reported in an 
-  ellipsoidal coordinate system using the datum indicated in the Datum ﬁeld. 
-  The velocity vector is expressed relative to the local-level Cartesian coordinate 
-  frame with north-, east-, up-unit vectors. The position is that of the marker. 
+  The computed position (ϕ,λ,h) and velocity (vn , ve , vu ) are reported in an
+  ellipsoidal coordinate system using the datum indicated in the Datum ﬁeld.
+  The velocity vector is expressed relative to the local-level Cartesian coordinate
+  frame with north-, east-, up-unit vectors. The position is that of the marker.
   The ARP-to-marker offset is set through the command setAntennaOffset.
 
   The PVT solution is also available in Cartesian form in the PVTCartesian block.
 
-  The variance-covariance information associated with the reported PVT solution 
+  The variance-covariance information associated with the reported PVT solution
   can be found in the PosCovGeodetic and VelCovGeodetic blocks.
 
-  If no PVT solution is available, the Error ﬁeld indicates the cause of the 
-  unavailability and all ﬁelds after the Error ﬁeld are set to their 
+  If no PVT solution is available, the Error ﬁeld indicates the cause of the
+  unavailability and all ﬁelds after the Error ﬁeld are set to their
   respective Do-Not-Use values.
 
   EndOfAtt -------------------------------------------------------------
   Block fields     Type  Units Do-Not-Use  Description
   Mode            uint8                    Bit ﬁeld indicating the GNSS PVT mode, as follows:
                                             Bits 0-3: type of PVT solution:
-                                              0: No GNSS PVT available (the Error ﬁeld indicates the cause of the 
+                                              0: No GNSS PVT available (the Error ﬁeld indicates the cause of the
                                                  absence of the PVT solution)
                                               1: Stand-Alone PVT
                                               2: Differential PVT
@@ -41,7 +42,7 @@ import { getGNSSSignal } from '../../../../src/firmware/4-10-1/utils'
                                              10: Precise Point Positioning (PPP)
                                              12: Reserved
                                             Bits 4-5: Reserved
-                                            Bit    6: Set if the user has entered the command setPVTMode, Static, auto 
+                                            Bit    6: Set if the user has entered the command setPVTMode, Static, auto
                                                       and the receiver is still in the process of determining its ﬁxed position.
                                             Bit 7:    2D/3D ﬂag: set in 2D mode (height assumed constant and not computed).
   Error        uint8                      PVT error code. The following values are deﬁned:
@@ -63,13 +64,13 @@ import { getGNSSSignal } from '../../../../src/firmware/4-10-1/utils'
   Vn            float32    1 m  −2 * 10¹⁰  Velocity in the North direction
   Ve            float32    1 m  −2 * 10¹⁰  Velocity in the East direction
   Vu            float32    1 m  −2 * 10¹⁰  Velocity in the ’Up’ direction
-  COG           float32  1 deg  −2 * 10¹⁰  Course over ground: this is deﬁned as the angle of the vehicle with respect 
-                                           to the local level North, ranging from 0 to 360, and increasing towards east. 
+  COG           float32  1 deg  −2 * 10¹⁰  Course over ground: this is deﬁned as the angle of the vehicle with respect
+                                           to the local level North, ranging from 0 to 360, and increasing towards east.
                                            Set to the Do-Not-Use value when the speed is lower than 0.1m/s.
-  RxClkBias     float64   1 ms  −2 * 10¹⁰  Receiver clock bias relative to the GNSS system time reported in the 
-                                           TimeSystem ﬁeld. Positive when the receiver time is ahead of the system time. 
+  RxClkBias     float64   1 ms  −2 * 10¹⁰  Receiver clock bias relative to the GNSS system time reported in the
+                                           TimeSystem ﬁeld. Positive when the receiver time is ahead of the system time.
                                            To transfer the receiver time to the system time, use: tGPS/GST = trx - RxClkBias
-  RxClkDrift    float32  1 ppm  −2 * 10¹⁰  Receiver clock drift relative to the GNSS system time (relative frequency error). 
+  RxClkDrift    float32  1 ppm  −2 * 10¹⁰  Receiver clock drift relative to the GNSS system time (relative frequency error).
                                            Positive when the receiver clock runs faster than the system time.
   TimeSystem      uint8               255  Time system of which the offset is provided in this sub-block:
                                              0: GPS time
@@ -97,12 +98,12 @@ import { getGNSSSignal } from '../../../../src/firmware/4-10-1/utils'
                                              Bit 4:    set if DO229 Precision Approach mode is active
                                              Bits 5-7: Reserved
   ReferenceID    uint16             65535  This ﬁeld indicates the reference ID of the differential information used.
-                                           In case of DGPS or RTK operation, this ﬁeld is to be interpreted as the 
-                                           base station identiﬁer. In SBAS operation, this ﬁeld is to be interpreted 
-                                           as the PRN of the geostationary satellite used (from 120 to 158). If multiple 
+                                           In case of DGPS or RTK operation, this ﬁeld is to be interpreted as the
+                                           base station identiﬁer. In SBAS operation, this ﬁeld is to be interpreted
+                                           as the PRN of the geostationary satellite used (from 120 to 158). If multiple
                                            base stations or multiple geostationary satellites are used the value is set to 65534.
-  MeanCorrAge    uint16  0.01 seg   65535  In case of DGPS or RTK, this ﬁeld is the mean age of the differential corrections. 
-                                           In case of SBAS operation, this ﬁeld is the mean age of the ’fast corrections’ 
+  MeanCorrAge    uint16  0.01 seg   65535  In case of DGPS or RTK, this ﬁeld is the mean age of the differential corrections.
+                                           In case of SBAS operation, this ﬁeld is the mean age of the ’fast corrections’
                                            provided by the SBAS satellites.
   SignalInfo     uint32                 0  Bit ﬁeld indicating the type of GNSS signals having been used in the PVT
                                            computations. If a bit i is set, the signal type having index i has been
@@ -148,12 +149,12 @@ import { getGNSSSignal } from '../../../../src/firmware/4-10-1/utils'
                                            34            | B2b         | BeiDou        | 1207.14                   | 7D
                                            35            | Reserved    |               |                           |
 
-                                           Field       | Type  | Do-Not-Use | RINEX satellitle code | Description 
+                                           Field       | Type  | Do-Not-Use | RINEX satellitle code | Description
                                            SVID or PRN | uint8 |          0 |                       | Satellite ID: The following ranges are deﬁned:
                                                                             | Gnn (nn = SVID)       | 1-37: PRN number of a GPS satellite
                                                                             | Rnn (nn = SVID-37)    | 38-61: Slot number of a GLONASS satellite with an offset of 37 (R01 to R24)
                                                                             |                       | 62: GLONASS satellite of which the slot number NA is not known
-                                                                            | Rnn (nn = SVID-38)    | 63-68: Slot number of a GLONASS satellite with an offset of 38 (R25 to R30) 
+                                                                            | Rnn (nn = SVID-38)    | 63-68: Slot number of a GLONASS satellite with an offset of 38 (R25 to R30)
                                                                             | Enn (nn = SVID-70)    | 71-106: PRN number of a GALILEO satellite with an offset of 70
                                                                             |                       | 107-119: L-Band (MSS) satellite. Corresponding NA satellite name can be found in the LBandBeams block.
                                                                             | Snn (nn = SVID-100)   | 120-140: PRN number of an SBAS satellite (S120 to S140)
@@ -163,9 +164,9 @@ import { getGNSSSignal } from '../../../../src/firmware/4-10-1/utils'
                                                                             | Snn (nn = SVID-157)   | 198-215: PRN number of an SBAS satellite with an offset of 57 (S141 to S158)
                                                                             | Inn (nn = SVID-208)   | 216-222: PRN number of a NavIC/IRNSS satellite with an offset of 208 (I08 to I14)
                                                                             | Cnn (nn = SVID-182)   | 223-245: PRN number of a BeiDou satellite with an offset of 182 (C41 to C63)
-                                            FreqNr     | uint8 |          0 |                       | GLONASS frequency number, with an offset of 8. It ranges from 1 (corresponding to an actual frequency number of -7) 
+                                            FreqNr     | uint8 |          0 |                       | GLONASS frequency number, with an offset of 8. It ranges from 1 (corresponding to an actual frequency number of -7)
                                                                                                     | to 21 (corresponding to an actual frequency number of 13).
-                                                                                                    | 
+                                                                                                    |
                                                                                                     | For non-GLONASS satellites, FreqNr is reserved and must be ignored by the decoding software.
   AlertFlag       uint8                 0  Bit ﬁeld indicating integrity related information:
                                              Bits 0-1: RAIM integrity ﬂag:
@@ -187,7 +188,6 @@ Rev 1 PPPInfo    uint16  1 sec          0  Bit ﬁeld containing PPP-related inf
                                                            1: Manual seed
                                                            2: Seeded from DGPS
                                                            3: Seeded from RTKFixed
-
 
 Rev 2 Latency    uint16  0.0001 s   65535  Time elapsed between the time of applicability of the position ﬁx and the generation of this SBF block by the receiver. This time includes the receiver processing time, but not the communication latency.
 Rev 2 HAccuracy  uint16    0.01 m   65535  2DRMS horizontal accuracy: twice the root-mean-square of the horizontal distance error. The horizontal distance between the true position and the computed position is expected to be lower than HAccuracy with a probability of at least 95%. The value is clipped to 65534=655.34m
@@ -230,7 +230,7 @@ const defaultInputRev0: PVTGeodeticRev0 = {
   alertFlag: 0b0000_0001,
   padding: null,
   metadata: {
-    mode: { 
+    mode: {
       pvtSolution: 'FIXED',
       reserved45: 0b00,
       determiningPosition: false,
@@ -249,17 +249,17 @@ const defaultInputRev0: PVTGeodeticRev0 = {
     },
     signalInfo: {
       0: { signal: 'L1CA', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode: '1C' },
-      1: { signal: 'L1P', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode:'1W' },
+      1: { signal: 'L1P', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode: '1W' },
       2: { signal: 'L2P', constellation: 'GPS', carrierFrequency: 1227.60, rinexCode: '2W' },
       3: { signal: 'L2C', constellation: 'GPS', carrierFrequency: 1227.60, rinexCode: '2L' },
       4: { signal: 'L5', constellation: 'GPS', carrierFrequency: 1176.45, rinexCode: '5Q' },
       5: { signal: 'L1C', constellation: 'GPS', carrierFrequency: 1575.42, rinexCode: '1L' },
       6: { signal: 'L1CA', constellation: 'QZSS', carrierFrequency: 1575.42, rinexCode: '1C' },
       7: { signal: 'L2C', constellation: 'QZSS', carrierFrequency: 1227.60, rinexCode: '2L' },
-      8: { signal: 'L1CA',  constellation: 'GLONASS', carrierFrequency: 1602.00 /*+ (FreqNr - 8) * 9 / 16*/,  rinexCode: '1C' },
-      9: { signal: 'L1P', constellation: 'GLONASS', carrierFrequency: 1602.00 /*+ (FreqNr - 8) * 9 / 16*/, rinexCode: '1P' },
-      10: { signal: 'L2P', constellation: 'GLONASS', carrierFrequency: 1246.00 /*+ (FreqNr - 8) * 7 /16*/, rinexCode: '2P' },
-      11: { signal: 'L2CA', constellation: 'GLONASS', carrierFrequency: 1246.00 /*+ (FreqNr - 8) * 7 / 16*/, rinexCode: '2C' },
+      8: { signal: 'L1CA', constellation: 'GLONASS', carrierFrequency: 1602.00 /* + (FreqNr - 8) * 9 / 16 */, rinexCode: '1C' },
+      9: { signal: 'L1P', constellation: 'GLONASS', carrierFrequency: 1602.00 /* + (FreqNr - 8) * 9 / 16 */, rinexCode: '1P' },
+      10: { signal: 'L2P', constellation: 'GLONASS', carrierFrequency: 1246.00 /* + (FreqNr - 8) * 7 /16 */, rinexCode: '2P' },
+      11: { signal: 'L2CA', constellation: 'GLONASS', carrierFrequency: 1246.00 /* + (FreqNr - 8) * 7 / 16 */, rinexCode: '2C' },
       12: { signal: 'L3', constellation: 'GLONASS', carrierFrequency: 1202.025, rinexCode: '3Q' },
       13: { signal: 'B1C', constellation: 'BeiDou', carrierFrequency: 1575.42, rinexCode: '1P' },
       14: { signal: 'B2a', constellation: 'BeiDou', carrierFrequency: 1176.45, rinexCode: '5P' },
@@ -287,8 +287,8 @@ const defaultInputRev0: PVTGeodeticRev0 = {
       galileoIonosphericStorm: false,
       reserved4: false,
       reserved57: 0b00,
-    }
-  }
+    },
+  },
 }
 
 const getNameFrameDataRev0 = (input: PVTGeodeticRev0 = defaultInputRev0) => {
@@ -339,14 +339,14 @@ const getNameFrameDataRev0 = (input: PVTGeodeticRev0 = defaultInputRev0) => {
   // const { padding, paddingBuffer } = (paddingLength > 0)
   //   ? { padding: 0, paddingBuffer: Buffer.from(Array(paddingLength).fill(0)) }
   //   : { padding: null, paddingBuffer: Buffer.from([]) }
-  const padding = null 
-  const paddingBuffer = Buffer.from([]) 
+  const padding = null
+  const paddingBuffer = Buffer.from([])
 
   const frame: PVTGeodeticRev0 = {
     revision: input.revision,
     mode, error, latitude, longitude, height, undulation, vn, ve, vu, cog, rxClkBias, rxClkDrift, timeSystem, datum, nrSV, waCorrInfo, referenceID, meanCorrAge, signalInfo, alertFlag,
     padding,
-    metadata: { ...input.metadata }
+    metadata: { ...input.metadata },
   }
 
   const data = Buffer.concat([auxBuffer, paddingBuffer])
@@ -355,7 +355,6 @@ const getNameFrameDataRev0 = (input: PVTGeodeticRev0 = defaultInputRev0) => {
 }
 
 describe('Testing PVTGeodetic Revision 0', () => {
-
   const revision = 0
 
   test('Regular body', () => {
@@ -364,7 +363,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -394,7 +393,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
       datum: null,
       waCorrInfo: null,
       signalInfo: null,
-      alertFlag: null
+      alertFlag: null,
     }
 
     const { data } = getNameFrameDataRev0(input)
@@ -435,8 +434,8 @@ describe('Testing PVTGeodetic Revision 0', () => {
           pvtSolution: (i < 13 && i !== 9 && i !== 11) ? PVTSolution[i] : 'UNKNOWN',
           reserved45: 0b00,
           determiningPosition: false,
-          flag2D3D: false
-        }
+          flag2D3D: false,
+        },
       }
       const { data } = getNameFrameDataRev0(input)
       const { body } = pvtGeodetic(revision, data) as { name: string, body: PVTGeodeticRev0 }
@@ -470,7 +469,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
       input.timeSystem = i
       input.metadata = {
         ...input.metadata,
-        timesytem: (i < 6 && i !== 2) ? TimeSystem[i] : 'UNKNOWN'
+        timesytem: (i < 6 && i !== 2) ? TimeSystem[i] : 'UNKNOWN',
       }
       const { data } = getNameFrameDataRev0(input)
       const { body } = pvtGeodetic(revision, data) as { name: string, body: PVTGeodeticRev0 }
@@ -491,7 +490,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
       input.datum = i
       input.metadata = {
         ...input.metadata,
-        datum: ([0, 19, 30, 31, 32, 33, 34, 35, 250, 251].includes(i)) ? Datum[i] : 'UNKNOWN'
+        datum: ([0, 19, 30, 31, 32, 33, 34, 35, 250, 251].includes(i)) ? Datum[i] : 'UNKNOWN',
       }
       const { data } = getNameFrameDataRev0(input)
       const { body } = pvtGeodetic(revision, data) as { name: string, body: PVTGeodeticRev0 }
@@ -519,7 +518,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
           orbitAccuracy: bitState(i, 3),
           DO229: bitState(i, 4),
           reserved: (i & 0b1110_0000) >>> 5,
-        }
+        },
       }
       const { data } = getNameFrameDataRev0(input)
       const { body } = pvtGeodetic(revision, data) as { name: string, body: PVTGeodeticRev0 }
@@ -535,7 +534,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
   test('SignalInfo field', () => {
     const getSignalInfo = (signalInfo: number): SignalInfo => {
       const response: Record<number, GNSSSignal> = {}
-      for (let bit = 0; bit < 32; bit++){
+      for (let bit = 0; bit < 32; bit++) {
         if (bitState(signalInfo, bit)) {
           const signal = getGNSSSignal(bit)
           if (signal !== null) {
@@ -553,7 +552,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
       input.signalInfo = i
       input.metadata = {
         ...input.metadata,
-        signalInfo: (i !== START) ? getSignalInfo(i) : null
+        signalInfo: (i !== START) ? getSignalInfo(i) : null,
       }
       const { data } = getNameFrameDataRev0(input)
       const { body } = pvtGeodetic(revision, data) as { name: string, body: PVTGeodeticRev0 }
@@ -580,7 +579,7 @@ describe('Testing PVTGeodetic Revision 0', () => {
           galileoIonosphericStorm: bitState(i, 3),
           reserved4: bitState(i, 4),
           reserved57: (i & 0b1110_0000) >>> 5,
-        }
+        },
       }
       const { data } = getNameFrameDataRev0(input)
       const { body } = pvtGeodetic(revision, data) as { name: string, body: PVTGeodeticRev0 }
@@ -604,9 +603,9 @@ const defaultInputRev1: PVTGeodeticRev1 = {
     pppInfo: {
       ageLastSeed: 0b1111_1111_1111,
       reserved: true,
-      lastSeed: 'RTK_FIXED_SEED'
-    }
-  }
+      lastSeed: 'RTK_FIXED_SEED',
+    },
+  },
 }
 
 const getNameFrameDataRev1 = (input: PVTGeodeticRev1 = defaultInputRev1) => {
@@ -661,14 +660,14 @@ const getNameFrameDataRev1 = (input: PVTGeodeticRev1 = defaultInputRev1) => {
   // const { padding, paddingBuffer } = (paddingLength > 0)
   //   ? { padding: 0, paddingBuffer: Buffer.from(Array(paddingLength).fill(0)) }
   //   : { padding: null, paddingBuffer: Buffer.from([]) }
-  const padding = null 
-  const paddingBuffer = Buffer.from([]) 
+  const padding = null
+  const paddingBuffer = Buffer.from([])
 
   const frame: PVTGeodeticRev1 = {
     revision: input.revision,
     mode, error, latitude, longitude, height, undulation, vn, ve, vu, cog, rxClkBias, rxClkDrift, timeSystem, datum, nrSV, waCorrInfo, referenceID, meanCorrAge, signalInfo, alertFlag, nrBases, pppInfo,
     padding,
-    metadata: { ...input.metadata }
+    metadata: { ...input.metadata },
   }
 
   const data = Buffer.concat([auxBuffer, paddingBuffer])
@@ -677,7 +676,6 @@ const getNameFrameDataRev1 = (input: PVTGeodeticRev1 = defaultInputRev1) => {
 }
 
 describe('Testing PVTGeodetic Revision 1', () => {
-
   const revision = 1
 
   test('Regular body', () => {
@@ -686,7 +684,7 @@ describe('Testing PVTGeodetic Revision 1', () => {
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -758,8 +756,8 @@ describe('Testing PVTGeodetic Revision 1', () => {
       pppInfo: {
         ageLastSeed: 0b0000_0000_1000,
         reserved: false,
-        lastSeed: 'NOT_SEEDED'
-      }
+        lastSeed: 'NOT_SEEDED',
+      },
     }
     const { data: data1 } = getNameFrameDataRev1(input)
     const { body: body1 } = pvtGeodetic(revision, data1) as { name: string, body: PVTGeodeticRev2 }
@@ -772,8 +770,8 @@ describe('Testing PVTGeodetic Revision 1', () => {
       pppInfo: {
         ageLastSeed: 0b0000_0000_1000,
         reserved: false,
-        lastSeed: 'MANUAL_SEED'
-      }
+        lastSeed: 'MANUAL_SEED',
+      },
     }
     const { data: data2 } = getNameFrameDataRev1(input)
     const { body: body2 } = pvtGeodetic(revision, data2) as { name: string, body: PVTGeodeticRev2 }
@@ -786,8 +784,8 @@ describe('Testing PVTGeodetic Revision 1', () => {
       pppInfo: {
         ageLastSeed: 0b0000_0000_1000,
         reserved: false,
-        lastSeed: 'DGPS_SEED'
-      }
+        lastSeed: 'DGPS_SEED',
+      },
     }
     const { data: data3 } = getNameFrameDataRev1(input)
     const { body: body3 } = pvtGeodetic(revision, data3) as { name: string, body: PVTGeodeticRev2 }
@@ -800,8 +798,8 @@ describe('Testing PVTGeodetic Revision 1', () => {
       pppInfo: {
         ageLastSeed: 0b0000_0000_1000,
         reserved: false,
-        lastSeed: 'RTK_FIXED_SEED'
-      }
+        lastSeed: 'RTK_FIXED_SEED',
+      },
     }
     const { data: data4 } = getNameFrameDataRev1(input)
     const { body: body4 } = pvtGeodetic(revision, data4) as { name: string, body: PVTGeodeticRev2 }
@@ -814,8 +812,8 @@ describe('Testing PVTGeodetic Revision 1', () => {
       pppInfo: {
         ageLastSeed: 0b0000_0000_1000,
         reserved: false,
-        lastSeed: 'UNKNOWN'
-      }
+        lastSeed: 'UNKNOWN',
+      },
     }
     const { data: data5 } = getNameFrameDataRev1(input)
     const { body: body5 } = pvtGeodetic(revision, data5) as { name: string, body: PVTGeodeticRev2 }
@@ -840,8 +838,8 @@ const defaultInputRev2: PVTGeodeticRev2 = {
       propietary3: true,
       propietary45: 0b11,
       arpPosition: 'ARP-to-marker offset is not zero',
-    }
-  }
+    },
+  },
 }
 
 const getNameFrameDataRev2 = (input: PVTGeodeticRev2 = defaultInputRev2) => {
@@ -904,14 +902,14 @@ const getNameFrameDataRev2 = (input: PVTGeodeticRev2 = defaultInputRev2) => {
   // const { padding, paddingBuffer } = (paddingLength > 0)
   //   ? { padding: 0, paddingBuffer: Buffer.from(Array(paddingLength).fill(0)) }
   //   : { padding: null, paddingBuffer: Buffer.from([]) }
-  const padding = null 
-  const paddingBuffer = Buffer.from([]) 
+  const padding = null
+  const paddingBuffer = Buffer.from([])
 
   const frame: PVTGeodeticRev2 = {
     revision: input.revision,
     mode, error, latitude, longitude, height, undulation, vn, ve, vu, cog, rxClkBias, rxClkDrift, timeSystem, datum, nrSV, waCorrInfo, referenceID, meanCorrAge, signalInfo, alertFlag, nrBases, pppInfo, latency, hAccuracy, vAccuracy, misc,
     padding,
-    metadata: { ...input.metadata }
+    metadata: { ...input.metadata },
   }
 
   const data = Buffer.concat([auxBuffer, paddingBuffer])
@@ -920,7 +918,6 @@ const getNameFrameDataRev2 = (input: PVTGeodeticRev2 = defaultInputRev2) => {
 }
 
 describe('Testing PVTGeodetic Revision 2', () => {
-
   const revision = 2
 
   test('Regular body', () => {
@@ -929,7 +926,7 @@ describe('Testing PVTGeodetic Revision 2', () => {
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -1010,8 +1007,8 @@ describe('Testing PVTGeodetic Revision 2', () => {
         propietary2: false,
         propietary3: false,
         propietary45: 0b00,
-        arpPosition: 'Unknown'
-      }
+        arpPosition: 'Unknown',
+      },
     }
     const { data: data1 } = getNameFrameDataRev2(input)
     const { body: body1 } = pvtGeodetic(revision, data1) as { name: string, body: PVTGeodeticRev2 }

@@ -2,11 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "rootDir": "."
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "legacy/*"
-  ]
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "legacy/*"]
 }

@@ -22,7 +22,7 @@ export const endOfAtt = (blockRevision: number, data: Buffer): Response => {
   const name = 'EndOfAtt'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
   const body: EndOfAtt = {
-    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH)
+    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
   }
   return { name, body }
 }

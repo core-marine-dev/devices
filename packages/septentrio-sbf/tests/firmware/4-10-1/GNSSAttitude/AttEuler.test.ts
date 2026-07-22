@@ -1,6 +1,6 @@
-import { describe, test, expect } from 'vitest'
-import { AttEuler, Error, ErrorCode, Mode, attEuler } from '../../../../src/firmware/4-10-1/GNSSAttitude/AttEuler'
-import { SBFBodyData } from '../../../../src/types'
+import { describe, expect, test } from 'vitest'
+
+import { AttEuler, ERROR_CODE, Error, type Mode, MODE, attEuler } from '../../../../src/firmware/4-10-1/GNSSAttitude/AttEuler'
 import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 /* AttEuler -> Number: 5938 => "OnChange" interval: default PVT output rate
 The AttEuler block contains the Euler angles (pitch, roll and heading)
@@ -63,20 +63,20 @@ const getNameFrameData = () => {
   const padding = null
   // Metadata
   const metadataError: Error = {
-    mainAux1Baseline: ErrorCode.NO,
-    mainAux2Baseline: ErrorCode.NO,
+    mainAux1Baseline: ERROR_CODE.NO,
+    mainAux2Baseline: ERROR_CODE.NO,
     reserved: 0b111,
-    notRequestedAttitude: false
+    notRequestedAttitude: false,
   }
-  const metadataMode: Mode = Mode.HEADING_PICH_ROLL_FIXED
-  
+  const metadataMode: Mode = MODE.HEADING_PICH_ROLL_FIXED
+
   const frame: AttEuler = {
     nrSV, error, mode, reserved, heading, pitch, roll, headingDot, pitchDot, rollDot,
     padding,
     metadata: {
       error: metadataError,
-      mode: metadataMode
-    }
+      mode: metadataMode,
+    },
   }
   const data: Buffer = Buffer.concat([
     nrSVBuffer,
@@ -88,20 +88,19 @@ const getNameFrameData = () => {
     rollBuffer,
     headingDotBuffer,
     pitchDotBuffer,
-    rollDotBuffer
+    rollDotBuffer,
   ])
   return { frameName, frame, data }
 }
 
 describe('Testing AttEuler', () => {
-
   test('Regular body', () => {
     const { frameName, frame, data } = getNameFrameData()
     const { name, body } = attEuler(0, data)
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -112,10 +111,10 @@ describe('Testing AttEuler', () => {
     let aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     let body = attEuler(0, data).body
@@ -125,10 +124,10 @@ describe('Testing AttEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.MEASUREMENTS,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.MEASUREMENTS,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -138,10 +137,10 @@ describe('Testing AttEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.RESERVED,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.RESERVED,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -151,10 +150,10 @@ describe('Testing AttEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.MEASUREMENTS,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.MEASUREMENTS,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -164,10 +163,10 @@ describe('Testing AttEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.RESERVED,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.RESERVED,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -177,10 +176,10 @@ describe('Testing AttEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: true
+      notRequestedAttitude: true,
     }
     data[1] = aux.buffer[0]
     body = attEuler(0, data).body
@@ -193,7 +192,7 @@ describe('Testing AttEuler', () => {
     let modeBinary = 0
     let aux = getTypedData(modeBinary, TypeData.UINT8) as TypedData
     frame.mode = aux.number
-    frame.metadata.mode = Mode.NO
+    frame.metadata.mode = MODE.NO
     data[2] = aux.buffer[0]
     data[3] = aux.buffer[1]
     let body = attEuler(0, data).body
@@ -202,7 +201,7 @@ describe('Testing AttEuler', () => {
     modeBinary = 1
     aux = getTypedData(modeBinary, TypeData.UINT8) as TypedData
     frame.mode = aux.number
-    frame.metadata.mode = Mode.HEADING_PICH_FLOAT
+    frame.metadata.mode = MODE.HEADING_PICH_FLOAT
     data[2] = aux.buffer[0]
     data[3] = aux.buffer[1]
     body = attEuler(0, data).body
@@ -211,7 +210,7 @@ describe('Testing AttEuler', () => {
     modeBinary = 2
     aux = getTypedData(modeBinary, TypeData.UINT8) as TypedData
     frame.mode = aux.number
-    frame.metadata.mode = Mode.HEADING_PICH_FIXED
+    frame.metadata.mode = MODE.HEADING_PICH_FIXED
     data[2] = aux.buffer[0]
     data[3] = aux.buffer[1]
     body = attEuler(0, data).body
@@ -220,7 +219,7 @@ describe('Testing AttEuler', () => {
     modeBinary = 3
     aux = getTypedData(modeBinary, TypeData.UINT8) as TypedData
     frame.mode = aux.number
-    frame.metadata.mode = Mode.HEADING_PICH_ROLL_FLOAT
+    frame.metadata.mode = MODE.HEADING_PICH_ROLL_FLOAT
     data[2] = aux.buffer[0]
     data[3] = aux.buffer[1]
     body = attEuler(0, data).body
@@ -229,7 +228,7 @@ describe('Testing AttEuler', () => {
     modeBinary = 4
     aux = getTypedData(modeBinary, TypeData.UINT8) as TypedData
     frame.mode = aux.number
-    frame.metadata.mode = Mode.HEADING_PICH_ROLL_FIXED
+    frame.metadata.mode = MODE.HEADING_PICH_ROLL_FIXED
     data[2] = aux.buffer[0]
     data[3] = aux.buffer[1]
     body = attEuler(0, data).body

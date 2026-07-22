@@ -35,7 +35,7 @@ const getAirDataStatus = (airdataStatus: number): AirDataStatus => ({
   SBG_ECOM_AIR_DATA_ALTITUDE_VALID: bitStatus(airdataStatus, 2),
   SBG_ECOM_AIR_DATA_PRESSURE_DIFF_VALID: bitStatus(airdataStatus, 3),
   SBG_ECOM_AIR_DATA_AIRSPEED_VALID: bitStatus(airdataStatus, 4),
-  SBG_ECOM_AIR_DATA_TEMPERATURE_VALID: bitStatus(airdataStatus, 5)
+  SBG_ECOM_AIR_DATA_TEMPERATURE_VALID: bitStatus(airdataStatus, 5),
 })
 
 const getData = (payload: Buffer): object => {
@@ -47,10 +47,10 @@ const getData = (payload: Buffer): object => {
     pressureDifferential: payload.readFloatLE(14),
     trueAirspeed: payload.readFloatLE(18),
     airTemperature: payload.readFloatLE(22),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    heaveStatus: getAirDataStatus(data.airdataStatus)
+    heaveStatus: getAirDataStatus(data.airdataStatus),
   }
   return data
 }

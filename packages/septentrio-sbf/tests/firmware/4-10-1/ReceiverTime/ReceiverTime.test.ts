@@ -1,15 +1,16 @@
 import { describe, test, expect } from 'vitest'
-import { ReceiverTime, SyncLevel, Synchronization, receiverTime } from '../../../../src/firmware/4-10-1/ReceiverTime/ReceiverTime'
+
+import { ReceiverTime, SyncLevel, SYNCHRONIZATION, receiverTime } from '../../../../src/firmware/4-10-1/ReceiverTime/ReceiverTime'
 import { TypeData, TypedData, getTypedData } from '../../../testUtils'
 /* ReceiverTime -> Number: 5914 => "OnChange" interval: 1 second
-  The ReceiverTime block provides the current time with a 1-second resolution 
+  The ReceiverTime block provides the current time with a 1-second resolution
   in the receiver time scale and UTC.
-  
-  The level of synchronization of the receiver time with the satellite system 
+
+  The level of synchronization of the receiver time with the satellite system
   time is provided in the SyncLevel ﬁeld.
 
-  UTC time is provided if the UTC parameters have been received from at least 
-  one GNSS satellite. If the UTC time is not available, the corresponding 
+  UTC time is provided if the UTC parameters have been received from at least
+  one GNSS satellite. If the UTC time is not available, the corresponding
   ﬁelds are set to their Do-Not-Use value.
 
   ReceiverTime ----------------------------------------------------------------
@@ -43,21 +44,21 @@ const getDate = () => {
 }
 
 type Input = {
-  syncLevel: number,
+  syncLevel: number
   meta: SyncLevel
 }
 
 const defaultInput: Input = {
   syncLevel: 0b1111_1111,
   meta: {
-    synchronization: Synchronization.FULL,
+    synchronization: SYNCHRONIZATION.FULL,
     wnSet: true,
     towSet: true,
     finetime: true,
     reserved1: true,
     reserved2: true,
-    reserved3: 0b111
-  }
+    reserved3: 0b111,
+  },
 }
 
 const getNameFrameData = (input: Input = defaultInput) => {
@@ -84,16 +85,16 @@ const getNameFrameData = (input: Input = defaultInput) => {
   const paddingBuffer = Buffer.from([])
   // Metadata
   const metadataSyncLeveL: SyncLevel = { ...input.meta }
-  
+
   const frame: ReceiverTime = {
     utcYear, utcMonth, utcDay, utcHour, utcMin, utcSec, deltaLS, syncLevel,
     padding,
-    metadata: { syncLeveL: metadataSyncLeveL }
+    metadata: { syncLeveL: metadataSyncLeveL },
   }
   const data: Buffer = Buffer.concat([
     utcYearBuffer, utcMonthBuffer, utcDayBuffer,
     utcHourBuffer, utcMinBuffer, utcSecBuffer,
-    deltaLSBuffer, syncLeveLBuffer, paddingBuffer
+    deltaLSBuffer, syncLeveLBuffer, paddingBuffer,
   ])
   return { frameName, frame, data }
 }
@@ -112,60 +113,60 @@ describe('Testing ReceiverTime', () => {
     const { frame: frame1, data: data1 } = getNameFrameData()
     const { body: body1 } = receiverTime(0, data1)
     expect(body1).toStrictEqual(frame1)
-    expect(body1.metadata.syncLeveL.synchronization).toBe(Synchronization.FULL)
+    expect(body1.metadata.syncLeveL.synchronization).toBe(SYNCHRONIZATION.FULL)
     // WNSet synchronization
     input.syncLevel = 0b0000_0001
     input.meta = {
-      synchronization: Synchronization.NOT_FULL,
+      synchronization: SYNCHRONIZATION.NOT_FULL,
       wnSet: true, towSet: false, finetime: false,
-      reserved1: false, reserved2: false, reserved3: 0b000
+      reserved1: false, reserved2: false, reserved3: 0b000,
     }
     const { frame: frame2, data: data2 } = getNameFrameData()
-    const {  body: body2 } = receiverTime(0, data2)
+    const { body: body2 } = receiverTime(0, data2)
     expect(body2).toStrictEqual(frame2)
-    expect(body2.metadata.syncLeveL.synchronization).toBe(Synchronization.NOT_FULL)
+    expect(body2.metadata.syncLeveL.synchronization).toBe(SYNCHRONIZATION.NOT_FULL)
     expect(body2.metadata.syncLeveL.wnSet).toBeTruthy()
     expect(body2.metadata.syncLeveL.towSet).toBeFalsy()
     expect(body2.metadata.syncLeveL.finetime).toBeFalsy()
     // TOWSet synchronization
     input.syncLevel = 0b0000_0010
     input.meta = {
-      synchronization: Synchronization.NOT_FULL,
+      synchronization: SYNCHRONIZATION.NOT_FULL,
       wnSet: false, towSet: true, finetime: false,
-      reserved1: false, reserved2: false, reserved3: 0b000
+      reserved1: false, reserved2: false, reserved3: 0b000,
     }
     const { frame: frame3, data: data3 } = getNameFrameData()
-    const {  body: body3 } = receiverTime(0, data3)
+    const { body: body3 } = receiverTime(0, data3)
     expect(body3).toStrictEqual(frame3)
-    expect(body3.metadata.syncLeveL.synchronization).toBe(Synchronization.NOT_FULL)
+    expect(body3.metadata.syncLeveL.synchronization).toBe(SYNCHRONIZATION.NOT_FULL)
     expect(body3.metadata.syncLeveL.wnSet).toBeFalsy()
     expect(body3.metadata.syncLeveL.towSet).toBeTruthy()
     expect(body3.metadata.syncLeveL.finetime).toBeFalsy()
     // FINETIME synchronization
     input.syncLevel = 0b0000_0100
     input.meta = {
-      synchronization: Synchronization.NOT_FULL,
+      synchronization: SYNCHRONIZATION.NOT_FULL,
       wnSet: false, towSet: false, finetime: true,
-      reserved1: false, reserved2: false, reserved3: 0b000
+      reserved1: false, reserved2: false, reserved3: 0b000,
     }
     const { frame: frame4, data: data4 } = getNameFrameData()
-    const {  body: body4 } = receiverTime(0, data4)
+    const { body: body4 } = receiverTime(0, data4)
     expect(body4).toStrictEqual(frame4)
-    expect(body4.metadata.syncLeveL.synchronization).toBe(Synchronization.NOT_FULL)
+    expect(body4.metadata.syncLeveL.synchronization).toBe(SYNCHRONIZATION.NOT_FULL)
     expect(body4.metadata.syncLeveL.wnSet).toBeFalsy()
     expect(body4.metadata.syncLeveL.towSet).toBeFalsy()
     expect(body4.metadata.syncLeveL.finetime).toBeTruthy()
     // NO synchronization
     input.syncLevel = 0b0000_0000
     input.meta = {
-      synchronization: Synchronization.NONE,
+      synchronization: SYNCHRONIZATION.NONE,
       wnSet: false, towSet: false, finetime: false,
-      reserved1: false, reserved2: false, reserved3: 0b000
+      reserved1: false, reserved2: false, reserved3: 0b000,
     }
     const { frame: frame5, data: data5 } = getNameFrameData()
-    const {  body: body5 } = receiverTime(0, data5)
+    const { body: body5 } = receiverTime(0, data5)
     expect(body5).toStrictEqual(frame5)
-    expect(body5.metadata.syncLeveL.synchronization).toBe(Synchronization.NONE)
+    expect(body5.metadata.syncLeveL.synchronization).toBe(SYNCHRONIZATION.NONE)
     expect(body5.metadata.syncLeveL.wnSet).toBeFalsy()
     expect(body5.metadata.syncLeveL.towSet).toBeFalsy()
     expect(body5.metadata.syncLeveL.finetime).toBeFalsy()

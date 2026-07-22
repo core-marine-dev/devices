@@ -15,9 +15,9 @@ export const getBoundariesSample = (input: string): { start: number, end: number
   const endPing = input.indexOf(PING_END, start)
   const endClockRound = input.indexOf(CLOCK_ROUND, start)
   const endClockSet = input.indexOf(CLOCK_SET, start)
-  const interferenceIndexes = [endPing, endClockRound, endClockSet].filter(value => value > -1)
+  const interferenceIndexes = [endPing, endClockRound, endClockSet].filter((value) => value > -1)
   // Sample with interferences is discard
-  if (interferenceIndexes.some(value => value < endSample)) return { start, end: -1, incomplete: true }
+  if (interferenceIndexes.some((value) => value < endSample)) return { start, end: -1, incomplete: true }
   // Boundaries
   const end = endSample + SAMPLE_END.length
   return { start, end, incomplete: false }
@@ -65,7 +65,7 @@ export const getBoundariesListening = (input: string): { start: number, end: num
 export const getBoundariesCommand = (input: string): { start: number, end: number, incomplete: boolean } => {
   const start101 = input.indexOf(COMMAND_MODE_101)
   const start102 = input.indexOf(COMMAND_MODE_102)
-  const start = [start101, start102].filter(value => value > -1).reduce((a, b) => Math.min(a, b), Infinity)
+  const start = [start101, start102].filter((value) => value > -1).reduce((a, b) => Math.min(a, b), Infinity)
   // No Sample
   if (!Number.isFinite(start)) return { start: -1, end: -1, incomplete: false }
   // Sample
@@ -97,14 +97,22 @@ export const getBoundariesSerialNumber = (input: string): { start: number, end: 
   if (start === -1) return { start: -1, end: -1, incomplete: false }
   // Incomplete
   const tmp = input.slice(start + SERIAL_NUMBER_START.length)
-  if (tmp.length < SERIAL_NUMBER_LENGTH_MIN) { return { start, end: -1, incomplete: true } }
+  if (tmp.length < SERIAL_NUMBER_LENGTH_MIN) {
+    return { start, end: -1, incomplete: true }
+  }
   let sn = ''
   for (const char of tmp) {
-    if (Number.isNaN(Number(char))) { break }
-    if (sn.length >= SERIAL_NUMBER_LENGTH_MAX) { break }
+    if (Number.isNaN(Number(char))) {
+      break
+    }
+    if (sn.length >= SERIAL_NUMBER_LENGTH_MAX) {
+      break
+    }
     sn += char
   }
-  if (sn.length < SERIAL_NUMBER_LENGTH_MIN) { return { start, end: -1, incomplete: true } }
+  if (sn.length < SERIAL_NUMBER_LENGTH_MIN) {
+    return { start, end: -1, incomplete: true }
+  }
   // Rest
   return { start, end: start + SERIAL_NUMBER_START.length + sn.length, incomplete: false }
 }
@@ -122,7 +130,9 @@ export const getBoundariesFirmware = (input: string): { start: number, end: numb
   // Patch
   let end = 0
   for (const char of input.slice(minorIndex + 1)) {
-    if (Number.isNaN(Number(char))) { break }
+    if (Number.isNaN(Number(char))) {
+      break
+    }
     end++
   }
   // If no end found = no patch, return incomplete
@@ -138,7 +148,9 @@ export const getBoundariesFrequency = (input: string): { start: number, end: num
   // No Sample
   if (start === -1) return { start: -1, end: -1, incomplete: false }
   // Incomplete
-  if (input.slice(start).length < FREQUENCY_START.length + FREQUENCY_LENGTH) { return { start, end: -1, incomplete: true } }
+  if (input.slice(start).length < FREQUENCY_START.length + FREQUENCY_LENGTH) {
+    return { start, end: -1, incomplete: true }
+  }
   // Sample
   return { start, end: start + FREQUENCY_START.length + FREQUENCY_LENGTH, incomplete: false }
 }
@@ -149,15 +161,21 @@ export const getBoundariesTime = (input: string): { start: number, end: number, 
   if (start === -1) return { start: -1, end: -1, incomplete: false }
   const MAX_LENGTH = TIMESTAMP_START.length + Math.trunc(Date.now() / 1000).toString().length
   // Incomplete
-  if (input.slice(start).length < TIMESTAMP_START.length + 1) { return { start, end: -1, incomplete: true } }
+  if (input.slice(start).length < TIMESTAMP_START.length + 1) {
+    return { start, end: -1, incomplete: true }
+  }
   // Check end
   let seconds = ''
   for (const char of input.slice(start + TIMESTAMP_START.length, start + TIMESTAMP_START.length + MAX_LENGTH)) {
-    if (Number.isNaN(Number(char))) { break }
+    if (Number.isNaN(Number(char))) {
+      break
+    }
     seconds += char
   }
   // No sample
-  if (seconds.length === 0) { return { start, end: -1, incomplete: false } }
+  if (seconds.length === 0) {
+    return { start, end: -1, incomplete: false }
+  }
   // Sample
   return { start, end: start + TIMESTAMP_START.length + seconds.length, incomplete: false }
 }
@@ -167,7 +185,9 @@ export const getBoundariesProtocols = (input: string): { start: number, end: num
   // No Sample
   if (start === -1) return { start: -1, end: -1, incomplete: false }
   // Incomplete
-  if (input.slice(start).length < PROTOCOLS_START.length + PROTOCOLS_LENGTH) { return { start, end: -1, incomplete: true } }
+  if (input.slice(start).length < PROTOCOLS_START.length + PROTOCOLS_LENGTH) {
+    return { start, end: -1, incomplete: true }
+  }
   // Sample
   return { start, end: start + PROTOCOLS_START.length + PROTOCOLS_LENGTH, incomplete: false }
 }
@@ -177,7 +197,9 @@ export const getBoundariesIntervals = (input: string): { start: number, end: num
   // No Sample
   if (start === -1) return { start: -1, end: -1, incomplete: false }
   // Incomplete
-  if (input.slice(start).length < LOG_INTERVAL_START.length + LOG_INTERVAL_LENGTH) { return { start, end: -1, incomplete: true } }
+  if (input.slice(start).length < LOG_INTERVAL_START.length + LOG_INTERVAL_LENGTH) {
+    return { start, end: -1, incomplete: true }
+  }
   // Sample
   return { start, end: start + LOG_INTERVAL_START.length + LOG_INTERVAL_LENGTH, incomplete: false }
 }
@@ -222,9 +244,10 @@ const bounders: Record<SentenceName, (input: string) => { start: number, end: nu
   intervals: getBoundariesIntervals,
   restart: getBoundariesRestartDevice,
   reset: getBoundariesFactoryReset,
-  upgrade: getBoundariesUpgradeFirmware
+  upgrade: getBoundariesUpgradeFirmware,
 }
 
+// eslint-disable-next-line sonarjs/max-lines-per-function -- CMA refactor will address
 export const getRawSentence = (input: string): { sentence: { start: number, end: number, incomplete: boolean, id: SentenceName }, interference?: { start: number, end: number, incomplete: boolean, id: SentenceName } } => {
   // @ts-expect-error
   const boundaries: Record<SentenceName, { start: number, end: number, incomplete: boolean }> = {}
@@ -235,7 +258,7 @@ export const getRawSentence = (input: string): { sentence: { start: number, end:
   let sentences = Object.keys(boundaries)
     .filter((sentence) => boundaries[sentence as keyof typeof boundaries].start !== -1)
   // Discard 'ping' or 'serialNumber'
-  if (['ping', 'serialNumber'].every(sentence => sentences.includes(sentence))) {
+  if (['ping', 'serialNumber'].every((sentence) => sentences.includes(sentence))) {
     const ping = boundaries.ping
     const serialNumber = boundaries.serialNumber
     if (ping.start === serialNumber.start) {
@@ -248,17 +271,27 @@ export const getRawSentence = (input: string): { sentence: { start: number, end:
     const api = boundaries.api
     sentences = sentences.filter((sentence) => {
       // Not colision
-      if (!['listening', 'command', 'frequency', 'protocols', 'intervals', 'time', 'restart', 'reset', 'upgrade'].includes(sentence)) { return true }
+      if (!['listening', 'command', 'frequency', 'protocols', 'intervals', 'time', 'restart', 'reset', 'upgrade'].includes(sentence)) {
+        return true
+      }
       // colision
       const interference = boundaries[sentence as keyof typeof boundaries]
       // API incomplete === last sentence
-      if (api.incomplete && (api.start < interference.start)) { return false }
+      if (api.incomplete && (api.start < interference.start)) {
+        return false
+      }
       // No api
-      if (api.end === -1 && (api.start < interference.start)) { return false }
+      if (api.end === -1 && (api.start < interference.start)) {
+        return false
+      }
       // Before API
-      if (interference.end < api.start) { return true }
+      if (interference.end < api.start) {
+        return true
+      }
       // After API
-      if (interference.start > api.end) { return true }
+      if (interference.start > api.end) {
+        return true
+      }
       // In between API
       return false
     })
@@ -266,6 +299,7 @@ export const getRawSentence = (input: string): { sentence: { start: number, end:
 
   const start: { sentence: SentenceName, index: number, incomplete: boolean } = { sentence: '' as SentenceName, index: -1, incomplete: true }
   const end: { sentence: SentenceName, index: number } = { sentence: '' as SentenceName, index: -1 }
+  // eslint-disable-next-line sonarjs/cyclomatic-complexity -- CMA refactor will address
   sentences.forEach((sentence) => {
     const { start: boundaryStart, end: boundaryEnd, incomplete: boundaryIncomplete } = boundaries[sentence as keyof typeof boundaries]
     // If the sentence is serialNumber and it starts with ping, we skip it
@@ -275,7 +309,9 @@ export const getRawSentence = (input: string): { sentence: { start: number, end:
       boundaryStart === start.index &&
       end.sentence === 'ping' &&
       end.index !== -1
-    ) { return }
+    ) {
+      return
+    }
     // Mark as first sentence if it is the first one found and it is not incomplete
     if (start.index === -1 || (boundaryStart < start.index && !boundaryIncomplete)) {
       start.sentence = sentence as SentenceName
@@ -289,7 +325,9 @@ export const getRawSentence = (input: string): { sentence: { start: number, end:
     }
   })
   const sentence = { start: start.index, end: end.index, incomplete: start.incomplete, id: start.sentence }
-  if (start.sentence === end.sentence) { return { sentence } }
+  if (start.sentence === end.sentence) {
+    return { sentence }
+  }
   const interference = { start: boundaries[end.sentence].start, end: boundaries[end.sentence].end, incomplete: boundaries[end.sentence].incomplete, id: end.sentence }
   return { sentence, interference }
 }
@@ -310,7 +348,7 @@ const parsers: Record<SentenceName, (input: string, timestamp: Timestamp) => Par
   intervals: parseLogIntervals, // parseIntervals
   restart: parseRestartDevice, // parseRestart,
   reset: parseFactoryReset, // parseReset,
-  upgrade: parseUpgradeFirmware // parseUpdate,
+  upgrade: parseUpgradeFirmware, // parseUpdate,
 }
 
 export const parseSentence = ({ id, input }: { id: SentenceName, input: string }): ParsedSentence => {
@@ -333,7 +371,9 @@ export const parseSentence = ({ id, input }: { id: SentenceName, input: string }
   // 15. Reboot
   // 16. Reset
   // 17. Upgrade
-  if (id in parsers) { return parsers[id](input, timestamp) }
+  if (id in parsers) {
+    return parsers[id](input, timestamp)
+  }
   // Unknown sentence
   return {
     timestamp,
@@ -342,35 +382,34 @@ export const parseSentence = ({ id, input }: { id: SentenceName, input: string }
     mode: 'unknown',
     firmware: 'unknown',
     payload: [],
-    errors: [`Unknown sentence '${id}'`]
+    errors: [`Unknown sentence '${id}'`],
   }
 }
 
 export const parseSentences = (input: string): { sentences: ParsedSentence[], remainder: string } => {
   const sentences: ParsedSentence[] = []
-  let pivot = 0
   let remainder = input
   while (remainder.length > 0) {
-    remainder = remainder.slice(pivot)
     const { sentence: raw, interference } = getRawSentence(remainder)
     // Jump to interference
     if (interference !== undefined && !interference.incomplete) {
-      pivot = interference.start
+      remainder = remainder.slice(interference.start)
       continue
     }
     // No sentence
     if (raw.id.length === 0) {
-      pivot = remainder.length
       break
     }
     // Incomplete sentence
-    if (raw.incomplete) { break }
+    if (raw.incomplete) {
+      break
+    }
     // Parse sentence
     const data = remainder.slice(raw.start, raw.end)
     const parsed = parseSentence({ id: raw.id, input: data })
     // Add parsed sentence
     sentences.push(parsed)
-    pivot = raw.end
+    remainder = remainder.slice(raw.end)
   }
   return { sentences, remainder }
 }

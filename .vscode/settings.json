@@ -1,4 +1,11 @@
 {
-  "standard.enable": true,
-  "standard.engine": "ts-standard"
+  "eslint.useFlatConfig": true,
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "typescript",
+    "javascript"
+  ]
 }

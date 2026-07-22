@@ -5,7 +5,16 @@ export default defineConfig({
   clean: true,
   format: ['esm', 'cjs'],
   minify: false,
-  dts: true,
+  // Inline the private core's TYPES into our .d.ts too (noExternal only inlines JS),
+  // so the published package carries no reference to the unpublished core.
+  dts: {
+    resolve: [/@coremarine\/protocol-core/]
+  },
   splitting: true,
+  // Runtime-neutral (node/deno/bun/web) — NMEA has no node: imports in src.
+  platform: 'neutral',
+  // Bundle the private shared core into this package's dist so the published
+  // package carries no dependency on the unpublished @coremarine/protocol-core.
+  noExternal: [/@coremarine\/protocol-core/],
   outDir: './dist'
 })

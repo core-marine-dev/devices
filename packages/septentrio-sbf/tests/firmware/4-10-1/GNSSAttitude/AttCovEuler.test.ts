@@ -1,12 +1,13 @@
 import { describe, test, expect } from 'vitest'
-import { AttCovEuler, Error, ErrorCode, attCovEuler } from "../../../../src/firmware/4-10-1/GNSSAttitude/AttCovEuler"
-import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from "../../../testUtils"
+
+import { AttCovEuler, Error, ERROR_CODE, attCovEuler } from '../../../../src/firmware/4-10-1/GNSSAttitude/AttCovEuler'
+import { RandomNumberType, TypeData, TypedData, getTypedData, randomNumber } from '../../../testUtils'
 /* AttCovEuler -> Number: 5939 => "OnChange" interval: default PVT output rate
-This block contains the elements of the symmetric variance-covariance matrix 
+This block contains the elements of the symmetric variance-covariance matrix
 of the attitude angles reported in the AttEuler block
 
-This variance-covariance matrix contains an indication of the accuracy of the 
-estimated parameters (see diagonal elements) and the correlation between 
+This variance-covariance matrix contains an indication of the accuracy of the
+estimated parameters (see diagonal elements) and the correlation between
 these estimates (see off-diagonal elements).
 
 In case the receiver is in heading and pitch mode only, only the heading and pitch
@@ -61,10 +62,10 @@ const getNameFrameData = () => {
   const padding = null
   // Metadata
   const metadataError: Error = {
-    mainAux1Baseline: ErrorCode.NO,
-    mainAux2Baseline: ErrorCode.NO,
+    mainAux1Baseline: ERROR_CODE.NO,
+    mainAux2Baseline: ERROR_CODE.NO,
     reserved: 0b0111,
-    notRequestedAttitude: false
+    notRequestedAttitude: false,
   }
 
   const frame: AttCovEuler = {
@@ -72,7 +73,7 @@ const getNameFrameData = () => {
     padding,
     metadata: {
       error: metadataError,
-    }
+    },
   }
   const data: Buffer = Buffer.concat([
     reservedBuffer,
@@ -89,14 +90,13 @@ const getNameFrameData = () => {
 }
 
 describe('Testing AttCovEuler', () => {
-
   test('Regular body', () => {
     const { frameName, frame, data } = getNameFrameData()
-    const { name, body } = attCovEuler(0, data) as { name: string, body: AttCovEuler}
+    const { name, body } = attCovEuler(0, data) as { name: string, body: AttCovEuler }
     const bodyKeys = Object.keys(body as object)
     const frameKeys = Object.keys(frame)
     expect(name).toBe(frameName)
-    expect(bodyKeys.length).toBe(frameKeys.length)
+    expect(bodyKeys).toHaveLength(frameKeys.length)
     expect(body).toStrictEqual(frame)
   })
 
@@ -107,10 +107,10 @@ describe('Testing AttCovEuler', () => {
     let aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     let body = attCovEuler(0, data).body
@@ -120,10 +120,10 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.MEASUREMENTS,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.MEASUREMENTS,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attCovEuler(0, data).body
@@ -133,10 +133,10 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.RESERVED,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.RESERVED,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attCovEuler(0, data).body
@@ -146,10 +146,10 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.MEASUREMENTS,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.MEASUREMENTS,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attCovEuler(0, data).body
@@ -159,10 +159,10 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.RESERVED,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.RESERVED,
       reserved: 0b000,
-      notRequestedAttitude: false
+      notRequestedAttitude: false,
     }
     data[1] = aux.buffer[0]
     body = attCovEuler(0, data).body
@@ -172,10 +172,10 @@ describe('Testing AttCovEuler', () => {
     aux = getTypedData(errorBinary, TypeData.UINT8) as TypedData
     frame.error = aux.number
     frame.metadata.error = {
-      mainAux1Baseline: ErrorCode.NO,
-      mainAux2Baseline: ErrorCode.NO,
+      mainAux1Baseline: ERROR_CODE.NO,
+      mainAux2Baseline: ERROR_CODE.NO,
       reserved: 0b000,
-      notRequestedAttitude: true
+      notRequestedAttitude: true,
     }
     data[1] = aux.buffer[0]
     body = attCovEuler(0, data).body

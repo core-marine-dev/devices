@@ -7,7 +7,8 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/septentrio-sbf",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/septentrio-sbf"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -45,29 +46,14 @@
     "node": ">= 18"
   },
   "scripts": {
-    "build": "npm run types && npm run format && tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
-    "types": "mkdir -p ../../node_modules/@types/gpstime && cp gpstime.d.ts ../../node_modules/@types/gpstime/index.d.ts",
+    "build": "pnpm run format && tsup",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "crc": "^4.3.2",
     "gpstime": "^1.0.3"
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "gpstime.d.ts",
-      "examples/*"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
   }
 }

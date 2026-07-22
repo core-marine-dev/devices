@@ -72,7 +72,7 @@ export const ERROR_CODE = {
   NO: 'NO_ERROR',
   MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
   RESERVED: 'RESERVED',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 } as const
 export type ErrorCode = typeof ERROR_CODE[keyof typeof ERROR_CODE]
 
@@ -102,7 +102,7 @@ const getError = (error: number): Error => {
     mainAux1Baseline: getErrorCode(main1),
     mainAux2Baseline: getErrorCode(main2),
     reserved,
-    notRequestedAttitude
+    notRequestedAttitude,
   }
 }
 
@@ -112,7 +112,7 @@ export const MODE = {
   HEADING_PICH_FIXED: 'HEADING_PICH_FIXED',
   HEADING_PICH_ROLL_FLOAT: 'HEADING_PICH_ROLL_FLOAT',
   HEADING_PICH_ROLL_FIXED: 'HEADING_PICH_ROLL_FIXED',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 } as const
 export type Mode = typeof MODE[keyof typeof MODE]
 
@@ -176,8 +176,8 @@ export const attEuler = (blockRevision: number, data: Buffer): Response => {
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
     metadata: {
       error: getError(error),
-      mode: getMode(mode)
-    }
+      mode: getMode(mode),
+    },
   }
   return { name, body }
 }

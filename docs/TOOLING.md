@@ -1,0 +1,81 @@
+# Tooling, CI & templates
+
+## Tech stack
+
+| Concern | Tool | Notes |
+| --- | --- | --- |
+| Package manager | pnpm 11.x (workspaces) | `packageManager: pnpm@11.10.0`; supply-chain hardened (`strictDepBuilds` + `allowBuilds` in `pnpm-workspace.yaml`, `engine-strict` in `.npmrc`) |
+| Build | tsup 8.5.1 (patched) | dual ESM + CJS output; ESM is the focus. Patched to not inject `baseUrl` (TS 6 deprecation, see `patches/tsup@8.5.1.patch`) |
+| Test (libraries) | Vitest 4.x | root `vitest.config.ts` aggregates per-package configs via `test.projects` |
+| Test (Node-RED) | Mocha + node-red-node-test-helper | assertion lib varies (`should` / `chai`) |
+| Lint/format | ESLint 10 (flat config) | `@stylistic` (house style: no-semi, single-quotes, 2-space, K&R) + `eslint-plugin-sonarjs` (code quality: complexity, cognitive-load, etc.) + `eslint-plugin-perfectionist` (import ordering). See [`eslint.config.js`](../eslint.config.js). Mirrors the Tracker repo setup. |
+| Runtime validation | Valibot 1.4.2 via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` 2.0.5 + `@schemasjs/valibot-numbers` 1.1.1; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
+| TypeScript | 6.0.3 | root tsconfig: clean modern config (`moduleResolution: bundler`, `types: ["node"]`) |
+| Node | >= 18 | CI tests 18.x + 20.x, publishes on 20 |
+
+Wishlist (long-term): runtime-agnostic libraries (node / deno / bun, maybe browser).
+
+## CI / publishing (`.github/workflows/`, 10 files)
+
+One workflow per package, copied from `templates/library.yml` / `templates/nodered.yml`:
+
+- **Trigger:** `push` filtered to `paths: packages/<pkg>/**` + `workflow_dispatch`.
+- **Each job:** `pnpm/action-setup@v4` → `actions/setup-node@v4` (`cache: 'pnpm'`) → `pnpm install --frozen-lockfile`.
+- **Library workflows:** `test` job (Node 18.x/20.x matrix, test + build) →
+  `publish` job (only on `main`): `pnpm publish --access public --filter @coremarine/<pkg> --no-git-checks`
+  with `secrets.NPM_TOKEN`.
+- **Publish rule:** merging to `main` publishes whatever packages changed. PRs target `dev`.
+
+Current CI gaps (as committed):
+
+- All 5 **nodered workflows have the whole `test` job commented out** — they publish untested.
+- `sbg-ecom.yml` has its test step commented out (package has no test specs yet).
+
+## Templates (`templates/`)
+
+Scaffolding for new packages — see CONTRIBUTING.md for the step-by-step recipes:
+
+- `templates/library/` — full library skeleton (src/ five-file pattern, tests, tsup/vitest/tsconfig).
+- `templates/nodered/` — Node-RED component skeleton (parser.js/html, docker test env).
+- `templates/library.yml` / `nodered.yml` — workflow blueprints (`TODO:` markers to replace).
+
+New package checklist: copy template → replace `TODO:` markers → add the workspace-proxy
+scripts to root `package.json` → copy + rename the workflow yml into `.github/workflows/`.
+
+## Supply-chain hardening
+
+Mirrors the Tracker repo decision — defense-in-depth for dependency lifecycle scripts:
+
+- **`pnpm-workspace.yaml`** — `strictDepBuilds: true` makes any unreviewed build-script dep FAIL
+  the install (`ERR_PNPM_IGNORED_BUILDS`). `allowBuilds` explicitly lists reviewed packages:
+  `esbuild: true` (tsup's bundler; trusted, dev-only).
+- **`.npmrc`** — `engine-strict=true` fails fast on Node version mismatches.
+
+## Linting (`eslint.config.js`)
+
+Flat config, four plugins (mirrors the Tracker repo):
+
+- **typescript-eslint** — TS parser + recommended rules.
+- **@stylistic** — house formatting: no semicolons, single quotes, 2-space indent,
+  K&R brace style (`} catch {`), `arrowParens: 'always'`. Same defaults as the old ts-standard.
+- **eslint-plugin-sonarjs** — SonarLint rules (`sonarjs/recommended`, ~120 rules:
+  complexity, cognitive-load, no-magic-numbers, no-duplicate-string, …). **Not
+  auto-fixed** — surfaced for manual triage. Disable a rule inline only with a
+  comment explaining why. Three rules Sonar ships as `recommended: false` are
+  **explicitly enabled** with tight thresholds to enforce the small-functions house
+  style: `max-lines-per-function` (50, **off for test files** — `describe()` blocks are
+  inherently setup-heavy), `cyclomatic-complexity` (10), `cognitive-complexity` (15).
+- **eslint-plugin-perfectionist** — import ordering: `// built-in` → `// installed`
+  → `// coded` blocks preserved via `partitionByComment`; alphabetical within each
+  block; `environment: 'node'` so `node:*` is classified as builtin.
+
+Run order after changes: **lint → tsc → test** (lint first so auto-fixes don't fight
+the type-checker; test last).
+
+## Known tooling debt
+
+- `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
+- Node-RED docker `Dockerfile`s still use `npm i` inside the container (install the published
+  package from the npm registry, not the workspace — unaffected by the pnpm migration, but
+  inconsistent; could switch to pnpm inside the image if desired).
+- No `.nvmrc` / `.node-version` — Node version only constrained via `engines` + CI matrix.

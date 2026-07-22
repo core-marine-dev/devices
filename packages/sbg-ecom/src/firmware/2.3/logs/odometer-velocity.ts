@@ -18,7 +18,7 @@ interface OdometerStatus {
 }
 const getOdometerStatus = (odometerStatus: number): OdometerStatus => ({
   SBG_ECOM_ODO_REAL_MEAS: bitStatus(odometerStatus, 0),
-  SBG_ECOM_ODO_TIME_SYNC: bitStatus(odometerStatus, 1)
+  SBG_ECOM_ODO_TIME_SYNC: bitStatus(odometerStatus, 1),
 })
 
 export const SBG_ECOM_LOG_ODO_VEL = (payload: Buffer): SBGFrameNameData => {
@@ -27,10 +27,10 @@ export const SBG_ECOM_LOG_ODO_VEL = (payload: Buffer): SBGFrameNameData => {
     timestamp: payload.readUIntLE(0, 4),
     odometerStatus: payload.readUIntLE(4, 2),
     odometerVelocity: payload.readFloatLE(6),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    odometerStatus: getOdometerStatus(data.odometerStatus)
+    odometerStatus: getOdometerStatus(data.odometerStatus),
   }
   return { name, data }
 }

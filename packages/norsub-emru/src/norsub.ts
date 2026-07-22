@@ -12,13 +12,13 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'heading',
               type: 'float32',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'symbol',
-              type: 'string'
-            }
-          ]
+              type: 'string',
+            },
+          ],
         },
         {
           id: 'PHTRO',
@@ -26,35 +26,35 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'pitch',
               type: 'float32',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch_direction',
               type: 'string',
-              description: 'M bow up, P bow down'
+              description: 'M bow up, P bow down',
             },
             {
               name: 'roll',
               type: 'float32',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'roll_direction',
               type: 'string',
-              description: 'M bow up, P bow down'
-            }
-          ]
+              description: 'M bow up, P bow down',
+            },
+          ],
         },
         {
           id: 'PHINF',
           payload: [
             {
               name: 'status',
-              type: 'string'
-            }
-          ]
-        }
-      ]
+              type: 'string',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB',
@@ -66,43 +66,43 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'deg',
-              description: '0 - 360'
+              description: '0 - 360',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n\n1 - No Error'
-            }
-          ]
-        }
-      ]
+              description: '0 - Error\n\n1 - No Error',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB2',
@@ -114,49 +114,49 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'deg',
-              description: '0 - 360'
+              description: '0 - 360',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'heave_velocity',
               type: 'float64',
               units: 'm/s',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n\n1 - No Error'
-            }
-          ]
-        }
-      ]
+              description: '0 - Error\n\n1 - No Error',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB6',
@@ -168,99 +168,99 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'deg',
-              description: '0 - 360'
+              description: '0 - 360',
             },
             {
               name: 'surge',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'sway',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'roll_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'pitch_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'yaw_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'surge_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'sway_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'heave_velocity',
               type: 'float64',
               units: 'm/s',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'acceleration_x',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_y',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_z',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n\n1 - No Error'
-            }
-          ]
-        }
-      ]
+              description: '0 - Error\n\n1 - No Error',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB7',
@@ -272,128 +272,128 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'deg',
-              description: '0 - 360'
+              description: '0 - 360',
             },
             {
               name: 'surge',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'sway',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'roll_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'pitch_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'yaw_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'surge_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'sway_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'heave_velocity',
               type: 'float64',
               units: 'm/s',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'acceleration_x',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_y',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_z',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'period_x',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'period_y',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'period_z',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'amplitude_x',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'amplitude_y',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'amplitude_z',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'status',
-              type: 'uint32'
-            }
-          ]
-        }
-      ]
+              type: 'uint32',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB7b',
@@ -405,132 +405,132 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms'
+              units: 'ms',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'deg',
-              description: '0 - 360'
+              description: '0 - 360',
             },
             {
               name: 'surge',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'sway',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'roll_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'pitch_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'yaw_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'surge_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'sway_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'heave_velocity',
               type: 'float64',
               units: 'm/s',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'acceleration_x',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_y',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_z',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'period_x',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'period_y',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'period_z',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'amplitude_x',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'amplitude_y',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'amplitude_z',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'status_a',
-              type: 'uint16'
+              type: 'uint16',
             },
             {
               name: 'status_b',
-              type: 'uint16'
-            }
-          ]
-        }
-      ]
+              type: 'uint16',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB8',
@@ -543,128 +543,128 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'us'
+              units: 'us',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'us'
+              units: 'us',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'deg',
-              description: 'From 0 to 360'
+              description: 'From 0 to 360',
             },
             {
               name: 'surge',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'sway',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'roll_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'pitch_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'yaw_rate',
               type: 'float64',
-              units: 'deg/s'
+              units: 'deg/s',
             },
             {
               name: 'surge_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'sway_velocity',
               type: 'float64',
-              units: 'm/s'
+              units: 'm/s',
             },
             {
               name: 'heave_velocity',
               type: 'float64',
               units: 'm/s',
-              description: 'z-down'
+              description: 'z-down',
             },
             {
               name: 'acceleration_x',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_y',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'acceleration_z',
               type: 'float64',
-              units: 'm/s2'
+              units: 'm/s2',
             },
             {
               name: 'period_x',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'period_y',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'period_z',
               type: 'float64',
-              units: 's'
+              units: 's',
             },
             {
               name: 'amplitude_x',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'amplitude_y',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'amplitude_z',
               type: 'float64',
-              units: 'm'
+              units: 'm',
             },
             {
               name: 'status',
-              type: 'uint32'
-            }
-          ]
-        }
-      ]
+              type: 'uint32',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'NORSUB PRDID',
@@ -676,16 +676,16 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'pitch',
               type: 'float64',
-              units: 'deg'
+              units: 'deg',
             },
             {
               name: 'roll',
               type: 'float64',
-              units: 'deg'
-            }
-          ]
-        }
-      ]
+              units: 'deg',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'Tokimek PTVG',
@@ -698,22 +698,22 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
               name: 'pitch',
               type: 'float64',
               units: 'deg',
-              description: 'Multiplied by 100, a [-] bow up / a [space] bow down'
+              description: 'Multiplied by 100, a [-] bow up / a [space] bow down',
             },
             {
               name: 'roll',
               type: 'float64',
               units: 'deg',
-              description: 'Multiplied by 100, a [-] bow up / a [space] bow down'
+              description: 'Multiplied by 100, a [-] bow up / a [space] bow down',
             },
             {
               name: 'heading',
               type: 'float64',
-              units: 'deg'
-            }
-          ]
-        }
-      ]
+              units: 'deg',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'RDI ADCP',
@@ -726,22 +726,22 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
               name: 'pitch',
               type: 'float64',
               units: 'deg',
-              description: 's if [+] is bow up / s is [-] if bow down, leading zeros'
+              description: 's if [+] is bow up / s is [-] if bow down, leading zeros',
             },
             {
               name: 'roll',
               type: 'float64',
               units: 'deg',
-              description: 's if [+] is bow up / s is [-] if bow down, leading zeros'
+              description: 's if [+] is bow up / s is [-] if bow down, leading zeros',
             },
             {
               name: 'heading',
               type: 'float64',
-              units: 'deg'
-            }
-          ]
-        }
-      ]
+              units: 'deg',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'SMCA',
@@ -754,35 +754,35 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
               name: 'pitch',
               type: 'float64',
               units: 'deg',
-              description: '±100 degs, resolution 0.001 degs'
+              description: '±100 degs, resolution 0.001 degs',
             },
             {
               name: 'roll',
               type: 'float64',
               units: 'deg',
-              description: '±100 degs, resolution 0.001 degs'
+              description: '±100 degs, resolution 0.001 degs',
             },
             {
               name: 'heading',
               type: 'float64',
               units: 'm',
-              description: '±10 m, resolution 0.01 m'
+              description: '±10 m, resolution 0.01 m',
             },
             {
               name: 'surge',
               type: 'float64',
               units: 'm',
-              description: '±10 m, resolution 0.01 m'
+              description: '±10 m, resolution 0.01 m',
             },
             {
               name: 'sway',
               type: 'float64',
               units: 'm',
-              description: '±10 m, resolution 0.01 m'
-            }
-          ]
-        }
-      ]
+              description: '±10 m, resolution 0.01 m',
+            },
+          ],
+        },
+      ],
     },
     {
       protocol: 'SMCC',
@@ -795,77 +795,77 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
               name: 'pitch',
               type: 'float64',
               units: 'deg',
-              description: '±100 degs, resolution 0.001 degs'
+              description: '±100 degs, resolution 0.001 degs',
             },
             {
               name: 'roll',
               type: 'float64',
               units: 'deg',
-              description: '±100 degs, resolution 0.001 degs'
+              description: '±100 degs, resolution 0.001 degs',
             },
             {
               name: 'yaw',
               type: 'float64',
               units: 'deg',
-              description: '0-359.9 degs, resolution 0.1 degs'
+              description: '0-359.9 degs, resolution 0.1 degs',
             },
             {
               name: 'surge',
               type: 'float64',
               units: 'm',
-              description: '±10 m, resolution 0.01 m'
+              description: '±10 m, resolution 0.01 m',
             },
             {
               name: 'sway',
               type: 'float64',
               units: 'm',
-              description: '±10 m, resolution 0.01 m'
+              description: '±10 m, resolution 0.01 m',
             },
             {
               name: 'heave',
               type: 'float64',
               units: 'm',
-              description: '±10 m, resolution 0.01 m'
+              description: '±10 m, resolution 0.01 m',
             },
             {
               name: 'surge_velocity',
               type: 'float64',
               units: 'm/s',
-              description: '±100 m/s, resolution 0.01 m/s'
+              description: '±100 m/s, resolution 0.01 m/s',
             },
             {
               name: 'sway_velocity',
               type: 'float64',
               units: 'm/s',
-              description: '±100 m/s, resolution 0.01 m/s'
+              description: '±100 m/s, resolution 0.01 m/s',
             },
             {
               name: 'heave_velocity',
               type: 'float64',
               units: 'm/s',
-              description: '±100 m/s, resolution 0.01 m/s'
+              description: '±100 m/s, resolution 0.01 m/s',
             },
             {
               name: 'acceleration_x',
               type: 'float64',
               units: 'm/s2',
-              description: '±100 m/s2, resolution 0.01 m/s2'
+              description: '±100 m/s2, resolution 0.01 m/s2',
             },
             {
               name: 'acceleration_y',
               type: 'float64',
               units: 'm/s2',
-              description: '±100 m/s2, resolution 0.01 m/s2'
+              description: '±100 m/s2, resolution 0.01 m/s2',
             },
             {
               name: 'acceleration_z',
               type: 'float64',
               units: 'm/s2',
-              description: '±100 m/s2, resolution 0.01 m/s2'
-            }
-          ]
-        }
-      ]
-    }
-  ]
+              description: '±100 m/s2, resolution 0.01 m/s2',
+            },
+          ],
+        },
+      ],
+    },
+  ],
 }

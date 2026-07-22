@@ -7,7 +7,8 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/norsub-emru",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/norsub-emru"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -45,31 +46,18 @@
   },
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/norsub.yaml ./src/norsub.ts",
-    "build": "npm run format && tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "build": "pnpm run protocols && pnpm run format && tsup",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@coremarine/nmea-parser": "^2.2.0",
-    "@schemasjs/valibot-numbers": "^1.0.18",
-    "@schemasjs/validator": "^2.0.2"
+    "@coremarine/nmea-parser": "workspace:^",
+    "@schemasjs/valibot-numbers": "^1.1.1",
+    "@schemasjs/validator": "^2.0.5"
   },
   "peerDependencies": {
-    "valibot": "1.1.0"
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "yaml-to-json.js"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
+    "valibot": "1.4.2"
   }
 }

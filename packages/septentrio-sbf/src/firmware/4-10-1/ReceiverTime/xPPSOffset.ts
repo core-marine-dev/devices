@@ -45,7 +45,7 @@ export const TIME_SCALE = {
   GLONASS: 'GLONASS',
   GALILEO: 'Galileo',
   BEIDOU: 'BEIDOU',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 } as const
 export type TimeScale = typeof TIME_SCALE[keyof typeof TIME_SCALE]
 
@@ -85,8 +85,8 @@ export const xppsOffset = (blockRevision: number, data: Buffer): Response => {
     offset: data.readFloatLE(OFFSET_INDEX),
     padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
     metadata: {
-      timeScale: getTimeScale(timeScale)
-    }
+      timeScale: getTimeScale(timeScale),
+    },
   }
   body.metadata.timeScale = getTimeScale(body.timeScale)
   if (body.metadata.timeScale === TIME_SCALE.RECEIVER) {

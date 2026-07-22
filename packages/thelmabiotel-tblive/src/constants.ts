@@ -4,7 +4,7 @@ export const SENTENCES_NAME = [
   'sample', 'ping', 'clockRound', 'clockSet', 'listening',
   'command',
   'api', 'serialNumber', 'firmware', 'frequency', 'protocols', 'intervals', 'time',
-  'restart', 'reset', 'upgrade'
+  'restart', 'reset', 'upgrade',
 ] as const
 export const FIRMWARES_AVAILABLE = ['1.0.1', '1.0.2', 'unknown'] as const
 
@@ -45,7 +45,7 @@ export const LOG_INTERVALS = {
   '04': '60 minutes',
   '05': '2 hours',
   '06': '12 hours',
-  '07': '24 hours'
+  '07': '24 hours',
 } as const
 
 export const PROTOCOLS_START = 'LM='
@@ -69,25 +69,25 @@ export const PROTOCOLS: Record<string, { channel: string, id: string[], data: st
   '07': { channel: 'single', id: ['OPi'], data: ['OPs'] },
   '08': { channel: 'single', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
   // Dual Channel
-  30: { channel: 'dual', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
-  31: { channel: 'dual', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
-  32: { channel: 'dual', id: ['R01M'], data: ['S64K'] },
-  33: { channel: 'dual', id: ['R01M'], data: [] },
-  34: { channel: 'dual', id: [], data: ['S64K'] },
-  35: { channel: 'dual', id: [], data: ['HS256'] },
-  36: { channel: 'dual', id: [], data: ['DS256'] },
-  37: { channel: 'dual', id: ['OPi'], data: ['OPs'] },
-  38: { channel: 'dual', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
+  '30': { channel: 'dual', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
+  '31': { channel: 'dual', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
+  '32': { channel: 'dual', id: ['R01M'], data: ['S64K'] },
+  '33': { channel: 'dual', id: ['R01M'], data: [] },
+  '34': { channel: 'dual', id: [], data: ['S64K'] },
+  '35': { channel: 'dual', id: [], data: ['HS256'] },
+  '36': { channel: 'dual', id: [], data: ['DS256'] },
+  '37': { channel: 'dual', id: ['OPi'], data: ['OPs'] },
+  '38': { channel: 'dual', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
   // Triple Channel
-  60: { channel: 'triple', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
-  61: { channel: 'triple', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
-  62: { channel: 'triple', id: ['R01M'], data: ['S64K'] },
-  63: { channel: 'triple', id: ['R01M'], data: [] },
-  64: { channel: 'triple', id: [], data: ['S64K'] },
-  65: { channel: 'triple', id: [], data: ['HS256'] },
-  66: { channel: 'triple', id: [], data: ['DS256'] },
-  67: { channel: 'triple', id: ['OPi'], data: ['OPs'] },
-  68: { channel: 'triple', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] }
+  '60': { channel: 'triple', id: ['R256', 'R04K', 'R64K'], data: ['S256'] },
+  '61': { channel: 'triple', id: ['R64K', 'R01M'], data: ['S256', 'S64K'] },
+  '62': { channel: 'triple', id: ['R01M'], data: ['S64K'] },
+  '63': { channel: 'triple', id: ['R01M'], data: [] },
+  '64': { channel: 'triple', id: [], data: ['S64K'] },
+  '65': { channel: 'triple', id: [], data: ['HS256'] },
+  '66': { channel: 'triple', id: [], data: ['DS256'] },
+  '67': { channel: 'triple', id: ['OPi'], data: ['OPs'] },
+  '68': { channel: 'triple', id: ['R64K', 'R01M', 'OPi'], data: ['S256', 'S64K', 'OPs'] },
 } as const
 
 export const TIMESTAMP_START = 'UT='

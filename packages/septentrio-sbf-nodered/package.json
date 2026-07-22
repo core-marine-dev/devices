@@ -7,7 +7,8 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/septentrio-sbf-nodered",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/septentrio-sbf-nodered"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -41,6 +42,6 @@
     "test:vitest": "vitest"
   },
   "dependencies": {
-    "@coremarine/septentrio-sbf": "^1.0.0"
+    "@coremarine/septentrio-sbf": "workspace:^"
   }
 }

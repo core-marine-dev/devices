@@ -1,12 +1,12 @@
-
-import type { SBGFrameNameTypeData } from '../../types'
 import { getSBGFrameData as getCommand } from './commands'
-import { getSBGFrameData as getLog } from './logs'
 import { getSBGFrameData as getHighFrequency } from './high-frequency'
-import { getSBGFrameData as getNMEAStandard } from './nmea-standard'
+import { getSBGFrameData as getLog } from './logs'
 import { getSBGFrameData as getNMEAPropietary } from './nmea-propietary'
+import { getSBGFrameData as getNMEAStandard } from './nmea-standard'
 import { getSBGFrameData as getThirdParty } from './third-party'
+
 import { SBGFrameMessageClasses, SBGFrameTypes, UNKNOWN_SBG_FRAME_DATA } from '../../constants'
+import type { SBGFrameNameTypeData } from '../../types'
 /** Message Class:
  * HEX  DEC  Type
  * 0x10  16  Command
@@ -21,32 +21,32 @@ export const getSBGFrame = (messageClass: number, messageID: number, payload: Bu
     case SBGFrameMessageClasses.CMD:
       return {
         type: SBGFrameTypes.CMD,
-        ...getCommand(messageID, payload)
+        ...getCommand(messageID, payload),
       }
     case SBGFrameMessageClasses.LOG:
       return {
         type: SBGFrameTypes.LOG,
-        ...getLog(messageID, payload)
+        ...getLog(messageID, payload),
       }
     case SBGFrameMessageClasses.HIGH_FREQ:
       return {
         type: SBGFrameTypes.HIGH_FREQ,
-        ...getHighFrequency(messageID, payload)
+        ...getHighFrequency(messageID, payload),
       }
     case SBGFrameMessageClasses.NMEA_STANDARD:
       return {
         type: SBGFrameTypes.NMEA_STANDARD,
-        ...getNMEAStandard(messageID, payload)
+        ...getNMEAStandard(messageID, payload),
       }
     case SBGFrameMessageClasses.NMEA_PROPIETARY:
       return {
         type: SBGFrameTypes.NMEA_PROPIETARY,
-        ...getNMEAPropietary(messageID, payload)
+        ...getNMEAPropietary(messageID, payload),
       }
     case SBGFrameMessageClasses.THIRD_PARTY:
       return {
         type: SBGFrameTypes.THIRD_PARTY,
-        ...getThirdParty(messageID, payload)
+        ...getThirdParty(messageID, payload),
       }
   }
   return UNKNOWN_SBG_FRAME_DATA

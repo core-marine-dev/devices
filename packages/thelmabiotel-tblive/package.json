@@ -4,10 +4,11 @@
   "description": "Library to work with Thlema Biotel TB-Lives hydrophones",
   "author": "CoreMarine",
   "license": "MIT",
-  "homepage": "https://github.com/core-marine-dev/tree/main/packages/thelmabiotel-tblive",
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/thelmabiotel-tblive",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/thelmabiotel-tblive"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -43,29 +44,16 @@
   },
   "scripts": {
     "build": "tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@schemasjs/valibot-numbers": "^1.0.17",
-    "@schemasjs/validator": "^2.0.1"
+    "@schemasjs/valibot-numbers": "^1.1.1",
+    "@schemasjs/validator": "^2.0.5"
   },
   "peerDependencies": {
-    "valibot": ">=1.0.0"
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "examples/*"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
+    "valibot": "1.4.2"
   }
 }

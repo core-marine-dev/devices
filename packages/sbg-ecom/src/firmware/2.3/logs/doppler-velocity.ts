@@ -25,7 +25,7 @@ interface DopplerVelocityStatus {
 
 const getDopplerVelocityStatus = (dopplerVelocityStatus: number): DopplerVelocityStatus => ({
   SBG_ECOM_DVL_VELOCITY_VALID: bitStatus(dopplerVelocityStatus, 0),
-  SBG_ECOM_DVL_TIME_SYNC: bitStatus(dopplerVelocityStatus, 1)
+  SBG_ECOM_DVL_TIME_SYNC: bitStatus(dopplerVelocityStatus, 1),
 })
 
 const SBG_ECOM_LOG_DVL = (payload: Buffer): object => {
@@ -38,10 +38,10 @@ const SBG_ECOM_LOG_DVL = (payload: Buffer): object => {
     velocityQualityX: payload.readFloatLE(18),
     velocityQualityY: payload.readFloatLE(22),
     velocityQualityZ: payload.readFloatLE(26),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    odometerStatus: getDopplerVelocityStatus(data.dopplerVelocityStatus)
+    odometerStatus: getDopplerVelocityStatus(data.dopplerVelocityStatus),
   }
   return data
 }

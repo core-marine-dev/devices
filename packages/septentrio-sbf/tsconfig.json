@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
+    "rootDir": "."
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "gpstime.d.ts", "tests/**/*"],
+  "exclude": ["node_modules"]
 }

@@ -35,7 +35,7 @@ export const SBG_ECOM_LOG_MAG = (payload: Buffer): SBGFrameNameData => {
     accelerometerX: payload.readFloatLE(18),
     accelerometerY: payload.readFloatLE(22),
     accelerometerZ: payload.readFloatLE(26),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
     magnetometerStatus: {
@@ -47,8 +47,8 @@ export const SBG_ECOM_LOG_MAG = (payload: Buffer): SBGFrameNameData => {
       accelerometerZ: bitStatus(data.magnetometerStatus, 5),
       magnetometer: bitStatus(data.magnetometerStatus, 6),
       accelerometer: bitStatus(data.magnetometerStatus, 7),
-      calibration: bitStatus(data.magnetometerStatus, 8)
-    }
+      calibration: bitStatus(data.magnetometerStatus, 8),
+    },
   }
   return { data, name }
 }

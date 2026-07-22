@@ -13,29 +13,33 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [22.x, 24.x]
 
     steps:
       - name: 👍 Checkout
-        uses: actions/checkout@v4
-        
+        uses: actions/checkout@v7
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v6
+
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          
-      - name: 📥 Install Dependencies
-        run: npm install
+          cache: 'pnpm'
 
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # norsub-emru extends nmea-parser — its dist must exist first.
       - name: 🛠️ Build monorepo deps
-        run: "npm run nmea-parser:build"
+        run: "pnpm run nmea-parser:build"
 
       - name: 🧑‍🔬 Tests
-        run: "npm run norsub-emru:test"
-    
+        run: "pnpm run norsub-emru:test"
+
       - name: 🛠️ Build
-        run: "npm run norsub-emru:build"
+        run: "pnpm run norsub-emru:build"
 
   publish:
     name: 🚀 Publish
@@ -43,26 +47,51 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main'
 
+    # OIDC trusted publishing to npm (no NPM_TOKEN); provenance is emitted automatically.
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: 👍 Checkout
-        uses: actions/checkout@v4
-        
-      - name: ❇️ Setup node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          registry-url: 'https://registry.npmjs.org'
- 
-      - name: 📥 Install Dependencies
-        run: npm install
+        uses: actions/checkout@v7
 
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: 🔎 Check published version
+        id: check
+        run: |
+          NAME=$(node -p "require('./packages/norsub-emru/package.json').name")
+          VERSION=$(node -p "require('./packages/norsub-emru/package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "$NAME@$VERSION already on npm — skipping publish"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$NAME@$VERSION not on npm — will publish"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 📦 Setup pnpm
+        if: steps.check.outputs.publish == 'true'
+        uses: pnpm/action-setup@v6
+
+      - name: 📥 Install Dependencies
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm install --frozen-lockfile
+
+      # norsub-emru extends nmea-parser — its dist must exist first.
       - name: 🛠️ Build monorepo deps
-        run: "npm run nmea-parser:build"
-    
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run nmea-parser:build"
+
       - name: 🛠️ Build
-        run: "npm run norsub-emru:build"
-        
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run norsub-emru:build"
+
       - name: 🚀 Publish to npm
-        run: "npm publish --access public --workspace=@coremarine/norsub-emru"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm publish --access public --filter @coremarine/norsub-emru --no-git-checks"

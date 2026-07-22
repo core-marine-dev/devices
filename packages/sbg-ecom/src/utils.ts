@@ -1,4 +1,5 @@
 import { crc16kermit } from 'crc'
+
 import { ID_INDEX, MINIMAL_FRAME_LENGTH, PAYLOAD_INDEX, STANDARD_FRAME_MAXIMUM_CLASS_BYTELENGTH } from './constants'
 
 export const getBufferData = (data: any): Buffer => {

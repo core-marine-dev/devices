@@ -1,8 +1,9 @@
-import { test, expect } from 'vitest'
-import { Status } from '../src/types'
-import { getStatus } from '../src/status'
-import { StatusSchema } from '../src/schemas'
 import { Uint16, Uint32 } from '@schemasjs/valibot-numbers'
+import { test, expect } from 'vitest'
+
+import { StatusSchema } from '../src/schemas'
+import { getStatus } from '../src/status'
+import { Status } from '../src/types'
 
 /** STATUS
  * Bit - Parameter            - Description
@@ -48,7 +49,7 @@ test('get Status from status full', () => {
     system: {
       ok: false, health: true,
       synchronized: { time: false, clock: true },
-      cpu: false
+      cpu: false,
     },
     sensor: {
       ok: true,
@@ -66,14 +67,14 @@ test('get Status from status full', () => {
     aiding: {
       received: {
         position: false, velocity: true,
-        heading: false
+        heading: false,
       },
       valid: {
         position: true,
         velocity: false, heading: true,
-        vertical: false, horizontal: true
-      }
-    }
+        vertical: false, horizontal: true,
+      },
+    },
   }
   const result = getStatus({ status })
   expect(result).not.toBeNull()
@@ -91,7 +92,7 @@ test('get Status from status_a & status_b', () => {
     system: {
       ok: false, health: true,
       synchronized: { time: false, clock: true },
-      cpu: false
+      cpu: false,
     },
     sensor: {
       ok: true,
@@ -109,14 +110,14 @@ test('get Status from status_a & status_b', () => {
     aiding: {
       received: {
         position: false, velocity: true,
-        heading: false
+        heading: false,
       },
       valid: {
         position: true,
         velocity: false, heading: true,
-        vertical: false, horizontal: true
-      }
-    }
+        vertical: false, horizontal: true,
+      },
+    },
   }
   const result = getStatus({ status_a, status_b })
   expect(result).not.toBeNull()
@@ -128,7 +129,7 @@ test('null Status', () => {
   const status_b: Uint16 = Uint32Array.from([0b0_1010_1010_1010_1010])[0]
   expect(getStatus({})).toBeNull()
   // @ts-expect-error
-  expect(getStatus({ status: 'hola '})).toBeNull()
+  expect(getStatus({ status: 'hola ' })).toBeNull()
   expect(getStatus({ status_a })).toBeNull()
   expect(getStatus({ status_b })).toBeNull()
 })

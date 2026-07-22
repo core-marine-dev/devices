@@ -22,7 +22,7 @@ export const endOfPVT = (blockRevision: number, data: Buffer): Response => {
   const name = 'EndOfPVT'
   const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
   const body: EndOfPVT = {
-    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH)
+    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
   }
   return { name, body }
 }

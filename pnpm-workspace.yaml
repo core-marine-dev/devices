@@ -1,0 +1,27 @@
+packages:
+  - 'packages/*'
+
+# Supply-chain hardening — DENY all dependency build/lifecycle scripts.
+# strictDepBuilds makes a NEW, unreviewed build-script dependency FAIL the
+# install (ERR_PNPM_IGNORED_BUILDS) so it can never run silently. Each
+# package below is reviewed and explicitly allowed or denied. To allow one,
+# set it to true DELIBERATELY (and only after reviewing what its build
+# script does).
+strictDepBuilds: true
+allowBuilds:
+  # esbuild: tsup's bundler — its postinstall installs the platform-specific
+  # binary. Trusted, dev-only, needed for all library builds.
+  esbuild: true
+patchedDependencies:
+  tsup@8.5.1: patches/tsup@8.5.1.patch
+
+# Security overrides — force patched versions of transitive deps that carry
+# CVEs but can't be bumped directly (they're subdeps of mocha, node-red,
+# node-red-node-test-helper, tsup). These are all dev-only.
+overrides:
+  serialize-javascript: '>=7.0.5'
+  diff: '>=8.0.3'
+  js-yaml: '>=4.1.1'
+  jsonata: '>=2.2.0'
+  form-data: '>=4.0.6'
+  esbuild: '>=0.28.1'

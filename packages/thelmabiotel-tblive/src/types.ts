@@ -17,11 +17,10 @@ export type Type = typeof FIELD_TYPE[number]
 export type Timestamp = ReturnType<typeof TimestampSchema.parse>
 
 // NEW _________________________________________________________________________
-export type Raw = string
 export type Metadata = Record<string, any>
 export type Value = number | string | boolean
 export interface Field {
-  raw: Raw
+  raw: string
   name: string
   type: Type
   value: Value
@@ -33,7 +32,7 @@ export interface Field {
 
 export interface ParsedSentence {
   timestamp: Timestamp
-  raw: Raw
+  raw: string
   id: string
   mode: Mode
   firmware: Firmware

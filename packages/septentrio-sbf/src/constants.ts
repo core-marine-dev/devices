@@ -35,7 +35,7 @@ export const TWO_BYTES_MAX = 65_535
 
 export const UNKNOWN_SBF_BODY_DATA: SBFBodyData = {
   name: 'unknown',
-  body: null
+  body: null,
 }
 
 export const BYTES_LENGTH = {
@@ -51,12 +51,12 @@ export const BYTES_LENGTH = {
   UINT64: 8,
   // FLOAT
   FLOAT: 4,
-  DOUBLE: 8
+  DOUBLE: 8,
 }
 
 export const SBF_PARSING_STATUS = {
   OK: 'OK',
   MISSING_BYTES: 'MISSING_BYTES',
   ERROR_LENGTH: 'ERROR_LENGTH',
-  ERROR_CRC: 'ERROR_CRC'
+  ERROR_CRC: 'ERROR_CRC',
 } as const

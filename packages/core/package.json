@@ -1,0 +1,53 @@
+{
+  "name": "@coremarine/protocol-core",
+  "version": "0.0.0",
+  "description": "Shared parser contract + CMA output format for CoreMarine device protocol parsers (internal, unpublished — bundled into each parser via tsup noExternal)",
+  "author": "CoreMarine",
+  "license": "MIT",
+  "private": true,
+  "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/core",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/core-marine-dev/devices/issues"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">= 18"
+  },
+  "scripts": {
+    "build": "pnpm run format && tsup",
+    "lint": "eslint",
+    "format": "eslint --fix",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@schemasjs/valibot-numbers": "^1.1.1",
+    "@schemasjs/validator": "^2.0.5"
+  },
+  "peerDependencies": {
+    "valibot": "1.4.2"
+  }
+}

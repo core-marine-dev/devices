@@ -39,7 +39,7 @@ const STATUSES = [
   'SBG_ECOM_VEL_INSUFFICIENT_OBS',
   'SBG_ECOM_VEL_INTERNAL_ERROR',
   'SBG_ECOM_VEL_LIMIT',
-  'UNKNOWN'
+  'UNKNOWN',
 ] as const
 type Status = typeof STATUSES[number]
 
@@ -50,7 +50,7 @@ const TYPES = [
   'SBG_ECOM_VEL_UNKNOWN_TYPE',
   'SBG_ECOM_VEL_DOPPLER',
   'SBG_ECOM_VEL_DIFFERENTIAL',
-  'UNKOWN'
+  'UNKOWN',
 ] as const
 type Type = typeof TYPES[number]
 
@@ -68,7 +68,7 @@ interface GPSVelocityStatus {
 const getGPSVelocityStatus = (gpsVelocityStatus: number): GPSVelocityStatus => {
   return {
     status: getStatus(gpsVelocityStatus),
-    type: getType(gpsVelocityStatus)
+    type: getType(gpsVelocityStatus),
   }
 }
 
@@ -85,10 +85,10 @@ const SBG_ECOM_LOG_GPS_VEL = (payload: Buffer): object => {
     velocityAccuracyD: payload.readFloatLE(32),
     course: payload.readDoubleLE(36),
     courseAccuracy: payload.readFloatLE(40),
-    metadata: {}
+    metadata: {},
   }
   data.metadata = {
-    gpsVelocityStatus: getGPSVelocityStatus(data.gpsVelocityStatus)
+    gpsVelocityStatus: getGPSVelocityStatus(data.gpsVelocityStatus),
   }
   return data
 }

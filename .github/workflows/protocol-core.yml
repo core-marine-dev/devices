@@ -1,0 +1,41 @@
+name: protocol-core
+
+# @coremarine/protocol-core is private (never published — bundled into each parser's
+# dist via tsup noExternal). This workflow only validates it: no publish job.
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - packages/core/**
+
+jobs:
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: 👍 Checkout
+        uses: actions/checkout@v7
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🧑‍🔬 Tests
+        run: "pnpm run protocol-core:test"
+
+      - name: 🛠️ Build
+        run: "pnpm run protocol-core:build"

@@ -7,7 +7,8 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/sbg-ecom",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/sbg-ecom"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -46,29 +47,16 @@
     "node": ">= 18"
   },
   "scripts": {
-    "build": "npm run format && tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "build": "pnpm run format && tsup",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "crc": "^4.3.2"
   },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts",
-      "examples"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
-  },
   "devDependencies": {
-    "@schemasjs/valibot-numbers": "^1.0.8"
+    "@schemasjs/valibot-numbers": "^1.1.1"
   }
 }

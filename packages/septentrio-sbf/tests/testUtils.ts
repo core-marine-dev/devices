@@ -13,7 +13,7 @@ export const enum TypeData {
   UINT32,
   UINT64,
   FLOAT,
-  DOUBLE
+  DOUBLE,
 }
 
 export const getTypedData = (num: number, type: TypeData): TypedData | null => {
@@ -86,12 +86,13 @@ export const getTypedData = (num: number, type: TypeData): TypedData | null => {
 }
 
 export const enum RandomNumberType {
-  'INT',
-  'UINT',
-  'FLOAT'
+  INT,
+  UINT,
+  FLOAT,
 }
 
 export const randomNumber = (type: RandomNumberType = RandomNumberType.INT, min: number = Number.MIN_SAFE_INTEGER, max: number = Number.MAX_SAFE_INTEGER): number => {
+  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
   const float = (Math.random() * max) + (Math.random() * min)
   if (type === RandomNumberType.FLOAT) return float
   const integer = Math.floor(float)

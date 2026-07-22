@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+
 import { API_START, API_TYPICAL_CONTENT_101, API_TYPICAL_CONTENT_102, CLOCK_ROUND, CLOCK_SET, COMMAND_MODE_101, FACTORY_RESET, FIRMWARE_START, FREQUENCY_START, LISTENING_MODE, LOG_INTERVAL_START, PING_END, PING_START, PROTOCOLS_START, RESTART_DEVICE, SAMPLE_END, SAMPLE_START, SERIAL_NUMBER_START, TIMESTAMP_START, UPGRADE_FIRMWARE } from '../src/constants'
 import { getBoundariesAPI, getBoundariesClockRound, getBoundariesClockSet, getBoundariesCommand, getBoundariesFactoryReset, getBoundariesFirmware, getBoundariesFrequency, getBoundariesIntervals, getBoundariesListening, getBoundariesPing, getBoundariesProtocols, getBoundariesRestartDevice, getBoundariesSample, getBoundariesSerialNumber, getBoundariesTime, getBoundariesUpgradeFirmware, getRawSentence, parseSentences } from '../src/parse'
 
@@ -40,7 +41,7 @@ describe('getBoundariesPing', () => {
   test('happy path ping', () => {
     const sample = ping
     const boundaries = getBoundariesPing(sample)
-    expect(boundaries).toEqual({ start: 0, end: sample.length , incomplete: false })
+    expect(boundaries).toEqual({ start: 0, end: sample.length, incomplete: false })
   })
 
   test('start sample ping', () => {
@@ -215,13 +216,13 @@ describe('getBoundariesSerialNumber', () => {
   test('end sample serialnumber', () => {
     const sample = `2024-07-05T07:26:49.713Z - ${serialnumber}`
     const boundaries = getBoundariesSerialNumber(sample)
-    expect(boundaries).toEqual({ start: sample.indexOf(startFlag), end: sample.length, incomplete: false})
+    expect(boundaries).toEqual({ start: sample.indexOf(startFlag), end: sample.length, incomplete: false })
   })
 
   test('incomplete', () => {
     const sample = `2024-07-05T07:26:49.713Z - ${serialnumber.slice(0, -2)}dfsgsdfg`
     const boundaries = getBoundariesSerialNumber(sample)
-    expect(boundaries).toEqual({ start: sample.indexOf(startFlag), end: -1, incomplete: true})
+    expect(boundaries).toEqual({ start: sample.indexOf(startFlag), end: -1, incomplete: true })
   })
 })
 
@@ -460,7 +461,7 @@ describe('getRawSentence', () => {
       intervals: `${LOG_INTERVAL_START}01`,
       restart: RESTART_DEVICE,
       reset: FACTORY_RESET,
-      upgrade: UPGRADE_FIRMWARE
+      upgrade: UPGRADE_FIRMWARE,
     }
     for (const [key, value] of Object.entries(data)) {
       // const input = `${sample}${ping}`
@@ -483,7 +484,6 @@ describe('getRawSentence', () => {
     expect(interference).toEqual({ id: 'ping', start: end, end: end + ping.length, incomplete: false })
   })
 })
-
 
 describe('parseSentences', () => {
   test('happy path', () => {

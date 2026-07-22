@@ -8,9 +8,15 @@ export const parseSample = (input: string, timestamp: Timestamp): ParsedSentence
   const raw = input.slice(0, end + SAMPLE_END.length)
   const working = input.slice(SAMPLE_START.length, end)
   const fields = working.split(SAMPLE_SPLIT)
-  if (fields.length === 9) { return { ...emitter101(fields, timestamp, raw), mode } }
-  if (fields.length === 8) { return { ...((fields[2].toLowerCase().includes('tbr sensor')) ? receiver101(fields, timestamp, raw) : emitter102(fields, timestamp, raw)), mode } }
-  if (fields.length === 7) { return { ...receiver102(fields, timestamp, raw), mode } }
+  if (fields.length === 9) {
+    return { ...emitter101(fields, timestamp, raw), mode }
+  }
+  if (fields.length === 8) {
+    return { ...((fields[2].toLowerCase().includes('tbr sensor')) ? receiver101(fields, timestamp, raw) : emitter102(fields, timestamp, raw)), mode }
+  }
+  if (fields.length === 7) {
+    return { ...receiver102(fields, timestamp, raw), mode }
+  }
   return {
     timestamp,
     raw,
@@ -18,10 +24,11 @@ export const parseSample = (input: string, timestamp: Timestamp): ParsedSentence
     firmware: 'unknown',
     mode,
     payload: [],
-    errors: [`unknown sample sentence with ${fields.length} fields\n${raw}`]
+    errors: [`unknown sample sentence with ${fields.length} fields\n${raw}`],
   }
 }
 
+// eslint-disable-next-line sonarjs/max-lines-per-function, sonarjs/cyclomatic-complexity -- CMA refactor will address
 const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<ParsedSentence, 'mode'> => {
   /** Emitter: Acoustic detection
    * Field |  Type  | Description
@@ -48,7 +55,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[0],
     name: 'TB Live serial number',
     type: 'string',
-    value: Number(fields[0])
+    value: Number(fields[0]),
   }
   if (Number.isNaN(receiver.value) || (receiver.value as number) < 1) {
     const error = `receiver field is not a positive integer: ${receiver.raw}`
@@ -61,7 +68,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     name: 'seconds',
     type: 'uint32',
     value: Number(fields[1]),
-    units: 'seconds'
+    units: 'seconds',
   }
   if (!Number.isInteger(seconds.value) || (seconds.value as number) < 0) {
     const error = `seconds field is not a positive integer: ${seconds.raw}`
@@ -74,7 +81,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     name: 'milliseconds',
     type: 'uint16',
     value: Number(fields[2]),
-    units: 'milliseconds'
+    units: 'milliseconds',
   }
   if (!Number.isInteger(milliseconds.value) || (milliseconds.value as number) < 0) {
     const error = `milliseconds field is not a positive integer: ${milliseconds.raw}`
@@ -86,14 +93,14 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[3],
     name: 'protocol',
     type: 'string',
-    value: fields[3]
+    value: fields[3],
   }
 
   const emitter: Field = {
     raw: fields[4],
     name: 'emitter',
     type: 'string',
-    value: Number(fields[4])
+    value: Number(fields[4]),
   }
   if (Number.isNaN(emitter.value) || (emitter.value as number) < 1) {
     const error = `emitter field is not a positive integer: ${emitter.raw}`
@@ -105,7 +112,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[5],
     name: 'angle',
     type: 'uint16',
-    value: Number(fields[5])
+    value: Number(fields[5]),
   }
   if (!Number.isInteger(angle.value) || (angle.value as number) < 0) {
     const error = `angle field is not a positive integer: ${angle.raw}`
@@ -120,7 +127,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[6],
     name: 'snr',
     type: 'uint8',
-    value: Number(fields[6])
+    value: Number(fields[6]),
   }
   if (!Number.isInteger(snr.value) || (snr.value as number) < 0) {
     const error = `snr field is not a positive integer: ${snr.raw}`
@@ -137,7 +144,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     type: 'uint8',
     value: Number(fields[7]),
     units: 'kHz',
-    description: 'Frequency has to be bound between 63 - 77 kHz'
+    description: 'Frequency has to be bound between 63 - 77 kHz',
   }
   if (!Number.isInteger(frequency.value) || (frequency.value as number) < 0) {
     const error = `frequency field is not a positive integer: ${frequency.raw}`
@@ -149,7 +156,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[8],
     name: 'sent',
     type: 'uint32',
-    value: Number(fields[8])
+    value: Number(fields[8]),
   }
   if (!Number.isInteger(sent.value) || (sent.value as number) < 0) {
     const error = `sent field is not a positive integer: ${sent.raw}`
@@ -162,7 +169,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw,
     id: 'emitter',
     firmware: '1.0.1',
-    payload: [receiver, seconds, milliseconds, protocol, emitter, angle, snr, frequency, sent]
+    payload: [receiver, seconds, milliseconds, protocol, emitter, angle, snr, frequency, sent],
   }
 
   if (errors.length > 0) {
@@ -175,12 +182,12 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
   if (sentenceTimestamp !== null) {
     parsed.metadata.timestamp = {
       value: sentenceTimestamp,
-      date: new Date(sentenceTimestamp).toISOString()
+      date: new Date(sentenceTimestamp).toISOString(),
     }
   }
   parsed.metadata.receiver = receiver.value
   parsed.metadata.emitter = emitter.value
-  parsed.payload.forEach(field => {
+  parsed.payload.forEach((field) => {
     if (field.metadata !== undefined) {
       // @ts-expect-error
       parsed.metadata[field.name] = { ...field.metadata }
@@ -190,6 +197,7 @@ const emitter101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
   return parsed
 }
 
+// eslint-disable-next-line sonarjs/max-lines-per-function, sonarjs/cyclomatic-complexity -- CMA refactor will address
 const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<ParsedSentence, 'mode'> => {
   /** Emitter: Acoustic detection
    * Field |  Type  | Description
@@ -215,7 +223,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[0],
     name: 'TB Live serial number',
     type: 'string',
-    value: Number(fields[0])
+    value: Number(fields[0]),
   }
   if (Number.isNaN(receiver.value) || (receiver.value as number) < 1) {
     const error = `receiver field is not a positive integer: ${receiver.raw}`
@@ -228,7 +236,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     name: 'seconds',
     type: 'uint32',
     value: Number(fields[1]),
-    units: 'seconds'
+    units: 'seconds',
   }
   if (!Number.isInteger(seconds.value) || (seconds.value as number) < 0) {
     const error = `seconds field is not a positive integer: ${seconds.raw}`
@@ -241,7 +249,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     name: 'milliseconds',
     type: 'uint16',
     value: Number(fields[2]),
-    units: 'milliseconds'
+    units: 'milliseconds',
   }
   if (!Number.isInteger(milliseconds.value) || (milliseconds.value as number) < 0) {
     const error = `milliseconds field is not a positive integer: ${milliseconds.raw}`
@@ -253,14 +261,14 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[3],
     name: 'protocol',
     type: 'string',
-    value: fields[3]
+    value: fields[3],
   }
 
   const emitter: Field = {
     raw: fields[4],
     name: 'emitter',
     type: 'string',
-    value: Number(fields[4])
+    value: Number(fields[4]),
   }
   if (Number.isNaN(emitter.value) || (emitter.value as number) < 1) {
     const error = `emitter field is not a positive integer: ${emitter.raw}`
@@ -272,7 +280,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[5],
     name: 'angle',
     type: 'uint16',
-    value: Number(fields[5])
+    value: Number(fields[5]),
   }
   if (!Number.isInteger(angle.value) || (angle.value as number) < 0) {
     const error = `angle field is not a positive integer: ${angle.raw}`
@@ -287,7 +295,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw: fields[6],
     name: 'snr',
     type: 'uint8',
-    value: Number(fields[6])
+    value: Number(fields[6]),
   }
   if (!Number.isInteger(snr.value) || (snr.value as number) < 0) {
     const error = `snr field is not a positive integer: ${snr.raw}`
@@ -304,7 +312,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     type: 'uint8',
     value: Number(fields[7]),
     units: 'kHz',
-    description: 'Frequency has to be bound between 63 - 77 kHz'
+    description: 'Frequency has to be bound between 63 - 77 kHz',
   }
   if (!Number.isInteger(frequency.value) || (frequency.value as number) < 0) {
     const error = `frequency field is not a positive integer: ${frequency.raw}`
@@ -317,7 +325,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
     raw,
     id: 'emitter',
     firmware: '1.0.2',
-    payload: [receiver, seconds, milliseconds, protocol, emitter, angle, snr, frequency]
+    payload: [receiver, seconds, milliseconds, protocol, emitter, angle, snr, frequency],
   }
 
   if (errors.length > 0) {
@@ -330,12 +338,12 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
   if (sentenceTimestamp !== null) {
     parsed.metadata.timestamp = {
       value: sentenceTimestamp,
-      date: new Date(sentenceTimestamp).toISOString()
+      date: new Date(sentenceTimestamp).toISOString(),
     }
   }
   parsed.metadata.receiver = receiver.value
   parsed.metadata.emitter = emitter.value
-  parsed.payload.forEach(field => {
+  parsed.payload.forEach((field) => {
     if (field.metadata !== undefined) {
       (parsed.metadata as Metadata)[field.name] = { ...field.metadata }
     }
@@ -344,6 +352,7 @@ const emitter102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<P
   return parsed
 }
 
+// eslint-disable-next-line sonarjs/max-lines-per-function, sonarjs/cyclomatic-complexity -- CMA refactor will address
 const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<ParsedSentence, 'mode'> => {
   /** Receiver: Receiver Log
    * Field |  Type  | Description
@@ -361,7 +370,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[0],
     name: 'TB Live serial number',
     type: 'string',
-    value: Number(fields[0])
+    value: Number(fields[0]),
   }
   if (Number.isNaN(receiver.value) || (receiver.value as number) < 1) {
     const error = `receiver field is not a positive integer: ${receiver.raw}`
@@ -374,7 +383,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     name: 'seconds',
     type: 'uint32',
     value: Number(fields[1]),
-    units: 'seconds'
+    units: 'seconds',
   }
   if (!Number.isInteger(seconds.value) || (seconds.value as number) < 0) {
     const error = `seconds field is not a positive integer: ${seconds.raw}`
@@ -386,14 +395,14 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[2],
     name: 'log',
     type: 'string',
-    value: fields[2]
+    value: fields[2],
   }
 
   const temperature: Field = {
     raw: fields[3],
     name: 'temperature',
     type: 'int16',
-    value: Number(fields[3])
+    value: Number(fields[3]),
     // units: 'celsius'
   }
   if (!Number.isInteger(temperature.value)) {
@@ -409,7 +418,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[4],
     name: 'noise_average',
     type: 'uint8',
-    value: Number(fields[4])
+    value: Number(fields[4]),
   }
   if (!Number.isInteger(noiseAverage.value) || (noiseAverage.value as number) < 0) {
     const error = `noise_average field is not a positive integer: ${noiseAverage.raw}`
@@ -421,7 +430,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[5],
     name: 'noise_peak',
     type: 'uint8',
-    value: Number(fields[5])
+    value: Number(fields[5]),
   }
   if (!Number.isInteger(noisePeak.value) || (noisePeak.value as number) < 0) {
     const error = `noise_peak field is not a positive integer: ${noisePeak.raw}`
@@ -435,7 +444,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     type: 'uint8',
     value: Number(fields[6]),
     units: 'kHz',
-    description: 'frequency has to be bound between 63 - 77 kHz'
+    description: 'frequency has to be bound between 63 - 77 kHz',
   }
   if (!Number.isInteger(frequency.value) || (frequency.value as number) < 0) {
     const error = `frequency field is not a positive integer: ${frequency.raw}`
@@ -447,7 +456,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[7],
     name: 'sent',
     type: 'uint32',
-    value: Number(fields[7])
+    value: Number(fields[7]),
   }
   if (!Number.isInteger(sent.value) || (sent.value as number) < 0) {
     const error = `sent field is not a positive integer: ${sent.raw}`
@@ -460,7 +469,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw,
     id: 'receiver',
     firmware: '1.0.1',
-    payload: [receiver, seconds, log, temperature, noiseAverage, noisePeak, frequency, sent]
+    payload: [receiver, seconds, log, temperature, noiseAverage, noisePeak, frequency, sent],
   }
 
   if (errors.length > 0) {
@@ -473,12 +482,12 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
   if (sentenceTimestamp !== null) {
     parsed.metadata.timestamp = {
       value: sentenceTimestamp,
-      date: new Date(sentenceTimestamp).toISOString()
+      date: new Date(sentenceTimestamp).toISOString(),
     }
   }
   parsed.metadata.receiver = receiver.value
   parsed.metadata.noise = { average: noiseAverage.value, peak: noisePeak.value }
-  parsed.payload.forEach(field => {
+  parsed.payload.forEach((field) => {
     if (field.metadata !== undefined) {
       // @ts-expect-error
       parsed.metadata[field.name] = { ...field.metadata }
@@ -488,6 +497,7 @@ const receiver101 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
   return parsed
 }
 
+// eslint-disable-next-line sonarjs/max-lines-per-function, sonarjs/cyclomatic-complexity -- CMA refactor will address
 const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<ParsedSentence, 'mode'> => {
   /** Receiver: Receiver Log
    * Field |  Type  | Description
@@ -504,7 +514,7 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[0],
     name: 'TB Live serial number',
     type: 'string',
-    value: Number(fields[0])
+    value: Number(fields[0]),
   }
   if (Number.isNaN(receiver.value) || (receiver.value as number) < 1) {
     const error = `receiver field is not a positive integer: ${receiver.raw}`
@@ -517,7 +527,7 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     name: 'seconds',
     type: 'uint32',
     value: Number(fields[1]),
-    units: 'seconds'
+    units: 'seconds',
   }
   if (!Number.isInteger(seconds.value) || (seconds.value as number) < 0) {
     const error = `seconds field is not a positive integer: ${seconds.raw}`
@@ -529,14 +539,14 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[2],
     name: 'log',
     type: 'string',
-    value: fields[2]
+    value: fields[2],
   }
 
   const temperature: Field = {
     raw: fields[3],
     name: 'temperature',
     type: 'int16',
-    value: Number(fields[3])
+    value: Number(fields[3]),
     // units: 'celsius'
   }
   if (!Number.isInteger(temperature.value)) {
@@ -552,7 +562,7 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[4],
     name: 'noise_average',
     type: 'uint8',
-    value: Number(fields[4])
+    value: Number(fields[4]),
   }
   if (!Number.isInteger(noiseAverage.value) || (noiseAverage.value as number) < 0) {
     const error = `noise_average field is not a positive integer: ${noiseAverage.raw}`
@@ -564,7 +574,7 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw: fields[5],
     name: 'noise_peak',
     type: 'uint8',
-    value: Number(fields[5])
+    value: Number(fields[5]),
   }
   if (!Number.isInteger(noisePeak.value) || (noisePeak.value as number) < 0) {
     const error = `noise_peak field is not a positive integer: ${noisePeak.raw}`
@@ -578,7 +588,7 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     type: 'uint8',
     value: Number(fields[6]),
     units: 'kHz',
-    description: 'frequency has to be bound between 63 - 77 kHz'
+    description: 'frequency has to be bound between 63 - 77 kHz',
   }
   if (!Number.isInteger(frequency.value) || (frequency.value as number) < 0) {
     const error = `frequency field is not a positive integer: ${frequency.raw}`
@@ -591,7 +601,7 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
     raw,
     id: 'receiver',
     firmware: '1.0.2',
-    payload: [receiver, seconds, log, temperature, noiseAverage, noisePeak, frequency]
+    payload: [receiver, seconds, log, temperature, noiseAverage, noisePeak, frequency],
   }
 
   if (errors.length > 0) {
@@ -604,12 +614,12 @@ const receiver102 = (fields: string[], timestamp: Timestamp, raw: string): Omit<
   if (sentenceTimestamp !== null) {
     parsed.metadata.timestamp = {
       value: sentenceTimestamp,
-      date: new Date(sentenceTimestamp).toISOString()
+      date: new Date(sentenceTimestamp).toISOString(),
     }
   }
   parsed.metadata.receiver = receiver.value
   parsed.metadata.noise = { average: noiseAverage.value, peak: noisePeak.value }
-  parsed.payload.forEach(field => {
+  parsed.payload.forEach((field) => {
     if (field.metadata !== undefined) {
       (parsed.metadata as Metadata)[field.name] = { ...field.metadata }
     }
