@@ -10,7 +10,7 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-13 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
+> **Last updated:** 2026-07-22 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
 >
@@ -78,6 +78,36 @@ Strokes:
 
 ## Done
 
+- **2026-07-22 — FIX: CI red at `Setup pnpm` — pnpm `11.12.0` is a broken release (cru).** The
+  `dev`→`main` merge was made and **failed on every library workflow at the `📦 Setup pnpm` step**
+  (`pnpm/action-setup@v6`, self-update to the packageManager version): `[ERROR] Cannot use 'in'
+  operator to search for 'integrity' in undefined` while parsing the lockfile. Root cause is **not
+  our logic** — **pnpm `11.12.0` was deprecated by upstream as broken** (`npm view pnpm@11.12.0
+  deprecated` → *"This release is broken. Please upgrade to v11.13.1 or newer."*; `11.13.0` is
+  broken too). It was green on 2026-07-13 because npm deprecated/it surfaced afterward. Same bug hit
+  the **local** dev env (corepack honors the same field). **Fix: bumped root `package.json`
+  `packageManager` `pnpm@11.12.0` → `pnpm@11.15.1`** (current `latest-11`, clean). Lockfile
+  unaffected (packageManager doesn't change dep resolution); `--frozen-lockfile` still clean. Verified
+  local: pnpm 11.15.1, nmea-parser **65/65** + build ESM+CJS+DTS. **The `nmea-parser@3.0.0` publish
+  did NOT happen** (test failed → publish skipped by `needs: test`), so nothing bad shipped — re-merge
+  `dev`→`main` after this lands on `dev` and the `dev` run is green.
+  - **Lesson / process:** the `test`/`build` jobs run on **every `dev` push** (only `publish` is
+    `main`-gated), so **land changes on `dev` and confirm the workflow is green there BEFORE merging
+    to `main`**. `act` (nektos/act) is set up for fully-local workflow runs (Docker/podman present).
+- **2026-07-22 — CI/CD publish-gating re-audited + release plan phased (cru).** No code change
+  (HEAD still `aaa6847`). Audited all 11 workflows: **every publishable package's publish job is
+  correctly gated on `github.ref == 'refs/heads/main'` AND a `npm view <name>@<version>`
+  version-differs check** (publish steps run only when that exact version is NOT yet on npm), each
+  workflow targets **its own** package (no cross-wiring), all on OIDC (`id-token: write`, zero
+  `NPM_TOKEN` — the only "NPM_TOKEN" text is a comment); `protocol-core` correctly has no publish
+  job (private). **Confirmed the only fully-working action today is `nmea-parser`**; `norsub-emru`
+  + `sbg-ecom` test jobs go red on a `main` merge (expected mid-refactor — norsub uses the removed
+  API, sbg has no specs) and `needs: test` blocks their publish, so nothing broken ships. cru
+  **locked the release into strict phases** (see "Where we are now" + the paste-ready prompt):
+  **Phase 1** publish nmea-parser 3.0.0 + verify a fresh install → **Phase 2** (on cru's signal)
+  refactor the nmea-parser-nodered wrapper + verify its CI/CD → **Phase 3** (only once nmea-parser
+  **and** its wrapper are fully in production) norsub-emru + its wrapper → then tblive, then the
+  binary parsers, each with its wrapper. PR message for the `dev`→`main` merge drafted this turn.
 - **2026-07-13 — post-release cleanup + safe dep bumps (cru).** HEAD `ee08691`.
   - **`c39f233` — strip private core from published manifests.** New **`.pnpmfile.mjs`** with a
     `beforePacking` hook that deletes `@coremarine/protocol-core` from any packed package's
@@ -87,9 +117,10 @@ Strokes:
     for local builds; only the *published* manifest is cleaned.)
   - **`b16b7c0` — fixed `thelmabiotel-tblive` `homepage`** (was `github.com/core-marine-dev/tree/…`,
     missing `/devices`).
-  - **`ee08691` — safe dep bumps:** `packageManager` pnpm `11.10.0→11.12.0`, `@types/node`
-    `26.0.1→26.1.1`, `eslint` `10.6.0→10.7.0`. Verified: nmea 65/65, core 14/14, both lint+tsc+build
-    clean, whole-repo `pnpm lint` clean, `--frozen-lockfile` clean.
+  - **`ee08691` — safe dep bumps:** `packageManager` pnpm `11.10.0→11.12.0` (⚠️ **11.12.0 later
+    found broken & deprecated upstream → bumped to `11.15.1` on 2026-07-22**, see the top Done entry),
+    `@types/node` `26.0.1→26.1.1`, `eslint` `10.6.0→10.7.0`. Verified: nmea 65/65, core 14/14, both
+    lint+tsc+build clean, whole-repo `pnpm lint` clean, `--frozen-lockfile` clean.
   - **Deferred deliberately (NOT risk-free — see the CI/CD & versions decisions):**
     - **TypeScript 7** (native Go rewrite, GA 2026-07-08): held at `6.0.3`. TS7 has **no stable
       programmatic API until 7.1** (~Oct 2026); `typescript-eslint@8.63` peers `typescript
@@ -357,7 +388,7 @@ Strokes:
 ## Where we are now
 
 **HEAD `ee08691` (+ this docs commit), branch `dev`, working tree clean (2026-07-13).** Steps 1-6
-complete. Modern stack: pnpm 11.12.0, TypeScript 6.0.3 (TS7 deferred), ESLint 10.7 + sonar +
+complete. Modern stack: pnpm 11.15.1, TypeScript 6.0.3 (TS7 deferred), ESLint 10.7 + sonar +
 perfectionist, Vitest 4, Valibot 1.4.2, zero known vulns on `dev` (the 74 dependabot alerts are on
 `main`, clear on merge).
 
@@ -372,41 +403,66 @@ protocols; `repository.directory` everywhere; nmea-parser is `3.0.0` with protoc
 devDeps + types inlined into the published `.d.ts`. **cru has configured Trusted Publishers on npmjs
 for ALL packages.**
 
-**NEXT — cru opens the PR `dev` → `main`.** Merging publishes via GH Actions. Because of the
-**version gate**, this is now safe/quiet: **only nmea-parser (3.0.0, a new version) actually
-publishes**; every other package's publish job runs the ~2s `npm view` check and **no-ops** (version
-unchanged). norsub-emru + all `-nodered` wrappers fail test/build (broken old API) so their publish
-is skipped anyway. The merge also clears the 74 dependabot alerts on `main`. **After 3.0.0 is live:**
-upgrade `nmea-parser-nodered` (dep → `^3`, re-enable its test/build, fix its `addProtocols`→
-`addSentences` call), then start the `norsub-emru` code refactor.
+**NEXT — the release is PHASED (locked with cru 2026-07-22); do them strictly in order, each fully
+in production before the next:**
+
+- **Phase 1 (current) — publish nmea-parser 3.0.0 + verify a fresh install.** ⚠️ **First merge
+  attempt (2026-07-22) failed** — every library workflow died at `Setup pnpm` because pnpm `11.12.0`
+  is a broken/deprecated release (see top Done entry); **fixed on `dev` by bumping `packageManager`
+  → `pnpm@11.15.1`.** The `3.0.0` publish did NOT happen (test failed → publish skipped), so re-merge
+  is safe. **Next: land the fix on `dev`, confirm the `nmea-parser` workflow is GREEN on `dev`, then
+  cru re-opens/re-merges PR `dev` → `main`** (PR message drafted 2026-07-22). Because of the
+  **version gate** this is safe/quiet: **only nmea-parser 3.0.0 publishes** (OIDC + provenance); every other package's publish
+  job runs the ~2s `npm view` check and **no-ops**; norsub-emru + sbg-ecom test-red is expected and
+  blocks nothing (`needs: test`). The merge also clears the 74 dependabot alerts on `main`. Then
+  **smoke-test a fresh install**: in a clean dir `npm i @coremarine/nmea-parser@3.0.0`, import both
+  ESM + CJS, confirm types resolve and there is **no** `@coremarine/protocol-core` runtime dep.
+- **Phase 2 (only when cru says go, after 3.0.0 is live) — nmea-parser-nodered wrapper.** Dep
+  `@coremarine/nmea-parser` → `^3.0.0`; rewrite `src/parser.js` off the removed `addProtocols(...)`
+  onto `addSentences(yaml)` + CMA output; re-enable its commented-out test job (build the lib dist
+  first); bump version; verify CI/CD green; publish; smoke-test a fresh install.
+- **Phase 3 (only once nmea-parser AND its wrapper are fully in production) — norsub-emru, then its
+  wrapper.** Then thelmabiotel-tblive (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom
+  (+ wrappers).
 
 ### Prompt for the next agent (paste-ready)
 
 > Continue the CoreMarine **devices** monorepo refactor (branch `dev`, HEAD is a `docs(status)`
-> commit — run `git log --oneline -8` first). Read **`docs/STATUS.md`** top-to-bottom (esp. the top
+> commit — run `git log --oneline -10` first). Read **`docs/STATUS.md`** top-to-bottom (esp. the top
 > Done entries + Decisions). cru works **one step at a time and wants decisions converged BEFORE
-> acting**; verify per package from the package dir; update `docs/STATUS.md` **same-turn**. **Repo
-> rule: for any npm / pnpm / GitHub-Actions specifics, fetch current docs with the `ctx7` CLI — do
-> not rely on memory.**
+> acting**; verify per package from the package dir (lint → tsc → test → build); update
+> `docs/STATUS.md` **same-turn**. **Repo rule: for any npm / pnpm / GitHub-Actions / TypeScript /
+> library specifics, fetch current docs with the `ctx7` CLI — do not rely on memory.**
 >
-> **nmea-parser is a FINISHED library and its 3.0.0 RELEASE is fully prepped + committed on `dev`**
-> (CI/CD on npm OIDC Trusted Publishing with a version gate, version bumped, protocol-core → devDeps,
-> types inlined). Do NOT redo any of that. **The immediate step is cru's own: open PR `dev` → `main`
-> and merge** — the version gate means only nmea-parser 3.0.0 publishes; everything else no-ops or is
-> skipped. If you're driving, help watch the `nmea-parser` workflow's publish job succeed (OIDC +
-> provenance) and confirm `@coremarine/nmea-parser@3.0.0` is on npm.
+> **The release is PHASED (locked 2026-07-22). Do the phases strictly in order — each must be fully
+> in production before starting the next.**
 >
-> **After 3.0.0 is live — nmea-parser-nodered wrapper.** Bump its dep `@coremarine/nmea-parser` →
-> `^3.0.0` (pnpm rewrites `workspace:^` on publish). Its workflow is already on OIDC + the version
-> gate, but its **test job is still commented out** and its `src/parser.js` calls the **removed old
-> API** (`parser.addProtocols({...})`) — update it to `addSentences(yaml)` + CMA output, re-enable
-> the test job (needs the lib's dist built first), bump its version, publish. Trusted Publisher is
-> already configured on npm.
+> **PHASE 1 (current) — publish nmea-parser 3.0.0 & verify a fresh install.** nmea-parser is a
+> FINISHED reference implementation and its 3.0.0 release + repo-wide OIDC/version-gated CI/CD are
+> DONE and committed on `dev` — **do NOT redo any of it.** CI/CD was re-audited 2026-07-22: every
+> package's publish job is correctly gated on `on main` AND `version-differs`, so **only nmea-parser
+> 3.0.0 publishes** on the merge (norsub-emru + sbg-ecom test-red is expected mid-refactor and blocks
+> nothing). **This step is cru's own: open PR `dev` → `main` and merge** (PR message already drafted —
+> see the 2026-07-22 Done entry / ask cru). If you're driving, watch the `nmea-parser` publish job
+> succeed (OIDC + provenance), confirm `@coremarine/nmea-parser@3.0.0` is on npm, then **smoke-test a
+> fresh install**: in a clean dir `npm i @coremarine/nmea-parser@3.0.0`, import both ESM + CJS, confirm
+> types resolve and there is **no** `@coremarine/protocol-core` runtime dep.
 >
-> **THEN norsub-emru** (the next *code* refactor): §"NMEA refactor — locked design & plan" → Resume
+> **PHASE 2 (ONLY when cru says go, after 3.0.0 is live) — nmea-parser-nodered wrapper.** Bump its
+> dep `@coremarine/nmea-parser` → `^3.0.0` (pnpm rewrites `workspace:^` on publish). Its workflow is
+> already on OIDC + the version gate, but its **test job is still commented out** and its
+> `src/parser.js` calls the **removed old API** (`parser.addProtocols({...})`) — rewrite it to
+> `addSentences(yaml)` + CMA output, re-enable the test job (needs the lib's dist built first), bump
+> version, verify CI/CD green, publish, smoke-test a fresh install. Trusted Publisher already
+> configured on npm.
+>
+> **PHASE 3 (ONLY once nmea-parser AND its wrapper are fully in production) — norsub-emru, then its
+> wrapper.** The lib is the next *code* refactor: §"NMEA refactor — locked design & plan" → Resume
 > prompt has the full spec + two open design questions. Its workflow is already modernized (keeps the
 > `Build monorepo deps: nmea-parser:build` step since it extends NMEAParser). Timestamp metadata is
-> inherited from core; no work there. After norsub: thelmabiotel-tblive, then binary parsers
+> inherited from core; no work there. Then norsub-emru-nodered.
+>
+> **LATER (same lib-then-wrapper pattern):** thelmabiotel-tblive, then the binary parsers
 > septentrio-sbf & sbg-ecom (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio will want a
 > `sentenceTimestamp` override for TOW+WNc).
 
@@ -470,7 +526,8 @@ upgrade `nmea-parser-nodered` (dep → `^3`, re-enable its test/build, fix its `
   each wrapper is refactored. Bundled private deps (`@coremarine/protocol-core`) go in
   **devDependencies** (not runtime deps), need tsup `dts.resolve` to inline their TYPES, and are
   stripped from the published manifest by `.pnpmfile.mjs` `beforePacking`.
-- **Toolchain versions (2026-07-13):** node CI = two latest LTS `[22.x, 24.x]`; pnpm `11.12.0`;
+- **Toolchain versions (updated 2026-07-22):** node CI = two latest LTS `[22.x, 24.x]`; pnpm
+  `11.15.1` (was `11.12.0` — that release is broken/deprecated upstream; **avoid 11.12.0 & 11.13.0**);
   **TypeScript held at `6.0.3`** (TS7 native rewrite needs 7.1's stable programmatic API before
   typescript-eslint/tsup work — revisit ~Oct 2026); **js-yaml held at 4.x** (workspace security
   override `js-yaml: '>=4.1.1'` pins it; going to 5 would drag mocha/node-red transitive js-yaml).
@@ -582,10 +639,13 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 
 ## Next steps (in order)
 
-1. **Merge `dev` → `main`** (cru opens the PR) — publishes **nmea-parser 3.0.0** to npm via GH
-   Actions (OIDC + provenance) and clears the dependabot vulnerabilities on `main`. Safe/quiet now:
-   the publish-if-version-changed gate makes every other package's publish job no-op. After it lands,
-   confirm `@coremarine/nmea-parser@3.0.0` is on npm, then do the `nmea-parser-nodered` wrapper.
+1. **Ship the release in PHASES (locked 2026-07-22 — see "Where we are now" for full detail).**
+   **Phase 1 (current):** cru opens PR `dev` → `main` and merges → publishes **nmea-parser 3.0.0**
+   (OIDC + provenance), clears the dependabot alerts on `main`; the version gate no-ops every other
+   package; then smoke-test `npm i @coremarine/nmea-parser@3.0.0` in a clean dir (ESM+CJS import,
+   types resolve, no protocol-core runtime dep). **Phase 2 (on cru's signal):** nmea-parser-nodered
+   wrapper (dep → `^3.0.0`, `addProtocols`→`addSentences`, re-enable test, verify CI/CD, publish).
+   **Phase 3 (only once nmea-parser + its wrapper are fully in production):** norsub-emru + its wrapper.
 2. **CMA rollout** — format is locked; `@coremarine/protocol-core` is scaffolded. Refactor the
    parsers onto it in **cru's order** (easiest-first, NMEA becomes the model):
    1. ~~**nmea-parser**~~ — ✅ DONE (2026-07-10): the reference implementation (CMA rewrite +
