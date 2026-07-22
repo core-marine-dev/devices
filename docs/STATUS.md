@@ -499,6 +499,58 @@ in production before the next:**
 > septentrio-sbf & sbg-ecom (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio will want a
 > `sentenceTimestamp` override for TOW+WNc).
 
+## Node-RED wrapper refactor — locked plan (Phase 2, started 2026-07-22)
+
+> `nmea-parser-nodered` is refactored first and becomes the **template for all future wrappers**
+> (`templates/nodered/`). Plan converged with cru after deep investigation (below). Not yet coded.
+
+**Locked decisions (2026-07-22, cru):**
+- **Versions:** `engines.node ≥22`, `node-red ≥5` (needs Node 22), CI matrix `[22.x, 24.x]`, drop the
+  Node-18 Dockerfile base.
+- **Authoring: TypeScript → tsup → CJS** (validated by spike — see below). Node-RED requires CJS;
+  tsup `export = init` emits `module.exports = <fn>`, node-red's exact contract. Build = tsup for JS
+  **+ copy `parser.html` + icons** (tsup doesn't handle static assets).
+- **API migration** (`src/parser.*`): `new NMEAParser({ memory })`; `addProtocols({file,...})` →
+  **`addSentences(yaml)` handling the `Result`**; the configured **`file` path is read in-node (fs)**
+  and its content passed to `addSentences`; `parseData` → `CMA[]`. Fix the latent `parser()` bug and
+  the flow/registerType type name (`cma-nmea-parser`). Surviving getters kept.
+- **Architecture:** split into a **pure-logic module (zero node-red deps)** + a **thin RED adapter**.
+- **Testing — three layers:**
+  1. **Pure-logic unit tests** via **`node:test` + `node:assert`** (no helper). CI backbone.
+  2. **Integration** (registration + msg wiring) in CI — **VALIDATED approach (cru chose B): boot
+     real node-red headless via its PUBLIC api + the flowFile pattern** (spiked green 2026-07-22):
+     write a flow (`inject → cma-nmea-parser → test-sink`) to a temp `flowFile`, `RED.init(http
+     server, { httpAdminRoot:false, httpNodeRoot:false, disableEditor:true, userDir:<tmp>,
+     logging:{console:{level:'off'}} })`, register a `test-sink` type before `RED.start()`, then
+     `await RED.start()`; the wrapper **auto-loads from node_modules** (workspace symlink), the `once`
+     inject fires, the sink captures. Confirmed: injected `$GPGGA…\r\n` came out as `payload:[CMA]`
+     (`id:GGA`, `protocol:{NMEA,3.1}`, `metadata.timestamp:{received,parsed,sentence}`). Uses only the
+     stable public API — no fragile helper/patch. Notes: NMEA sentences need `\r\n` terminators (else
+     buffered); boot ≈700ms so **share one runtime across many assertions** (one flow, sink collects an
+     array), don't boot-per-test. The `runtime.flows.setFlows` admin API does NOT reliably start nodes
+     embedded — use the flowFile-before-start pattern. **A. patch-the-helper is REJECTED** (too brittle
+     to maintain).
+  3. **Manual visual** via a **`<pkg>:nodered:dev` script that runs the local `node-red` dep** (no
+     docker) so the node/icon/wiring can be seen live. Retire `manual_tests.sh`/docker.
+- **CI/CD:** re-enable the wrapper test job (runs `node:test`), build lib dist first (monorepo dep),
+  matrix `[22,24]`, bump wrapper to a new **major** (breaking API + CMA output), publish via existing
+  OIDC + version gate.
+
+**Investigation findings (evidence, 2026-07-22):**
+- **`node:test` is fine as the runner** — it drove `node-red-node-test-helper` to `helper.load`;
+  mocha fails identically. The runner was never the problem.
+- **BLOCKER: `node-red-node-test-helper@0.3.6` (latest, 2024) is incompatible with `node-red@5.x`.**
+  It hard-codes ~8 internal node-red file paths (e.g. `@node-red/registry/lib/util`) that node-red 5
+  moved/renamed, AND its relative-path hunting is defeated by pnpm's non-flat `node_modules`. Init
+  throws (silently swallowed) → `helper.load` crashes on `undefined`. No fixed helper published. This
+  is why all `-nodered` test jobs are disabled. A robust patch = rewrite its resolution to
+  package-name `require`s (non-trivial) — hence the "boot node-red programmatically" alternative.
+- **TS authoring VALIDATED:** a spike (`parser.ts` with `@types/node-red@1.3.5` +
+  `@types/node-red-node-test-helper`, `moduleResolution: bundler`, `strict`, `skipLibCheck:false`)
+  compiles **0 errors**, and tsup emits node-red-loadable CJS. cru's earlier TS errors were the
+  **deprecated `moduleResolution: node`** (TS6 rejects it), not a real `@types` problem. The two
+  `@types/*` devDeps were added to the wrapper (uncommitted) during the spike.
+
 ## Decisions (locked unless cru says otherwise)
 
 - **CMA format is LOCKED** — [`docs/CMA.md`](CMA.md) §Current draft + §Locked decisions
