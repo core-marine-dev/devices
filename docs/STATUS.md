@@ -78,6 +78,22 @@ Strokes:
 
 ## Done
 
+- **2026-07-22 — FIX: nmea-parser CI couldn't resolve the private core in a fresh checkout (cru).**
+  After the pnpm fix, running the workflow locally with **`act`** surfaced a *second*, pre-existing
+  break: nmea-parser's tests/build import `@coremarine/protocol-core`, whose `package.json`
+  `exports`/`main` point **only at `dist/`** — and the workflow built **nothing** before Tests. In a
+  fresh checkout the core has no `dist/`, so vitest died with *"Failed to resolve entry for package
+  @coremarine/protocol-core"* (4 suites). It only ever passed locally because a prior session left
+  `packages/core/dist/` on disk. **This had been red in CI since the 2026-07-10 core refactor** — the
+  pnpm bug just failed earlier and hid it. **Fix (Option A, cru): added a `🛠️ Build monorepo deps`
+  step running `pnpm run protocol-core:build`** to `nmea-parser.yml` — before Tests in the test job,
+  and before Build in the publish job (mirrors the `norsub-emru.yml` "build nmea-parser first"
+  pattern). Reproduced + fixed locally (rm core dist → 4 fail; build core → 65/65) and **re-verified
+  end-to-end with `act` from a clean checkout: Setup pnpm ✅ → protocol-core build ✅ → 65/65 ✅ →
+  nmea build ✅ → job succeeded.** Follow-ups noted for later: (B) a `pretest` hook, or (C) resolve
+  the core from source (`exports`→`src`/vitest alias) to drop the build-order dep repo-wide — revisit
+  when refactoring norsub. **Local dev gotcha remains:** run `pnpm run protocol-core:build` once
+  before `nmea-parser:test` if `packages/core/dist/` is absent.
 - **2026-07-22 — FIX: CI red at `Setup pnpm` — pnpm `11.12.0` is a broken release (cru).** The
   `dev`→`main` merge was made and **failed on every library workflow at the `📦 Setup pnpm` step**
   (`pnpm/action-setup@v6`, self-update to the packageManager version): `[ERROR] Cannot use 'in'

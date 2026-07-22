@@ -31,6 +31,11 @@ jobs:
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      # nmea-parser bundles the private @coremarine/protocol-core (tsup noExternal) and its
+      # tests import it — the core's dist must exist before test/build resolve it.
+      - name: 🛠️ Build monorepo deps
+        run: "pnpm run protocol-core:build"
+
       - name: 🧑‍🔬 Tests
         run: "pnpm run nmea-parser:test"
 
@@ -78,6 +83,11 @@ jobs:
       - name: 📥 Install Dependencies
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
+
+      # Build the bundled private core first (tsup noExternal needs its dist to resolve it).
+      - name: 🛠️ Build monorepo deps
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run protocol-core:build"
 
       - name: 🛠️ Build
         if: steps.check.outputs.publish == 'true'
