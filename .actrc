@@ -1,0 +1,5 @@
+# nektos/act config — run GitHub Actions locally before merging to main.
+# Installed as a gh extension: `gh act ...`  (docker/podman must be running).
+# Pin the runner image for `ubuntu-latest` (medium image ships Node + npm,
+# which pnpm/action-setup needs for its self-installer).
+-P ubuntu-latest=catthehacker/ubuntu:act-latest

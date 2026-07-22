@@ -31,6 +31,33 @@ Current CI gaps (as committed):
 - All 5 **nodered workflows have the whole `test` job commented out** — they publish untested.
 - `sbg-ecom.yml` has its test step commented out (package has no test specs yet).
 
+## Local CI (act) — test workflows before pushing
+
+[`nektos/act`](https://github.com/nektos/act) runs the GitHub Actions workflows **locally in a
+container**, so you can confirm a workflow is green before pushing/merging (only `publish`, which
+needs OIDC on `main`, can't run locally). This is the guard that would have caught both the
+pnpm-`11.12.0` break and the `protocol-core` build-order break before they ever reached `main`.
+
+- **Requires:** a running container engine (Docker **or** Podman) — nothing else.
+- **Install (once):** `gh extension install nektos/gh-act` → invoke as `gh act …`.
+  (Fedora's `dnf` `act` is an unrelated tool; don't use it.)
+- **Config:** committed **`.actrc`** pins the runner image
+  (`-P ubuntu-latest=catthehacker/ubuntu:act-latest` — medium image, ships Node+npm which
+  `pnpm/action-setup` needs). First run pulls ~1.6 GB, then it's cached. `.secrets` /
+  `.actrc.local` stay git-ignored for per-dev overrides.
+
+```bash
+pnpm run act:list                 # list all workflows/jobs act can see
+pnpm run nmea-parser:ci:local     # run nmea-parser's Test job locally (both node LTS)
+# raw, for anything else:
+gh act push -W .github/workflows/<pkg>.yml -j test           # one workflow's test job
+gh act push -W .github/workflows/nmea-parser.yml -j test --matrix node-version:24.x  # one matrix entry (faster)
+```
+
+`act` starts from a **clean checkout** (git-ignored `dist/` is absent), so it faithfully
+reproduces fresh-CI resolution — which is exactly why it surfaces missing build-order steps that a
+dirty local tree hides. Add a `<pkg>:ci:local` script per package as each one's workflow goes green.
+
 ## Templates (`templates/`)
 
 Scaffolding for new packages — see CONTRIBUTING.md for the step-by-step recipes:

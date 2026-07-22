@@ -139,7 +139,7 @@ dist
 # Dev helpers (not committed on purpose — see docs/ARCHITECTURE.md)
 misc/
 
-# nektos/act local runner (per-dev tooling — see docs/STATUS.md "test before merge")
-.actrc
+# nektos/act local runner — .actrc is committed (shared runner-image pin);
+# keep secrets and per-dev overrides out of git. See docs/TOOLING.md "Local CI (act)".
 .secrets
 .actrc.local
