@@ -78,6 +78,32 @@ Strokes:
 
 ## Done
 
+- **2026-07-22 — nmea-parser-nodered wrapper refactored to TS + new API + node:test (Phase 2, cru).**
+  The wrapper is rebuilt as the **template for all future wrappers**; verified green three ways
+  (local clean-dist chain, `node:test`, and **act** in a container). NOT yet published (publishes on
+  the next `dev`→`main` merge via the OIDC+version gate; `workspace:^` rewrites to `^3.0.0`).
+  - **Authoring:** TypeScript → **tsup** → CJS (`export = init` → `module.exports = <fn>`), `platform:
+    node`, `@coremarine/nmea-parser` stays **external** (published runtime dep). `copy-assets.mjs`
+    copies `parser.html` + `icons/` into `dist/`. `tsconfig` needs `"module": "preserve"` for `export =`.
+  - **Architecture:** pure-logic `src/lib.ts` (NO node-red dep — unit-testable) + thin adapter
+    `src/parser.ts`. New lib API: `new NMEAParser({ memory })`, `addSentences(yaml)` (handles the
+    `Result`; a configured/`msg` `file` path is read in-node via `node:fs`; `content` YAML also
+    accepted, precedence content>file), `parseData`→`CMA[]`. Fixed the old `parser()` bug + the
+    flow/registerType type name.
+  - **Tests (`node:test` via `tsx`, 19/19):** `tests/lib.unit.test.ts` (pure logic w/ a real parser) +
+    `tests/wrapper.integration.test.ts` — **boots real headless node-red** (public API + flowFile
+    pattern), auto-loads the built node, runs `inject → cma-nmea-parser → sink`, asserts CMA output +
+    timestamp metadata. NO `node-red-node-test-helper`.
+  - **CI (`nmea-parser-nodered.yml`):** test job re-enabled, matrix `[22.x,24.x]`; builds the dep chain
+    first (`protocol-core:build && nmea-parser:build`) then the wrapper (node-red auto-loads
+    `dist/parser.js`), then `node:test`; publish job gated on `needs: test` + version. **act-verified:
+    Job succeeded.**
+  - **Versions:** `engines.node ≥22`, `node-red ≥4`, wrapper bumped **1.2.1 → 2.0.0** (breaking).
+  - **Removed:** mocha + vitest test files, `manual_tests.sh`, `Dockerfile`, `docker-compose.yml`,
+    `tests/nodered/`. **Added:** `dev-server.mjs` + `nmea-parser:nodered:dev` (local node-red, no
+    docker) and `:build`/`:ci:local` root scripts. `@types/node-red` devDep (typed, `@types` were fine
+    — the earlier errors were `moduleResolution: node`); dropped `@types/node-red-node-test-helper`.
+  - **TODO next:** fold this into `templates/nodered/` (Phase 2 remaining); then Phase 3 = norsub-emru.
 - **2026-07-22 — git history rewritten to strip AI co-author trailers (cru).** cru uses multiple
   AI agents from different providers and does **not** want any single one credited in authorship.
   Removed the `Co-Authored-By: Claude …` trailer from all **9** commits that carried it (via

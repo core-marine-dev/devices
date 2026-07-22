@@ -10,11 +10,8 @@
 .config.*.json.backup
 .flows*
 flows_cred.json
-tests/nodered/data/package.json
-testing-checklist.md
-TESTS.md
-lines.js
-tests/nodered/tests/*.txt
+# local dev node-red instance (pnpm run ...:nodered:dev)
+.dev-userdir/
 # Logs
 logs
 *.log

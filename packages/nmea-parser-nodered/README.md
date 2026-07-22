@@ -27,7 +27,7 @@ Each input proerty would be responded in the same output property
 
 | Output property        | Description                                                                                                                    |
 | :--------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| payload (array)        | It gives you the same parsing output that the CoreMarine NMEA Parser (an array of object with the info of each NMEA sentence). |
+| payload (array)        | The parsing output of the CoreMarine NMEA Parser — an array of **CMA** objects (the unified CoreMarine output format), one per NMEA sentence. |
 | *`memory`* (object)    | Response to the *memory* input (look details below).                                                                           |
 | *`protocols`* (object) | Response to the *protocols* input (look details below).                                                                        |
 | *`sentence`* (string)  | Response to the *sentence* input (look details below).                                                                         |
@@ -61,23 +61,21 @@ Internally it has a buffer with a max number of characters
 
 ### Protocols
 
-The parser can be feeded or expanded to understand more nmea sentences, standard or propietary.
-To do that it should be passed an object with the property `command` equal to `"set"` and one this three properties:
+The parser can be fed or expanded to understand more NMEA sentences, standard or proprietary.
+To do that, send an object with `command` equal to `"set"` and **one** of:
 
-1. `file`: It's the string file path to the protocols YAML file.
-2. `content`: It's the string content of the protocols YAML file.
-3. `protocols`: It's the JS object after parsing the protocols YAML file.
+1. `content`: the YAML **string** of the protocols definitions.
+2. `file`: a **string** file path to the protocols YAML file (read by the node).
 
-If you send more of them, parser only will read one (`file` upper other, `content` upper `protocols`)
+If both are sent, `content` takes precedence over `file`. On error (invalid YAML/schema or unreadable file) the `protocols` output is an error **string**.
 
-If you just want to know what are the known or supported sentences, you just need the command `get`.
+If you just want to know the known / supported sentences, use the command `get`.
 
-|                            Input                             |         Output         |
-| :----------------------------------------------------------: | :--------------------: |
-|   `protocols`: { `command`: `"set"`, `file`: **string** }    | `protocols`: **array** |
-|  `protocols`: { `command`: `"set"`, `content`: **string** }  | `protocols`: **array** |
-| `protocols`: { `command`: `"set"`, `protocols`: **object** } | `protocols`: **array** |
-|             `protocols`: { `command`: `"get"` }              | `protocols`: **array** |
+|                           Input                            |         Output          |
+| :--------------------------------------------------------: | :---------------------: |
+| `protocols`: { `command`: `"set"`, `content`: **string** } | `protocols`: **object** |
+|  `protocols`: { `command`: `"set"`, `file`: **string** }   | `protocols`: **object** |
+|            `protocols`: { `command`: `"get"` }             | `protocols`: **object** |
 
 ### Sentence
 
@@ -97,3 +95,21 @@ This fake sentence is correct in terms of NMEA requirements but each field has g
 |       Input        |            Output            |
 | :----------------: | :--------------------------: |
 | `fake`: **string** | `fake`: **string** \| `null` |
+
+## Development
+
+The node is authored in **TypeScript** and bundled to CommonJS (Node-RED loads nodes via
+`require`) with **tsup**; `parser.html` + icons are copied into `dist/` alongside the JS.
+The logic lives in a node-red-free module (`src/lib.ts`) with a thin RED adapter
+(`src/parser.ts`), so the bulk is unit-testable without Node-RED.
+
+```bash
+pnpm run nmea-parser:nodered:build   # tsup -> dist/ + copy html/icons
+pnpm run nmea-parser:nodered:test    # node:test — unit (src/lib) + integration (real node-red)
+pnpm run nmea-parser:nodered:dev     # build + launch a local Node-RED at http://localhost:1880
+```
+
+Tests use **`node:test`** (via `tsx`). The integration test boots a real headless Node-RED
+through its public API and runs a flow through the node — no `node-red-node-test-helper`
+(incompatible with Node-RED 5). `:dev` starts a local Node-RED (a devDependency, no docker)
+with a seeded `inject → cma-nmea-parser → debug` flow so you can see the node and its output.
