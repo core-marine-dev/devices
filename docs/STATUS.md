@@ -103,7 +103,13 @@ Strokes:
     `tests/nodered/`. **Added:** `dev-server.mjs` + `nmea-parser:nodered:dev` (local node-red, no
     docker) and `:build`/`:ci:local` root scripts. `@types/node-red` devDep (typed, `@types` were fine
     — the earlier errors were `moduleResolution: node`); dropped `@types/node-red-node-test-helper`.
-  - **TODO next:** fold this into `templates/nodered/` (Phase 2 remaining); then Phase 3 = norsub-emru.
+  - **`templates/nodered/` regenerated to match** (TS + tsup + copy-assets + node:test + dev-server,
+    all with `TODO:` markers; near-ready for the NMEA-family, trimmable for binary parsers).
+    `templates/nodered.yml` workflow blueprint modernized (OIDC + gate + build chain + node:test,
+    was v4/node18/NPM_TOKEN). `CONTRIBUTING.md` "How to create a NodeRED component" rewritten (no
+    docker; TS/tsup/node:test/dev-server flow). Templates are eslint-ignored + outside the pnpm
+    workspace, so placeholders don't break lint/install. **Phase 2 DONE** except the actual publish.
+  - **Next: Phase 3 = norsub-emru** (lib refactor, then its `-nodered` wrapper cloned from this template).
 - **2026-07-22 — git history rewritten to strip AI co-author trailers (cru).** cru uses multiple
   AI agents from different providers and does **not** want any single one credited in authorship.
   Removed the `Co-Authored-By: Claude …` trailer from all **9** commits that carried it (via
