@@ -138,3 +138,8 @@ dist
 
 # Dev helpers (not committed on purpose — see docs/ARCHITECTURE.md)
 misc/
+
+# nektos/act local runner (per-dev tooling — see docs/STATUS.md "test before merge")
+.actrc
+.secrets
+.actrc.local
