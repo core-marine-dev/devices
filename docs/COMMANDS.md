@@ -16,6 +16,16 @@ pnpm lint                          # eslint — whole monorepo
 pnpm lint:fix                      # eslint --fix — whole monorepo
 ```
 
+## Local CI (act) — run workflows locally before pushing
+
+```bash
+pnpm run act:list                  # list workflows/jobs act can run (needs docker/podman)
+pnpm run nmea-parser:ci:local      # run nmea-parser's Test job locally via nektos/act
+```
+
+Requires the gh extension once: `gh extension install nektos/gh-act`. Details + raw `gh act`
+usage: [`docs/TOOLING.md`](TOOLING.md) §Local CI (act).
+
 ## Node-RED components
 
 ```bash

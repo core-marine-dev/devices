@@ -34,7 +34,7 @@
     "typescript"
   ],
   "type": "module",
-  "packageManager": "pnpm@11.12.0",
+  "packageManager": "pnpm@11.15.1",
   "scripts": {
     "protocol-core:lint": "pnpm --filter @coremarine/protocol-core run lint",
     "protocol-core:format": "pnpm --filter @coremarine/protocol-core run format",
@@ -47,6 +47,7 @@
     "nmea-parser:build": "pnpm --filter @coremarine/nmea-parser run build",
     "nmea-parser:test": "pnpm --filter @coremarine/nmea-parser run test",
     "nmea-parser:test:coverage": "pnpm --filter @coremarine/nmea-parser run test:coverage",
+    "nmea-parser:ci:local": "gh act push -W .github/workflows/nmea-parser.yml -j test",
     "nmea-parser:nodered:docker": "pnpm --filter @coremarine/nmea-parser-nodered run docker",
     "nmea-parser:nodered:test": "pnpm --filter @coremarine/nmea-parser-nodered run test",
     "norsub-emru:lint": "pnpm --filter @coremarine/norsub-emru run lint",
@@ -78,7 +79,8 @@
     "thelmabiotel-tblive:nodered:docker": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run docker",
     "thelmabiotel-tblive:nodered:test": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run test",
     "lint": "eslint",
-    "lint:fix": "eslint --fix"
+    "lint:fix": "eslint --fix",
+    "act:list": "gh act -l"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "5.10.0",
