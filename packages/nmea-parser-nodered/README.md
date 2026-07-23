@@ -118,8 +118,8 @@ through its public API and runs a flow through the node — no `node-red-node-te
 http://localhost:1880 showing only this node in the palette. Node-RED reads/writes the on-disk flow
 file directly, so edits you make in the editor persist:
 
-- **`:dev`** edits `tests/dev.flows.json` — a **gitignored** per-developer scratch flow, seeded with
-  `inject → cma-nmea-parser → debug` on first run.
+- **`:dev`** edits `tests/dev.flows.json` — a **committed** scratch flow (`inject → cma-nmea-parser →
+  debug`) for quick manual checks; edit it freely.
 - **`:examples`** edits the **committed, published** example under `examples/` (the flow-library
   requires examples; they're shipped via `files` and appear in Node-RED's *Import → Examples*). Set
   `EXAMPLE=<file>` to target a specific one. Examples live in `examples/`, **not** `dist/`.

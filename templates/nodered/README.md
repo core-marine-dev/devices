@@ -39,7 +39,7 @@ Node-RED 5).
 
 **`:dev` and `:examples`** launch a local Node-RED (devDependency, no docker; welcome tour off) at
 http://localhost:1880 with only this node in the palette. Node-RED reads/writes the on-disk flow file
-directly, so editor edits persist: `:dev` -> gitignored scratch `tests/dev.flows.json` (seeded on
-first run); `:examples` -> the committed, published example in `examples/` (shipped via `files`,
+directly, so editor edits persist: `:dev` -> tracked scratch `tests/dev.flows.json`;
+`:examples` -> the committed, published example in `examples/` (shipped via `files`,
 appears in Node-RED's *Import → Examples*; set `EXAMPLE=<file>` to pick one). Examples live in
 `examples/`, **not** `dist/`.

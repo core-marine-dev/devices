@@ -1,0 +1,57 @@
+[
+  {
+    "id": "tab",
+    "type": "tab",
+    "label": "dev",
+    "disabled": false,
+    "info": ""
+  },
+  {
+    "id": "inj",
+    "type": "inject",
+    "z": "tab",
+    "name": "sample",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "payload": "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
+    "payloadType": "str",
+    "x": 170,
+    "y": 140,
+    "wires": [
+      [
+        "node"
+      ]
+    ]
+  },
+  {
+    "id": "node",
+    "type": "cma-nmea-parser",
+    "z": "tab",
+    "name": "",
+    "memory": true,
+    "file": "",
+    "x": 410,
+    "y": 140,
+    "wires": [
+      [
+        "dbg"
+      ]
+    ]
+  },
+  {
+    "id": "dbg",
+    "type": "debug",
+    "z": "tab",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 630,
+    "y": 140,
+    "wires": []
+  }
+]

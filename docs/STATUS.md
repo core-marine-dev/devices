@@ -103,15 +103,15 @@ Strokes:
     `tests/nodered/`. **Added:** `dev-server.mjs` + `nmea-parser:nodered:dev` (local node-red, no
     docker) and `:build`/`:ci:local` root scripts. `@types/node-red` devDep (typed, `@types` were fine
     — the earlier errors were `moduleResolution: node`); dropped `@types/node-red-node-test-helper`.
-  - **Manual/visual scripts (file-backed, tour off, palette scoped):** `:dev` edits a gitignored
-    scratch flow `tests/dev.flows.json` (seeded if missing); `:examples` edits the committed, shipped
-    example under `examples/` (node-red reads/writes the on-disk flow via an **absolute `flowFile`** —
-    verified supported — so edits persist; `editorTheme.tours:false` kills the walkthrough). Both
-    disable sibling `@coremarine/*-nodered` modules (`setModuleState`) so only this node shows — the
-    "all my nodes appear" clutter is a **monorepo-only** artifact (shared workspace node_modules), not
-    a bug. **Examples ship in `examples/` (NOT `dist/`)** via `files` and surface in node-red's
-    *Import → Examples* (confirmed via ctx7); replaced the old third-party-dependent example with a
-    clean self-contained `examples/Parse NMEA sentences.json`.
+  - **Manual/visual scripts (file-backed, tour off, palette scoped):** `:dev` edits the **tracked**
+    scratch flow `tests/dev.flows.json`; `:examples` edits the committed, shipped example under
+    `examples/` (node-red reads/writes the on-disk flow via an **absolute `flowFile`** — verified
+    supported — so edits persist; `editorTheme.tours:false` kills the walkthrough). Both disable
+    sibling `@coremarine/*-nodered` modules (`setModuleState`) so only this node shows — the "all my
+    nodes appear" clutter is a **monorepo-only** artifact (shared workspace node_modules), not a bug.
+    **Examples ship in `examples/` (NOT `dist/`)** via `files` and surface in node-red's
+    *Import → Examples* (confirmed via ctx7). **cru's original `examples/nmea-parser-examples.json` is
+    kept as-is** (an earlier attempt to "simplify" it was reverted at cru's request).
   - **`templates/nodered/` regenerated to match** (TS + tsup + copy-assets + node:test + dev-server,
     all with `TODO:` markers; near-ready for the NMEA-family, trimmable for binary parsers).
     `templates/nodered.yml` workflow blueprint modernized (OIDC + gate + build chain + node:test,

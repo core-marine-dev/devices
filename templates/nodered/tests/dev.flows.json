@@ -1,0 +1,44 @@
+[
+  {
+    "id": "tab",
+    "type": "tab",
+    "label": "dev",
+    "disabled": false,
+    "info": ""
+  },
+  {
+    "id": "inj",
+    "type": "inject",
+    "z": "tab",
+    "name": "sample",
+    "props": [{ "p": "payload" }],
+    "payload": "TODO: sample payload",
+    "payloadType": "str",
+    "x": 170,
+    "y": 140,
+    "wires": [["node"]]
+  },
+  {
+    "id": "node",
+    "type": "cma-TODO:",
+    "z": "tab",
+    "name": "",
+    "memory": true,
+    "x": 410,
+    "y": 140,
+    "wires": [["dbg"]]
+  },
+  {
+    "id": "dbg",
+    "type": "debug",
+    "z": "tab",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "complete": "payload",
+    "targetType": "msg",
+    "x": 630,
+    "y": 140,
+    "wires": []
+  }
+]

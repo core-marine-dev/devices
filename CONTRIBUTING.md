@@ -80,7 +80,7 @@ incompatible with node-red 5).
 6. Code in `src/` (start from `lib.ts` + `parser.ts`), test in `tests/` (`node:test`: `*.unit.test.ts`
    + the real-node-red `*.integration.test.ts`). Keep only the msg handlers your parser supports.
 7. See it live (no docker): `pnpm run <your-library>:nodered:dev` -> http://localhost:1880 (edits a
-   gitignored scratch flow `tests/dev.flows.json`). Author the shipped **example flows** the same way
+   tracked scratch flow `tests/dev.flows.json`). Author the shipped **example flows** the same way
    with `pnpm run <your-library>:nodered:examples` — the flow-library requires an `examples/` dir; it
    is shipped via `files` and shows under Node-RED's *Import → Examples*. Examples live in `examples/`,
    never `dist/`.

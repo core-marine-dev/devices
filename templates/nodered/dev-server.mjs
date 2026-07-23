@@ -1,5 +1,5 @@
 // Local Node-RED for MANUAL work — no docker (node-red is a devDependency).
-//   pnpm run <lib>:nodered:dev        -> edit a scratch flow in tests/ (gitignored)
+//   pnpm run <lib>:nodered:dev        -> edit a tracked scratch flow in tests/dev.flows.json
 //   pnpm run <lib>:nodered:examples   -> edit the SHIPPED example flow(s) in examples/
 //
 // Both open a fresh editor (welcome tour OFF) at http://localhost:1880 with ONLY this node in
