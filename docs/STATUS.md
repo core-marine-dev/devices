@@ -143,6 +143,16 @@ Strokes:
        dir OUTSIDE the workspace whose `node_modules` has only node-red + this wrapper (+ its dep) — e.g.
        `pnpm --filter <pkg> deploy <tmp> --prod` then add node-red, or a userDir package.json + autoInstall.
        Investigate the cleanest minimal option (fetch node-red docs via ctx7).
+       **cru's preferred direction (2026-07-22, likely the simplest):** make `node-red` a **per-package
+       devDependency of the wrapper** (not a shared monorepo root dep) so it runs from the wrapper's OWN
+       isolated `node_modules`, which pnpm fills with only that package's deps (node-red + nmea-parser) —
+       NOT the sibling wrappers. Confirmed the siblings are NOT at workspace-root `node_modules` nor in
+       the wrapper's `node_modules` (only its real dep `nmea-parser`); they're found solely because the
+       shared root-`.pnpm` node-red's walk-up climbs the workspace tree. Solve the version-sync worry
+       with **pnpm `catalog:`** (one central node-red version, referenced by every wrapper). NEXT AGENT:
+       first instrument node-red's scan to confirm EXACTLY which dir yields the siblings today, then try
+       the per-package-node-red(+catalog) approach and verify only the wrapper + core nodes load. Drop
+       the current `setModuleState` hack from `dev-server.mjs` once this works. Mirror to `templates/`.
     2. **CoreMarine palette category first.** Put the "CoreMarine" category at the TOP of the palette via
        `editorTheme.palette.categories` in the dev-server RED.init settings (confirm exact key via ctx7).
   - **Next after those: publish wrapper 2.0.0** (dev→main; workspace:^ → ^3.0.0), then **Phase 3 =
