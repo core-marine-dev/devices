@@ -123,7 +123,30 @@ Strokes:
     was v4/node18/NPM_TOKEN). `CONTRIBUTING.md` "How to create a NodeRED component" rewritten (no
     docker; TS/tsup/node:test/dev-server flow). Templates are eslint-ignored + outside the pnpm
     workspace, so placeholders don't break lint/install. **Phase 2 DONE** except the actual publish.
-  - **Next: Phase 3 = norsub-emru** (lib refactor, then its `-nodered` wrapper cloned from this template).
+  - **Example flow finalized (2026-07-22):** single "NMEA Parser Examples" tab (cru's design, legacy
+    tab removed, no third-party `yaml` node). Groups: Flow Errors, Examples (single + partial + **batch
+    & one-by-one via embedded-data function nodes** — no sample file), Memory API, **Protocols API =
+    hot-expand demo** (get; parse PCMEX before; expand via CONTENT embedded YAML + via FILE
+    `examples/example-protocol.yml`; parse PCMEX after → shows unknown→decoded), Sentence API, Fake API.
+    Ships `examples/example-protocol.yml` (`COREMARINE_EXAMPLE`/`PCMEX`).
+  - **⚠️ TWO OPEN wrapper items (cru, 2026-07-22) — see the paste-ready prompt below:**
+    1. **Isolated dev/examples node-red instance — NOT solved.** `dev-server.mjs` disables sibling
+       `@coremarine/*-nodered` via `setModuleState` before `server.listen()`, BUT cru confirms (screenshot)
+       the siblings STILL appear in the palette + Manage-Palette. Root cause: node-red (shared monorepo
+       devDep) auto-discovers siblings by walking UP its install's parent `node_modules`
+       (`@node-red/registry/lib/localfilesystem.js` scanTreeForNodesModules) → reaches the workspace root
+       node_modules. `setModuleState`/`nodesExcludes`/`removeModule` do NOT reliably prevent this.
+       **cru wants a genuinely FRESH node-red instance with ONLY this wrapper + built-in nodes installed
+       each run — and says keep it SIMPLE, not overengineered.** cru's hint: node-red has an
+       autoinstall-missing-modules setting (`externalModules.autoInstall`); and a fresh isolated dir where
+       only the wrapper is installed would avoid the walk-up. Likely path: run node-red from an isolated
+       dir OUTSIDE the workspace whose `node_modules` has only node-red + this wrapper (+ its dep) — e.g.
+       `pnpm --filter <pkg> deploy <tmp> --prod` then add node-red, or a userDir package.json + autoInstall.
+       Investigate the cleanest minimal option (fetch node-red docs via ctx7).
+    2. **CoreMarine palette category first.** Put the "CoreMarine" category at the TOP of the palette via
+       `editorTheme.palette.categories` in the dev-server RED.init settings (confirm exact key via ctx7).
+  - **Next after those: publish wrapper 2.0.0** (dev→main; workspace:^ → ^3.0.0), then **Phase 3 =
+    norsub-emru** (lib refactor, then its `-nodered` wrapper cloned from this template).
 - **2026-07-22 — git history rewritten to strip AI co-author trailers (cru).** cru uses multiple
   AI agents from different providers and does **not** want any single one credited in authorship.
   Removed the `Co-Authored-By: Claude …` trailer from all **9** commits that carried it (via
