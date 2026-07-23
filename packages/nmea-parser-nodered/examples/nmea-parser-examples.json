@@ -8,6 +8,14 @@
     "env": []
   },
   {
+    "id": "86f1271d07a48b44w",
+    "type": "tab",
+    "label": "NMEA Parser Examples (working — v3 API)",
+    "disabled": false,
+    "info": "",
+    "env": []
+  },
+  {
     "id": "c6173b4100b89d67",
     "type": "group",
     "z": "86f1271d07a48b44",
@@ -166,6 +174,149 @@
     ],
     "x": 34,
     "y": 1519,
+    "w": 732,
+    "h": 162
+  },
+  {
+    "id": "c6173b4100b89d67w",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Memory API",
+    "style": {
+      "label": true,
+      "color": "#000000",
+      "stroke": "#000000"
+    },
+    "nodes": [
+      "de261a7c3f50bbf0w",
+      "a9bf8d69eb284777w",
+      "ad0a91f034562096w",
+      "bd6316d49443a80fw",
+      "967eb861d987b29fw",
+      "e1b9690ac78ec5b7w",
+      "6b5fe8e3d0c0eb8fw",
+      "351231a9423cfb3aw"
+    ],
+    "x": 34,
+    "y": 459,
+    "w": 772,
+    "h": 282
+  },
+  {
+    "id": "53b0d00e97623318w",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Protocols API",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "hx-1",
+      "hx-2",
+      "hx-5",
+      "hx-6",
+      "hx-7",
+      "hx-8",
+      "hx-9"
+    ],
+    "x": 34,
+    "y": 759,
+    "w": 832,
+    "h": 242
+  },
+  {
+    "id": "dc5b2f693b2e96eaw",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Sentence API",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "498115cc86e91fe0w",
+      "bf14cc613f0600bew",
+      "b9e07f8aa72b23eaw",
+      "07a3d42569a07962w",
+      "786045250c7cc8dfw",
+      "d4a975743249b0f2w",
+      "ceb18e21cc0d89b1w"
+    ],
+    "x": 34,
+    "y": 1019,
+    "w": 792,
+    "h": 242
+  },
+  {
+    "id": "9283b11f486aa6afw",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Flow Errors",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "3dcdbb2ff53d1ac2w",
+      "cd7a546b03381262w"
+    ],
+    "x": 34,
+    "y": 19,
+    "w": 352,
+    "h": 82
+  },
+  {
+    "id": "fa79e06be881de74w",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Examples",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "90c7ca5349d43283w",
+      "eaa03f0bec292507w",
+      "b813bdb71d0159a5w",
+      "bf1bf2211a0a99f4w",
+      "0386967af97e8c2bw",
+      "0d643452dedfda51w",
+      "bab379433f7607f5w",
+      "cd19a759b4514bb4w",
+      "65878cad1b303cfbw",
+      "10afdc0003c65cf3w",
+      "ex-batch",
+      "ex-stream"
+    ],
+    "x": 34,
+    "y": 119,
+    "w": 1232,
+    "h": 322
+  },
+  {
+    "id": "6dc737be34668f3ew",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Fake API",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "826783ad34641686w",
+      "8375f8aa145326b9w",
+      "4d51478913d0f4c9w",
+      "3c95ecbee73cfb3dw",
+      "faa36dbc52418799w"
+    ],
+    "x": 34,
+    "y": 1279,
     "w": 732,
     "h": 162
   },
@@ -1480,162 +1631,6 @@
     ]
   },
   {
-    "id": "86f1271d07a48b44w",
-    "type": "tab",
-    "label": "NMEA Parser Examples (working — v3 API)",
-    "disabled": false,
-    "info": "",
-    "env": []
-  },
-  {
-    "id": "c6173b4100b89d67w",
-    "type": "group",
-    "z": "86f1271d07a48b44w",
-    "name": "Memory API",
-    "style": {
-      "label": true,
-      "color": "#000000",
-      "stroke": "#000000"
-    },
-    "nodes": [
-      "de261a7c3f50bbf0w",
-      "a9bf8d69eb284777w",
-      "ad0a91f034562096w",
-      "bd6316d49443a80fw",
-      "967eb861d987b29fw",
-      "e1b9690ac78ec5b7w",
-      "6b5fe8e3d0c0eb8fw",
-      "351231a9423cfb3aw"
-    ],
-    "x": 34,
-    "y": 459,
-    "w": 772,
-    "h": 282
-  },
-  {
-    "id": "53b0d00e97623318w",
-    "type": "group",
-    "z": "86f1271d07a48b44w",
-    "name": "Protocols API",
-    "style": {
-      "stroke": "#000000",
-      "label": true,
-      "color": "#000000"
-    },
-    "nodes": [
-      "hx-1",
-      "hx-2",
-      "hx-3",
-      "hx-4",
-      "hx-5",
-      "hx-6",
-      "hx-7",
-      "hx-8",
-      "hx-9",
-      "hx-10"
-    ],
-    "x": 34,
-    "y": 759,
-    "w": 860,
-    "h": 300
-  },
-  {
-    "id": "dc5b2f693b2e96eaw",
-    "type": "group",
-    "z": "86f1271d07a48b44w",
-    "name": "Sentence API",
-    "style": {
-      "stroke": "#000000",
-      "label": true,
-      "color": "#000000"
-    },
-    "nodes": [
-      "498115cc86e91fe0w",
-      "bf14cc613f0600bew",
-      "b9e07f8aa72b23eaw",
-      "07a3d42569a07962w",
-      "786045250c7cc8dfw",
-      "d4a975743249b0f2w",
-      "ceb18e21cc0d89b1w"
-    ],
-    "x": 34,
-    "y": 1259,
-    "w": 792,
-    "h": 242
-  },
-  {
-    "id": "9283b11f486aa6afw",
-    "type": "group",
-    "z": "86f1271d07a48b44w",
-    "name": "Flow Errors",
-    "style": {
-      "stroke": "#000000",
-      "label": true,
-      "color": "#000000"
-    },
-    "nodes": [
-      "3dcdbb2ff53d1ac2w",
-      "cd7a546b03381262w"
-    ],
-    "x": 34,
-    "y": 19,
-    "w": 352,
-    "h": 82
-  },
-  {
-    "id": "fa79e06be881de74w",
-    "type": "group",
-    "z": "86f1271d07a48b44w",
-    "name": "Examples",
-    "style": {
-      "stroke": "#000000",
-      "label": true,
-      "color": "#000000"
-    },
-    "nodes": [
-      "90c7ca5349d43283w",
-      "eaa03f0bec292507w",
-      "b813bdb71d0159a5w",
-      "85d2882bbc1cd92aw",
-      "dc93f536316883f8w",
-      "bf1bf2211a0a99f4w",
-      "0386967af97e8c2bw",
-      "dbd393817b992915w",
-      "d51965f52ed5458aw",
-      "0d643452dedfda51w",
-      "bab379433f7607f5w",
-      "cd19a759b4514bb4w",
-      "65878cad1b303cfbw",
-      "10afdc0003c65cf3w"
-    ],
-    "x": 34,
-    "y": 119,
-    "w": 1232,
-    "h": 322
-  },
-  {
-    "id": "6dc737be34668f3ew",
-    "type": "group",
-    "z": "86f1271d07a48b44w",
-    "name": "Fake API",
-    "style": {
-      "stroke": "#000000",
-      "label": true,
-      "color": "#000000"
-    },
-    "nodes": [
-      "826783ad34641686w",
-      "8375f8aa145326b9w",
-      "4d51478913d0f4c9w",
-      "3c95ecbee73cfb3dw",
-      "faa36dbc52418799w"
-    ],
-    "x": 34,
-    "y": 1519,
-    "w": 732,
-    "h": 162
-  },
-  {
     "id": "de261a7c3f50bbf0w",
     "type": "debug",
     "z": "86f1271d07a48b44w",
@@ -1672,7 +1667,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 240,
-    "y": 1300,
+    "y": 1060,
     "wires": [
       [
         "ceb18e21cc0d89b1w"
@@ -1888,7 +1883,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 250,
-    "y": 1340,
+    "y": 1100,
     "wires": [
       [
         "ceb18e21cc0d89b1w"
@@ -1914,7 +1909,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 240,
-    "y": 1380,
+    "y": 1140,
     "wires": [
       [
         "ceb18e21cc0d89b1w"
@@ -1940,7 +1935,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 220,
-    "y": 1420,
+    "y": 1180,
     "wires": [
       [
         "ceb18e21cc0d89b1w"
@@ -1962,7 +1957,7 @@
     "statusVal": "",
     "statusType": "auto",
     "x": 690,
-    "y": 1380,
+    "y": 1140,
     "wires": []
   },
   {
@@ -1984,7 +1979,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 260,
-    "y": 1460,
+    "y": 1220,
     "wires": [
       [
         "ceb18e21cc0d89b1w"
@@ -2054,55 +2049,13 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "payload": "/tests/samples.txt",
-    "payloadType": "str",
+    "payload": "",
+    "payloadType": "date",
     "x": 180,
     "y": 360,
     "wires": [
       [
-        "85d2882bbc1cd92aw"
-      ]
-    ]
-  },
-  {
-    "id": "85d2882bbc1cd92aw",
-    "type": "file in",
-    "z": "86f1271d07a48b44w",
-    "g": "fa79e06be881de74w",
-    "name": "",
-    "filename": "payload",
-    "filenameType": "msg",
-    "format": "",
-    "chunk": false,
-    "sendError": false,
-    "encoding": "ascii",
-    "allProps": false,
-    "x": 440,
-    "y": 360,
-    "wires": [
-      [
-        "dc93f536316883f8w"
-      ]
-    ]
-  },
-  {
-    "id": "dc93f536316883f8w",
-    "type": "function",
-    "z": "86f1271d07a48b44w",
-    "g": "fa79e06be881de74w",
-    "name": "Attach CRLF to each line",
-    "func": "/** @type {Buffer}*/\nconst buffer = msg.payload\n\nconst ascii = buffer.toString('ascii').replaceAll('\\n', '\\r\\n')\n\nreturn { payload: ascii }\n",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 650,
-    "y": 360,
-    "wires": [
-      [
-        "10afdc0003c65cf3w"
+        "ex-batch"
       ]
     ]
   },
@@ -2140,55 +2093,13 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "payload": "/tests/samples.txt",
-    "payloadType": "str",
+    "payload": "",
+    "payloadType": "date",
     "x": 210,
     "y": 400,
     "wires": [
       [
-        "dbd393817b992915w"
-      ]
-    ]
-  },
-  {
-    "id": "dbd393817b992915w",
-    "type": "file in",
-    "z": "86f1271d07a48b44w",
-    "g": "fa79e06be881de74w",
-    "name": "read file lines",
-    "filename": "payload",
-    "filenameType": "msg",
-    "format": "lines",
-    "chunk": false,
-    "sendError": false,
-    "encoding": "ascii",
-    "allProps": false,
-    "x": 450,
-    "y": 400,
-    "wires": [
-      [
-        "d51965f52ed5458aw"
-      ]
-    ]
-  },
-  {
-    "id": "d51965f52ed5458aw",
-    "type": "function",
-    "z": "86f1271d07a48b44w",
-    "g": "fa79e06be881de74w",
-    "name": "Attach CRLF to line",
-    "func": "\nreturn { payload: msg.payload + '\\r\\n' }",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 670,
-    "y": 400,
-    "wires": [
-      [
-        "10afdc0003c65cf3w"
+        "ex-stream"
       ]
     ]
   },
@@ -2315,7 +2226,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 210,
-    "y": 1560,
+    "y": 1320,
     "wires": [
       [
         "faa36dbc52418799w"
@@ -2337,7 +2248,7 @@
     "statusVal": "",
     "statusType": "auto",
     "x": 650,
-    "y": 1600,
+    "y": 1360,
     "wires": []
   },
   {
@@ -2359,7 +2270,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 200,
-    "y": 1600,
+    "y": 1360,
     "wires": [
       [
         "faa36dbc52418799w"
@@ -2385,7 +2296,7 @@
     "onceDelay": 0.1,
     "topic": "",
     "x": 210,
-    "y": 1640,
+    "y": 1400,
     "wires": [
       [
         "faa36dbc52418799w"
@@ -2433,7 +2344,7 @@
     "memory": true,
     "file": "",
     "x": 480,
-    "y": 1380,
+    "y": 1140,
     "wires": [
       [
         "786045250c7cc8dfw"
@@ -2449,7 +2360,7 @@
     "memory": true,
     "file": "",
     "x": 450,
-    "y": 1600,
+    "y": 1360,
     "wires": [
       [
         "8375f8aa145326b9w"
@@ -2459,55 +2370,37 @@
   {
     "id": "hx-1",
     "type": "debug",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "protocols / parsed",
     "active": true,
     "tosidebar": true,
     "complete": "true",
-    "x": 834,
-    "y": 929,
-    "wires": [],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    "x": 730,
+    "y": 880,
+    "wires": []
   },
   {
     "id": "hx-2",
     "type": "cma-nmea-parser",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "parser",
     "memory": true,
     "file": "",
-    "x": 594,
-    "y": 929,
+    "x": 550,
+    "y": 880,
     "wires": [
       [
         "hx-1"
       ]
-    ],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
-  },
-  {
-    "id": "hx-3",
-    "type": "comment",
-    "name": "Hot-expand: teach the parser new sentences at runtime with addSentences — via content (YAML string) or file. The old \"protocols object\" mode was removed.",
-    "x": 334,
-    "y": 799,
-    "wires": [],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
-  },
-  {
-    "id": "hx-4",
-    "type": "comment",
-    "name": "Click 1 -> 2 -> 3 in order: PCMEX is unknown, then after expanding it parses with named depth/temperature fields.",
-    "x": 334,
-    "y": 831,
-    "wires": [],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    ]
   },
   {
     "id": "hx-5",
     "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "get supported sentences",
     "props": [
       {
@@ -2520,19 +2413,19 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "x": 234,
-    "y": 869,
+    "x": 350,
+    "y": 800,
     "wires": [
       [
         "hx-2"
       ]
-    ],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    ]
   },
   {
     "id": "hx-6",
     "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "1 · parse PCMEX (before expand)",
     "props": [
       {
@@ -2545,19 +2438,19 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "x": 234,
-    "y": 909,
+    "x": 320,
+    "y": 840,
     "wires": [
       [
         "hx-2"
       ]
-    ],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    ]
   },
   {
     "id": "hx-7",
     "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "2 · expand via CONTENT (embedded YAML)",
     "props": [
       {
@@ -2570,19 +2463,19 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "x": 234,
-    "y": 949,
+    "x": 290,
+    "y": 880,
     "wires": [
       [
         "hx-2"
       ]
-    ],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    ]
   },
   {
     "id": "hx-8",
     "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "3 · parse PCMEX (after expand)",
     "props": [
       {
@@ -2595,19 +2488,19 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "x": 234,
-    "y": 989,
+    "x": 330,
+    "y": 920,
     "wires": [
       [
         "hx-2"
       ]
-    ],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    ]
   },
   {
     "id": "hx-9",
     "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w",
     "name": "expand via FILE (examples/example-protocol.yml)",
     "props": [
       {
@@ -2620,24 +2513,54 @@
     "once": false,
     "onceDelay": 0.1,
     "topic": "",
-    "x": 234,
-    "y": 1029,
+    "x": 270,
+    "y": 960,
     "wires": [
       [
         "hx-2"
       ]
-    ],
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    ]
   },
   {
-    "id": "hx-10",
-    "type": "comment",
-    "name": "FILE path is relative to Node-RED's working dir (works under :dev / :examples). Use an absolute path in production.",
-    "x": 364,
-    "y": 1059,
-    "wires": [],
+    "id": "ex-batch",
+    "type": "function",
     "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w"
+    "g": "fa79e06be881de74w",
+    "name": "NMEA batch (all at once)",
+    "func": "// A burst of NMEA sentences arriving together (e.g. a log dump).\nconst sentences = [\n  '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47',\n  '$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A',\n  '$GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39',\n  '$GPHDT,274.07,T*03',\n  '$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48'\n]\n// join CRLF-terminated -> the parser returns one CMA[] with every sentence.\nreturn { payload: sentences.map(s => s + '\\r\\n').join('') }\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 440,
+    "y": 360,
+    "wires": [
+      [
+        "10afdc0003c65cf3w"
+      ]
+    ]
+  },
+  {
+    "id": "ex-stream",
+    "type": "function",
+    "z": "86f1271d07a48b44w",
+    "g": "fa79e06be881de74w",
+    "name": "NMEA stream (one by one)",
+    "func": "// Simulate a serial stream: emit ONE NMEA sentence per message.\nconst sentences = [\n  '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47',\n  '$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A',\n  '$GPGSA,A,3,04,05,,09,12,,,24,,,,,2.5,1.3,2.1*39',\n  '$GPHDT,274.07,T*03',\n  '$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48'\n]\nsentences.forEach(s => node.send({ payload: s + '\\r\\n' }))\nreturn null\n",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 400,
+    "wires": [
+      [
+        "10afdc0003c65cf3w"
+      ]
+    ]
   }
 ]

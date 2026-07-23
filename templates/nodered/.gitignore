@@ -14,6 +14,8 @@ flows_cred.json
 .dev-userdir/
 # node-red writes a hidden .<flowfile>.backup next to any flow file it opens
 *.backup
+# node-red writes <flowfile>_cred.json next to any flow file it opens (dev/examples)
+*_cred.json
 
 # Logs
 logs
