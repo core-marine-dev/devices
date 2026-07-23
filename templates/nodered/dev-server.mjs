@@ -6,7 +6,8 @@
 // the palette. Node-RED reads/writes the on-disk flow file directly, so your edits persist there
 // (deploy in the editor -> the file updates). node-red's own state lives in a gitignored userDir.
 import { createServer } from 'node:http'
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import RED from 'node-red'
@@ -42,8 +43,13 @@ if (mode === 'examples') {
   if (!existsSync(flowFile)) writeFileSync(flowFile, starterFlow('dev'))
 }
 
-const userDir = join(root, '.dev-userdir')
-mkdirSync(userDir, { recursive: true })
+// Fresh, throwaway node-red state dir each run -> a truly fresh instance every time
+// (the flow file above lives in tests/ or examples/ and persists independently).
+const userDir = mkdtempSync(join(tmpdir(), 'nr-cma-'))
+const cleanup = () => { try { rmSync(userDir, { recursive: true, force: true }) } catch {} }
+process.on('SIGINT', () => { cleanup(); process.exit(0) })
+process.on('SIGTERM', () => { cleanup(); process.exit(0) })
+process.on('exit', cleanup)
 
 let handler
 const server = createServer((req, res) => (handler ? handler(req, res) : res.end()))
@@ -58,15 +64,12 @@ RED.init(server, {
   logging: { console: { level: 'info', metrics: false, audit: false } }
 })
 handler = RED.httpAdmin
-
-server.listen(port, () => {
-  console.log(`\n  Node-RED (${mode}) → http://localhost:${port}\n  flow file: ${flowFile}\n`)
-})
 await RED.start()
 
 // Monorepo-only quirk: node-red auto-discovers EVERY sibling @coremarine/*-nodered from the
 // shared workspace node_modules. Disable them so the palette shows only THIS node. (End users
 // who `npm i` just this package never see the others — this is purely a local-dev convenience.)
+// Done BEFORE server.listen() so the editor never sees the siblings (no race).
 const siblings = [...new Set(RED.nodes.getNodeList()
   .map((n) => n.module)
   .filter((m) => m?.startsWith('@coremarine/') && m !== ownName))]
@@ -77,4 +80,8 @@ for (const module of siblings) {
     // best-effort palette tidy-up; ignore if a module can't be disabled
   }
 }
-if (siblings.length) console.log(`  (dev) hid ${siblings.length} sibling CoreMarine node(s) from the palette\n`)
+if (siblings.length) console.log(`  (dev) hid ${siblings.length} sibling CoreMarine node(s) from the palette`)
+
+server.listen(port, () => {
+  console.log(`\n  Node-RED (${mode}) → http://localhost:${port}\n  flow file: ${flowFile}\n`)
+})
