@@ -12,6 +12,8 @@
 flows_cred.json
 # local dev node-red instance (pnpm run ...:nodered:dev / :examples)
 .dev-userdir/
+# node-red writes a hidden .<flowfile>.backup next to any flow file it opens
+*.backup
 
 # Logs
 logs
