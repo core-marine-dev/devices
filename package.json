@@ -51,6 +51,7 @@
     "nmea-parser:nodered:build": "pnpm --filter @coremarine/nmea-parser-nodered run build",
     "nmea-parser:nodered:test": "pnpm --filter @coremarine/nmea-parser-nodered run test",
     "nmea-parser:nodered:dev": "pnpm --filter @coremarine/nmea-parser-nodered run dev",
+    "nmea-parser:nodered:examples": "pnpm --filter @coremarine/nmea-parser-nodered run examples",
     "nmea-parser:nodered:ci:local": "gh act push -W .github/workflows/nmea-parser-nodered.yml -j test",
     "norsub-emru:lint": "pnpm --filter @coremarine/norsub-emru run lint",
     "norsub-emru:format": "pnpm --filter @coremarine/norsub-emru run format",

@@ -10,8 +10,10 @@
 .config.*.json.backup
 .flows*
 flows_cred.json
-# local dev node-red instance (pnpm run ...:nodered:dev)
+# local dev node-red instance (pnpm run ...:nodered:dev / :examples)
 .dev-userdir/
+# per-dev scratch flow for the :dev script (the :examples flow in examples/ IS tracked)
+tests/dev.flows.json
 
 # Logs
 logs

@@ -104,12 +104,22 @@ The logic lives in a node-red-free module (`src/lib.ts`) with a thin RED adapter
 (`src/parser.ts`), so the bulk is unit-testable without Node-RED.
 
 ```bash
-pnpm run nmea-parser:nodered:build   # tsup -> dist/ + copy html/icons
-pnpm run nmea-parser:nodered:test    # node:test — unit (src/lib) + integration (real node-red)
-pnpm run nmea-parser:nodered:dev     # build + launch a local Node-RED at http://localhost:1880
+pnpm run nmea-parser:nodered:build      # tsup -> dist/ + copy html/icons
+pnpm run nmea-parser:nodered:test       # node:test — unit (src/lib) + integration (real node-red)
+pnpm run nmea-parser:nodered:dev        # local Node-RED, edit a scratch flow (tests/dev.flows.json)
+pnpm run nmea-parser:nodered:examples   # local Node-RED, edit the SHIPPED example (examples/*.json)
 ```
 
 Tests use **`node:test`** (via `tsx`). The integration test boots a real headless Node-RED
 through its public API and runs a flow through the node — no `node-red-node-test-helper`
-(incompatible with Node-RED 5). `:dev` starts a local Node-RED (a devDependency, no docker)
-with a seeded `inject → cma-nmea-parser → debug` flow so you can see the node and its output.
+(incompatible with Node-RED 5).
+
+**`:dev` and `:examples`** launch a local Node-RED (a devDependency, no docker; welcome tour off) at
+http://localhost:1880 showing only this node in the palette. Node-RED reads/writes the on-disk flow
+file directly, so edits you make in the editor persist:
+
+- **`:dev`** edits `tests/dev.flows.json` — a **gitignored** per-developer scratch flow, seeded with
+  `inject → cma-nmea-parser → debug` on first run.
+- **`:examples`** edits the **committed, published** example under `examples/` (the flow-library
+  requires examples; they're shipped via `files` and appear in Node-RED's *Import → Examples*). Set
+  `EXAMPLE=<file>` to target a specific one. Examples live in `examples/`, **not** `dist/`.

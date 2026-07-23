@@ -27,11 +27,19 @@ The node reads `msg.payload` (protocol input) and writes the parsed **CMA[]** ba
 ## Development
 
 ```bash
-pnpm run TODO::nodered:build   # tsup -> dist/ + copy html/icons
-pnpm run TODO::nodered:test    # node:test — unit (src/lib) + integration (real node-red)
-pnpm run TODO::nodered:dev     # build + launch a local Node-RED at http://localhost:1880
+pnpm run TODO::nodered:build      # tsup -> dist/ + copy html/icons
+pnpm run TODO::nodered:test       # node:test — unit (src/lib) + integration (real node-red)
+pnpm run TODO::nodered:dev        # local Node-RED, edit a scratch flow (tests/dev.flows.json)
+pnpm run TODO::nodered:examples   # local Node-RED, edit the SHIPPED example (examples/*.json)
 ```
 
 Tests use **`node:test`** (via `tsx`). The integration test boots a real headless Node-RED through
 its public API and runs a flow through the node — no `node-red-node-test-helper` (incompatible with
-Node-RED 5). `:dev` runs a local Node-RED (a devDependency, no docker) so you can see the node live.
+Node-RED 5).
+
+**`:dev` and `:examples`** launch a local Node-RED (devDependency, no docker; welcome tour off) at
+http://localhost:1880 with only this node in the palette. Node-RED reads/writes the on-disk flow file
+directly, so editor edits persist: `:dev` -> gitignored scratch `tests/dev.flows.json` (seeded on
+first run); `:examples` -> the committed, published example in `examples/` (shipped via `files`,
+appears in Node-RED's *Import → Examples*; set `EXAMPLE=<file>` to pick one). Examples live in
+`examples/`, **not** `dist/`.

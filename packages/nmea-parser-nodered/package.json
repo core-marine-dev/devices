@@ -44,7 +44,8 @@
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
     "test:unit": "node --import tsx --test \"tests/*.unit.test.ts\"",
     "test:integration": "node --import tsx --test \"tests/*.integration.test.ts\"",
-    "dev": "pnpm run build && node dev-server.mjs"
+    "dev": "pnpm run build && node dev-server.mjs dev",
+    "examples": "pnpm run build && node dev-server.mjs examples"
   },
   "dependencies": {
     "@coremarine/nmea-parser": "workspace:^"
