@@ -1523,35 +1523,21 @@
       "color": "#000000"
     },
     "nodes": [
-      "2fe2bdeabd247e22w",
-      "3afa552110c23ef1w",
-      "bf2a96cea47ba3adw",
-      "d4ebce20546db205w",
-      "f11c402c73a2594dw",
-      "269e1a1de526763cw",
-      "b13e30fe957edae5w",
-      "a41dbddd012c9d6aw",
-      "5417d129493270f5w",
-      "91ce8e2a79b6c65dw",
-      "7473b39722cc3634w",
-      "c3a91838c98f0364w",
-      "2065967e9d991a8cw",
-      "4cfda5d7ffa6635cw",
-      "5303b60c2825a26bw",
-      "18ace2ab075396cdw",
-      "b0d3ea9162bcf883w",
-      "a799a18c3051b088w",
-      "65db0fa7479e8788w",
-      "46be7d75ba4d2ef6w",
-      "0cce10fed1bdcec9w",
-      "aa1b07c82bf53b77w",
-      "038c4848ce89add9w",
-      "c5fe5021f12d4858w"
+      "hx-1",
+      "hx-2",
+      "hx-3",
+      "hx-4",
+      "hx-5",
+      "hx-6",
+      "hx-7",
+      "hx-8",
+      "hx-9",
+      "hx-10"
     ],
     "x": 34,
     "y": 759,
-    "w": 872,
-    "h": 482
+    "w": 860,
+    "h": 300
   },
   {
     "id": "dc5b2f693b2e96eaw",
@@ -1648,32 +1634,6 @@
     "y": 1519,
     "w": 732,
     "h": 162
-  },
-  {
-    "id": "2fe2bdeabd247e22w",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols GET",
-    "props": [
-      {
-        "p": "protocols",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 160,
-    "y": 840,
-    "wires": [
-      [
-        "0cce10fed1bdcec9w"
-      ]
-    ]
   },
   {
     "id": "de261a7c3f50bbf0w",
@@ -1910,361 +1870,6 @@
     ]
   },
   {
-    "id": "3afa552110c23ef1w",
-    "type": "debug",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "PROTOCOLS file - Edit Dialog",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "protocols",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 730,
-    "y": 840,
-    "wires": []
-  },
-  {
-    "id": "bf2a96cea47ba3adw",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols SET",
-    "props": [
-      {
-        "p": "protocols",
-        "v": "{\"command\":\"set\",\"file\":\"/tests/norsub.yaml\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 170,
-    "y": 960,
-    "wires": [
-      [
-        "aa1b07c82bf53b77w"
-      ]
-    ]
-  },
-  {
-    "id": "d4ebce20546db205w",
-    "type": "debug",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "PROTOCOLS file path - API",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "protocols",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 720,
-    "y": 920,
-    "wires": []
-  },
-  {
-    "id": "f11c402c73a2594dw",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols GET",
-    "props": [
-      {
-        "p": "protocols",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 160,
-    "y": 920,
-    "wires": [
-      [
-        "aa1b07c82bf53b77w"
-      ]
-    ]
-  },
-  {
-    "id": "269e1a1de526763cw",
-    "type": "debug",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "PROTOCOLS file content - API",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "protocols",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 730,
-    "y": 1040,
-    "wires": []
-  },
-  {
-    "id": "b13e30fe957edae5w",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols GET",
-    "props": [
-      {
-        "p": "protocols",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 160,
-    "y": 1040,
-    "wires": [
-      [
-        "038c4848ce89add9w"
-      ]
-    ]
-  },
-  {
-    "id": "a41dbddd012c9d6aw",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols file",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "payload": "/tests/norsub.yaml",
-    "payloadType": "str",
-    "x": 170,
-    "y": 1080,
-    "wires": [
-      [
-        "5417d129493270f5w"
-      ]
-    ]
-  },
-  {
-    "id": "5417d129493270f5w",
-    "type": "file in",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "",
-    "filename": "payload",
-    "filenameType": "msg",
-    "format": "utf8",
-    "chunk": false,
-    "sendError": false,
-    "encoding": "none",
-    "allProps": false,
-    "x": 340,
-    "y": 1080,
-    "wires": [
-      [
-        "91ce8e2a79b6c65dw"
-      ]
-    ]
-  },
-  {
-    "id": "91ce8e2a79b6c65dw",
-    "type": "change",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "file content",
-    "rules": [
-      {
-        "t": "set",
-        "p": "protocols.command",
-        "pt": "msg",
-        "to": "set",
-        "tot": "str"
-      },
-      {
-        "t": "move",
-        "p": "payload",
-        "pt": "msg",
-        "to": "protocols.content",
-        "tot": "msg"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 510,
-    "y": 1080,
-    "wires": [
-      [
-        "038c4848ce89add9w"
-      ]
-    ]
-  },
-  {
-    "id": "7473b39722cc3634w",
-    "type": "debug",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "PROTOCOLS protocols - API",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "protocols",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 720,
-    "y": 1160,
-    "wires": []
-  },
-  {
-    "id": "c3a91838c98f0364w",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols GET",
-    "props": [
-      {
-        "p": "protocols",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 160,
-    "y": 1160,
-    "wires": [
-      [
-        "c5fe5021f12d4858w"
-      ]
-    ]
-  },
-  {
-    "id": "2065967e9d991a8cw",
-    "type": "inject",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Protocols file",
-    "props": [
-      {
-        "p": "payload"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "payload": "/tests/norsub.yaml",
-    "payloadType": "str",
-    "x": 170,
-    "y": 1200,
-    "wires": [
-      [
-        "4cfda5d7ffa6635cw"
-      ]
-    ]
-  },
-  {
-    "id": "4cfda5d7ffa6635cw",
-    "type": "file in",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "",
-    "filename": "payload",
-    "filenameType": "msg",
-    "format": "utf8",
-    "chunk": false,
-    "sendError": false,
-    "encoding": "none",
-    "allProps": false,
-    "x": 340,
-    "y": 1200,
-    "wires": [
-      [
-        "5303b60c2825a26bw"
-      ]
-    ]
-  },
-  {
-    "id": "5303b60c2825a26bw",
-    "type": "yaml",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "property": "payload",
-    "name": "",
-    "x": 490,
-    "y": 1200,
-    "wires": [
-      [
-        "18ace2ab075396cdw"
-      ]
-    ]
-  },
-  {
-    "id": "18ace2ab075396cdw",
-    "type": "change",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "protocols object",
-    "rules": [
-      {
-        "t": "set",
-        "p": "protocols.command",
-        "pt": "msg",
-        "to": "set",
-        "tot": "str"
-      },
-      {
-        "t": "move",
-        "p": "payload.protocols",
-        "pt": "msg",
-        "to": "protocols.protocols",
-        "tot": "msg"
-      }
-    ],
-    "action": "",
-    "property": "",
-    "from": "",
-    "to": "",
-    "reg": false,
-    "x": 660,
-    "y": 1200,
-    "wires": [
-      [
-        "c5fe5021f12d4858w"
-      ]
-    ]
-  },
-  {
     "id": "bf14cc613f0600bew",
     "type": "inject",
     "z": "86f1271d07a48b44w",
@@ -2358,50 +1963,6 @@
     "statusType": "auto",
     "x": 690,
     "y": 1380,
-    "wires": []
-  },
-  {
-    "id": "b0d3ea9162bcf883w",
-    "type": "comment",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Feed parser with File Path - Edit dialog",
-    "info": "",
-    "x": 210,
-    "y": 800,
-    "wires": []
-  },
-  {
-    "id": "a799a18c3051b088w",
-    "type": "comment",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Feed parser with File Path - API",
-    "info": "",
-    "x": 190,
-    "y": 880,
-    "wires": []
-  },
-  {
-    "id": "65db0fa7479e8788w",
-    "type": "comment",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Feed parser with File Content - API",
-    "info": "",
-    "x": 200,
-    "y": 1000,
-    "wires": []
-  },
-  {
-    "id": "46be7d75ba4d2ef6w",
-    "type": "comment",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Feed parser with File Parsed - API",
-    "info": "",
-    "x": 200,
-    "y": 1120,
     "wires": []
   },
   {
@@ -2864,70 +2425,6 @@
     ]
   },
   {
-    "id": "0cce10fed1bdcec9w",
-    "type": "cma-nmea-parser",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Parser fed through file - Edit Dialog",
-    "memory": true,
-    "file": "",
-    "x": 420,
-    "y": 840,
-    "wires": [
-      [
-        "3afa552110c23ef1w"
-      ]
-    ]
-  },
-  {
-    "id": "aa1b07c82bf53b77w",
-    "type": "cma-nmea-parser",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Parser fed through file path - API",
-    "memory": true,
-    "file": "",
-    "x": 410,
-    "y": 920,
-    "wires": [
-      [
-        "d4ebce20546db205w"
-      ]
-    ]
-  },
-  {
-    "id": "038c4848ce89add9w",
-    "type": "cma-nmea-parser",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Parser fed through file content - API",
-    "memory": true,
-    "file": "",
-    "x": 420,
-    "y": 1040,
-    "wires": [
-      [
-        "269e1a1de526763cw"
-      ]
-    ]
-  },
-  {
-    "id": "c5fe5021f12d4858w",
-    "type": "cma-nmea-parser",
-    "z": "86f1271d07a48b44w",
-    "g": "53b0d00e97623318w",
-    "name": "Parser fed through protocols - API",
-    "memory": true,
-    "file": "",
-    "x": 420,
-    "y": 1160,
-    "wires": [
-      [
-        "7473b39722cc3634w"
-      ]
-    ]
-  },
-  {
     "id": "ceb18e21cc0d89b1w",
     "type": "cma-nmea-parser",
     "z": "86f1271d07a48b44w",
@@ -2958,5 +2455,189 @@
         "8375f8aa145326b9w"
       ]
     ]
+  },
+  {
+    "id": "hx-1",
+    "type": "debug",
+    "name": "protocols / parsed",
+    "active": true,
+    "tosidebar": true,
+    "complete": "true",
+    "x": 834,
+    "y": 929,
+    "wires": [],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-2",
+    "type": "cma-nmea-parser",
+    "name": "parser",
+    "memory": true,
+    "file": "",
+    "x": 594,
+    "y": 929,
+    "wires": [
+      [
+        "hx-1"
+      ]
+    ],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-3",
+    "type": "comment",
+    "name": "Hot-expand: teach the parser new sentences at runtime with addSentences — via content (YAML string) or file. The old \"protocols object\" mode was removed.",
+    "x": 334,
+    "y": 799,
+    "wires": [],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-4",
+    "type": "comment",
+    "name": "Click 1 -> 2 -> 3 in order: PCMEX is unknown, then after expanding it parses with named depth/temperature fields.",
+    "x": 334,
+    "y": 831,
+    "wires": [],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-5",
+    "type": "inject",
+    "name": "get supported sentences",
+    "props": [
+      {
+        "p": "protocols",
+        "v": "{\"command\":\"get\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 234,
+    "y": 869,
+    "wires": [
+      [
+        "hx-2"
+      ]
+    ],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-6",
+    "type": "inject",
+    "name": "1 · parse PCMEX (before expand)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PCMEX,12.5,7.3*71\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 234,
+    "y": 909,
+    "wires": [
+      [
+        "hx-2"
+      ]
+    ],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-7",
+    "type": "inject",
+    "name": "2 · expand via CONTENT (embedded YAML)",
+    "props": [
+      {
+        "p": "protocols",
+        "v": "{\"command\":\"set\",\"content\":\"protocols:\\n  - protocol: COREMARINE_EXAMPLE\\n    standard: false\\n    sentences:\\n      - id: PCMEX\\n        description: Example proprietary sentence - depth and water temperature\\n        payload:\\n          - name: depth\\n            type: float32\\n            units: m\\n          - name: temperature\\n            type: float32\\n            units: C\\n\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 234,
+    "y": 949,
+    "wires": [
+      [
+        "hx-2"
+      ]
+    ],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-8",
+    "type": "inject",
+    "name": "3 · parse PCMEX (after expand)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PCMEX,12.5,7.3*71\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 234,
+    "y": 989,
+    "wires": [
+      [
+        "hx-2"
+      ]
+    ],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-9",
+    "type": "inject",
+    "name": "expand via FILE (examples/example-protocol.yml)",
+    "props": [
+      {
+        "p": "protocols",
+        "v": "{\"command\":\"set\",\"file\":\"examples/example-protocol.yml\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 234,
+    "y": 1029,
+    "wires": [
+      [
+        "hx-2"
+      ]
+    ],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
+  },
+  {
+    "id": "hx-10",
+    "type": "comment",
+    "name": "FILE path is relative to Node-RED's working dir (works under :dev / :examples). Use an absolute path in production.",
+    "x": 364,
+    "y": 1059,
+    "wires": [],
+    "z": "86f1271d07a48b44w",
+    "g": "53b0d00e97623318w"
   }
 ]

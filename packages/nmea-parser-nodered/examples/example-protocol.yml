@@ -1,0 +1,18 @@
+# Example protocols file for @coremarine/nmea-parser.
+# Feed it to the node at runtime to "hot-expand" the parser with new sentences:
+#   - as a YAML string  -> msg.protocols = { command: 'set', content: <this file's text> }
+#   - as a file path     -> msg.protocols = { command: 'set', file: '<path to this file>' }
+# See the "Protocols API" group in the example flow.
+protocols:
+  - protocol: COREMARINE_EXAMPLE
+    standard: false
+    sentences:
+      - id: PCMEX
+        description: Example proprietary sentence - depth and water temperature
+        payload:
+          - name: depth
+            type: float32
+            units: m
+          - name: temperature
+            type: float32
+            units: C
