@@ -34,7 +34,8 @@
   },
   "main": "dist/parser.js",
   "files": [
-    "dist"
+    "dist",
+    "examples"
   ],
   "scripts": {
     "build": "pnpm run format && tsup && node copy-assets.mjs",
