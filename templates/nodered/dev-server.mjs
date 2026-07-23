@@ -54,6 +54,7 @@ RED.init(server, {
   flowFile, // absolute -> reads/writes the file in tests/ or examples/ directly
   flowFilePretty: true, // human-readable diffs when the file is committed
   editorTheme: { tours: false }, // no first-run walkthrough
+  telemetry: { enabled: false }, // no "Enable Update Notifications" prompt / telemetry
   logging: { console: { level: 'info', metrics: false, audit: false } }
 })
 handler = RED.httpAdmin
