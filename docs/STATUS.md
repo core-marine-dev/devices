@@ -111,7 +111,12 @@ Strokes:
     nodes appear" clutter is a **monorepo-only** artifact (shared workspace node_modules), not a bug.
     **Examples ship in `examples/` (NOT `dist/`)** via `files` and surface in node-red's
     *Import → Examples* (confirmed via ctx7). **cru's original `examples/nmea-parser-examples.json` is
-    kept as-is** (an earlier attempt to "simplify" it was reverted at cru's request).
+    kept as-is**; a **second tab "NMEA Parser Examples — v3 API (CMA output)"** was appended to the
+    SAME file (groups: Parse→CMA[], Memory, Protocols content|file, Sentence, Fake, Flow Errors) as a
+    proposal for cru to visually compare/adjust. `parser.html` help documents the new API (protocols
+    content/file, CMA[] output). **node-red flow-library checklist verified committed:** keywords has
+    `node-red`, `node-red.version >=4`, `engines.node >=22`, examples shipped via `files`, README +
+    LICENSE + repository + semver all present.
   - **`templates/nodered/` regenerated to match** (TS + tsup + copy-assets + node:test + dev-server,
     all with `TODO:` markers; near-ready for the NMEA-family, trimmable for binary parsers).
     `templates/nodered.yml` workflow blueprint modernized (OIDC + gate + build chain + node:test,
