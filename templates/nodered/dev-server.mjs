@@ -2,18 +2,18 @@
 //   pnpm run <lib>:nodered:dev        -> edit a tracked scratch flow in tests/dev.flows.json
 //   pnpm run <lib>:nodered:examples   -> edit the SHIPPED example flow(s) in examples/
 //
-// Both open a fresh editor (welcome tour OFF) at http://localhost:1880 with ONLY this node in
-// the palette. Node-RED reads/writes the on-disk flow file directly, so your edits persist there
-// (deploy in the editor -> the file updates). node-red's own state lives in a gitignored userDir.
+// Both open a fresh editor (welcome tour OFF) at http://localhost:1880 with this node under the
+// CoreMarine palette category, pinned first. Node-RED reads/writes the on-disk flow file directly,
+// so your edits persist there (deploy in the editor -> the file updates). node-red's own state
+// lives in a gitignored userDir.
 import { createServer } from 'node:http'
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import RED from 'node-red'
 
 const root = dirname(fileURLToPath(import.meta.url))
-const ownName = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).name
 const mode = process.argv[2] === 'examples' ? 'examples' : 'dev'
 const port = Number(process.env.PORT ?? 1880)
 
@@ -59,28 +59,24 @@ RED.init(server, {
   userDir,
   flowFile, // absolute -> reads/writes the file in tests/ or examples/ directly
   flowFilePretty: true, // human-readable diffs when the file is committed
-  editorTheme: { tours: false }, // no first-run walkthrough
+  editorTheme: {
+    tours: false, // no first-run walkthrough
+    // CoreMarine category first; built-in defaults keep their order after it. Dev-only:
+    // palette category order is a per-editor setting, not shippable by a node package.
+    // TODO: keep 'CoreMarine' if your node's parser.html registers that category.
+    palette: { categories: ['CoreMarine', 'subflows', 'common', 'function', 'network', 'sequence', 'parser', 'storage'] }
+  },
   telemetry: { enabled: false }, // no "Enable Update Notifications" prompt / telemetry
   logging: { console: { level: 'info', metrics: false, audit: false } }
 })
 handler = RED.httpAdmin
 await RED.start()
 
-// Monorepo-only quirk: node-red auto-discovers EVERY sibling @coremarine/*-nodered from the
-// shared workspace node_modules. Disable them so the palette shows only THIS node. (End users
-// who `npm i` just this package never see the others — this is purely a local-dev convenience.)
-// Done BEFORE server.listen() so the editor never sees the siblings (no race).
-const siblings = [...new Set(RED.nodes.getNodeList()
-  .map((n) => n.module)
-  .filter((m) => m?.startsWith('@coremarine/') && m !== ownName))]
-for (const module of siblings) {
-  try {
-    await RED.runtime.nodes.setModuleState({ user: {}, module, enabled: false })
-  } catch {
-    // best-effort palette tidy-up; ignore if a module can't be disabled
-  }
-}
-if (siblings.length) console.log(`  (dev) hid ${siblings.length} sibling CoreMarine node(s) from the palette`)
+// Note: in this monorepo node-red auto-discovers every sibling @coremarine/*-nodered from the
+// shared workspace node_modules, so they also appear under the CoreMarine palette category. That's
+// accepted by design — end users who `npm i` just this package never see the others, and isolating
+// the dev instance isn't worth the complexity for a dev-only convenience. This node registers under
+// the CoreMarine category (see parser.html) and that category is pinned first (editorTheme above).
 
 server.listen(port, () => {
   console.log(`\n  Node-RED (${mode}) → http://localhost:${port}\n  flow file: ${flowFile}\n`)

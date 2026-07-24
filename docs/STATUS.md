@@ -10,9 +10,18 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-22 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
+> **Last updated:** 2026-07-24 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
+>
+> **2026-07-24 — both open nmea-parser-nodered wrapper items CLOSED (cru's pragmatic call).**
+> Dev-instance isolation is **won't-fix / accepted by design**: wrappers are a complementary offer,
+> not worth the complexity. node-red stays a **root** devDep; siblings appearing in the palette is
+> fine as long as our node is in the **CoreMarine** category and that category is **first**. Palette
+> ordering wired into `dev-server.mjs` via `editorTheme.palette.categories` (verified live: `/settings`
+> reports `CoreMarine` first, `cma-nmea-parser` loads). `setModuleState` sibling-hiding hack removed.
+> Mirrored to `templates/nodered/dev-server.mjs`. **Wrapper Phase 2 is now unblocked** (publish after
+> nmea-parser 3.0.0 is live).
 >
 > **RELEASE PREP DONE (2026-07-13): nmea-parser bumped to `3.0.0`, CI/CD migrated to npm OIDC
 > Trusted Publishing across ALL packages, publish-if-version-changed gate, `repository.directory`
@@ -78,6 +87,87 @@ Strokes:
 
 ## Done
 
+- **2026-07-24 — nmea-parser-nodered wrapper: both open dev-server items resolved (cru).** Committed
+  edits to `dev-server.mjs` + `templates/nodered/dev-server.mjs`; `docs/STATUS.md` updated same-turn.
+  - **Dev-instance isolation → WON'T-FIX, accepted by design (cru's pragmatic call).** The whole
+    `pnpm deploy`-from-isolated-dir direction (validated last session) is **dropped, not implemented** —
+    wrappers are a complementary offering and the isolation machinery isn't worth the future-maintenance
+    cost. **node-red + mocha + node-red-node-test-helper stay ROOT devDeps** (already the state — last
+    session's per-package experiment was already reverted; nothing to change there). Siblings appearing
+    in the palette is fine **as long as** our node sits in the **CoreMarine** category and that category
+    is **first**. ctx7 recap that informed the call: non-legacy `pnpm deploy` (needs
+    `inject-workspace-packages=true`) DOES prune to a clean target via a dedicated lockfile, but the
+    setting is workspace-wide (hard-linking, `syncInjectedDepsAfterScripts`) — too heavy for a dev-only
+    convenience; `--legacy` avoids the setting but drags the whole root devDep list. Neither adopted.
+  - **Palette category order — DONE.** Added `editorTheme.palette.categories: ['CoreMarine', …defaults]`
+    to the `RED.init` settings in `dev-server.mjs` (exact key confirmed via ctx7 nodered.org config docs:
+    unlisted categories append to the end, so the built-in defaults are listed after CoreMarine to keep
+    their normal order). The node already declares `category: "CoreMarine"` in `parser.html`. **Caveat:
+    this pins order only in the LOCAL dev-server — palette category order is a per-editor setting, not
+    shippable by a node package**; an end user's Node-RED is unaffected.
+  - **Removed the `setModuleState` sibling-disable block** from `dev-server.mjs` (from commit `d158f9a`
+    "only this node") — now pointless (siblings accepted) and it never reliably worked. Dropped the now-
+    unused `ownName` const + `readFileSync` import + stale "ONLY this node" header comment. The fresh
+    throwaway `userDir` per run is kept.
+  - **Verified live** (no docker): booted `dev-server.mjs` in both `dev` and `examples` modes headless;
+    `GET /settings` → `editorTheme.palette.categories.order = ['CoreMarine', …]`; `GET /nodes` →
+    `@coremarine/nmea-parser-nodered` (`cma-nmea-parser`) loaded + enabled (the 4 siblings also load +
+    enabled, as accepted); examples mode reads the shipped `examples/nmea-parser-examples.json`.
+    `dev-server.mjs` lints clean.
+  - **Mirrored to `templates/nodered/dev-server.mjs`** (same edits + a `TODO:` note on keeping the
+    `CoreMarine` category). **`CONTRIBUTING.md` needed no change** — it made no isolation/sibling claims.
+- **2026-07-23 — dev-isolation investigation: cru's per-package-devDep+catalog idea DISPROVEN
+  empirically; `pnpm deploy --legacy` VALIDATED as the real fix (not yet implemented in
+  `dev-server.mjs`).** No code committed this session — pure investigation, all experimental edits
+  reverted, working tree clean.
+  - **Ruled out node-red-node-test-helper as the cause (cru's hunch):** its `package.json` has NO
+    dependency on `node-red` (only a `"node-red"` string in `keywords`); `mocha` is its own devDep.
+    Not the mechanism.
+  - **Ruled out `mocha` removal (cru's other hunch) — NOT SAFE YET:** `norsub-emru-nodered`,
+    `thelmabiotel-tblive-nodered`, `sbg-ecom-nodered`, `septentrio-sbf-nodered` still run mocha
+    (only `nmea-parser-nodered` uses `node:test` so far). Removing the root devDep would break
+    those four until each is refactored in its own turn.
+  - **Root cause nailed down precisely** (was previously only "confirmed the walk-up climbs to the
+    workspace"): `@node-red/registry/lib/localfilesystem.js` `scanTreeForNodesModules` climbs from
+    `coreNodesDir` (wherever `@node-red/nodes` physically sits) **one directory at a time all the
+    way to filesystem `/`**, checking `<ancestor>/node_modules` at every level. Because pnpm
+    workspaces use **one shared virtual store for the whole workspace** (single lockfile), that walk
+    always passes through `node_modules/.pnpm/node_modules/@coremarine/*` — a directory pnpm
+    populates with a symlink to **every** workspace package unconditionally (needed for
+    `workspace:*`-protocol resolution generally), regardless of which package.json declares
+    `node-red`.
+  - **Tested cru's fix empirically and it does NOT work:** moved `node-red` out of the root
+    `devDependencies` into `packages/nmea-parser-nodered`'s own `devDependencies` (twice — once
+    alone, once combined with a `pnpm deploy` test), ran `pnpm install` both times. Result **both
+    times**: node-red resolves to the exact same `node_modules/.pnpm/node-red@5.0.1.../` path, and
+    `.pnpm/node_modules/@coremarine/*` still lists all 11 sibling packages, unchanged. **Which
+    manifest declares node-red is irrelevant** — the shared virtual store is a property of the whole
+    workspace, not of any one dependency edge. **pnpm `catalog:` is therefore not needed for this
+    fix** (it would only synchronize a version string across manifests that don't affect isolation).
+  - **Validated fix: `pnpm --filter <pkg> deploy --legacy <tmp-dir>`, then boot node-red FROM that
+    deployed dir** (not from the workspace). `pnpm deploy` builds a fresh, self-contained
+    `node_modules` scoped to just that package's own resolved dependency graph — its `.pnpm/
+    node_modules/@coremarine/*` contains only `nmea-parser` (the real dep) + itself, never the other
+    workspace packages. Since node-red's own files then live entirely inside that isolated tree, the
+    `coreNodesDir` walk-up never reaches the shared store at all. **Proved with a probe script**
+    (boots `RED.init`/`RED.start` from inside the deployed dir, fresh tmp `userDir`, then
+    `RED.nodes.getNodeList()`): output was `MODULES: [ '@coremarine/nmea-parser-nodered' ]` — zero
+    siblings — reproduced on **two separate deploys** (node-red only as root devDep; node-red
+    duplicated into the wrapper's own devDeps too) with identical results, reinforcing that the
+    declaration site doesn't matter.
+    - **⚠️ Known wart, not yet resolved:** `--legacy` is required (`ERR_PNPM_DEPLOY_NONINJECTED_
+      WORKSPACE` without it — the workspace doesn't set `injectWorkspacePackages: true`), and legacy
+      deploy against a shared lockfile drags the **entire root `devDependencies` list** into the
+      deploy target (eslint, mocha, tsup, vitest, typescript, chai — ~627 resolved packages) rather
+      than just node-red + the wrapper's own deps. Harmless functionally (disposable tmp dir,
+      content-addressable store hard-links make repeat deploys fast) but wasteful/not clean. **Not
+      investigated:** whether setting `injectWorkspacePackages: true` in `pnpm-workspace.yaml` (then
+      deploying WITHOUT `--legacy`) avoids the bloat — check ctx7 for exact semantics/tradeoffs
+      before adopting.
+  - **Not yet done:** wiring this into `dev-server.mjs` (needs a deploy-then-spawn/require step
+    instead of importing `node-red` directly), dropping the `setModuleState` hack, mirroring to
+    `templates/nodered/`. See the updated open-item note in "Node-RED wrapper refactor" below and the
+    paste-ready resume prompt at the end of this doc.
 - **2026-07-22 — nmea-parser-nodered wrapper refactored to TS + new API + node:test (Phase 2, cru).**
   The wrapper is rebuilt as the **template for all future wrappers**; verified green three ways
   (local clean-dist chain, `node:test`, and **act** in a container). NOT yet published (publishes on
@@ -129,33 +219,17 @@ Strokes:
     hot-expand demo** (get; parse PCMEX before; expand via CONTENT embedded YAML + via FILE
     `examples/example-protocol.yml`; parse PCMEX after → shows unknown→decoded), Sentence API, Fake API.
     Ships `examples/example-protocol.yml` (`COREMARINE_EXAMPLE`/`PCMEX`).
-  - **⚠️ TWO OPEN wrapper items (cru, 2026-07-22) — see the paste-ready prompt below:**
-    1. **Isolated dev/examples node-red instance — NOT solved.** `dev-server.mjs` disables sibling
-       `@coremarine/*-nodered` via `setModuleState` before `server.listen()`, BUT cru confirms (screenshot)
-       the siblings STILL appear in the palette + Manage-Palette. Root cause: node-red (shared monorepo
-       devDep) auto-discovers siblings by walking UP its install's parent `node_modules`
-       (`@node-red/registry/lib/localfilesystem.js` scanTreeForNodesModules) → reaches the workspace root
-       node_modules. `setModuleState`/`nodesExcludes`/`removeModule` do NOT reliably prevent this.
-       **cru wants a genuinely FRESH node-red instance with ONLY this wrapper + built-in nodes installed
-       each run — and says keep it SIMPLE, not overengineered.** cru's hint: node-red has an
-       autoinstall-missing-modules setting (`externalModules.autoInstall`); and a fresh isolated dir where
-       only the wrapper is installed would avoid the walk-up. Likely path: run node-red from an isolated
-       dir OUTSIDE the workspace whose `node_modules` has only node-red + this wrapper (+ its dep) — e.g.
-       `pnpm --filter <pkg> deploy <tmp> --prod` then add node-red, or a userDir package.json + autoInstall.
-       Investigate the cleanest minimal option (fetch node-red docs via ctx7).
-       **cru's preferred direction (2026-07-22, likely the simplest):** make `node-red` a **per-package
-       devDependency of the wrapper** (not a shared monorepo root dep) so it runs from the wrapper's OWN
-       isolated `node_modules`, which pnpm fills with only that package's deps (node-red + nmea-parser) —
-       NOT the sibling wrappers. Confirmed the siblings are NOT at workspace-root `node_modules` nor in
-       the wrapper's `node_modules` (only its real dep `nmea-parser`); they're found solely because the
-       shared root-`.pnpm` node-red's walk-up climbs the workspace tree. Solve the version-sync worry
-       with **pnpm `catalog:`** (one central node-red version, referenced by every wrapper). NEXT AGENT:
-       first instrument node-red's scan to confirm EXACTLY which dir yields the siblings today, then try
-       the per-package-node-red(+catalog) approach and verify only the wrapper + core nodes load. Drop
-       the current `setModuleState` hack from `dev-server.mjs` once this works. Mirror to `templates/`.
-    2. **CoreMarine palette category first.** Put the "CoreMarine" category at the TOP of the palette via
-       `editorTheme.palette.categories` in the dev-server RED.init settings (confirm exact key via ctx7).
-  - **Next after those: publish wrapper 2.0.0** (dev→main; workspace:^ → ^3.0.0), then **Phase 3 =
+  - **✅ BOTH wrapper items CLOSED (2026-07-24) — see the top Done entry for detail:**
+    1. **Isolated dev/examples node-red instance → WON'T-FIX, accepted by design (cru).** The
+       `pnpm deploy` fix (validated 2026-07-23) was **dropped, not implemented** — not worth the
+       future-maintenance cost for a complementary offering. node-red stays a **root** devDep;
+       siblings appearing is fine. The `setModuleState` hack was **removed** from `dev-server.mjs`.
+       (Historical: the whole isolation investigation — per-package devDep DISPROVEN, `pnpm deploy
+       --legacy` validated but heavy — is preserved in the 2026-07-23 Done entry.)
+    2. **CoreMarine palette category first → DONE.** `editorTheme.palette.categories: ['CoreMarine',
+       …defaults]` added to `dev-server.mjs` `RED.init` (key confirmed via ctx7; verified live).
+       Dev-server-only (per-editor setting, not shippable). Mirrored to `templates/nodered/`.
+  - **Next: publish wrapper 2.0.0** (dev→main; workspace:^ → ^3.0.0), then **Phase 3 =
     norsub-emru** (lib refactor, then its `-nodered` wrapper cloned from this template).
 - **2026-07-22 — git history rewritten to strip AI co-author trailers (cru).** cru uses multiple
   AI agents from different providers and does **not** want any single one credited in authorship.
