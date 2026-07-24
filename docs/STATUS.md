@@ -123,9 +123,12 @@ Strokes:
       `pnpm install --frozen-lockfile` clean after the package.json edits.
     - **CI `publish` job:** version-gated (`2.0.0` not on npm → will publish), OIDC configured; packed
       manifest confirms `workspace:^` → `@coremarine/nmea-parser: "^3.0.0"`, **no `protocol-core` leak**.
-      ⚠️ **Ordering constraint (not a CI failure):** do NOT merge the wrapper to `main` until
-      nmea-parser **3.0.0 is actually live on npm** — else the published wrapper's `^3.0.0` dep 404s and
-      it's uninstallable. This is the phased plan (Phase 1 before Phase 2).
+      ✅ **Ordering constraint SATISFIED:** `npm view @coremarine/nmea-parser@3.0.0` → live (`latest:
+      3.0.0`), so **Phase 1 is done** and the wrapper's `^3.0.0` dep resolves. Merging the wrapper is safe.
+      Pushed to `origin/dev` (`29f7173`); the `dev` CI run is **GREEN** (Test 22.x + 24.x ✅, Publish
+      skipped as it's not `main`). `dev` is ahead of `main` by 18 commits — **all** nmea-parser-nodered /
+      templates / docs — so the `dev→main` merge triggers **only** `nmea-parser-nodered.yml` (path-filtered)
+      and publishes **just the wrapper 2.0.0**; every other package no-ops. **This is Phase 2.**
     - **FIX 1 — stray `.backup` no longer published.** node-red auto-writes a hidden
       `.<flowfile>.backup` beside any flow it opens; `files: ["examples"]` was globbing it into the
       tarball (49 KB). Deleted the 4 stray `*.backup` files repo-wide (all gitignored cruft) and added
