@@ -24,7 +24,7 @@
     "protocol"
   ],
   "engines": {
-    "node": ">=18.5.0"
+    "node": ">=22"
   },
   "node-red": {
     "version": ">=4.0.0",

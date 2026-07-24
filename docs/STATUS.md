@@ -134,13 +134,19 @@ Strokes:
       tarball (49 KB). Deleted the 4 stray `*.backup` files repo-wide (all gitignored cruft) and added
       **`"!**/*.backup"`** to the wrapper's `files` array. Re-pack (with a simulated regenerated backup)
       confirms it's excluded. Mirrored to `templates/nodered/package.json`.
-    - **FIX 2 — `engines.node` `>=22.0.0` → `>=18.5.0` (cru's call).** cru wants to **develop against the
-      latest node-red (`5.0.1`, needs node ≥22.9)** but **publish as compatible with node-red 4.x+** (the
-      wrappers use the v4 API, which still works on 5). `node-red.version` stays **`>=4.0.0`**. But node-red
-      4 runs on node **≥18.5**, so the old `engines.node: >=22` silently locked out node-red-4 users —
-      making the `>=4` claim hollow. Lowered to `>=18.5` (node-red 4's floor; ≥ the lib's `>=18`). Dev is
-      unaffected (local node 22.x + node-red 5.0.1 devDep satisfy `>=18.5`). Mirrored to the template.
-      **node-red stays the `latest` (5.0.1) devDep — already current, no bump.**
+    - **FIX 2 — `engines.node` set to `>=22` (major only, cru's locked reasoning).** cru develops
+      against the **latest node-red (`5.0.1`)** and publishes as compatible with **node-red `>=4.0.0`**
+      (the wrappers use the v4 API, which still works on 5) — `node-red.version` stays **`>=4.0.0`**.
+      **The node floor is driven by the LIBRARY, not node-red's floor:** cru guarantees/tests
+      `@coremarine/nmea-parser` only on the **two latest LTS (node 22 & 24)**, so the wrapper cannot
+      honestly claim node 18 even though node-red 4 runs on ≥18.5. Hence `engines.node: ">=22"` —
+      "runs in node-red 4, but requires node ≥22" (node-red 4 supports node up to 22, so a node-red-4
+      user on node 22 is fine; older-node users are honestly excluded). **cru prefers major-only in
+      `engines.node` (no minor/patch)** → `">=22"`, not `">=22.0.0"`. node-red stays the `latest`
+      (5.0.1) devDep. (An earlier `>=18.5` attempt — reasoning from node-red 4's own floor — was
+      corrected: the lib's guarantee, not node-red's floor, sets the bar.) **Note for later:** the lib's
+      own `package.json` still declares `engines.node: ">= 18"`, looser than the 22/24 guarantee — worth
+      tightening to `>=22` in a future lib release so the two agree (out of scope for this wrapper).
     - **Node-RED flow-library checklist re-confirmed via ctx7** (nodered.org/docs/creating-nodes/packaging):
       `node-red.nodes` map ✅, `keywords` has `node-red` ✅, name/version/description/MIT ✅, repository +
       `repository.directory` + bugs + homepage ✅, README + LICENSE shipped ✅, `examples/` flows ✅,
