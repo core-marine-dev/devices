@@ -14,14 +14,30 @@
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
 >
-> **2026-07-24 — both open nmea-parser-nodered wrapper items CLOSED (cru's pragmatic call).**
-> Dev-instance isolation is **won't-fix / accepted by design**: wrappers are a complementary offer,
-> not worth the complexity. node-red stays a **root** devDep; siblings appearing in the palette is
-> fine as long as our node is in the **CoreMarine** category and that category is **first**. Palette
-> ordering wired into `dev-server.mjs` via `editorTheme.palette.categories` (verified live: `/settings`
-> reports `CoreMarine` first, `cma-nmea-parser` loads). `setModuleState` sibling-hiding hack removed.
-> Mirrored to `templates/nodered/dev-server.mjs`. **Wrapper Phase 2 is now unblocked** (publish after
-> nmea-parser 3.0.0 is live).
+> **🎉 2026-07-24 — PHASE 1 + PHASE 2 SHIPPED. `@coremarine/nmea-parser@3.0.2` AND
+> `@coremarine/nmea-parser-nodered@2.0.1` are LIVE on npm** (PR [#70](https://github.com/core-marine-dev/devices/pull/70)
+> merged `dev`→`main` at 10:32 UTC; `main` @ `290a38f`). nmea-parser is the finished CMA reference lib
+> **and** its Node-RED wrapper is done + published — both the lib pattern and the wrapper template are
+> now proven end-to-end. **NEXT = PHASE 3: `norsub-emru` (lib refactor) then its `-nodered` wrapper.**
+> See the paste-ready **"Phase 3 handoff prompt"** at the very end of this doc.
+>
+> **⚠️ First thing next session: sync `dev` with `main`.** The merge put a commit on `main`
+> (`290a38f`) that `dev` (`e3a0333`) doesn't have. Run `git checkout dev && git fetch origin && git
+> merge --ff-only origin/main` (or `git merge origin/main`) before branching Phase 3 work.
+>
+> **Wrapper decisions locked this session (apply to every future `-nodered` wrapper):**
+> - **Dev-instance isolation = won't-fix / accepted by design.** Sibling `@coremarine/*-nodered` nodes
+>   appearing in the local dev palette is fine; node-red stays a **root** devDep. What matters: the node
+>   is in the **CoreMarine** palette category and that category is pinned first via
+>   `editorTheme.palette.categories` in `dev-server.mjs` (dev-only; not shippable by a node package).
+> - **`engines.node: ">=22"` (major-only), `node-red.version: ">=4.0.0"`.** The node floor is set by
+>   the **library's tested targets (two latest LTS: 22 & 24)**, NOT node-red 4's own `>=18.5`. "Runs in
+>   node-red 4, but needs node ≥22." Dev is on the latest node-red (`5.0.1`). The **library** was also
+>   patched to `engines.node >=22` (was a mistaken `>= 18`) — do the same for every parser lib.
+> - **Ship `"!**/*.backup"` in `files`** — node-red writes hidden `.<flow>.backup` files that otherwise
+>   leak into the npm tarball.
+> - **Keep READMEs current with the API** — both nmea READMEs were rewritten this session; do NOT let a
+>   wrapper/lib publish with stale API docs.
 >
 > **RELEASE PREP DONE (2026-07-13): nmea-parser bumped to `3.0.0`, CI/CD migrated to npm OIDC
 > Trusted Publishing across ALL packages, publish-if-version-changed gate, `repository.directory`
@@ -87,6 +103,13 @@ Strokes:
 
 ## Done
 
+- **2026-07-24 — 🚀 PHASE 1 + PHASE 2 PUBLISHED (cru merged PR [#70](https://github.com/core-marine-dev/devices/pull/70) `dev`→`main`).**
+  `@coremarine/nmea-parser@3.0.2` and `@coremarine/nmea-parser-nodered@2.0.1` are **live on npm** (OIDC
+  + provenance). Verified post-merge: `npm view` returns both versions; PR merged 10:32 UTC; `main` @
+  `290a38f`. The version gate no-op'd every other package; norsub-emru + sbg-ecom test-red stayed
+  contained (`needs: test`). This closes the whole nmea-parser track — lib **and** wrapper both in
+  production, both serving as the reference/template for the remaining parsers. **`dev` is now behind
+  `main` by the merge commit — sync it before Phase 3 (see top banner).** **NEXT = Phase 3: norsub-emru.**
 - **2026-07-24 — nmea-parser-nodered wrapper: both open dev-server items resolved (cru).** Committed
   edits to `dev-server.mjs` + `templates/nodered/dev-server.mjs`; `docs/STATUS.md` updated same-turn.
   - **Dev-instance isolation → WON'T-FIX, accepted by design (cru's pragmatic call).** The whole
@@ -655,24 +678,16 @@ for ALL packages.**
 **NEXT — the release is PHASED (locked with cru 2026-07-22); do them strictly in order, each fully
 in production before the next:**
 
-- **Phase 1 (current) — publish nmea-parser 3.0.0 + verify a fresh install.** ⚠️ **First merge
-  attempt (2026-07-22) failed** — every library workflow died at `Setup pnpm` because pnpm `11.12.0`
-  is a broken/deprecated release (see top Done entry); **fixed on `dev` by bumping `packageManager`
-  → `pnpm@11.15.1`.** The `3.0.0` publish did NOT happen (test failed → publish skipped), so re-merge
-  is safe. **Next: land the fix on `dev`, confirm the `nmea-parser` workflow is GREEN on `dev`, then
-  cru re-opens/re-merges PR `dev` → `main`** (PR message drafted 2026-07-22). Because of the
-  **version gate** this is safe/quiet: **only nmea-parser 3.0.0 publishes** (OIDC + provenance); every other package's publish
-  job runs the ~2s `npm view` check and **no-ops**; norsub-emru + sbg-ecom test-red is expected and
-  blocks nothing (`needs: test`). The merge also clears the 74 dependabot alerts on `main`. Then
-  **smoke-test a fresh install**: in a clean dir `npm i @coremarine/nmea-parser@3.0.0`, import both
-  ESM + CJS, confirm types resolve and there is **no** `@coremarine/protocol-core` runtime dep.
-- **Phase 2 (only when cru says go, after 3.0.0 is live) — nmea-parser-nodered wrapper.** Dep
-  `@coremarine/nmea-parser` → `^3.0.0`; rewrite `src/parser.js` off the removed `addProtocols(...)`
-  onto `addSentences(yaml)` + CMA output; re-enable its commented-out test job (build the lib dist
-  first); bump version; verify CI/CD green; publish; smoke-test a fresh install.
-- **Phase 3 (only once nmea-parser AND its wrapper are fully in production) — norsub-emru, then its
-  wrapper.** Then thelmabiotel-tblive (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom
-  (+ wrappers).
+- ~~**Phase 1 — publish nmea-parser 3.0.x**~~ — ✅ **DONE 2026-07-24: `@coremarine/nmea-parser@3.0.2`
+  live on npm** (PR #70). (History: the 2026-07-22 first attempt died at `Setup pnpm` on the broken
+  pnpm `11.12.0` → fixed by bumping `packageManager` to `pnpm@11.15.1`; then 3.0.0 published, later
+  patched to 3.0.1→3.0.2 for the engines fix + README.)
+- ~~**Phase 2 — nmea-parser-nodered wrapper**~~ — ✅ **DONE 2026-07-24: `@coremarine/nmea-parser-nodered@2.0.1`
+  live on npm** (PR #70). TS rewrite onto `addSentences`/CMA, `node:test`, OIDC publish, dev-server +
+  palette + engines all settled (see the top Done entries + banner).
+- **Phase 3 (CURRENT) — norsub-emru (lib), then its `-nodered` wrapper.** Then thelmabiotel-tblive
+  (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom (+ wrappers). **See the paste-ready
+  "Phase 3 handoff prompt" at the very end of this doc.**
 
 ### Prompt for the next agent (paste-ready)
 
@@ -980,10 +995,69 @@ update the `protocols` npm script. Add root proxy scripts if needed.
   refactor (values now validate via core `TYPE_SCHEMAS`; the swapped local aliases are gone).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
 - `thelmabiotel-tblive-nodered` has a `test` script but **no mocha specs** (`No test files found`).
-- All 5 nodered CI workflows have their test jobs commented out — they publish untested.
+- 4 of 5 nodered CI workflows still have their test jobs commented out — they publish untested.
+  (`nmea-parser-nodered` is DONE: test job enabled + `node:test`, published 2.0.1. The other four —
+  norsub, tblive, sbg-ecom, septentrio — get theirs enabled as each wrapper is refactored in turn.)
 - nmea-parser ships a committed `legacy/` folder + stray root files (`morenmea.tss`).
 - Node-RED docker `Dockerfile`s still use `npm i` inside the container (install the published
   package from the npm registry, not the workspace — unaffected by the pnpm migration, but
   inconsistent).
 - `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
 - P08-Trident harness (`misc/tests/p08trident/`) status unknown — ask cru if still live.
+
+## Phase 3 handoff prompt (paste-ready — norsub-emru lib + wrapper)
+
+> Continue the CoreMarine **devices** monorepo refactor. Run `git log --oneline -10` first, then read
+> **`docs/STATUS.md`** top-to-bottom (especially the top banner + the top Done entries + the
+> "Decisions" section). **Working method (cru): converge on each decision BEFORE coding, one step at a
+> time — no big unsolicited diffs.** For ANY npm / pnpm / node-red / TypeScript / GitHub-Actions /
+> library specifics, **fetch current docs with the `ctx7` CLI — never rely on memory.** Update
+> `docs/STATUS.md` in the **same turn** as any meaningful change. Commit only when cru asks; no AI
+> co-author trailer (already disabled globally). Verify per package from its dir: **lint → tsc → test → build**.
+>
+> **STATE (2026-07-24): Phases 1 & 2 are SHIPPED.** `@coremarine/nmea-parser@3.0.2` (the finished CMA
+> reference **library**) and `@coremarine/nmea-parser-nodered@2.0.1` (the finished wrapper + **template**
+> for all future wrappers) are both **live on npm** (PR #70 merged to `main`). Do NOT redo any nmea work.
+>
+> **FIRST STEP — sync branches.** The merge advanced `main` past `dev`. Run
+> `git checkout dev && git fetch origin && git merge --ff-only origin/main` (fall back to a normal
+> `git merge origin/main` if ff isn't possible). Then branch Phase 3 work from `dev`; PR back to `dev`.
+>
+> **TASK — Phase 3 = `norsub-emru` (library first), THEN its `-nodered` wrapper.** Strictly in that
+> order; the lib must be green + (per cru's cadence) in production before starting the wrapper.
+>
+> **3a — norsub-emru library.** It currently does NOT build — it imports the removed NMEA API
+> (`NMEASentence`, `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`), calls `addProtocols(...)`, and
+> overrides the old `parseData`. It's a thin extension of NMEA that adds a **status bitfield** to
+> `PNORSUB*` sentences (`src/status.ts` `getStatus`; `status_a`/`status_b` for `…b` variants, else a
+> single `status`). Target: `class NorsubParser extends NMEAParser` (which now extends `StringParser`),
+> object-arg constructor `{ memory?, bufferLimit? }`, emit `CMA[]`, adopt the `Result` pattern, zero
+> `node:` imports in `src/`. The full locked design is in this doc's **"NMEA refactor — locked design &
+> plan" → Resume prompt** (read it — it's the spec). **Converge these two open design questions with cru
+> BEFORE coding** (they are NOT settled by the NMEA reference):
+>   1. **How a subclass loads its own built-in knowledge.** norsub's `NORSUB_SENTENCES` is a generated JS
+>      object, not YAML, so `addSentences(yaml)` doesn't fit. Cleanest candidate: make the lib's
+>      `registerProtocols` **`protected`** so `NorsubParser`'s constructor can register
+>      `ProtocolsFileContentSchema.safeParse(NORSUB_SENTENCES)` directly.
+>   2. **How norsub injects its status metadata.** NMEA's `METADATA_AGGREGATORS` is a module-level const
+>      keyed by exact `${id}:${payloadLength}` — not extensible by a subclass, and norsub status spans
+>      many `PNORSUB*` ids/lengths. Options to weigh with cru: (a) make the registry instance-level /
+>      mergeable so a subclass adds aggregators; (b) generalise the key to a predicate/prefix (`PNORSUB*`);
+>      (c) keep a light norsub post-process. Prefer folding into the aggregator model (no `override
+>      parseData`) if clean. Its workflow already builds nmea-parser first (`Build monorepo deps`) since it
+>      extends NMEAParser; timestamp metadata is inherited from core — no work there.
+>
+> **3b — norsub-emru-nodered wrapper.** Clone the finished `nmea-parser-nodered` (it IS the template).
+> **Apply the wrapper decisions locked 2026-07-24 (see top banner):** TypeScript → tsup → CJS; pure-logic
+> `src/lib.ts` + thin `src/parser.ts`; `node:test` (unit + real-headless-node-red integration, no
+> `node-red-node-test-helper`); `dev-server.mjs` with `editorTheme.palette.categories` (CoreMarine first)
+> and NO sibling-hiding hack; **`engines.node: ">=22"`** (major-only) + **`node-red.version: ">=4.0.0"`**;
+> **`"!**/*.backup"` in `files`**; keep node-red a **root** devDep; re-enable the wrapper's CI test job
+> (build the lib dist chain first); OIDC + version-gated publish; **write the README to the CURRENT API
+> from the start** (don't inherit stale docs). Node type name `cma-norsub-parser` (already in the flow /
+> registerType). Bump to a new **major** (breaking API + CMA output).
+>
+> **AFTER norsub:** thelmabiotel-tblive (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom
+> (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio wants a `sentenceTimestamp` override for
+> TOW+WNc). Also worth tightening each parser lib's `engines.node` to `>=22` as it's refactored (the nmea
+> lib's `>= 18` was a mistake, fixed in 3.0.2).
