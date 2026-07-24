@@ -126,9 +126,10 @@ Strokes:
       ✅ **Ordering constraint SATISFIED:** `npm view @coremarine/nmea-parser@3.0.0` → live (`latest:
       3.0.0`), so **Phase 1 is done** and the wrapper's `^3.0.0` dep resolves. Merging the wrapper is safe.
       Pushed to `origin/dev` (`29f7173`); the `dev` CI run is **GREEN** (Test 22.x + 24.x ✅, Publish
-      skipped as it's not `main`). `dev` is ahead of `main` by 18 commits — **all** nmea-parser-nodered /
-      templates / docs — so the `dev→main` merge triggers **only** `nmea-parser-nodered.yml` (path-filtered)
-      and publishes **just the wrapper 2.0.0**; every other package no-ops. **This is Phase 2.**
+      skipped as it's not `main`). **UPDATE (engines patch, below): the `dev→main` merge now also touches
+      `packages/nmea-parser/**`, so it triggers BOTH `nmea-parser.yml` AND `nmea-parser-nodered.yml`
+      (path-filtered) → publishes **nmea-parser 3.0.1** AND **wrapper 2.0.0** in one merge; every other
+      package still no-ops on its version gate.** The wrapper's `^3.0.0` dep accepts 3.0.1. **This is Phase 2.**
     - **FIX 1 — stray `.backup` no longer published.** node-red auto-writes a hidden
       `.<flowfile>.backup` beside any flow it opens; `files: ["examples"]` was globbing it into the
       tarball (49 KB). Deleted the 4 stray `*.backup` files repo-wide (all gitignored cruft) and added
@@ -144,9 +145,17 @@ Strokes:
       user on node 22 is fine; older-node users are honestly excluded). **cru prefers major-only in
       `engines.node` (no minor/patch)** → `">=22"`, not `">=22.0.0"`. node-red stays the `latest`
       (5.0.1) devDep. (An earlier `>=18.5` attempt — reasoning from node-red 4's own floor — was
-      corrected: the lib's guarantee, not node-red's floor, sets the bar.) **Note for later:** the lib's
-      own `package.json` still declares `engines.node: ">= 18"`, looser than the 22/24 guarantee — worth
-      tightening to `>=22` in a future lib release so the two agree (out of scope for this wrapper).
+      corrected: the lib's guarantee, not node-red's floor, sets the bar.)
+    - **FIX 3 — nmea-parser (LIBRARY) `engines.node` `">= 18"` → `">=22"`, patched to `3.0.1` (cru).**
+      The lib's `>= 18` was a legacy/mistake — it's only built & tested on the two latest LTS (22 & 24),
+      so 18 was never truly guaranteed. This is the floor the wrapper's `>=22` derives from, so the lib
+      must agree. cru's call: correct the metadata and ship a **patch** (`3.0.0` → `3.0.1`) — tightening
+      `engines` is arguably breaking, but since it corrects inaccurate metadata (never really supported)
+      and `engines` is advisory, a patch is fine. Major-only (`">=22"`). No code/build change (tsup is
+      `platform: neutral`, no node-18 target anywhere). Verified: lint + tsc + **65/65** + build
+      ESM+CJS+DTS; packed manifest = `3.0.1` / `engines.node >=22` / no protocol-core leak;
+      frozen-lockfile clean (workspace deps are links). Dependents (`norsub-emru`, `nmea-parser-nodered`)
+      use `workspace:^` / `^3.0.0` → accept 3.0.1 unchanged.
     - **Node-RED flow-library checklist re-confirmed via ctx7** (nodered.org/docs/creating-nodes/packaging):
       `node-red.nodes` map ✅, `keywords` has `node-red` ✅, name/version/description/MIT ✅, repository +
       `repository.directory` + bugs + homepage ✅, README + LICENSE shipped ✅, `examples/` flows ✅,
