@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Library to parse NMEA 0183 sentences",
   "author": "CoreMarine",
   "license": "MIT",
