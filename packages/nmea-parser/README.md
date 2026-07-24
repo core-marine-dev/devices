@@ -4,9 +4,9 @@
 
 **NMEA Parser** is a library to parse NMEA 0183 sentences.
 
-> [NMEA](https://en.wikipedia.org/wiki/NMEA_0183) 0183, or just NMEA, is an standard ASCII text protocol typically used for GNSS (GPS) devices and naval tools.
+> [NMEA](https://en.wikipedia.org/wiki/NMEA_0183) 0183, or just NMEA, is a standard ASCII text protocol typically used for GNSS (GPS) devices and naval tools.
 
-This library parse **ALL** NMEA-like sentences (sentences that follow these rules):
+This library parses **ALL** NMEA-like sentences (sentences that follow these rules):
 
 - ASCII string
 - Start with `$`
@@ -15,536 +15,190 @@ This library parse **ALL** NMEA-like sentences (sentences that follow these rule
 - Two hexadecimal digits of checksum
 - End with `\r\n`
 
-If the parser knows the NMEA sentences it gives more metadata. Known frames are:
+If the parser knows the sentence it emits richer, typed metadata. Built-in known sentences (NMEA 3.1) are `AAM`, `GGA`, `HDT`, `ZDA` — feed the parser more with [`addSentences`](#feed-the-parser-add-known-sentences).
 
-<details>
-  <summary>NMEA 3.01</summary>
+> The parser output is the unified **CMA** format shared by every CoreMarine device parser — see [`docs/CMA.md`](../../docs/CMA.md).
 
-  - AAM
-  - GGA
-  - HDT
-  - ZDA
+## Install
 
-</details>
+```bash
+npm i @coremarine/nmea-parser
+```
 
-> NMEA is a backwards compatible protocol from 4.x versions until 2.00.
+Ships ESM + CJS + types. Runs on node, deno, bun and the web (no `node:fs`/`Buffer` in the parse path; input is a `string`). Requires Node `>=22`.
 
 ## How to use it
 
 ```typescript
 import { NMEAParser } from '@coremarine/nmea-parser'
-// NMEA parser
+
+// memory defaults to true; both options are optional
 const parser = new NMEAParser()
+// const parser = new NMEAParser({ memory: false, bufferLimit: 1024 })
 ```
 
-### Parse NMEA string data
+### Parse NMEA data
 
-The main behaviour it's just to create a parser object and with its method `parseData()` get the parsed sentences.
+Feed an ASCII string and drain the parsed sentences as `CMA[]`:
 
 ```typescript
-// NMEA ascii string with multiple sentences
-const input = '$GPGGA,...\r\n$GPAAM,...\r\n'
-const output: NMEASentence[] = parser.parseData(input)
+import type { CMA } from '@coremarine/nmea-parser'
+
+// one-shot: parse whatever you pass in
+const input = '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n'
+const output: CMA[] = parser.parseData(input)
+
+// streaming: add chunks, then drain
+parser.addData(chunk1)
+parser.addData(chunk2)
+const drained: CMA[] = parser.parseData()   // returns + clears the queued sentences
 ```
 
-The output it is an array of parsed sentences which have this type
+- `addData(input: string): void` — parse immediately and queue the results.
+- `parseData(input?: string): CMA[]` — optionally add `input`, then return **and clear** the queue.
+
+### Output — the CMA shape
 
 ```typescript
-type NMEASentence = {
-  // Sentence ID
-  id: string,
-  // Array with ordered fields and their metadata
+interface CMA {
+  raw: string              // whole ASCII sentence
+  timestamp: number        // decode time, epoch ms (=== metadata.timestamp.parsed)
+  id: string               // sentence id, talker stripped (e.g. 'GGA')
+  protocol: { name: string, version: string }
   payload: Array<{
-    name: string,
-    value: string | number | bigint | boolean | null,
-    type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'int8' | 'int16' | 'int32' | 'int64' | 'float32' | 'float64' | 'unknown',
-    units?: string,
-    description?: string,
-    metadata?: any
-  }>,
-  // Metadata which can be computed fields from payload fields
-  metadata?: any,
-  // Protocol information
-  protocol: {
-    name: string,
-    standard: boolean,
-    version: string,
-  },
-  // UTC timestamp when the sentence was parsed
-  received: number,
-  // Whole ASCII string sentence
-  sample: string,
-  // Sentence checksum
-  checksum: {
-    sample: string,
-    value: number
-  }
-  // Sentence talker
-  talker?: {
-    value: string,
-    description: string
-  }
-}
-```
-
-If the sentence is unknown for the parser you have:
-
-- `protocol` is equal to `{ name: 'unknown' }`
-- In `payload` each element is equal to `{ name: 'unknown', value: string, type: string }`
-
-### Feed the parser
-
-Another feature is to feed or train the parser to know more sentences. You can do it with a user friendly YAML file.
-
-Look the section [Feeding the parser](#feeding-the-parser-adding-known-sentences)
-
-### Extra features: memory and internal buffer
-
-You can enable or disable memory in the parser. Why?
-
-- Imagine you are streaming NMEA data into the parser
-- You just enters string in slots so a frame could be splitted into string slots
-- With memory the parser remember the last half frame
-- So you can finally parse with the next string input
-
-### Generate fake sentences
-
-It can be asked to the parser if a sentence is supported or known with  the ID of the sentence and the method `getSentence()`.
-If the sentence is supported, parser can generate a fake sentence which is right in terms of NMEA-like requirements but just contains garbage.
-To get that is with method `getFakeSentenceByID()`. If the sentence it is not supported, it will returns `null`.
-
-```typescript
-type Sentence = {
-  // ID of the sentence
-  id: string,
-  // Protocol info
-  protocol: {
-    name: string,
-    standard: boolean,
-    version?: string
-  },
-  // Ordered fields with its info
-  payload: Array<{
-    name: string,
-    type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'uint64' | 'int8' | 'int16' | 'int32' | 'int64' | 'float32' | 'float64',
-    units?: string,
+    raw: string
+    name: string           // 'unknown' for unknown sentences/fields
+    type: 'char' | 'string' | 'boolean'
+        | 'int8' | 'int16' | 'int32' | 'int64'
+        | 'uint8' | 'uint16' | 'uint32' | 'uint64'
+        | 'float32' | 'float64'
+    value: string | number | boolean | null   // null = present-but-empty; int64/uint64 as decimal strings
+    units?: string
     description?: string
-  }>,
-  // Optional talker
-  talker?: {
-    value: string,
-    description: string
+    errors?: string[]
+    metadata?: Record<string, unknown>         // free-form field metadata (e.g. decoded timestamp, label)
+  }>
+  metadata: {              // ALWAYS present
+    timestamp: {
+      received: number     // when addData was called
+      parsed: number       // decode time (=== cma.timestamp)
+      sentence?: number    // the sentence's own time if it carries one (e.g. GGA UTC)
+    }
+    checksum: string       // NMEA: always
+    standard: boolean      // NMEA: from the matched definition
+    talker?: { value: string, description: string }
+    payload?: Record<string, unknown>          // aggregated across fields (e.g. lat/long in decimal degrees)
+    [key: string]: unknown
   }
-  // Optional description
+  errors?: string[]
   description?: string
 }
-
-// GET sentence info
-const id = 'AAM'
-const sentenceInfo: null | Sentence = parser.getSentence(id)
-// GET fake sentence
-const fakeSentence: string | null = parser.getFakeSentenceByID(id)
 ```
 
-## Feeding the parser (adding known sentences)
+For an **unknown** sentence: `protocol` is `{ name: 'NMEA', version: 'unknown' }`, `metadata.standard` is `false`, and every field is `{ raw, name: 'unknown', type: 'string', value: <raw> }`. A bad checksum is **emitted with a sentence-level error, never dropped**.
 
-One of the greatest features of the parser is you can expand with more NMEA-like sentences. Standard or propietary sentences, it doesn't mind.
+<details>
+  <summary>Example — parsed <code>GGA</code> (trimmed)</summary>
 
-If you make smarter your parser, it will give you more metadata of each sentence and all the values will be in their right type.
+```json
+{
+  "raw": "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
+  "timestamp": 1784888779942,
+  "id": "GGA",
+  "protocol": { "name": "NMEA", "version": "3.1" },
+  "payload": [
+    { "raw": "123519", "name": "utc_position", "type": "string", "value": "123519", "units": "ms", "metadata": { "timestamp": 1784896519000 } },
+    { "raw": "1", "name": "gps_quality", "type": "int8", "value": 1, "metadata": { "label": "GPS fix" } },
+    { "raw": "08", "name": "satellites", "type": "uint8", "value": 8 }
+  ],
+  "metadata": {
+    "checksum": "47",
+    "standard": true,
+    "talker": { "value": "GP", "description": "Global Positioning System receiver" },
+    "payload": { "latitude": 48.1173, "longitude": 11.516666666666667 },
+    "timestamp": { "received": 1784888788388, "parsed": 1784888788388, "sentence": 1784896519000 }
+  },
+  "description": "Global Positioning System Fix Data"
+}
+```
 
-Feeding the parser is with its method `addProtocols()`. You can use three ways (order by parser priority):
+</details>
 
-1. YAML file path
-    - Is the `ProtocolsInput.file` property
-2. YAML file string content
-    - Is the `ProtocolsInput.content` property
-3. Protocol (JS) object
-    - Is the `ProtocolsInput.protocols` property
+### Memory and internal buffer
+
+`memory` (default **on**) lets the parser hold a half-received sentence between `addData` calls, so a sentence split across chunks is still parsed once its tail arrives. `bufferLimit` caps how many characters that carried-over remainder may hold.
 
 ```typescript
-type ProtocolsInput = {
-  // YAML file path
-  file?: string,
-  // YAML file string content
-  content?: string,
-  // JS object similar
-  protcols?: Array<Protocol>
+const memory = parser.memory
+const limit = parser.bufferLimit
+parser.memory = false          // invalid assignments are ignored, never thrown
+parser.bufferLimit = limit + 10
+```
+
+## Feed the parser (add known sentences)
+
+Expand the parser with more NMEA-like sentences — standard or proprietary. The single input is a **YAML string**:
+
+```typescript
+import type { Result, NMEAError } from '@coremarine/nmea-parser'
+
+// node: read the file yourself       // web: const yaml = await file.text()
+import { readFileSync } from 'node:fs'
+const yaml = readFileSync('./my-protocols.yml', 'utf8')
+
+const result: Result<void, NMEAError> = parser.addSentences(yaml)
+if (!result.success) {
+  // never throws — errors come back as a Result
+  console.error(result.error.kind, result.error.message)  // 'invalid-yaml' | 'invalid-schema'
 }
-
-let input: ProtocolsInput
-
-...
-
-parser.addProtocols(input)
 ```
 
-### YAML file / Protocols File
+> The old `addProtocols({ file | content | protocols })` API is **removed**. There is now one input — a YAML string — which keeps the library cross-runtime (the caller owns any file reading).
 
-The YAML file is the most friendly way to feed the parser. It has this structure:
+### YAML format
 
 ```yaml
 protocols:
-  # Array of protocols
-  - protocol: <name>
-    version: <semantic version>
-    standard: <true or false>
-    # Array of sentences
-    sentences:
-      # Each sentence has this structure
-      - id: <ID of sentence 1>
-        description: <optional description>
-        # Array of fields
-        payload:
-          # Each field has this structure
-          - name: <field 1>
-            type: <type>
-            units: <optional units>
-            description: <optional note>
-```
-
-It will be parsed into an `Protocol` object then (see next section).
-
-Example of a yaml file
-
-```yaml
-protocols:
-  # NMEA 3.1
-  - protocol: NMEA
-    version: '3.1'
-    standard: true
+  - protocol: NMEA          # protocol name
+    version: '3.1'          # semantic version
+    standard: true          # standard (true) or proprietary (false)
     sentences:
       - id: AAM
-        description: Waypoint Arrival Alarm
+        description: Waypoint Arrival Alarm   # optional
         payload:
-          # 1
           - name: status
             type: string
-            description: "BOOLEAN\n
-            
-              A = arrival circle entered\n
-
-              V = arrival circle not passed"
-          # 2
-          - name: status
-            type: string
-            description: "BOOLEAN\n
-            
-              A = perpendicular passed at waypoint\n
-              
-              V = perpendicular not passed"
-          # 3
+            units: nautic miles               # optional
+            description: A = entered, V = not passed   # optional
           - name: arrival_circle_radius
             type: float32
-          # 4
-          - name: radius_units
-            type: string
-            units: nautic miles
-          # 5
-          - name: waypoint_id
-            type: string
-      - id: GGA
-        description: Global Positioning System Fix Data
-        payload:
-          # 1
-          - name: utc_position
-            type: string
-            units: ms
-          # 2
-          - name: latitude
-            type: string
-            units: deg
-          # 3
-          - name: latitude_direction
-            type: string
-            description: "N: North\n
-              S: South"
-          # 4
-          - name: longitude
-            type: string
-            units: deg
-          # 5
-          - name: longitude_direction
-            type: string
-            description: "E - East\n
-              W - West"
-          # 6
-          - name: gps_quality
-            type: int8
-            description: "0: Fix not valid\n
-              1: GPS fix\n
-              2: Differential GPS fix (DGNSS), SBAS, OmniSTAR VBS, Beacon, RTX in GVBS mode\n
-              3: Not applicable\n
-              4: RTK Fixed, xFill\n
-              5: RTK Float, OmniSTAR XP/HP, Location RTK, RTX\n
-              6: INS Dead reckoning\n
-              7: Manual Input Mode\n
-              8: Simulator Mode"
-          # 7
-          - name: satellites
-            type: uint8
-          # 8
-          - name: hdop
-            type: float64
-          # 9
-          - name: altitude
-            type: float64
-            units: m
-            description: "Orthometric height Mean-Sea-Level (MSL reference)"
-          # 10
-          - name: altitude_units
-            type: string
-            units: m
-          # 11
-          - name: geoid_separation
-            type: float64
-            units: m
-            description: "Geoidal Separation: the difference between the WGS-84 earth ellipsoid surface and mean-sea-level (geoid) surface, \"-\" = mean-sea-level surface below WGS-84 ellipsoid surface."
-          # 12
-          - name: geoid_separation_units
-            type: string
-            units: m
-          # 13
-          - name: age_of_differential_gps_data
-            type: float64
-            units: sec
-            description: "Time in seconds since last SC104 Type 1 or 9 update, null field when DGPS is not used300"
-          # 14
-          - name: reference_station_id
-            type: uint16
-            description: "Reference station ID, range 0000 to 4095. A null field when any reference station ID is selected and no corrections are received. See table below for a description of the field values.\n
-
-              0002 CenterPoint or ViewPoint RTX\n
-
-              0005 RangePoint RTX\n
-
-              0006 FieldPoint RTX\n
-
-              0100 VBS\n
-
-              1000 HP\n
-
-              1001 HP/XP (Orbits)\n
-
-              1002 HP/G2 (Orbits)\n
-              
-              1008 XP (GPS)\n
-              
-              1012 G2 (GPS)\n
-              
-              1013 G2 (GPS/GLONASS)\n
-              
-              1014 G2 (GLONASS)\n
-              
-              1016 HP/XP (GPS)\n
-              
-              1020 HP/G2 (GPS)\n
-              
-              1021 HP/G2 (GPS/GLONASS)"
-      - id: HDT
-        description: Heading - True
-        payload:
-          # 1
-          - name: heading
-            type: float32
-            description: "Heading, degrees True"
-          # 2
-          - name: "true"
-            type: string
-            description: "T = True"
-      - id: ZDA
-        description: Time & Date - UTC, day, month, year and local time zone
-        payload:
-          # 1
-          - name: utc_time
-            type: string
-            description: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
-          # 2
-          - name: day
-            type: int8
-            description: "Day, 01 to 31"
-          # 3
-          - name: month
-            type: int8
-            description: "Month, 01 to 12"
-          # 4
-          - name: year
-            type: int16
-            description: "Year (4 digits)"
-          # 5
-          - name: local_zone_hours
-            type: int8
-            description: "Local zone description, 00 to +- 13 hours"
-          # 6
-          - name: local_zone_minutes
-            type: int8
-            description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
-
-
-  # Propietary GYROCOMPAS1
-  - protocol: GYROCOMPAS1
-    standard: false
-    sentences:
-      - id: HEHDT
-        payload:
-          - name: heading
-            type: float
-            units: deg
-          - name: symbol
-            type: string
-      - id: PHTRO
-        payload:
-          - name: pitch
-            type: float
-            units: deg
-          - name: pitch_direction
-            type: string
-            description: M bow up, P bow down
-          - name: roll
-            type: float
-            units: deg
-          - name: roll_direction
-            type: string
-            description: M bow up, P bow down
-      - id: PHINF
-        payload:
-          - name: status
-            type: string
 ```
 
-### Protocol (JS) Object
-
-It is an object which has the next type.
-
-```typescript
-type Protocol = {
-  // Protocol name
-  protocol: string,
-  // If the protocol is NMEA stantard or propietary (false by default)
-  standard?: boolean = false,
-  // Semantic version
-  version?: string,
-  // Array of sentences
-  sentences: Array<{
-    // Sentence ID
-    id: string,
-    // Each field metadata
-    payload: Array<{
-      name: string,
-      type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
-      units?: string,
-      note?: string,
-    }>
-    // Optional description
-    description?: string
-  }>
-}
-```
+Field `type` is one of the CMA types (`char`, `string`, `boolean`, `int8`…`int64`, `uint8`…`uint64`, `float32`, `float64`). Multiple definitions may share an `id` across versions (different field counts); on parse, the newest matching definition (by field count, then version) is applied.
 
 ## API
 
-- Get parsed data
+| Member | Signature | Description |
+| --- | --- | --- |
+| `parseData` | `(input?: string) => CMA[]` | Optionally add `input`, then return and clear the queued sentences. |
+| `addData` | `(input: string) => void` | Parse immediately and queue the results. |
+| `addSentences` | `(yaml: string) => Result<void, NMEAError>` | Feed more known sentences from a YAML string. Never throws. |
+| `getSentences` | `() => StoredSentence[]` | All known sentence definitions. |
+| `getSentencesByProtocol` | `() => Record<string, StoredSentence[]>` | Known definitions grouped by protocol name. |
+| `getSentence` | `(id: string) => Sentence \| null` | Definition for an id (talker-aware), or `null` if unknown. |
+| `getFakeSentenceByID` | `(id: string) => string \| null` | A valid NMEA-like sentence with garbage fields, or `null` if unknown. |
+| `memory` | `boolean` (get/set) | Carry a half-received sentence between calls. |
+| `bufferLimit` | `number` (get/set) | Max characters held in the carried-over remainder. |
 
-    ```typescript
-    // NMEA ascii string with multiple sentences
-    const input = '$GPGGA,...\r\n$GPAAM,...\r\n'
-    const output: NMEASentence[] = parser.parseData(input)
-    ```
+```typescript
+// known sentences
+const known = parser.getSentencesByProtocol()
+const gga = parser.getSentence('GGA')            // Sentence | null
 
-- Feed the parser (add more sentences)
-
-    ```typescript
-    let output: NMEASentence[]
-    // From YAML file path
-    const YAML_FILE: string = './my_yaml_file.yaml'
-    output = parser.addProtocols({ file: YAML_FILE })
-    // From YAML file content
-    const YAML_CONTENT: string = fs.readFileSync(YAML_FILE, 'utf8')
-    output = parser.addProtocols({ content: YAML_CONTENT })
-    // From Protocol object
-    const PROTOCOL_OBJECT: Protocol[] = [{...}, {...}, ..., {...}]
-    output = parser.addProtocols({ content: PROTOCOL_OBJECT })
-    ```
-
-- Get known protocols with their sentences
-
-    ```typescript
-    type StoredSentence = {
-      id: string,
-      protocol: {
-        name: string,
-        standard: boolean,
-        version?: string
-      },
-      payload: Array<{
-        name: string,
-        type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
-        units?: string,
-        description?: string
-      }>,
-      description?: string
-    }
-
-    type ProtocolOutput = Record<string, StoredSentence>
-
-    // GET protocols
-    const knownProtocols: ProtocolOutput = parser.getSentencesByProtocol()
-    ```
-
-- Get sentence info by id
-
-    ```typescript
-    type Sentence = {
-      // ID of the sentence
-      id: string,
-      // Protocol info
-      protocol: {
-        name: string,
-        standard: boolean,
-        version?: string
-      },
-      // Ordered fields with its info
-      payload: Array<{
-        name: string,
-        type: 'string' | 'boolean' | 'uint8' | 'uint16' | 'uint32' | 'int8' | 'int16' | 'int32' | 'float32' | 'float64',
-        units?: string,
-        note?: string
-      }>,
-      // Optional talker
-      talker?: null | { id: string, description: string }
-      // Optional description
-      description?: string
-    }
-
-    // GET sentence
-    const id = 'AAM'
-    const sentenceInfo: null | Sentence = parser.getSentence(id)
-    ```
-
-- Get fake NMEA-like sentence by id
-
-    ```typescript
-    const id: string = 'AAM'
-    // GET fake sentence
-    const fakeSentence: string | null = parser.getFakeSentenceByID(id)
-    ```
-
-- Get / set memory and / or buffer character length
-
-    ```typescript
-    // Get
-    const memory = parser.memory
-    const charactersLimit = parser.bufferLimit
-    // Set
-    parser.memory = !memory
-    parser.bufferLimit = charactersLimit + 10
-    ```
+// fake sentence (testing)
+const fake = parser.getFakeSentenceByID('AAM')   // string | null
+```
 
 ## Notes
 
-`bufferLimit` it is used to stored an incompleted frame if `memory` is enabled. So you can add the needed it data later.
-
-`bufferLimit` is set to `1024` characters which is more than enough to store an incompleted frame.
-
-> NMEA standard fix the max length of a frame to 82 characters (flags included)
-
-It is not recommended you change its value if you don't understand well the NMEA protocol pr how it works.
+`bufferLimit` defaults to `1024` characters — far more than the NMEA max sentence length (82 characters, flags included) — so a single incomplete sentence always fits. Changing it is not recommended unless you understand the NMEA framing well.

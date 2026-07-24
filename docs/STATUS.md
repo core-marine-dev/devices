@@ -126,10 +126,10 @@ Strokes:
       ✅ **Ordering constraint SATISFIED:** `npm view @coremarine/nmea-parser@3.0.0` → live (`latest:
       3.0.0`), so **Phase 1 is done** and the wrapper's `^3.0.0` dep resolves. Merging the wrapper is safe.
       Pushed to `origin/dev` (`29f7173`); the `dev` CI run is **GREEN** (Test 22.x + 24.x ✅, Publish
-      skipped as it's not `main`). **UPDATE (engines patch, below): the `dev→main` merge now also touches
+      skipped as it's not `main`). **UPDATE (patches below): the `dev→main` merge now also touches
       `packages/nmea-parser/**`, so it triggers BOTH `nmea-parser.yml` AND `nmea-parser-nodered.yml`
-      (path-filtered) → publishes **nmea-parser 3.0.1** AND **wrapper 2.0.0** in one merge; every other
-      package still no-ops on its version gate.** The wrapper's `^3.0.0` dep accepts 3.0.1. **This is Phase 2.**
+      (path-filtered) → publishes **nmea-parser 3.0.2** AND **wrapper 2.0.1** in one merge; every other
+      package still no-ops on its version gate.** **This is Phase 2.**
     - **FIX 1 — stray `.backup` no longer published.** node-red auto-writes a hidden
       `.<flowfile>.backup` beside any flow it opens; `files: ["examples"]` was globbing it into the
       tarball (49 KB). Deleted the 4 stray `*.backup` files repo-wide (all gitignored cruft) and added
@@ -153,9 +153,28 @@ Strokes:
       `engines` is arguably breaking, but since it corrects inaccurate metadata (never really supported)
       and `engines` is advisory, a patch is fine. Major-only (`">=22"`). No code/build change (tsup is
       `platform: neutral`, no node-18 target anywhere). Verified: lint + tsc + **65/65** + build
-      ESM+CJS+DTS; packed manifest = `3.0.1` / `engines.node >=22` / no protocol-core leak;
+      ESM+CJS+DTS; packed manifest `engines.node >=22` / no protocol-core leak;
       frozen-lockfile clean (workspace deps are links). Dependents (`norsub-emru`, `nmea-parser-nodered`)
-      use `workspace:^` / `^3.0.0` → accept 3.0.1 unchanged.
+      use `workspace:^` / `^3.0.x` → accept the bump unchanged. **(Version later bumped 3.0.1 → 3.0.2
+      with the README rewrite — see FIX 4.)**
+    - **FIX 4 — READMEs rewritten to the new API + patch bumps (cru).** Both package READMEs still
+      documented the **removed** API (lib: `NMEASentence` output, `new NMEAParser()`, `addProtocols({file|
+      content|protocols})`; wrapper: a stale "only this node in the palette" dev note). Rewrote them:
+      - **`packages/nmea-parser/README.md`** — full rewrite onto the current API: `new NMEAParser({ memory?,
+        bufferLimit? })` (memory default true), `addData`/`parseData` → **`CMA[]`** (real GGA sample from a
+        live parse, trimmed), `addSentences(yaml): Result<void, NMEAError>` (YAML-string-only; old
+        `addProtocols` explicitly called out as removed), the getters, cross-runtime + Node ≥22 note, and
+        a full API table. Output/type blocks taken from `docs/CMA.md` + `src/`.
+      - **`packages/nmea-parser-nodered/README.md`** — the msg API (`payload`/`memory`/`protocols`/`sentence`/
+        `fake` → CMA output) was already current; only fixed the `:dev`/`:examples` palette note to
+        "CoreMarine category, pinned first; siblings also show in the monorepo dev instance (harmless)".
+      - **Patch bumps for the doc change (cru's instruction):** nmea-parser **3.0.1 → 3.0.2**,
+        nmea-parser-nodered **2.0.0 → 2.0.1**. ⚠️ Since 3.0.1 and 2.0.0 were **never published** (only
+        nmea-parser 3.0.0 is on npm), these bumps effectively **skip** 3.0.1 / 2.0.0 — the first published
+        versions after 3.0.0 will be **3.0.2** (lib) and **2.0.1** (wrapper, its first publish ever).
+        Harmless (npm ignores gaps); trivially adjustable pre-merge if cru prefers not to skip.
+      - Verified: frozen-lockfile clean; packed manifests = lib `3.0.2` / wrapper `2.0.1`, wrapper dep
+        rewritten `workspace:^` → **`^3.0.2`**, `engines.node >=22` on both, no protocol-core leak.
     - **Node-RED flow-library checklist re-confirmed via ctx7** (nodered.org/docs/creating-nodes/packaging):
       `node-red.nodes` map ✅, `keywords` has `node-red` ✅, name/version/description/MIT ✅, repository +
       `repository.directory` + bugs + homepage ✅, README + LICENSE shipped ✅, `examples/` flows ✅,

@@ -115,8 +115,10 @@ through its public API and runs a flow through the node — no `node-red-node-te
 (incompatible with Node-RED 5).
 
 **`:dev` and `:examples`** launch a local Node-RED (a devDependency, no docker; welcome tour off) at
-http://localhost:1880 showing only this node in the palette. Node-RED reads/writes the on-disk flow
-file directly, so edits you make in the editor persist:
+http://localhost:1880 with this node under the **CoreMarine** palette category, pinned first. (In the
+monorepo dev instance the sibling `@coremarine/*-nodered` nodes also appear under CoreMarine — a
+shared-workspace artifact, harmless; an end user who installs just this package never sees them.)
+Node-RED reads/writes the on-disk flow file directly, so edits you make in the editor persist:
 
 - **`:dev`** edits `tests/dev.flows.json` — a **committed** scratch flow (`inject → cma-nmea-parser →
   debug`) for quick manual checks; edit it freely.
