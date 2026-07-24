@@ -18,7 +18,7 @@
     "TODO:"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.5.0"
   },
   "node-red": {
     "version": ">=4.0.0",
@@ -29,7 +29,8 @@
   "main": "dist/parser.js",
   "files": [
     "dist",
-    "examples"
+    "examples",
+    "!**/*.backup"
   ],
   "scripts": {
     "build": "pnpm run format && tsup && node copy-assets.mjs",

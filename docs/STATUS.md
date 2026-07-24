@@ -116,6 +116,32 @@ Strokes:
     `dev-server.mjs` lints clean.
   - **Mirrored to `templates/nodered/dev-server.mjs`** (same edits + a `TODO:` note on keeping the
     `CoreMarine` category). **`CONTRIBUTING.md` needed no change** — it made no isolation/sibling claims.
+  - **Publish-readiness verified + two fixes (cru, same day).** Before marking the wrapper done, ran
+    the exact CI steps locally and inspected `pnpm pack`:
+    - **CI `test` job = GREEN locally:** `protocol-core:build` + `nmea-parser:build` → `nmea-parser:nodered:build`
+      → `nmea-parser:nodered:test` **19/19** (incl. the real-headless-node-red integration test).
+      `pnpm install --frozen-lockfile` clean after the package.json edits.
+    - **CI `publish` job:** version-gated (`2.0.0` not on npm → will publish), OIDC configured; packed
+      manifest confirms `workspace:^` → `@coremarine/nmea-parser: "^3.0.0"`, **no `protocol-core` leak**.
+      ⚠️ **Ordering constraint (not a CI failure):** do NOT merge the wrapper to `main` until
+      nmea-parser **3.0.0 is actually live on npm** — else the published wrapper's `^3.0.0` dep 404s and
+      it's uninstallable. This is the phased plan (Phase 1 before Phase 2).
+    - **FIX 1 — stray `.backup` no longer published.** node-red auto-writes a hidden
+      `.<flowfile>.backup` beside any flow it opens; `files: ["examples"]` was globbing it into the
+      tarball (49 KB). Deleted the 4 stray `*.backup` files repo-wide (all gitignored cruft) and added
+      **`"!**/*.backup"`** to the wrapper's `files` array. Re-pack (with a simulated regenerated backup)
+      confirms it's excluded. Mirrored to `templates/nodered/package.json`.
+    - **FIX 2 — `engines.node` `>=22.0.0` → `>=18.5.0` (cru's call).** cru wants to **develop against the
+      latest node-red (`5.0.1`, needs node ≥22.9)** but **publish as compatible with node-red 4.x+** (the
+      wrappers use the v4 API, which still works on 5). `node-red.version` stays **`>=4.0.0`**. But node-red
+      4 runs on node **≥18.5**, so the old `engines.node: >=22` silently locked out node-red-4 users —
+      making the `>=4` claim hollow. Lowered to `>=18.5` (node-red 4's floor; ≥ the lib's `>=18`). Dev is
+      unaffected (local node 22.x + node-red 5.0.1 devDep satisfy `>=18.5`). Mirrored to the template.
+      **node-red stays the `latest` (5.0.1) devDep — already current, no bump.**
+    - **Node-RED flow-library checklist re-confirmed via ctx7** (nodered.org/docs/creating-nodes/packaging):
+      `node-red.nodes` map ✅, `keywords` has `node-red` ✅, name/version/description/MIT ✅, repository +
+      `repository.directory` + bugs + homepage ✅, README + LICENSE shipped ✅, `examples/` flows ✅,
+      `engines.node` ✅. **Wrapper is publish-ready** (gated only on Phase 1).
 - **2026-07-23 — dev-isolation investigation: cru's per-package-devDep+catalog idea DISPROVEN
   empirically; `pnpm deploy --legacy` VALIDATED as the real fix (not yet implemented in
   `dev-server.mjs`).** No code committed this session — pure investigation, all experimental edits
