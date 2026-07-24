@@ -1,101 +1,45 @@
-# NMEA-Parser-NodeRED
+# TODO:-nodered
 
 ![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/TODO:-nodered)
 [![publish](https://github.com/core-marine-dev/devices/actions/workflows/TODO:-nodered.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/TODO:-nodered.yml)
 ![npm](https://img.shields.io/npm/dy/%40coremarine/TODO:-nodered)
 
-TODO:
+> **Template.** Node-RED wrapper scaffold. Replace every `TODO:` and see
+> [`CONTRIBUTING.md`](../../CONTRIBUTING.md) → *How to create a NodeRED component*. The finished
+> reference is [`packages/nmea-parser-nodered`](../../packages/nmea-parser-nodered).
 
-Node-Red component to read NMEA 0183 sentences. It is a wrapper of [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (check it docs).
+TODO: one-line description. A Node-RED wrapper of
+[`@coremarine/TODO:`](https://www.npmjs.com/package/@coremarine/TODO:).
 
-## Input
+## Structure
 
-NMEA component uses 5 properties to work:
+- `src/parser.ts` — thin Node-RED adapter (`RED.nodes.createNode` / `registerType`, `on('input')`).
+- `src/lib.ts` — pure, node-red-free message handlers (unit-testable). Keep only what your parser supports.
+- `src/parser.html` — editor UI + help.
+- Built with **tsup** to `dist/` (CJS); `parser.html` + icons copied alongside.
 
-- `payload` is the main property with NMEA content.
-- `protocols`, `sentence`, `memory` and `fake` are optionals.
+## Input / Output
 
-| Input property         | Description                                                                            |
-| :--------------------- | :------------------------------------------------------------------------------------- |
-| `payload` (string)     | NMEA ASCII content (important, it is an *ASCII* string, not other encoding).           |
-| *`memory`* (object)    | Object to check or enabled / disabled parser memory state (look details below).        |
-| *`protocols`* (object) | Object to get or set the protocols supported and their sentences (look details below). |
-| *`sentence`* (string)  | Sentence ID to get if it is supported and its info (look details below).               |
-| *`fake`* (string)      | Sentence ID to get a full fake NMEA-like sentence if it is supported.                  |
+The node reads `msg.payload` (protocol input) and writes the parsed **CMA[]** back to `msg.payload`.
+`msg.memory` (get/set) is supported by every parser; document any protocol-specific properties
+(e.g. NMEA's `protocols`/`sentence`/`fake`) that your `src/lib.ts` implements.
 
-## Output
+## Development
 
-Each input proerty would be responded in the same output property
+```bash
+pnpm run TODO::nodered:build      # tsup -> dist/ + copy html/icons
+pnpm run TODO::nodered:test       # node:test — unit (src/lib) + integration (real node-red)
+pnpm run TODO::nodered:dev        # local Node-RED, edit a scratch flow (tests/dev.flows.json)
+pnpm run TODO::nodered:examples   # local Node-RED, edit the SHIPPED example (examples/*.json)
+```
 
-| Output property        | Description                                                                                                                    |
-| :--------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| payload (array)        | It gives you the same parsing output that the CoreMarine NMEA Parser (an array of object with the info of each NMEA sentence). |
-| *`memory`* (object)    | Response to the *memory* input (look details below).                                                                           |
-| *`protocols`* (object) | Response to the *protocols* input (look details below).                                                                        |
-| *`sentence`* (string)  | Response to the *sentence* input (look details below).                                                                         |
-| *`fake`* (string)      | Response to the *fake* input (look details below).                                                                             |
+Tests use **`node:test`** (via `tsx`). The integration test boots a real headless Node-RED through
+its public API and runs a flow through the node — no `node-red-node-test-helper` (incompatible with
+Node-RED 5).
 
-## Details
-
-NMEA parser translate NMEA ASCII string data into a JavaScript objects (one for each
-NMEA 0183 sentence). Each time it receives data from payload input, it gives the parsed sentences to payload output.
-
-It just a wrapper of the npm library [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (take a look on it).
-
-To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
-
-- If you request something in `msg.memory` | `msg.protocols` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.protocols` | `msg.sentence` output
-
-### Memory
-
-It is enabled by default:
-
-- memory enabled: Every time you inject data, it's attached to the internal data.
-- memory disabled: Every time you inject data, it clears internal data and add new one.
-
-Internally it has a buffer with a max number of characters
-
-|                          Input                           |                            Output                             |
-| :------------------------------------------------------: | :-----------------------------------------------------------: |
-| `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `characters`: **number** } |
-|             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `characters`: **number** } |
-
-### Protocols
-
-The parser can be feeded or expanded to understand more nmea sentences, standard or propietary.
-To do that it should be passed an object with the property `command` equal to `"set"` and one this three properties:
-
-1. `file`: It's the string file path to the protocols YAML file.
-2. `content`: It's the string content of the protocols YAML file.
-3. `protocols`: It's the JS object after parsing the protocols YAML file.
-
-If you send more of them, parser only will read one (`file` upper other, `content` upper `protocols`)
-
-If you just want to know what are the known or supported sentences, you just need the command `get`.
-
-|                            Input                             |         Output         |
-| :----------------------------------------------------------: | :--------------------: |
-|   `protocols`: { `command`: `"set"`, `file`: **string** }    | `protocols`: **array** |
-|  `protocols`: { `command`: `"set"`, `content`: **string** }  | `protocols`: **array** |
-| `protocols`: { `command`: `"set"`, `protocols`: **object** } | `protocols`: **array** |
-|             `protocols`: { `command`: `"get"` }              | `protocols`: **array** |
-
-### Sentence
-
-If you want to know if a sentence is known / supported, you need to send the sentence id.
-Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
-
-|         Input          |              Output              |
-| :--------------------: | :------------------------------: |
-| `sentence`: **string** | `sentence`: **object** \| `null` |
-
-### Fake
-
-If you want to get a NMEA-like sentence, maybe just to do some tests, you need to send the sentence id.
-Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
-This fake sentence is correct in terms of NMEA requirements but each field has garbage.
-
-|       Input        |            Output            |
-| :----------------: | :--------------------------: |
-| `fake`: **string** | `fake`: **string** \| `null` |
+**`:dev` and `:examples`** launch a local Node-RED (devDependency, no docker; welcome tour off) at
+http://localhost:1880 with only this node in the palette. Node-RED reads/writes the on-disk flow file
+directly, so editor edits persist: `:dev` -> tracked scratch `tests/dev.flows.json`;
+`:examples` -> the committed, published example in `examples/` (shipped via `files`,
+appears in Node-RED's *Import → Examples*; set `EXAMPLE=<file>` to pick one). Examples live in
+`examples/`, **not** `dist/`.

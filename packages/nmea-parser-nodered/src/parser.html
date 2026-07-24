@@ -88,7 +88,7 @@ Parser of NMEA 0183 protocol sentences [check @coremarine/nmea-parser package do
 
 ### Output
 
-: payload (array) : It gives you the same parsing output that the CoreMarine NMEA Parser (an array of object with the info of each NMEA sentence).
+: payload (array) : The parsing output of the CoreMarine NMEA Parser — an array of **CMA** objects (the unified CoreMarine output format), one per NMEA sentence.
 
 : *memory* (object) : Response to the *memory* input (look details below).
 
@@ -126,23 +126,21 @@ Internally it has a buffer with a max number of characters
 
 #### Protocols
 
-The parser can be feeded or expanded to understand more nmea sentences, standard or propietary.
-To do that it should be passed an object with the property `command` equal to `"set"` and one this three properties:
+The parser can be fed or expanded to understand more NMEA sentences, standard or proprietary.
+To do that, send an object with `command` equal to `"set"` and **one** of:
 
-1. `file`: It's the string file path to the protocols YAML file.
-2. `content`: It's the string content of the protocols YAML file.
-3. `protocols`: It's the JS object after parsing the protocols YAML file.
+1. `content`: the YAML **string** of the protocols definitions.
+2. `file`: a **string** file path to the protocols YAML file (read by the node).
 
-If you send more of them, parser only will read one (`file` upper other, `content` upper `protocols`)
+If both are sent, `content` takes precedence over `file`. On error (bad YAML/schema or unreadable file) the `protocols` output is an error **string**.
 
-If you just want to know what are the known or supported sentences, you just need the command `get`.
+If you just want to know the known / supported sentences, use the command `get`.
 
-|                            Input                             |         Output         |
-| :----------------------------------------------------------: | :--------------------: |
-|   `protocols`: { `command`: `"set"`, `file`: **string** }    | `protocols`: **array** |
-|  `protocols`: { `command`: `"set"`, `content`: **string** }  | `protocols`: **array** |
-| `protocols`: { `command`: `"set"`, `protocols`: **object** } | `protocols`: **array** |
-|             `protocols`: { `command`: `"get"` }              | `protocols`: **array** |
+|                           Input                            |         Output          |
+| :--------------------------------------------------------: | :---------------------: |
+| `protocols`: { `command`: `"set"`, `content`: **string** } | `protocols`: **object** |
+|  `protocols`: { `command`: `"set"`, `file`: **string** }   | `protocols`: **object** |
+|            `protocols`: { `command`: `"get"` }             | `protocols`: **object** |
 
 #### Sentence
 

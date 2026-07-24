@@ -10,9 +10,18 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-22 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
+> **Last updated:** 2026-07-24 · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
+>
+> **2026-07-24 — both open nmea-parser-nodered wrapper items CLOSED (cru's pragmatic call).**
+> Dev-instance isolation is **won't-fix / accepted by design**: wrappers are a complementary offer,
+> not worth the complexity. node-red stays a **root** devDep; siblings appearing in the palette is
+> fine as long as our node is in the **CoreMarine** category and that category is **first**. Palette
+> ordering wired into `dev-server.mjs` via `editorTheme.palette.categories` (verified live: `/settings`
+> reports `CoreMarine` first, `cma-nmea-parser` loads). `setModuleState` sibling-hiding hack removed.
+> Mirrored to `templates/nodered/dev-server.mjs`. **Wrapper Phase 2 is now unblocked** (publish after
+> nmea-parser 3.0.0 is live).
 >
 > **RELEASE PREP DONE (2026-07-13): nmea-parser bumped to `3.0.0`, CI/CD migrated to npm OIDC
 > Trusted Publishing across ALL packages, publish-if-version-changed gate, `repository.directory`
@@ -78,6 +87,194 @@ Strokes:
 
 ## Done
 
+- **2026-07-24 — nmea-parser-nodered wrapper: both open dev-server items resolved (cru).** Committed
+  edits to `dev-server.mjs` + `templates/nodered/dev-server.mjs`; `docs/STATUS.md` updated same-turn.
+  - **Dev-instance isolation → WON'T-FIX, accepted by design (cru's pragmatic call).** The whole
+    `pnpm deploy`-from-isolated-dir direction (validated last session) is **dropped, not implemented** —
+    wrappers are a complementary offering and the isolation machinery isn't worth the future-maintenance
+    cost. **node-red + mocha + node-red-node-test-helper stay ROOT devDeps** (already the state — last
+    session's per-package experiment was already reverted; nothing to change there). Siblings appearing
+    in the palette is fine **as long as** our node sits in the **CoreMarine** category and that category
+    is **first**. ctx7 recap that informed the call: non-legacy `pnpm deploy` (needs
+    `inject-workspace-packages=true`) DOES prune to a clean target via a dedicated lockfile, but the
+    setting is workspace-wide (hard-linking, `syncInjectedDepsAfterScripts`) — too heavy for a dev-only
+    convenience; `--legacy` avoids the setting but drags the whole root devDep list. Neither adopted.
+  - **Palette category order — DONE.** Added `editorTheme.palette.categories: ['CoreMarine', …defaults]`
+    to the `RED.init` settings in `dev-server.mjs` (exact key confirmed via ctx7 nodered.org config docs:
+    unlisted categories append to the end, so the built-in defaults are listed after CoreMarine to keep
+    their normal order). The node already declares `category: "CoreMarine"` in `parser.html`. **Caveat:
+    this pins order only in the LOCAL dev-server — palette category order is a per-editor setting, not
+    shippable by a node package**; an end user's Node-RED is unaffected.
+  - **Removed the `setModuleState` sibling-disable block** from `dev-server.mjs` (from commit `d158f9a`
+    "only this node") — now pointless (siblings accepted) and it never reliably worked. Dropped the now-
+    unused `ownName` const + `readFileSync` import + stale "ONLY this node" header comment. The fresh
+    throwaway `userDir` per run is kept.
+  - **Verified live** (no docker): booted `dev-server.mjs` in both `dev` and `examples` modes headless;
+    `GET /settings` → `editorTheme.palette.categories.order = ['CoreMarine', …]`; `GET /nodes` →
+    `@coremarine/nmea-parser-nodered` (`cma-nmea-parser`) loaded + enabled (the 4 siblings also load +
+    enabled, as accepted); examples mode reads the shipped `examples/nmea-parser-examples.json`.
+    `dev-server.mjs` lints clean.
+  - **Mirrored to `templates/nodered/dev-server.mjs`** (same edits + a `TODO:` note on keeping the
+    `CoreMarine` category). **`CONTRIBUTING.md` needed no change** — it made no isolation/sibling claims.
+  - **Publish-readiness verified + two fixes (cru, same day).** Before marking the wrapper done, ran
+    the exact CI steps locally and inspected `pnpm pack`:
+    - **CI `test` job = GREEN locally:** `protocol-core:build` + `nmea-parser:build` → `nmea-parser:nodered:build`
+      → `nmea-parser:nodered:test` **19/19** (incl. the real-headless-node-red integration test).
+      `pnpm install --frozen-lockfile` clean after the package.json edits.
+    - **CI `publish` job:** version-gated (`2.0.0` not on npm → will publish), OIDC configured; packed
+      manifest confirms `workspace:^` → `@coremarine/nmea-parser: "^3.0.0"`, **no `protocol-core` leak**.
+      ✅ **Ordering constraint SATISFIED:** `npm view @coremarine/nmea-parser@3.0.0` → live (`latest:
+      3.0.0`), so **Phase 1 is done** and the wrapper's `^3.0.0` dep resolves. Merging the wrapper is safe.
+      Pushed to `origin/dev` (`29f7173`); the `dev` CI run is **GREEN** (Test 22.x + 24.x ✅, Publish
+      skipped as it's not `main`). **UPDATE (engines patch, below): the `dev→main` merge now also touches
+      `packages/nmea-parser/**`, so it triggers BOTH `nmea-parser.yml` AND `nmea-parser-nodered.yml`
+      (path-filtered) → publishes **nmea-parser 3.0.1** AND **wrapper 2.0.0** in one merge; every other
+      package still no-ops on its version gate.** The wrapper's `^3.0.0` dep accepts 3.0.1. **This is Phase 2.**
+    - **FIX 1 — stray `.backup` no longer published.** node-red auto-writes a hidden
+      `.<flowfile>.backup` beside any flow it opens; `files: ["examples"]` was globbing it into the
+      tarball (49 KB). Deleted the 4 stray `*.backup` files repo-wide (all gitignored cruft) and added
+      **`"!**/*.backup"`** to the wrapper's `files` array. Re-pack (with a simulated regenerated backup)
+      confirms it's excluded. Mirrored to `templates/nodered/package.json`.
+    - **FIX 2 — `engines.node` set to `>=22` (major only, cru's locked reasoning).** cru develops
+      against the **latest node-red (`5.0.1`)** and publishes as compatible with **node-red `>=4.0.0`**
+      (the wrappers use the v4 API, which still works on 5) — `node-red.version` stays **`>=4.0.0`**.
+      **The node floor is driven by the LIBRARY, not node-red's floor:** cru guarantees/tests
+      `@coremarine/nmea-parser` only on the **two latest LTS (node 22 & 24)**, so the wrapper cannot
+      honestly claim node 18 even though node-red 4 runs on ≥18.5. Hence `engines.node: ">=22"` —
+      "runs in node-red 4, but requires node ≥22" (node-red 4 supports node up to 22, so a node-red-4
+      user on node 22 is fine; older-node users are honestly excluded). **cru prefers major-only in
+      `engines.node` (no minor/patch)** → `">=22"`, not `">=22.0.0"`. node-red stays the `latest`
+      (5.0.1) devDep. (An earlier `>=18.5` attempt — reasoning from node-red 4's own floor — was
+      corrected: the lib's guarantee, not node-red's floor, sets the bar.)
+    - **FIX 3 — nmea-parser (LIBRARY) `engines.node` `">= 18"` → `">=22"`, patched to `3.0.1` (cru).**
+      The lib's `>= 18` was a legacy/mistake — it's only built & tested on the two latest LTS (22 & 24),
+      so 18 was never truly guaranteed. This is the floor the wrapper's `>=22` derives from, so the lib
+      must agree. cru's call: correct the metadata and ship a **patch** (`3.0.0` → `3.0.1`) — tightening
+      `engines` is arguably breaking, but since it corrects inaccurate metadata (never really supported)
+      and `engines` is advisory, a patch is fine. Major-only (`">=22"`). No code/build change (tsup is
+      `platform: neutral`, no node-18 target anywhere). Verified: lint + tsc + **65/65** + build
+      ESM+CJS+DTS; packed manifest = `3.0.1` / `engines.node >=22` / no protocol-core leak;
+      frozen-lockfile clean (workspace deps are links). Dependents (`norsub-emru`, `nmea-parser-nodered`)
+      use `workspace:^` / `^3.0.0` → accept 3.0.1 unchanged.
+    - **Node-RED flow-library checklist re-confirmed via ctx7** (nodered.org/docs/creating-nodes/packaging):
+      `node-red.nodes` map ✅, `keywords` has `node-red` ✅, name/version/description/MIT ✅, repository +
+      `repository.directory` + bugs + homepage ✅, README + LICENSE shipped ✅, `examples/` flows ✅,
+      `engines.node` ✅. **Wrapper is publish-ready** (gated only on Phase 1).
+- **2026-07-23 — dev-isolation investigation: cru's per-package-devDep+catalog idea DISPROVEN
+  empirically; `pnpm deploy --legacy` VALIDATED as the real fix (not yet implemented in
+  `dev-server.mjs`).** No code committed this session — pure investigation, all experimental edits
+  reverted, working tree clean.
+  - **Ruled out node-red-node-test-helper as the cause (cru's hunch):** its `package.json` has NO
+    dependency on `node-red` (only a `"node-red"` string in `keywords`); `mocha` is its own devDep.
+    Not the mechanism.
+  - **Ruled out `mocha` removal (cru's other hunch) — NOT SAFE YET:** `norsub-emru-nodered`,
+    `thelmabiotel-tblive-nodered`, `sbg-ecom-nodered`, `septentrio-sbf-nodered` still run mocha
+    (only `nmea-parser-nodered` uses `node:test` so far). Removing the root devDep would break
+    those four until each is refactored in its own turn.
+  - **Root cause nailed down precisely** (was previously only "confirmed the walk-up climbs to the
+    workspace"): `@node-red/registry/lib/localfilesystem.js` `scanTreeForNodesModules` climbs from
+    `coreNodesDir` (wherever `@node-red/nodes` physically sits) **one directory at a time all the
+    way to filesystem `/`**, checking `<ancestor>/node_modules` at every level. Because pnpm
+    workspaces use **one shared virtual store for the whole workspace** (single lockfile), that walk
+    always passes through `node_modules/.pnpm/node_modules/@coremarine/*` — a directory pnpm
+    populates with a symlink to **every** workspace package unconditionally (needed for
+    `workspace:*`-protocol resolution generally), regardless of which package.json declares
+    `node-red`.
+  - **Tested cru's fix empirically and it does NOT work:** moved `node-red` out of the root
+    `devDependencies` into `packages/nmea-parser-nodered`'s own `devDependencies` (twice — once
+    alone, once combined with a `pnpm deploy` test), ran `pnpm install` both times. Result **both
+    times**: node-red resolves to the exact same `node_modules/.pnpm/node-red@5.0.1.../` path, and
+    `.pnpm/node_modules/@coremarine/*` still lists all 11 sibling packages, unchanged. **Which
+    manifest declares node-red is irrelevant** — the shared virtual store is a property of the whole
+    workspace, not of any one dependency edge. **pnpm `catalog:` is therefore not needed for this
+    fix** (it would only synchronize a version string across manifests that don't affect isolation).
+  - **Validated fix: `pnpm --filter <pkg> deploy --legacy <tmp-dir>`, then boot node-red FROM that
+    deployed dir** (not from the workspace). `pnpm deploy` builds a fresh, self-contained
+    `node_modules` scoped to just that package's own resolved dependency graph — its `.pnpm/
+    node_modules/@coremarine/*` contains only `nmea-parser` (the real dep) + itself, never the other
+    workspace packages. Since node-red's own files then live entirely inside that isolated tree, the
+    `coreNodesDir` walk-up never reaches the shared store at all. **Proved with a probe script**
+    (boots `RED.init`/`RED.start` from inside the deployed dir, fresh tmp `userDir`, then
+    `RED.nodes.getNodeList()`): output was `MODULES: [ '@coremarine/nmea-parser-nodered' ]` — zero
+    siblings — reproduced on **two separate deploys** (node-red only as root devDep; node-red
+    duplicated into the wrapper's own devDeps too) with identical results, reinforcing that the
+    declaration site doesn't matter.
+    - **⚠️ Known wart, not yet resolved:** `--legacy` is required (`ERR_PNPM_DEPLOY_NONINJECTED_
+      WORKSPACE` without it — the workspace doesn't set `injectWorkspacePackages: true`), and legacy
+      deploy against a shared lockfile drags the **entire root `devDependencies` list** into the
+      deploy target (eslint, mocha, tsup, vitest, typescript, chai — ~627 resolved packages) rather
+      than just node-red + the wrapper's own deps. Harmless functionally (disposable tmp dir,
+      content-addressable store hard-links make repeat deploys fast) but wasteful/not clean. **Not
+      investigated:** whether setting `injectWorkspacePackages: true` in `pnpm-workspace.yaml` (then
+      deploying WITHOUT `--legacy`) avoids the bloat — check ctx7 for exact semantics/tradeoffs
+      before adopting.
+  - **Not yet done:** wiring this into `dev-server.mjs` (needs a deploy-then-spawn/require step
+    instead of importing `node-red` directly), dropping the `setModuleState` hack, mirroring to
+    `templates/nodered/`. See the updated open-item note in "Node-RED wrapper refactor" below and the
+    paste-ready resume prompt at the end of this doc.
+- **2026-07-22 — nmea-parser-nodered wrapper refactored to TS + new API + node:test (Phase 2, cru).**
+  The wrapper is rebuilt as the **template for all future wrappers**; verified green three ways
+  (local clean-dist chain, `node:test`, and **act** in a container). NOT yet published (publishes on
+  the next `dev`→`main` merge via the OIDC+version gate; `workspace:^` rewrites to `^3.0.0`).
+  - **Authoring:** TypeScript → **tsup** → CJS (`export = init` → `module.exports = <fn>`), `platform:
+    node`, `@coremarine/nmea-parser` stays **external** (published runtime dep). `copy-assets.mjs`
+    copies `parser.html` + `icons/` into `dist/`. `tsconfig` needs `"module": "preserve"` for `export =`.
+  - **Architecture:** pure-logic `src/lib.ts` (NO node-red dep — unit-testable) + thin adapter
+    `src/parser.ts`. New lib API: `new NMEAParser({ memory })`, `addSentences(yaml)` (handles the
+    `Result`; a configured/`msg` `file` path is read in-node via `node:fs`; `content` YAML also
+    accepted, precedence content>file), `parseData`→`CMA[]`. Fixed the old `parser()` bug + the
+    flow/registerType type name.
+  - **Tests (`node:test` via `tsx`, 19/19):** `tests/lib.unit.test.ts` (pure logic w/ a real parser) +
+    `tests/wrapper.integration.test.ts` — **boots real headless node-red** (public API + flowFile
+    pattern), auto-loads the built node, runs `inject → cma-nmea-parser → sink`, asserts CMA output +
+    timestamp metadata. NO `node-red-node-test-helper`.
+  - **CI (`nmea-parser-nodered.yml`):** test job re-enabled, matrix `[22.x,24.x]`; builds the dep chain
+    first (`protocol-core:build && nmea-parser:build`) then the wrapper (node-red auto-loads
+    `dist/parser.js`), then `node:test`; publish job gated on `needs: test` + version. **act-verified:
+    Job succeeded.**
+  - **Versions:** `engines.node ≥22`, `node-red ≥4`, wrapper bumped **1.2.1 → 2.0.0** (breaking).
+  - **Removed:** mocha + vitest test files, `manual_tests.sh`, `Dockerfile`, `docker-compose.yml`,
+    `tests/nodered/`. **Added:** `dev-server.mjs` + `nmea-parser:nodered:dev` (local node-red, no
+    docker) and `:build`/`:ci:local` root scripts. `@types/node-red` devDep (typed, `@types` were fine
+    — the earlier errors were `moduleResolution: node`); dropped `@types/node-red-node-test-helper`.
+  - **Manual/visual scripts (file-backed, tour off, palette scoped):** `:dev` edits the **tracked**
+    scratch flow `tests/dev.flows.json`; `:examples` edits the committed, shipped example under
+    `examples/` (node-red reads/writes the on-disk flow via an **absolute `flowFile`** — verified
+    supported — so edits persist; `editorTheme.tours:false` kills the walkthrough). Both disable
+    sibling `@coremarine/*-nodered` modules (`setModuleState`) so only this node shows — the "all my
+    nodes appear" clutter is a **monorepo-only** artifact (shared workspace node_modules), not a bug.
+    **Examples ship in `examples/` (NOT `dist/`)** via `files` and surface in node-red's
+    *Import → Examples* (confirmed via ctx7). **cru's original `examples/nmea-parser-examples.json` is
+    kept as-is**; a **second tab "NMEA Parser Examples — v3 API (CMA output)"** was appended to the
+    SAME file (groups: Parse→CMA[], Memory, Protocols content|file, Sentence, Fake, Flow Errors) as a
+    proposal for cru to visually compare/adjust. `parser.html` help documents the new API (protocols
+    content/file, CMA[] output). **node-red flow-library checklist verified committed:** keywords has
+    `node-red`, `node-red.version >=4`, `engines.node >=22`, examples shipped via `files`, README +
+    LICENSE + repository + semver all present.
+  - **`templates/nodered/` regenerated to match** (TS + tsup + copy-assets + node:test + dev-server,
+    all with `TODO:` markers; near-ready for the NMEA-family, trimmable for binary parsers).
+    `templates/nodered.yml` workflow blueprint modernized (OIDC + gate + build chain + node:test,
+    was v4/node18/NPM_TOKEN). `CONTRIBUTING.md` "How to create a NodeRED component" rewritten (no
+    docker; TS/tsup/node:test/dev-server flow). Templates are eslint-ignored + outside the pnpm
+    workspace, so placeholders don't break lint/install. **Phase 2 DONE** except the actual publish.
+  - **Example flow finalized (2026-07-22):** single "NMEA Parser Examples" tab (cru's design, legacy
+    tab removed, no third-party `yaml` node). Groups: Flow Errors, Examples (single + partial + **batch
+    & one-by-one via embedded-data function nodes** — no sample file), Memory API, **Protocols API =
+    hot-expand demo** (get; parse PCMEX before; expand via CONTENT embedded YAML + via FILE
+    `examples/example-protocol.yml`; parse PCMEX after → shows unknown→decoded), Sentence API, Fake API.
+    Ships `examples/example-protocol.yml` (`COREMARINE_EXAMPLE`/`PCMEX`).
+  - **✅ BOTH wrapper items CLOSED (2026-07-24) — see the top Done entry for detail:**
+    1. **Isolated dev/examples node-red instance → WON'T-FIX, accepted by design (cru).** The
+       `pnpm deploy` fix (validated 2026-07-23) was **dropped, not implemented** — not worth the
+       future-maintenance cost for a complementary offering. node-red stays a **root** devDep;
+       siblings appearing is fine. The `setModuleState` hack was **removed** from `dev-server.mjs`.
+       (Historical: the whole isolation investigation — per-package devDep DISPROVEN, `pnpm deploy
+       --legacy` validated but heavy — is preserved in the 2026-07-23 Done entry.)
+    2. **CoreMarine palette category first → DONE.** `editorTheme.palette.categories: ['CoreMarine',
+       …defaults]` added to `dev-server.mjs` `RED.init` (key confirmed via ctx7; verified live).
+       Dev-server-only (per-editor setting, not shippable). Mirrored to `templates/nodered/`.
+  - **Next: publish wrapper 2.0.0** (dev→main; workspace:^ → ^3.0.0), then **Phase 3 =
+    norsub-emru** (lib refactor, then its `-nodered` wrapper cloned from this template).
 - **2026-07-22 — git history rewritten to strip AI co-author trailers (cru).** cru uses multiple
   AI agents from different providers and does **not** want any single one credited in authorship.
   Removed the `Co-Authored-By: Claude …` trailer from all **9** commits that carried it (via
@@ -498,6 +695,58 @@ in production before the next:**
 > **LATER (same lib-then-wrapper pattern):** thelmabiotel-tblive, then the binary parsers
 > septentrio-sbf & sbg-ecom (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio will want a
 > `sentenceTimestamp` override for TOW+WNc).
+
+## Node-RED wrapper refactor — locked plan (Phase 2, started 2026-07-22)
+
+> `nmea-parser-nodered` is refactored first and becomes the **template for all future wrappers**
+> (`templates/nodered/`). Plan converged with cru after deep investigation (below). Not yet coded.
+
+**Locked decisions (2026-07-22, cru):**
+- **Versions:** `engines.node ≥22`, `node-red ≥5` (needs Node 22), CI matrix `[22.x, 24.x]`, drop the
+  Node-18 Dockerfile base.
+- **Authoring: TypeScript → tsup → CJS** (validated by spike — see below). Node-RED requires CJS;
+  tsup `export = init` emits `module.exports = <fn>`, node-red's exact contract. Build = tsup for JS
+  **+ copy `parser.html` + icons** (tsup doesn't handle static assets).
+- **API migration** (`src/parser.*`): `new NMEAParser({ memory })`; `addProtocols({file,...})` →
+  **`addSentences(yaml)` handling the `Result`**; the configured **`file` path is read in-node (fs)**
+  and its content passed to `addSentences`; `parseData` → `CMA[]`. Fix the latent `parser()` bug and
+  the flow/registerType type name (`cma-nmea-parser`). Surviving getters kept.
+- **Architecture:** split into a **pure-logic module (zero node-red deps)** + a **thin RED adapter**.
+- **Testing — three layers:**
+  1. **Pure-logic unit tests** via **`node:test` + `node:assert`** (no helper). CI backbone.
+  2. **Integration** (registration + msg wiring) in CI — **VALIDATED approach (cru chose B): boot
+     real node-red headless via its PUBLIC api + the flowFile pattern** (spiked green 2026-07-22):
+     write a flow (`inject → cma-nmea-parser → test-sink`) to a temp `flowFile`, `RED.init(http
+     server, { httpAdminRoot:false, httpNodeRoot:false, disableEditor:true, userDir:<tmp>,
+     logging:{console:{level:'off'}} })`, register a `test-sink` type before `RED.start()`, then
+     `await RED.start()`; the wrapper **auto-loads from node_modules** (workspace symlink), the `once`
+     inject fires, the sink captures. Confirmed: injected `$GPGGA…\r\n` came out as `payload:[CMA]`
+     (`id:GGA`, `protocol:{NMEA,3.1}`, `metadata.timestamp:{received,parsed,sentence}`). Uses only the
+     stable public API — no fragile helper/patch. Notes: NMEA sentences need `\r\n` terminators (else
+     buffered); boot ≈700ms so **share one runtime across many assertions** (one flow, sink collects an
+     array), don't boot-per-test. The `runtime.flows.setFlows` admin API does NOT reliably start nodes
+     embedded — use the flowFile-before-start pattern. **A. patch-the-helper is REJECTED** (too brittle
+     to maintain).
+  3. **Manual visual** via a **`<pkg>:nodered:dev` script that runs the local `node-red` dep** (no
+     docker) so the node/icon/wiring can be seen live. Retire `manual_tests.sh`/docker.
+- **CI/CD:** re-enable the wrapper test job (runs `node:test`), build lib dist first (monorepo dep),
+  matrix `[22,24]`, bump wrapper to a new **major** (breaking API + CMA output), publish via existing
+  OIDC + version gate.
+
+**Investigation findings (evidence, 2026-07-22):**
+- **`node:test` is fine as the runner** — it drove `node-red-node-test-helper` to `helper.load`;
+  mocha fails identically. The runner was never the problem.
+- **BLOCKER: `node-red-node-test-helper@0.3.6` (latest, 2024) is incompatible with `node-red@5.x`.**
+  It hard-codes ~8 internal node-red file paths (e.g. `@node-red/registry/lib/util`) that node-red 5
+  moved/renamed, AND its relative-path hunting is defeated by pnpm's non-flat `node_modules`. Init
+  throws (silently swallowed) → `helper.load` crashes on `undefined`. No fixed helper published. This
+  is why all `-nodered` test jobs are disabled. A robust patch = rewrite its resolution to
+  package-name `require`s (non-trivial) — hence the "boot node-red programmatically" alternative.
+- **TS authoring VALIDATED:** a spike (`parser.ts` with `@types/node-red@1.3.5` +
+  `@types/node-red-node-test-helper`, `moduleResolution: bundler`, `strict`, `skipLibCheck:false`)
+  compiles **0 errors**, and tsup emits node-red-loadable CJS. cru's earlier TS errors were the
+  **deprecated `moduleResolution: node`** (TS6 rejects it), not a real `@types` problem. The two
+  `@types/*` devDeps were added to the wrapper (uncommitted) during the spike.
 
 ## Decisions (locked unless cru says otherwise)
 

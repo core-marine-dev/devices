@@ -10,7 +10,12 @@
 .config.*.json.backup
 .flows*
 flows_cred.json
-tests/nodered/data/package.json
+# local dev node-red instance (pnpm run ...:nodered:dev / :examples)
+.dev-userdir/
+# node-red writes a hidden .<flowfile>.backup next to any flow file it opens
+*.backup
+# node-red writes <flowfile>_cred.json next to any flow file it opens (dev/examples)
+*_cred.json
 
 # Logs
 logs

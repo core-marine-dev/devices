@@ -8,7 +8,8 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/TODO:-nodered",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/TODO:-nodered"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
@@ -17,25 +18,35 @@
     "TODO:"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22"
   },
   "node-red": {
-    "version": ">=3.0.0",
+    "version": ">=4.0.0",
     "nodes": {
-      "cma-TODO:": "src/parser.js"
+      "cma-TODO:": "dist/parser.js"
     }
   },
-  "main": "index.js",
+  "main": "dist/parser.js",
   "files": [
-    "src",
-    "examples"
+    "dist",
+    "examples",
+    "!**/*.backup"
   ],
   "scripts": {
-    "docker": "sh manual_tests.sh",
-    "test": "mocha \"tests/**/*.test.js\"",
-    "test:vitest": "vitest"
+    "build": "pnpm run format && tsup && node copy-assets.mjs",
+    "lint": "eslint",
+    "format": "eslint --fix",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test:unit": "node --import tsx --test \"tests/*.unit.test.ts\"",
+    "test:integration": "node --import tsx --test \"tests/*.integration.test.ts\"",
+    "dev": "pnpm run build && node dev-server.mjs dev",
+    "examples": "pnpm run build && node dev-server.mjs examples"
   },
   "dependencies": {
-    "@coremarine/TODO:": ">=TODO:"
+    "@coremarine/TODO:": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node-red": "1.3.5",
+    "tsx": "4.23.1"
   }
 }

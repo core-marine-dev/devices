@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Library to parse NMEA 0183 sentences",
   "author": "CoreMarine",
   "license": "MIT",
@@ -40,7 +40,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "scripts": {
     "protocols": "node yaml-to-json.js ./protocols/nmea.yml ./src/nmea.ts && node yaml-to-json.js ./protocols/norsub.yml ./tests/norsub.ts",

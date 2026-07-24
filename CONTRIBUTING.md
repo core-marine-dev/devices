@@ -59,23 +59,29 @@ New packages will be publish when a pull request into `main` branch is accepted.
 
 ### How to create a NodeRED component
 
-1. Copy the `nodered` folder inside `templates` and paste as a new folder ending with `-nodered` inside `packages` -> `packages/<your-library>-nodered`
-2. Look for the keyword `TODO:` in your IDE / Editor inside that folder, this is a hint to places you need to setup.
-3. Setup pnpm package -> Modify library `package.json` (`packages/<your-library>/package.json`)
-    1. `name` to `@coremarine/<your-library>`
-    2. `description`
-    3. `homepage`
-    4. `keywords`
-    5. `node-red.nodes.cma-<your-component>`
-    6. `dependencies.@coremarine/<your-library>`: `workspace:^`
-4. Setup pnpm workspaces -> Add scripts in global / monorepo `package.json`:
-    1. `nodered:docker`
-    2. `nodered:test`
-5. Setup CI/CD (Github Actions)
-    1. Copy `nodered.yml` file inside `templates` and paste as a new yml file `<your-library>-nodered.yml` inside `.github/workflows` folder
-    2. Change all TODO:
-6. Document your library -> Modify `README.md` (`packages/<your-library>-nodered/README.md`)
-7. Add component dependencies to package `Dockerfile` file
-8. Rename project into package `docker-compose.yml` file
-9. Start with your library by coding in `src` and testing in `tests` and seeing results with docker (all files there has a minimal scaffolding to start working on it).
-10. Link your new library in the global / monorepo README
+The reference implementation is [`packages/nmea-parser-nodered`](packages/nmea-parser-nodered) —
+copy patterns from it. The node is authored in **TypeScript**, bundled to **CJS with tsup**
+(node-red loads via `require`), split into a node-red-free `src/lib.ts` (unit-testable) + a thin
+`src/parser.ts` adapter, and tested with **`node:test`** (no `node-red-node-test-helper` — it is
+incompatible with node-red 5).
+
+1. Copy the `nodered` folder inside `templates` as a new folder ending in `-nodered` inside
+   `packages` -> `packages/<your-library>-nodered`.
+2. Look for the keyword `TODO:` throughout that folder — each marks something to set up.
+3. `package.json`: set `name` (`@coremarine/<your-library>-nodered`), `description`, `homepage`,
+   `keywords`, `node-red.nodes.cma-<your-component>` (-> `dist/parser.js`), and
+   `dependencies.@coremarine/<your-library>: workspace:^`.
+4. Add proxy scripts to the monorepo `package.json`: `<your-library>:nodered:build`,
+   `<your-library>:nodered:test`, `<your-library>:nodered:dev`, `<your-library>:nodered:examples`,
+   `<your-library>:nodered:ci:local`.
+5. CI/CD: copy `templates/nodered.yml` to `.github/workflows/<your-library>-nodered.yml` and
+   replace every `TODO:` (incl. the "Build monorepo deps" step — build the wrapped library and any
+   private deps it bundles).
+6. Code in `src/` (start from `lib.ts` + `parser.ts`), test in `tests/` (`node:test`: `*.unit.test.ts`
+   + the real-node-red `*.integration.test.ts`). Keep only the msg handlers your parser supports.
+7. See it live (no docker): `pnpm run <your-library>:nodered:dev` -> http://localhost:1880 (edits a
+   tracked scratch flow `tests/dev.flows.json`). Author the shipped **example flows** the same way
+   with `pnpm run <your-library>:nodered:examples` — the flow-library requires an `examples/` dir; it
+   is shipped via `files` and shows under Node-RED's *Import → Examples*. Examples live in `examples/`,
+   never `dist/`.
+8. Document `README.md`, then link the new component in the monorepo README.
