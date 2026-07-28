@@ -157,6 +157,20 @@ Strokes:
     24.x, `protocol-core`). **`norsub-emru` CI red as expected** (legacy pre-3.0 API; `publish` is
     `needs: test`) — and it exposed the pre-existing missing-`protocol-core:build` bug in
     `norsub-emru.yml`, to be fixed with the norsub rewrite where the job can actually go green.
+  - **✅ Fresh-install verification with ONLY npm-published packages (2026-07-28), answering cru's
+    question "does installing the wrapper pull the new lib?":** in an empty temp dir,
+    `npm i @coremarine/nmea-parser-nodered` → `npm ls` shows
+    `@coremarine/nmea-parser-nodered@2.0.1 └─ @coremarine/nmea-parser@3.1.0` (declared range `^3.0.2`
+    resolves to `3.1.0`). Then booted the **real node-red** headless in that temp dir with a flow
+    `inject → cma-nmea-parser → test-sink`: node-red auto-loaded `@coremarine/nmea-parser-nodered`
+    (`cma-nmea-parser`, enabled) and a GGA came out as CMA — `id: GGA`,
+    `protocol: {NMEA, 3.1}`, `metadata.timestamp: {received, parsed, sentence}`,
+    `metadata.payload: {latitude: 48.1173, longitude: 11.5166…}`, `payload[5].metadata: {label: 'GPS fix'}`.
+    **So the unchanged wrapper picks up 3.1.0 automatically — no republish needed, nothing to do in the
+    Node-RED flow library for the wrapper itself.** (Nit found: the lib's `exports` map does not expose
+    `./package.json`, so `require('@coremarine/nmea-parser/package.json')` throws
+    `ERR_PACKAGE_PATH_NOT_EXPORTED` — normal for a strict `exports`, harmless, mentioned only so nobody
+    is surprised.)
   - **Deliberately NOT done:** mirroring "regenerate `protocols` on **test**" to nmea-parser — the
     generator emits raw `JSON.stringify` while the committed `src/nmea.ts` is eslint-formatted, so a
     `pretest` regeneration would dirty tracked files. Fix the generator (emit typed, lint-clean output)
@@ -931,22 +945,33 @@ test/build" requirement):**
    `PROTOCOLS` like nmea-parser does (uniform, untyped + runtime `safeParse`), or upgrade the shared
    generator to emit a typed const for both packages (one line, gives compile-time checking).
 
-**OPEN DATA QUESTIONS for cru (found in the manual audit, NOT changed):**
-- **`PSMCA` field 3 is almost certainly `heave`, not `heading`.** Manual Table 44 literally says
-  "heading" — but with unit **m**, range ±10 m, and the protocol's own Data list is "Roll, pitch /
-  **Heave** / Surge, sway"; `PSMCC`'s equivalent metre field is `heave`. So the **manual has a typo and
-  we copied it**. Renaming is safe for the metadata model (aggregators key by index, names are
-  unofficial) but changes `payload[2].name` in CMA output.
-- **`PTVG` field types.** Wire format is `$PTVG,abbbbP,accccR,ddd.dT*hh` — the letter is **glued** to
-  the number (`" 021P"`, `"- 036R"`, `"101.8T"`), so `float64` yields `value: null`. Should they be
-  `string` (or split like GYROCOMPAS1's HEHDT `heading` + `symbol`)? Pre-existing.
-- **Two `PRDID` definitions collide.** NORSUB PRDID is `$PRDID,pitch,roll,*CS` — note the **trailing
-  comma**, so on the wire it carries **3** payload fields (third empty) — while RDI ADCP PRDID is
-  `$PRDID,pitch,roll,heading` with **no checksum**. Since upgrade filters definitions by field count,
-  a NORSUB PRDID sentence will match the RDI-ADCP 3-field definition. Distinguishable only by the
-  checksum's presence. Known limitation; needs a decision if it matters.
-- Nit: `HEHDT`/`PHTRO` are `float32` while everything else is `float64` (manual says DBL for the
-  NORSUB ones, unspecified for Gyrocompas 1). Harmless; unify to `float64`?
+**✅ DATA QUESTIONS RESOLVED with cru (2026-07-28) — two more fixes applied, one deliberately left:**
+- **`PSMCA` field 3 `heading` → `heave` — FIXED** (all 4 files). Manual Table 44 says "heading" but
+  with unit **m** / ±10 m, while SMCA's own Data list reads "Roll, pitch / **Heave** / Surge, sway" and
+  `PSMCC`'s metre field is `heave`. cru: *"probably a typo when I started doing the yaml long time ago,
+  fix it"*. Changes `payload[2].name` in CMA output (fine — norsub goes to 3.0.0).
+- **`PTVG` fields `float64` → `string` — FIXED** (all 4 files), with the wire format spelled out in each
+  `description`. Manual: `$PTVG,abbbbP,accccR,ddd.dT*hh` — the letter is GLUED to the number (`" 021P"`,
+  `"- 036R"`, `"101.8T"`) and pitch/roll are the value **×100** (type INT in the manual), so `float64`
+  could only ever produce `value: null`. **TODO in the norsub rewrite (cru's call): a `PTVG:3`
+  aggregator putting the decoded degrees in FIELD metadata** — strip the trailing letter, `/100` for
+  pitch/roll, sign convention `[-]` bow up / `[space]` bow down. `units` were dropped from the field
+  definitions (the raw value is not degrees); the decoded metadata carries the real quantity.
+- **The two `PRDID` definitions: LEFT AS-IS deliberately** (cru: *"if it is too complicated to resolve,
+  leave this topic — I think they are sentences I don't use at all"*). Analysis for the record: NORSUB
+  PRDID is `$PRDID,pitch,roll,*CS` — trailing comma ⇒ **3** wire fields, third empty — and RDI ADCP
+  PRDID is `$PRDID,pitch,roll,heading` with **no checksum**; identical id + identical field count, so
+  field-count matching cannot separate them. With equal (absent) versions `newestDefinition` keeps the
+  **first registered**, i.e. the earliest in the YAML. Today the 2-field NORSUB definition never matches
+  real traffic and the RDI-ADCP one wins, which is in fact the **least-lossy** outcome: pitch/roll/heading
+  keep their correct names in both cases; a NorSub PRDID is merely labelled protocol "RDI ADCP" and gains
+  a spurious `heading: null`. (Making NORSUB PRDID a 3-field definition so it wins first would be WORSE —
+  a real RDI-ADCP heading value would then land in a field named "unused".) **Do not "fix" this by
+  reordering or padding.** The only clean discriminator is the checksum's presence, which would need an
+  optional discriminator flag in nmea-parser's KB schema + a tiebreak in `upgradeKnownSentence`
+  (~20 lines + a minor release) — deferred until a real device needs it.
+- Nit still open (harmless): `HEHDT`/`PHTRO` are `float32` while everything else is `float64` (manual
+  says DBL for the NORSUB ones, unspecified for Gyrocompas 1). Unify to `float64`?
 
 **✅ PREREQUISITES DONE & PUBLISHED (2026-07-28) — `protocol-core` + `nmea-parser@3.1.0` (live on npm,
 PR [#71](https://github.com/core-marine-dev/devices/pull/71), merge `a80c8e4`).** Everything norsub
@@ -996,6 +1021,13 @@ fresh checkout (same class of bug fixed in `nmea-parser.yml` on 2026-07-22). Pre
 **LOCKED — switching protocol discards internal state (cru, 2026-07-28).** Changing `protocol` builds a
 fresh protocol parser, so the input buffer AND any parsed-but-not-yet-drained CMAs are dropped: half a
 sentence in protocol A can never be completed by protocol B.
+
+**LOCKED — the facade exposes the active protocol parser as `parser` (cru, 2026-07-28).** The
+protocol-specific extras (`addSentences`, `getSentence`, `getSentencesByProtocol`,
+`getFakeSentenceByID`) are reached through it — `norsub.parser.getFakeSentenceByID('PNORSUB8')` — and are
+NOT delegated method-by-method (cru's reasoning: the facade's API would balloon as protocols are added,
+and most methods would be meaningless for whichever protocol is active). With one protocol in the union
+today, `parser` types concretely as `NorsubNMEAParser`, so no narrowing is needed until protocol #2.
 
 **OPEN (need cru) before coding:** (a) does the facade delegate the NMEA-only extras (`addSentences`,
 `getSentence*`, `getFakeSentenceByID`) or expose the active parser via a getter — cru leans getter, so
@@ -1275,10 +1307,15 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 > advanced users can reach it). In its constructor:
 > - `ProtocolsFileContentSchema.safeParse(<generated const>)` → **`this.registerProtocols(...)`**
 >   (`protected`, new in 3.1.0). NOT `addSentences(yaml)` — no runtime YAML, no `fs`, browser-safe.
-> - **`this.registerAggregators({...})`** (`protected`, new in 3.1.0) with **6 entries** keyed
+> - **`this.registerAggregators({...})`** (`protected`, new in 3.1.0) with **6 status entries** keyed
 >   `${id}:${payloadLength}`: `PNORSUB:7`, `PNORSUB2:8`, `PNORSUB6:18`, `PNORSUB7:24`, `PNORSUB8:24`,
 >   `PNORSUB7b:25`. Reuse `src/status.ts` `getStatus` **unchanged** (validated bit-for-bit against the
 >   OEM manual) and `src/utils.ts` `getUint32(lsb=status_a, msb=status_b)` (also manual-confirmed).
+> - **Plus a 7th entry `PTVG:3`** (cru asked for it 2026-07-28): those three fields are now `string`
+>   because the wire glues a letter to the number (`" 021P"`, `"- 036R"`, `"101.8T"`). The aggregator
+>   puts the decoded degrees in FIELD metadata: strip the trailing letter, `/100` for pitch and roll
+>   (manual type INT, "multiplied by 100"), sign convention `[-]` bow up / `[space]` bow down; heading is
+>   plain degrees. Non-numeric input ⇒ return `{}` (no metadata), never throw.
 > - Metadata placement (LOCKED, cru's 3 rules): for the five single-`status`-uint32 sentences →
 >   `fields: { <lastIdx>: { status } }` **and** `payload: { status }`; for `PNORSUB7b` → **only**
 >   `payload: { status }` (neither uint16 half decodes alone). Old top-level `metadata.status` is GONE.
@@ -1329,20 +1366,17 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 > Then, when cru asks: commit → push `origin/dev` → confirm the `dev` CI run is green → open PR
 > `dev`→`main` (the merge publishes `norsub-emru@3.0.0` via OIDC + the version gate).
 >
-> ### STILL OPEN — ask cru early, they block small parts of the work
-> 1. **Name of the facade getter** exposing the active protocol parser (`parser` recommended). Blocks
->    step 4's public surface, so ask in the first message.
-> 2. **`PSMCA` field 3**: manual Table 44 says `heading` but with unit **m** / ±10 m, while SMCA's own
->    Data list reads "Roll, pitch / **Heave** / Surge, sway" and `PSMCC`'s metre field is `heave` — the
->    manual has a typo we copied. Rename to `heave`? (Changes `payload[2].name` in output.)
-> 3. **`PTVG` field types**: wire is `$PTVG,abbbbP,accccR,ddd.dT*hh` — the letter is GLUED to the number
->    (`" 021P"`), so `float64` yields `value: null`. Make them `string`, or split like GYROCOMPAS1's
->    HEHDT (`heading` + `symbol`)?
-> 4. **The two `PRDID` definitions collide**: NORSUB PRDID is `$PRDID,pitch,roll,*CS` — trailing comma,
->    so 3 payload fields on the wire (third empty) — while RDI ADCP PRDID is `$PRDID,pitch,roll,heading`
->    with NO checksum. Upgrade filters by field count, so a NORSUB PRDID matches the RDI-ADCP definition.
->    Only the checksum's presence distinguishes them. Accept as a known limitation, or handle it?
-> 5. Nit: `HEHDT`/`PHTRO` are `float32` while everything else is `float64`. Unify?
+> ### DECIDED — nothing is blocking (all answered by cru 2026-07-28)
+> 1. **Facade getter name = `parser`.** Extras reached as `norsub.parser.getSentence(...)`; not delegated.
+> 2. **`PSMCA` field 3 renamed `heading` → `heave`** — already applied to all 4 data files.
+> 3. **`PTVG` fields are now `string`** — already applied; the decode goes in the `PTVG:3` aggregator
+>    (step 3 above).
+> 4. **The two `PRDID` definitions: leave exactly as they are.** Read the rationale in the locked-design
+>    section ("LEFT AS-IS deliberately") before touching anything here — today's behaviour is the
+>    least-lossy one and both "obvious fixes" (reordering, padding NORSUB PRDID to 3 fields) make it
+>    worse. Do not change it.
+> 5. Only genuinely-open nit: `HEHDT`/`PHTRO` are `float32` while everything else is `float64` — ask cru
+>    if he wants them unified, it is a one-line data change.
 >
 > ### AFTER 3a — TASK 3b: the `norsub-emru-nodered` wrapper (separate session/turn)
 >
