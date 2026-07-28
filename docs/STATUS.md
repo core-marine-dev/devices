@@ -14,14 +14,44 @@
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
 >
-> **2026-07-24 — both open nmea-parser-nodered wrapper items CLOSED (cru's pragmatic call).**
-> Dev-instance isolation is **won't-fix / accepted by design**: wrappers are a complementary offer,
-> not worth the complexity. node-red stays a **root** devDep; siblings appearing in the palette is
-> fine as long as our node is in the **CoreMarine** category and that category is **first**. Palette
-> ordering wired into `dev-server.mjs` via `editorTheme.palette.categories` (verified live: `/settings`
-> reports `CoreMarine` first, `cma-nmea-parser` loads). `setModuleState` sibling-hiding hack removed.
-> Mirrored to `templates/nodered/dev-server.mjs`. **Wrapper Phase 2 is now unblocked** (publish after
-> nmea-parser 3.0.0 is live).
+> **🎉 2026-07-24 — PHASE 1 + PHASE 2 SHIPPED. `@coremarine/nmea-parser@3.0.2` AND
+> `@coremarine/nmea-parser-nodered@2.0.1` are LIVE on npm** (PR [#70](https://github.com/core-marine-dev/devices/pull/70)
+> merged `dev`→`main` at 10:32 UTC; `main` @ `290a38f`). nmea-parser is the finished CMA reference lib
+> **and** its Node-RED wrapper is done + published — both the lib pattern and the wrapper template are
+> now proven end-to-end. **NEXT = PHASE 3: `norsub-emru` (lib refactor) then its `-nodered` wrapper.**
+> See the paste-ready **"Phase 3 handoff prompt"** at the very end of this doc.
+>
+> **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
+> do (only the stale local `main` ref is behind; harmless).
+>
+> **🔵 2026-07-28 — PHASE 3 IN PROGRESS: norsub-emru.** Design locked with cru: **composition (device
+> facade + protocol parser, one protocol active at a time)**, internal generated-TS knowledge load,
+> status metadata at field **and** payload level, and **no sentence timestamp** (datasheet-verified).
+> **Prerequisites are DONE & released: `nmea-parser@3.1.0`** (two `protected` extension points) **+
+> `DeviceParser<B>` in `protocol-core`**, plus a datasheet-driven **units fix** in the norsub protocol
+> data. Wrapper untouched (no change needed). **NEXT: the norsub-emru lib rewrite itself.** Full spec +
+> remaining opens: **§"Phase 3 — norsub-emru: locked design (2026-07-28)"**.
+>
+> **⏳ AWAITING cru's MERGE — PR [#71](https://github.com/core-marine-dev/devices/pull/71) `dev`→`main`**
+> (commits `fecb500` units fix + `adc327b` 3.1.0; `dev` @ `adc327b`, pushed). CI on `dev`: `nmea-parser`
+> ✅ (22.x + 24.x) and `protocol-core` ✅; **`norsub-emru` red as expected** (legacy pre-3.0 API — it's
+> the next thing rewritten; `publish` is `needs: test`, so nothing broken ships). The merge publishes
+> **only `nmea-parser@3.1.0`**; the wrapper's workflow is path-filtered and won't trigger. After it's
+> live, cru refreshes the Node-RED flow-library entry for the nmea component.
+>
+> **Wrapper decisions locked this session (apply to every future `-nodered` wrapper):**
+> - **Dev-instance isolation = won't-fix / accepted by design.** Sibling `@coremarine/*-nodered` nodes
+>   appearing in the local dev palette is fine; node-red stays a **root** devDep. What matters: the node
+>   is in the **CoreMarine** palette category and that category is pinned first via
+>   `editorTheme.palette.categories` in `dev-server.mjs` (dev-only; not shippable by a node package).
+> - **`engines.node: ">=22"` (major-only), `node-red.version: ">=4.0.0"`.** The node floor is set by
+>   the **library's tested targets (two latest LTS: 22 & 24)**, NOT node-red 4's own `>=18.5`. "Runs in
+>   node-red 4, but needs node ≥22." Dev is on the latest node-red (`5.0.1`). The **library** was also
+>   patched to `engines.node >=22` (was a mistaken `>= 18`) — do the same for every parser lib.
+> - **Ship `"!**/*.backup"` in `files`** — node-red writes hidden `.<flow>.backup` files that otherwise
+>   leak into the npm tarball.
+> - **Keep READMEs current with the API** — both nmea READMEs were rewritten this session; do NOT let a
+>   wrapper/lib publish with stale API docs.
 >
 > **RELEASE PREP DONE (2026-07-13): nmea-parser bumped to `3.0.0`, CI/CD migrated to npm OIDC
 > Trusted Publishing across ALL packages, publish-if-version-changed gate, `repository.directory`
@@ -87,6 +117,13 @@ Strokes:
 
 ## Done
 
+- **2026-07-24 — 🚀 PHASE 1 + PHASE 2 PUBLISHED (cru merged PR [#70](https://github.com/core-marine-dev/devices/pull/70) `dev`→`main`).**
+  `@coremarine/nmea-parser@3.0.2` and `@coremarine/nmea-parser-nodered@2.0.1` are **live on npm** (OIDC
+  + provenance). Verified post-merge: `npm view` returns both versions; PR merged 10:32 UTC; `main` @
+  `290a38f`. The version gate no-op'd every other package; norsub-emru + sbg-ecom test-red stayed
+  contained (`needs: test`). This closes the whole nmea-parser track — lib **and** wrapper both in
+  production, both serving as the reference/template for the remaining parsers. **`dev` is now behind
+  `main` by the merge commit — sync it before Phase 3 (see top banner).** **NEXT = Phase 3: norsub-emru.**
 - **2026-07-24 — nmea-parser-nodered wrapper: both open dev-server items resolved (cru).** Committed
   edits to `dev-server.mjs` + `templates/nodered/dev-server.mjs`; `docs/STATUS.md` updated same-turn.
   - **Dev-instance isolation → WON'T-FIX, accepted by design (cru's pragmatic call).** The whole
@@ -655,24 +692,16 @@ for ALL packages.**
 **NEXT — the release is PHASED (locked with cru 2026-07-22); do them strictly in order, each fully
 in production before the next:**
 
-- **Phase 1 (current) — publish nmea-parser 3.0.0 + verify a fresh install.** ⚠️ **First merge
-  attempt (2026-07-22) failed** — every library workflow died at `Setup pnpm` because pnpm `11.12.0`
-  is a broken/deprecated release (see top Done entry); **fixed on `dev` by bumping `packageManager`
-  → `pnpm@11.15.1`.** The `3.0.0` publish did NOT happen (test failed → publish skipped), so re-merge
-  is safe. **Next: land the fix on `dev`, confirm the `nmea-parser` workflow is GREEN on `dev`, then
-  cru re-opens/re-merges PR `dev` → `main`** (PR message drafted 2026-07-22). Because of the
-  **version gate** this is safe/quiet: **only nmea-parser 3.0.0 publishes** (OIDC + provenance); every other package's publish
-  job runs the ~2s `npm view` check and **no-ops**; norsub-emru + sbg-ecom test-red is expected and
-  blocks nothing (`needs: test`). The merge also clears the 74 dependabot alerts on `main`. Then
-  **smoke-test a fresh install**: in a clean dir `npm i @coremarine/nmea-parser@3.0.0`, import both
-  ESM + CJS, confirm types resolve and there is **no** `@coremarine/protocol-core` runtime dep.
-- **Phase 2 (only when cru says go, after 3.0.0 is live) — nmea-parser-nodered wrapper.** Dep
-  `@coremarine/nmea-parser` → `^3.0.0`; rewrite `src/parser.js` off the removed `addProtocols(...)`
-  onto `addSentences(yaml)` + CMA output; re-enable its commented-out test job (build the lib dist
-  first); bump version; verify CI/CD green; publish; smoke-test a fresh install.
-- **Phase 3 (only once nmea-parser AND its wrapper are fully in production) — norsub-emru, then its
-  wrapper.** Then thelmabiotel-tblive (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom
-  (+ wrappers).
+- ~~**Phase 1 — publish nmea-parser 3.0.x**~~ — ✅ **DONE 2026-07-24: `@coremarine/nmea-parser@3.0.2`
+  live on npm** (PR #70). (History: the 2026-07-22 first attempt died at `Setup pnpm` on the broken
+  pnpm `11.12.0` → fixed by bumping `packageManager` to `pnpm@11.15.1`; then 3.0.0 published, later
+  patched to 3.0.1→3.0.2 for the engines fix + README.)
+- ~~**Phase 2 — nmea-parser-nodered wrapper**~~ — ✅ **DONE 2026-07-24: `@coremarine/nmea-parser-nodered@2.0.1`
+  live on npm** (PR #70). TS rewrite onto `addSentences`/CMA, `node:test`, OIDC publish, dev-server +
+  palette + engines all settled (see the top Done entries + banner).
+- **Phase 3 (CURRENT) — norsub-emru (lib), then its `-nodered` wrapper.** Then thelmabiotel-tblive
+  (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom (+ wrappers). **See the paste-ready
+  "Phase 3 handoff prompt" at the very end of this doc.**
 
 ### Prompt for the next agent (paste-ready)
 
@@ -766,6 +795,162 @@ in production before the next:**
   compiles **0 errors**, and tsup emits node-red-loadable CJS. cru's earlier TS errors were the
   **deprecated `moduleResolution: node`** (TS6 rejects it), not a real `@types` problem. The two
   `@types/*` devDeps were added to the wrapper (uncommitted) during the spike.
+
+## Phase 3 — norsub-emru: locked design (2026-07-28)
+
+> Converged with cru in discussion; **no code written yet**. norsub is, in cru's words, "essentially
+> the nmea-parser + feed `norsub.yml` + the status metadata". Everything in `packages/norsub-emru/src`
+> today is legacy (positional constructor, `addProtocols`, `override parseData`, `metadata = {status}`).
+
+**LOCKED — architecture: composition, two layers (cru, Open/Closed).** cru expects a hardware
+teammate to need a **binary** norsub protocol "soon" (the device supports Custom binary, Atlas,
+Ifremer Victor, Simrad EM 3000, TSS1) and wants the upgrade path open *now* while the monorepo
+refactor is fresh in mind. **Only ONE protocol is ever active at a time** (the MRU is configured to
+emit one), so this is protocol *selection*, not multiplexing.
+
+```
+NorsubParser                            ← device facade; what the package exports
+  └ active protocol parser, selected by name:
+      'nmea' → NorsubNMEAParser extends NMEAParser   ← norsub.yml + status aggregators
+      (future) 'tss1' | 'custom-binary' | … extends BinaryParser
+```
+
+- The **protocol layer stays a subclass** on purpose: core's contract says `stampTimestamp` is the
+  ONLY place a CMA gains `metadata.timestamp`, and status is field/payload metadata owned by the
+  aggregator model. A facade decorating finished `CMA[]` would violate both — so decoration happens
+  inside the protocol parser, never in the facade.
+- Rationale for paying the facade cost now: a future binary protocol is necessarily its own class
+  anyway (core `Parser<B>` is parameterised on ONE buffer type), so the only question is what sits in
+  front. Facade now ⇒ adding protocol #2 is an **additive minor**; `extends` now ⇒ it's a **major**
+  reshape of the exported class. norsub goes to 3.0.0 in this refactor regardless, so now is free.
+- Selection API: `new NorsubParser({ protocol?, memory?, bufferLimit? })` (default `'nmea'`, the only
+  value today) + a `protocol` getter/setter. Registry = a factory map `Record<NorsubProtocol, (opts)
+  => …>`, so protocol #2 = one entry + one class.
+
+**LOCKED — knowledge load is internal + self-contained (cru).** Same as nmea-parser: the `protocols`
+script generates a typed TS object from the YAML; the constructor registers it internally. **NOT** via
+the public `addSentences(yaml)` — no runtime YAML parse, no `fs`, browser-safe. Also: run `protocols`
+on **test** as well as build, and rename `protocols/norsub.yaml` → `.yml` (nmea's were renamed).
+
+**LOCKED — status metadata placement (cru's 3 rules).** Old top-level `metadata.status` is gone.
+
+| sentence | `payload[last].metadata.status` (rule 1: field self-sufficient) | `metadata.payload.status` (rules 2+3) |
+| --- | --- | --- |
+| `PNORSUB`, `2`, `6`, `7`, `8` (single `status` uint32) | ✅ | ✅ |
+| `PNORSUB7b` (`status_a`+`status_b` uint16) | ❌ neither half decodes alone | ✅ (mandatory) |
+
+Rule 3 is cru's **supply-chain/substitutability rule**, worth documenting in `docs/CMA.md` as a
+GENERAL CMA rule: *metadata that describes the whole device rather than one field MAY also be mirrored
+at payload level even when a single field produced it, so equivalent sentences from different device
+variants expose ONE read path* — swapping a norsub7b for a norsub8 then costs Tracker nothing.
+
+**LOCKED — no sentence timestamp in norsub (datasheet-verified 2026-07-28).** Read
+`misc/parsers/norsub/datahseets/NORSUB OEM Series - OEM MRU User Manual 1.2.0.pdf`:
+- `T1` = "time for valid measurement (**internal clock**)", explicitly "wraps from (2^32-1) to 0";
+  `T2` = "delay from T1 to telegram is sent" ⇒ telegram-sent ≈ `T1 + T2`. A free-running counter, NOT
+  a wall clock (the MRU clock can be host/NTP-synced, but T1 is the internal counter and wraps).
+  Arithmetic agrees: uint32 ms ≈ 49.7 days max, uint32 µs ≈ 71.6 min — an epoch ms needs 41 bits.
+- **No other norsub-family sentence carries any time field** (PRDID, PTVG, PSMCA, PSMCC, HEHDT,
+  PHTRO, PHINF). ⇒ norsub emits **`received`/`parsed` only**, inherited from core. Nothing to build.
+- Per cru's rule (self-contained ⇒ field level, "maybe does not even require metadata"): T1/T2 get
+  **no metadata** — value + `units` from the definition already say everything.
+
+**✅ DATA BUG FIXED (2026-07-28) — wrong `units` in the norsub protocol definitions.** Manual: `T1`/`T2`
+are **[ms]** for `PNORSUB` + `PNORSUB2` and **[µs]** for `PNORSUB6`, `PNORSUB7`, `PNORSUB7b`,
+`PNORSUB8`. Our data said `ms` for PNORSUB6/7/7b (only PNORSUB8 was right) ⇒ 6 values (`time` +
+`delay` × 3 sentences) corrected to `us` in **4 files**: `packages/norsub-emru/protocols/norsub.yaml`
++ its generated `src/norsub.ts`, and the byte-identical copy `packages/nmea-parser/protocols/norsub.yml`
++ its generated `tests/norsub.ts` (nmea-parser keeps a copy of the norsub YAML purely as a test
+fixture). Verified: `git diff` contains **only** those 24 lines of data; **nmea-parser 65/65 green**.
+
+**Status decode VALIDATED against the manual (2026-07-28) — no change needed.** All 32 bits in
+`src/status.ts` match §"NORSUB Status Bits" exactly, and the manual confirms `STATUS_A` = bytes 1+2
+(low half) / `STATUS_B` = bytes 3+4 (high half), which is what `utils.ts getUint32(lsb, msb)` assumes.
+That logic survives the refactor as-is.
+
+**🐛 Two more norsub-emru breakages found while fixing the data (both hit cru's "regenerate on
+test/build" requirement):**
+1. **`js-yaml` is not a dependency of norsub-emru**, but `yaml-to-json.js` imports it ⇒ `pnpm run
+   norsub-emru:protocols` dies with `ERR_MODULE_NOT_FOUND` under pnpm's strict layout (it only ever
+   worked under npm hoisting). Fix in the refactor: add `js-yaml` as a **devDependency** (build-time
+   only, never shipped).
+2. **The generator's output doesn't match what norsub imports.** `yaml-to-json.js` emits
+   `export const PROTOCOLS = …` (untyped), but the committed `src/norsub.ts` is
+   `export const NORSUB_SENTENCES: ProtocolsFileContent = …` — i.e. it was hand-adapted, so the
+   `protocols` script has **never** actually regenerated it. Decide in the refactor: import
+   `PROTOCOLS` like nmea-parser does (uniform, untyped + runtime `safeParse`), or upgrade the shared
+   generator to emit a typed const for both packages (one line, gives compile-time checking).
+
+**OPEN DATA QUESTIONS for cru (found in the manual audit, NOT changed):**
+- **`PSMCA` field 3 is almost certainly `heave`, not `heading`.** Manual Table 44 literally says
+  "heading" — but with unit **m**, range ±10 m, and the protocol's own Data list is "Roll, pitch /
+  **Heave** / Surge, sway"; `PSMCC`'s equivalent metre field is `heave`. So the **manual has a typo and
+  we copied it**. Renaming is safe for the metadata model (aggregators key by index, names are
+  unofficial) but changes `payload[2].name` in CMA output.
+- **`PTVG` field types.** Wire format is `$PTVG,abbbbP,accccR,ddd.dT*hh` — the letter is **glued** to
+  the number (`" 021P"`, `"- 036R"`, `"101.8T"`), so `float64` yields `value: null`. Should they be
+  `string` (or split like GYROCOMPAS1's HEHDT `heading` + `symbol`)? Pre-existing.
+- **Two `PRDID` definitions collide.** NORSUB PRDID is `$PRDID,pitch,roll,*CS` — note the **trailing
+  comma**, so on the wire it carries **3** payload fields (third empty) — while RDI ADCP PRDID is
+  `$PRDID,pitch,roll,heading` with **no checksum**. Since upgrade filters definitions by field count,
+  a NORSUB PRDID sentence will match the RDI-ADCP 3-field definition. Distinguishable only by the
+  checksum's presence. Known limitation; needs a decision if it matters.
+- Nit: `HEHDT`/`PHTRO` are `float32` while everything else is `float64` (manual says DBL for the
+  NORSUB ones, unspecified for Gyrocompas 1). Harmless; unify to `float64`?
+
+**✅ PREREQUISITES DONE (2026-07-28) — `protocol-core` + `nmea-parser@3.1.0`.** Everything norsub needs
+from the base library is implemented, green and packed; norsub's own rewrite is the next step.
+1. **`DeviceParser<B>` in `protocol-core`** (`src/types.ts`): the shared API contract (`memory`,
+   `bufferLimit`, readonly `buffer`, `addData`, `parseData`); `Parser<B> implements DeviceParser<B>`.
+   Needed because `Parser<B>` has protected members ⇒ a *composing* facade is NOT type-assignable to
+   `Parser<string>` even with an identical public surface. Test proves an extending parser and a
+   composing facade coexist in a `DeviceParser<string>[]` (core 15/15).
+2. **`NMEAParser.registerProtocols` `private` → `protected`** — a subclass registers its own bundled,
+   generated built-in the way `NMEAParser` registers `PROTOCOLS` (no YAML round-trip, no `fs`).
+3. **Aggregator registry is now instance-level** — `metadata.ts` exports `MetadataAggregators` +
+   `BUILTIN_METADATA_AGGREGATORS`; `aggregateMetadata(sentence, aggregators?)` and
+   `parseSentence(raw, definitions, aggregators?)` take it (defaulted, so existing call sites are
+   unchanged); `NMEAParser._aggregators` is a per-instance copy of the built-ins plus a
+   `protected registerAggregators(...)` (later registration wins on a duplicate key).
+4. **Exports for downstream device parsers:** `BUILTIN_METADATA_AGGREGATORS`, types
+   `MetadataAggregator` / `MetadataAggregators`, and re-exported core types `DeviceParser`, `DraftCMA`,
+   `Field`, `Metadata`, `Value` (core is private/unpublished, so a consumer can only see what
+   nmea-parser re-exports).
+5. **`tests/extension.test.ts`** (new, 6 specs) is the executable spec for the seam norsub uses: a
+   subclass registering proprietary definitions + a status-style aggregator writing BOTH field and
+   payload metadata, the built-in GGA aggregator still intact, and a base parser unaffected by the
+   subclass registry. **nmea-parser 71/71** (was 65).
+6. **Released as `3.1.0`** (additive ⇒ minor) + README §"Extending: device parsers built on NMEA" and
+   §"The shared parser contract". Verified: core lint+tsc+15/15+build; nmea lint+tsc+71/71+build
+   ESM+CJS+DTS; `DeviceParser` inlined into the published `.d.ts` with **zero** `protocol-core`
+   references; packed manifest = `3.1.0`, `engines.node >=22`, no protocol-core leak;
+   `--frozen-lockfile` clean.
+7. **The wrapper needs NO change** — it uses `new NMEAParser({memory})` / `addSentences` / `parseData`
+   only, and its published `^3.0.2` range already accepts 3.1.0. Verified anyway: wrapper build +
+   **19/19** node:test (incl. the real-headless-node-red integration) green against the new lib. Left
+   at `2.0.1`, unpublished this round (its workflow is path-filtered and won't even trigger); bumping
+   it would publish an identical package.
+
+**NOT bundled into this release (deliberate):** mirroring "regenerate `protocols` on **test**" to
+nmea-parser. The generator emits raw `JSON.stringify` output while the committed `src/nmea.ts` is
+eslint-formatted, so a `pretest` regeneration would dirty tracked files on every test run unless
+`format` runs too. Better solved by upgrading the shared generator to emit lint-clean typed output —
+which is a norsub-refactor task anyway (see the generator finding above).
+
+**🐛 CI bug to fix in the same pass:** `.github/workflows/norsub-emru.yml` builds `nmea-parser` first
+but **not** `protocol-core`, whose `exports` point only at `dist/` ⇒ `nmea-parser:build` dies in a
+fresh checkout (same class of bug fixed in `nmea-parser.yml` on 2026-07-22). Prepend
+`protocol-core:build`. Also bump norsub's `engines.node` `">= 18"` → `">=22"`.
+
+**LOCKED — switching protocol discards internal state (cru, 2026-07-28).** Changing `protocol` builds a
+fresh protocol parser, so the input buffer AND any parsed-but-not-yet-drained CMAs are dropped: half a
+sentence in protocol A can never be completed by protocol B.
+
+**OPEN (need cru) before coding:** (a) does the facade delegate the NMEA-only extras (`addSentences`,
+`getSentence*`, `getFakeSentenceByID`) or expose the active parser via a getter — cru leans getter, so
+does this doc, name TBD (`parser`); (b) `DeviceParser` interface in core now or when protocol #2 lands
+(recommend now); (c) mirror the `protocols`-runs-on-test change to nmea-parser too?; (d) the four open
+data questions above.
 
 ## Decisions (locked unless cru says otherwise)
 
@@ -980,10 +1165,69 @@ update the `protocols` npm script. Add root proxy scripts if needed.
   refactor (values now validate via core `TYPE_SCHEMAS`; the swapped local aliases are gone).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
 - `thelmabiotel-tblive-nodered` has a `test` script but **no mocha specs** (`No test files found`).
-- All 5 nodered CI workflows have their test jobs commented out — they publish untested.
+- 4 of 5 nodered CI workflows still have their test jobs commented out — they publish untested.
+  (`nmea-parser-nodered` is DONE: test job enabled + `node:test`, published 2.0.1. The other four —
+  norsub, tblive, sbg-ecom, septentrio — get theirs enabled as each wrapper is refactored in turn.)
 - nmea-parser ships a committed `legacy/` folder + stray root files (`morenmea.tss`).
 - Node-RED docker `Dockerfile`s still use `npm i` inside the container (install the published
   package from the npm registry, not the workspace — unaffected by the pnpm migration, but
   inconsistent).
 - `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
 - P08-Trident harness (`misc/tests/p08trident/`) status unknown — ask cru if still live.
+
+## Phase 3 handoff prompt (paste-ready — norsub-emru lib + wrapper)
+
+> Continue the CoreMarine **devices** monorepo refactor. Run `git log --oneline -10` first, then read
+> **`docs/STATUS.md`** top-to-bottom (especially the top banner + the top Done entries + the
+> "Decisions" section). **Working method (cru): converge on each decision BEFORE coding, one step at a
+> time — no big unsolicited diffs.** For ANY npm / pnpm / node-red / TypeScript / GitHub-Actions /
+> library specifics, **fetch current docs with the `ctx7` CLI — never rely on memory.** Update
+> `docs/STATUS.md` in the **same turn** as any meaningful change. Commit only when cru asks; no AI
+> co-author trailer (already disabled globally). Verify per package from its dir: **lint → tsc → test → build**.
+>
+> **STATE (2026-07-24): Phases 1 & 2 are SHIPPED.** `@coremarine/nmea-parser@3.0.2` (the finished CMA
+> reference **library**) and `@coremarine/nmea-parser-nodered@2.0.1` (the finished wrapper + **template**
+> for all future wrappers) are both **live on npm** (PR #70 merged to `main`). Do NOT redo any nmea work.
+>
+> **FIRST STEP — sync branches.** The merge advanced `main` past `dev`. Run
+> `git checkout dev && git fetch origin && git merge --ff-only origin/main` (fall back to a normal
+> `git merge origin/main` if ff isn't possible). Then branch Phase 3 work from `dev`; PR back to `dev`.
+>
+> **TASK — Phase 3 = `norsub-emru` (library first), THEN its `-nodered` wrapper.** Strictly in that
+> order; the lib must be green + (per cru's cadence) in production before starting the wrapper.
+>
+> **3a — norsub-emru library.** It currently does NOT build — it imports the removed NMEA API
+> (`NMEASentence`, `Uint16`/`Uint32`, `Field`, `ProtocolsInputSchema`), calls `addProtocols(...)`, and
+> overrides the old `parseData`. It's a thin extension of NMEA that adds a **status bitfield** to
+> `PNORSUB*` sentences (`src/status.ts` `getStatus`; `status_a`/`status_b` for `…b` variants, else a
+> single `status`). Target: `class NorsubParser extends NMEAParser` (which now extends `StringParser`),
+> object-arg constructor `{ memory?, bufferLimit? }`, emit `CMA[]`, adopt the `Result` pattern, zero
+> `node:` imports in `src/`. The full locked design is in this doc's **"NMEA refactor — locked design &
+> plan" → Resume prompt** (read it — it's the spec). **Converge these two open design questions with cru
+> BEFORE coding** (they are NOT settled by the NMEA reference):
+>   1. **How a subclass loads its own built-in knowledge.** norsub's `NORSUB_SENTENCES` is a generated JS
+>      object, not YAML, so `addSentences(yaml)` doesn't fit. Cleanest candidate: make the lib's
+>      `registerProtocols` **`protected`** so `NorsubParser`'s constructor can register
+>      `ProtocolsFileContentSchema.safeParse(NORSUB_SENTENCES)` directly.
+>   2. **How norsub injects its status metadata.** NMEA's `METADATA_AGGREGATORS` is a module-level const
+>      keyed by exact `${id}:${payloadLength}` — not extensible by a subclass, and norsub status spans
+>      many `PNORSUB*` ids/lengths. Options to weigh with cru: (a) make the registry instance-level /
+>      mergeable so a subclass adds aggregators; (b) generalise the key to a predicate/prefix (`PNORSUB*`);
+>      (c) keep a light norsub post-process. Prefer folding into the aggregator model (no `override
+>      parseData`) if clean. Its workflow already builds nmea-parser first (`Build monorepo deps`) since it
+>      extends NMEAParser; timestamp metadata is inherited from core — no work there.
+>
+> **3b — norsub-emru-nodered wrapper.** Clone the finished `nmea-parser-nodered` (it IS the template).
+> **Apply the wrapper decisions locked 2026-07-24 (see top banner):** TypeScript → tsup → CJS; pure-logic
+> `src/lib.ts` + thin `src/parser.ts`; `node:test` (unit + real-headless-node-red integration, no
+> `node-red-node-test-helper`); `dev-server.mjs` with `editorTheme.palette.categories` (CoreMarine first)
+> and NO sibling-hiding hack; **`engines.node: ">=22"`** (major-only) + **`node-red.version: ">=4.0.0"`**;
+> **`"!**/*.backup"` in `files`**; keep node-red a **root** devDep; re-enable the wrapper's CI test job
+> (build the lib dist chain first); OIDC + version-gated publish; **write the README to the CURRENT API
+> from the start** (don't inherit stale docs). Node type name `cma-norsub-parser` (already in the flow /
+> registerType). Bump to a new **major** (breaking API + CMA output).
+>
+> **AFTER norsub:** thelmabiotel-tblive (+ wrapper), then the binary parsers septentrio-sbf & sbg-ecom
+> (`BinaryParser`, `Buffer`→`Uint8Array`/`DataView`; septentrio wants a `sentenceTimestamp` override for
+> TOW+WNc). Also worth tightening each parser lib's `engines.node` to `>=22` as it's refactored (the nmea
+> lib's `>= 18` was a mistake, fixed in 3.0.2).

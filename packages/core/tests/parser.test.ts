@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 
 // coded
 import { StringParser } from '../src/parser'
-import type { DraftCMA, ExtractedSentences } from '../src/types'
+import type { CMA, DeviceParser, DraftCMA, ExtractedSentences } from '../src/types'
 
 // Minimal concrete parser: newline-delimited sentences. Anything after the
 // last newline is an incomplete sentence and becomes the remainder.
@@ -85,5 +85,36 @@ describe('Parser base contract', () => {
       parser.bufferLimit = -1
     }).not.toThrow()
     expect(parser.bufferLimit).toBe(2048)
+  })
+})
+
+// A device parser that COMPOSES a protocol parser instead of extending one (the
+// shape a multi-protocol device needs: one protocol active at a time). It cannot
+// extend `Parser`, so `DeviceParser` is what makes it interchangeable by type.
+class ComposedDevice implements DeviceParser<string> {
+  private _parser = new LineParser()
+
+  get memory(): boolean { return this._parser.memory }
+  set memory(value: boolean) { this._parser.memory = value }
+
+  get bufferLimit(): number { return this._parser.bufferLimit }
+  set bufferLimit(value: number) { this._parser.bufferLimit = value }
+
+  get buffer(): string { return this._parser.buffer }
+
+  addData(data: string): void { this._parser.addData(data) }
+  parseData(data?: string): CMA[] { return this._parser.parseData(data) }
+}
+
+describe('DeviceParser contract', () => {
+  test('both an extending parser and a composing facade satisfy it', () => {
+    // The point of the interface: this array does not compile if typed
+    // `Parser<string>[]`, because `Parser` has protected members.
+    const parsers: DeviceParser<string>[] = [new LineParser(), new ComposedDevice()]
+    for (const parser of parsers) {
+      expect(parser.parseData('AAA\nBB').map((s) => s.id)).toEqual(['AAA'])
+      expect(parser.buffer).toBe('BB')
+      expect(parser.memory).toBe(true)
+    }
   })
 })

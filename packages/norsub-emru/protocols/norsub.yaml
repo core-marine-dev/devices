@@ -96,10 +96,10 @@ protocols:
         payload:
           - name: time
             type: uint32
-            units: ms
+            units: us
           - name: delay
             type: uint32
-            units: ms
+            units: us
           - name: roll
             type: float64
             units: deg
@@ -159,10 +159,10 @@ protocols:
         payload:
           - name: time
             type: uint32
-            units: ms
+            units: us
           - name: delay
             type: uint32
-            units: ms
+            units: us
           - name: roll
             type: float64
             units: deg
@@ -238,10 +238,10 @@ protocols:
         payload:
           - name: time
             type: uint32
-            units: ms
+            units: us
           - name: delay
             type: uint32
-            units: ms
+            units: us
           - name: roll
             type: float64
             units: deg

@@ -168,12 +168,12 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms',
+              units: 'us',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms',
+              units: 'us',
             },
             {
               name: 'roll',
@@ -272,12 +272,12 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms',
+              units: 'us',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms',
+              units: 'us',
             },
             {
               name: 'roll',
@@ -405,12 +405,12 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'time',
               type: 'uint32',
-              units: 'ms',
+              units: 'us',
             },
             {
               name: 'delay',
               type: 'uint32',
-              units: 'ms',
+              units: 'us',
             },
             {
               name: 'roll',

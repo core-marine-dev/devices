@@ -1,7 +1,7 @@
 // coded
 import { MAX_BYTES, MAX_CHARACTERS } from './constants'
 import { BooleanSchema, NaturalSchema } from './schemas'
-import type { CMA, DraftCMA, ExtractedSentences, Input, ParserOptions, Timestamp, TimestampMetadata } from './types'
+import type { CMA, DeviceParser, DraftCMA, ExtractedSentences, Input, ParserOptions, Timestamp, TimestampMetadata } from './types'
 
 // Shared parser contract. Every CoreMarine device parser is created with an
 // options object, fed bytes/chars with `addData`, and drained with
@@ -9,7 +9,7 @@ import type { CMA, DraftCMA, ExtractedSentences, Input, ParserOptions, Timestamp
 // `extractSentences`: given the current buffer, return the complete sentences
 // and the trailing remainder. Everything else (memory, buffering, the drained
 // queue) lives here and is identical across parsers.
-export abstract class Parser<B extends Input> {
+export abstract class Parser<B extends Input> implements DeviceParser<B> {
   protected _memory: boolean
   protected _bufferLimit: number
   protected _buffer: B

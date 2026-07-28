@@ -199,6 +199,64 @@ const gga = parser.getSentence('GGA')            // Sentence | null
 const fake = parser.getFakeSentenceByID('AAM')   // string | null
 ```
 
+## Extending: device parsers built on NMEA
+
+A device that speaks NMEA plus its own proprietary sentences (e.g.
+[`@coremarine/norsub-emru`](https://github.com/core-marine-dev/devices/tree/main/packages/norsub-emru))
+subclasses `NMEAParser` and uses two `protected` extension points, so it never has to override the
+parse pipeline:
+
+| Member | Signature | Description |
+| --- | --- | --- |
+| `registerProtocols` | `(content: ProtocolsFileContent) => void` | Register already-parsed definitions — for a bundled, generated built-in, the same way this class loads the NMEA standard (no YAML round-trip, no file access). |
+| `registerAggregators` | `(aggregators: MetadataAggregators) => void` | Add field/payload metadata decoders for your sentences. Later registrations win on a duplicate key. |
+
+Aggregators are keyed **`${id}:${payloadLength}`** — the stable identity of a definition, since field
+names are unofficial — and read fields **by index**:
+
+```typescript
+import { NMEAParser, ProtocolsFileContentSchema } from '@coremarine/nmea-parser'
+import type { MetadataAggregators, ProtocolsFileContent } from '@coremarine/nmea-parser'
+
+import { PROTOCOLS } from './my-generated-protocols'   // generated from YAML at build time
+
+class MyDeviceParser extends NMEAParser {
+  constructor() {
+    super()
+    const builtin = ProtocolsFileContentSchema.safeParse(PROTOCOLS)
+    if (builtin.success) this.registerProtocols(builtin.value as ProtocolsFileContent)
+    this.registerAggregators({
+      // $PDEV,<value>,<status>*CS — decode the status word
+      'PDEV:2': (sentence) => {
+        const status = sentence.payload[1].value
+        if (typeof status !== 'number') return {}
+        const decoded = { ok: (status & 1) !== 0 }
+        return {
+          fields: { 1: { status: decoded } },   // -> payload[1].metadata.status
+          payload: { status: decoded },         // -> metadata.payload.status
+        }
+      },
+    })
+  }
+}
+```
+
+An aggregator returns `fields` (index → metadata, merged into `payload[index].metadata`) and/or
+`payload` (flat metadata, merged into `metadata.payload`). Sentences with no registered aggregator
+pass through untouched.
+
+### The shared parser contract
+
+Every CoreMarine device parser exposes the same API. Type against `DeviceParser<string>` rather than a
+concrete class, so a parser that *composes* protocol parsers (a device supporting several protocols,
+one active at a time) is interchangeable with one that extends `NMEAParser`:
+
+```typescript
+import type { DeviceParser } from '@coremarine/nmea-parser'
+
+const parse = (parser: DeviceParser<string>, chunk: string) => parser.parseData(chunk)
+```
+
 ## Notes
 
 `bufferLimit` defaults to `1024` characters — far more than the NMEA max sentence length (82 characters, flags included) — so a single incomplete sentence always fits. Changing it is not recommended unless you understand the NMEA framing well.

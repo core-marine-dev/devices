@@ -6,6 +6,7 @@ import type { DraftCMA, Field, Type, Value } from '@coremarine/protocol-core'
 import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
 import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, NMEA_ID_LENGTH, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from './constants'
 import { aggregateMetadata } from './metadata'
+import type { MetadataAggregators } from './metadata'
 import type { MapStoredSentences, NMEALike, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from './types'
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
 
@@ -200,8 +201,10 @@ const upgradeKnownSentence = (generic: DraftCMA, definitions: MapStoredSentences
   return generic
 }
 
-export const parseSentence = (raw: NMEALike, definitions: MapStoredSentences): DraftCMA => (
-  aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw), definitions))
+// `aggregators` defaults to the built-ins; a parser passes its own registry so
+// subclass-registered aggregators are applied too.
+export const parseSentence = (raw: NMEALike, definitions: MapStoredSentences, aggregators?: MetadataAggregators): DraftCMA => (
+  aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw), definitions), aggregators)
 )
 
 // TESTING — FAKE SENTENCE GENERATION ---------------------------------------------------------------------------------

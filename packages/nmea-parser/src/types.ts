@@ -1,5 +1,8 @@
 // installed
-export type { CMA } from '@coremarine/protocol-core'
+// `DeviceParser` is the shared parser API contract — type parsers by it rather
+// than by any concrete class, so a device parser that composes protocol parsers
+// is interchangeable with one that extends them.
+export type { CMA, DeviceParser, DraftCMA, Field, Metadata, Value } from '@coremarine/protocol-core'
 import type { SentenceMetadata } from '@coremarine/protocol-core'
 
 // coded
