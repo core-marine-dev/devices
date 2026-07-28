@@ -32,6 +32,13 @@
 > data. Wrapper untouched (no change needed). **NEXT: the norsub-emru lib rewrite itself.** Full spec +
 > remaining opens: **§"Phase 3 — norsub-emru: locked design (2026-07-28)"**.
 >
+> **⏳ AWAITING cru's MERGE — PR [#71](https://github.com/core-marine-dev/devices/pull/71) `dev`→`main`**
+> (commits `fecb500` units fix + `adc327b` 3.1.0; `dev` @ `adc327b`, pushed). CI on `dev`: `nmea-parser`
+> ✅ (22.x + 24.x) and `protocol-core` ✅; **`norsub-emru` red as expected** (legacy pre-3.0 API — it's
+> the next thing rewritten; `publish` is `needs: test`, so nothing broken ships). The merge publishes
+> **only `nmea-parser@3.1.0`**; the wrapper's workflow is path-filtered and won't trigger. After it's
+> live, cru refreshes the Node-RED flow-library entry for the nmea component.
+>
 > **Wrapper decisions locked this session (apply to every future `-nodered` wrapper):**
 > - **Dev-instance isolation = won't-fix / accepted by design.** Sibling `@coremarine/*-nodered` nodes
 >   appearing in the local dev palette is fine; node-red stays a **root** devDep. What matters: the node
