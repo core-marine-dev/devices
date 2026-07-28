@@ -80,7 +80,13 @@ const aggregateGGA: MetadataAggregator = (sentence) => ({
 
 // REGISTRY -----------------------------------------------------------------------------------------------------------
 // Keyed by `${id}:${payloadLength}` — the stable identity of a definition.
-const METADATA_AGGREGATORS: Record<string, MetadataAggregator> = {
+export type MetadataAggregators = Record<string, MetadataAggregator>
+
+// The built-in aggregators every parser starts with. A parser copies these into
+// its OWN registry (see `NMEAParser._aggregators`), so a subclass — or anyone
+// feeding proprietary sentences with `addSentences` — can register more via
+// `registerAggregators` without touching this module.
+export const BUILTIN_METADATA_AGGREGATORS: MetadataAggregators = {
   'GGA:14': aggregateGGA,
 }
 
@@ -92,10 +98,10 @@ const applyFields = (payload: Field[], fields: Record<number, Metadata>): Field[
 
 // Runs after upgrade. No-ops when no aggregator is registered for the sentence,
 // so unknown (and unrecognised-length) sentences pass through untouched.
-export const aggregateMetadata = (sentence: DraftCMA): DraftCMA => {
+export const aggregateMetadata = (sentence: DraftCMA, aggregators: MetadataAggregators = BUILTIN_METADATA_AGGREGATORS): DraftCMA => {
   const key = `${sentence.id}:${sentence.payload.length}`
-  if (!(key in METADATA_AGGREGATORS)) return sentence
-  const { fields = {}, payload = {} } = METADATA_AGGREGATORS[key](sentence)
+  if (!(key in aggregators)) return sentence
+  const { fields = {}, payload = {} } = aggregators[key](sentence)
   const result: DraftCMA = { ...sentence, payload: applyFields(sentence.payload, fields) }
   if (Object.keys(payload).length > 0) {
     const previous = (sentence.metadata?.payload ?? {}) as Metadata

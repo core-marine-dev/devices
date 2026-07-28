@@ -4,6 +4,8 @@ import type { DraftCMA, ExtractedSentences, ParserOptions, Result, Timestamp } f
 
 // coded
 import { NMEA_ID_LENGTH } from './constants'
+import { BUILTIN_METADATA_AGGREGATORS } from './metadata'
+import type { MetadataAggregators } from './metadata'
 import { PROTOCOLS } from './nmea'
 import { getStoredSentences, parseProtocols } from './protocols'
 import { ProtocolsFileContentSchema, StringSchema } from './schemas'
@@ -16,6 +18,9 @@ import type { MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, Protocols
 export class NMEAParser extends StringParser {
   // Knowledge base: id -> definitions (multiple per id across NMEA versions).
   protected _definitions: MapStoredSentences = new Map()
+  // Field/payload metadata aggregators, keyed `${id}:${payloadLength}`. Own copy
+  // of the built-ins so a subclass can add its own (see registerAggregators).
+  protected _aggregators: MetadataAggregators = { ...BUILTIN_METADATA_AGGREGATORS }
 
   constructor(options: ParserOptions = {}) {
     super(options)
@@ -26,11 +31,22 @@ export class NMEAParser extends StringParser {
     if (builtin.success) this.registerProtocols(builtin.value)
   }
 
-  private registerProtocols(content: ProtocolsFileContent): void {
+  // Register already-parsed protocol knowledge. `protected` so a subclass can
+  // load its OWN bundled built-in (a device with proprietary sentences) exactly
+  // the way this class loads the NMEA standard — without the YAML round-trip.
+  protected registerProtocols(content: ProtocolsFileContent): void {
     for (const [id, definitions] of getStoredSentences(content)) {
       const existing = this._definitions.get(id) ?? []
       this._definitions.set(id, [...existing, ...definitions])
     }
+  }
+
+  // Register field/payload metadata aggregators, keyed `${id}:${payloadLength}`.
+  // `protected` so a subclass can derive metadata for its own sentences (e.g. a
+  // status bitfield) through the same model the built-ins use — no need to
+  // override the parse pipeline. Later registrations win on a duplicate key.
+  protected registerAggregators(aggregators: MetadataAggregators): void {
+    this._aggregators = { ...this._aggregators, ...aggregators }
   }
 
   // Single knowledge-feed input: a protocols YAML string. On the web use
@@ -48,7 +64,7 @@ export class NMEAParser extends StringParser {
 
   protected extractSentences(buffer: string): ExtractedSentences<string> {
     const remainder = lastUncompletedSentence(buffer) ?? ''
-    const sentences = getUnparsedNMEASentences(buffer).map((raw) => parseSentence(raw, this._definitions))
+    const sentences = getUnparsedNMEASentences(buffer).map((raw) => parseSentence(raw, this._definitions, this._aggregators))
     return { sentences, remainder }
   }
 

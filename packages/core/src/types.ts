@@ -42,3 +42,18 @@ export interface ExtractedSentences<B extends Input> {
   sentences: DraftCMA[]
   remainder: B
 }
+
+// The shared API contract — "every parser has the same API", written down. The
+// abstract `Parser` implements it, but a DEVICE parser that only *composes*
+// protocol parsers (e.g. a device speaking one of several protocols, selected at
+// runtime) cannot extend `Parser`; and because `Parser` has protected members,
+// TypeScript would then refuse to accept that facade as a `Parser<B>` even with
+// an identical public surface. Type by this interface, not by the base class,
+// and both shapes are interchangeable.
+export interface DeviceParser<B extends Input> {
+  memory: boolean
+  bufferLimit: number
+  readonly buffer: B
+  addData: (data: B) => void
+  parseData: (data?: B) => CMA[]
+}
