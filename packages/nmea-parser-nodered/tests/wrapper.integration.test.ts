@@ -19,6 +19,10 @@ import RED from 'node-red'
 interface SinkNode {
   on: (event: string, cb: (msg: Record<string, unknown>) => void) => void
 }
+
+interface InputNode {
+  receive: (msg: Record<string, unknown>) => void
+}
 const nr = RED as unknown as {
   init: (server: unknown, settings: Record<string, unknown>) => void
   start: () => Promise<void>
@@ -26,6 +30,7 @@ const nr = RED as unknown as {
   nodes: {
     registerType: (type: string, ctor: (this: SinkNode, config: object) => void) => void
     createNode: (node: SinkNode, config: object) => void
+    getNode: (id: string) => InputNode | null
   }
 }
 
@@ -82,4 +87,55 @@ test('output CMA carries the core timestamp metadata', () => {
   const payload = captured.at(-1)!.payload as { metadata: { timestamp: Record<string, number> } }[]
   const ts = payload[0].metadata.timestamp
   assert.ok(typeof ts.received === 'number' && typeof ts.parsed === 'number', 'received + parsed stamped')
+})
+
+// Feed the live node a message and return what came out the other side.
+const roundTrip = async (input: Record<string, unknown>): Promise<Record<string, unknown>> => {
+  captured.length = 0
+  nr.nodes.getNode('n1')!.receive(input)
+  await new Promise((resolve) => setTimeout(resolve, 300))
+  return captured[0]
+}
+
+// The definitions channel is `msg.sentences` (3.0.0). It takes the library's own
+// vocabulary — addSentences / getSentencesByProtocol — and leaves the word
+// "protocol" free for the DEVICE-protocol meaning it has in the sibling
+// norsub wrapper's `msg.protocol`.
+test('msg.sentences GET is answered on msg.sentences', async () => {
+  const msg = await roundTrip({ sentences: { command: 'get' } })
+  const sentences = msg.sentences as Record<string, unknown[]> | undefined
+  assert.ok(sentences !== undefined, 'answered')
+  assert.ok('NMEA' in sentences, 'grouped by protocol name')
+  assert.ok(!('protocols' in msg), 'the old key is never produced')
+})
+
+test('the OLD msg.protocols key is ignored — renaming it is the breaking change', async () => {
+  const msg = await roundTrip({ protocols: { command: 'get' } })
+  assert.ok(!('sentences' in msg), 'nothing was asked, so nothing is answered')
+  // passed straight through untouched, like any unrelated msg property
+  assert.deepEqual(msg.protocols, { command: 'get' })
+})
+
+test('msg.sentences SET expands the parser, and its errors report under the new name', async () => {
+  const yaml = [
+    'protocols:',
+    '  - protocol: DEMO',
+    '    version: \'1.0\'',
+    '    standard: false',
+    '    sentences:',
+    '      - id: PDEMO',
+    '        payload:',
+    '          - name: a',
+    '            type: float64',
+  ].join('\n')
+  const set = await roundTrip({ sentences: { command: 'set', content: yaml } })
+  assert.ok('DEMO' in (set.sentences as Record<string, unknown>), 'the new protocol is registered')
+
+  const parsed = await roundTrip({ payload: '$PDEMO,12.5*4E\r\n' })
+  const payload = parsed.payload as { id: string, protocol: { name: string } }[]
+  assert.equal(payload[0].id, 'PDEMO')
+  assert.equal(payload[0].protocol.name, 'DEMO')
+
+  const bad = await roundTrip({ sentences: { command: 'set', content: ':\n::bad' } })
+  assert.match(String(bad.sentences), /^sentences:/)
 })

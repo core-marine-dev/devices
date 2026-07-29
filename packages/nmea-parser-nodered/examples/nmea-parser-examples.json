@@ -36,7 +36,7 @@
         "id": "53b0d00e97623318w",
         "type": "group",
         "z": "86f1271d07a48b44w",
-        "name": "Protocols API",
+        "name": "Sentences API",
         "style": {
             "stroke": "#000000",
             "label": true,
@@ -613,7 +613,7 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "{\t    \"memory\": msg.memory,\t    \"protocols\": msg.protocols,\t    \"sentence\": msg.sentence,\t    \"payload\": msg.payload\t}",
+        "complete": "{\t    \"memory\": msg.memory,\t    \"sentences\": msg.sentences,\t    \"sentence\": msg.sentence,\t    \"payload\": msg.payload\t}",
         "targetType": "jsonata",
         "statusVal": "",
         "statusType": "auto",
@@ -916,7 +916,7 @@
         "type": "debug",
         "z": "86f1271d07a48b44w",
         "g": "53b0d00e97623318w",
-        "name": "protocols / parsed",
+        "name": "sentences / parsed",
         "active": true,
         "tosidebar": true,
         "complete": "true",
@@ -948,7 +948,7 @@
         "name": "get supported sentences",
         "props": [
             {
-                "p": "protocols",
+                "p": "sentences",
                 "v": "{\"command\":\"get\"}",
                 "vt": "json"
             }
@@ -998,7 +998,7 @@
         "name": "2 · expand via CONTENT (embedded YAML)",
         "props": [
             {
-                "p": "protocols",
+                "p": "sentences",
                 "v": "{\"command\":\"set\",\"content\":\"protocols:\\n  - protocol: COREMARINE_EXAMPLE\\n    standard: false\\n    sentences:\\n      - id: PCMEX\\n        description: Example proprietary sentence - depth and water temperature\\n        payload:\\n          - name: depth\\n            type: float32\\n            units: m\\n          - name: temperature\\n            type: float32\\n            units: C\\n\"}",
                 "vt": "json"
             }
@@ -1048,7 +1048,7 @@
         "name": "expand via FILE (examples/example-protocol.yml)",
         "props": [
             {
-                "p": "protocols",
+                "p": "sentences",
                 "v": "{\"command\":\"set\",\"file\":\"examples/example-protocol.yml\"}",
                 "vt": "json"
             }
