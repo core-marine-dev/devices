@@ -24,7 +24,102 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> # 🏁 PHASE 3 IS COMPLETE — norsub-emru is DONE, library AND wrapper, both live on npm.
+> # 🚀 RELEASE READY (2026-07-29, later) — cru's TWO nmea-parser fixes + ALL FOUR packages bumped
+>
+> **Both of cru's fixes are implemented, and they compose.** (1) **Failed + garbage sentences** — nothing is
+> dropped silently any more. (2) **PSXN sentence resolvers** — one wire id (`$PSXN`) split into `PSXN20` /
+> `PSXN23`. Specs: **[`docs/CMA.md`](CMA.md)** §"Failed and garbage sentences" + §"Sentence resolvers".
+>
+> **ALL FOUR PACKAGES GO OUT AS MAJORS** (cru's instruction 2026-07-29). Reason each one *must* be
+> republished, verified against npm: every published dep range is caret-pinned to the OLD major, so **none of
+> them can resolve `nmea-parser@4.0.0`** — without a republish, downstream users would never receive the fix.
+>
+> | package | was | now | why a major |
+> | --- | --- | --- | --- |
+> | `nmea-parser` | 3.2.0 | **4.0.0** | emits CMAs it never emitted before (garbage/failed); `$PSXN` → resolved ids |
+> | `nmea-parser-nodered` | 2.0.1 | **3.0.0** | published dep `^3.0.2` cannot resolve 4.0.0; `msg.payload` now carries failed/garbage CMAs |
+> | `norsub-emru` | 3.0.0 | **4.0.0** | published dep `^3.2.0` cannot resolve 4.0.0; output inherits both changes |
+> | `norsub-emru-nodered` | 2.0.0 | **3.0.0** | published dep `^3.0.0` cannot resolve norsub 4.0.0; `msg.payload` changes |
+>
+> **No manual dep edits were needed** — all four use `workspace:^`, which packs as `^<in-tree version>`.
+> Verified in the packed manifests: wrapper → `^4.0.0`, norsub → `^4.0.0`, norsub wrapper → `^4.0.0`,
+> `engines.node >=22` everywhere, **no `protocol-core` leak** anywhere.
+>
+> **READMEs updated in all four** (new §"Failed and garbage sentences" in each; nmea-parser also gains
+> §"Sentence resolvers" + the third extension point `registerResolvers`; both wrappers gain an
+> "Upgrading from 2.x"). Two stale claims in `norsub-emru`'s README were corrected — it said checksum-less
+> input "is discarded", which is exactly what changed.
+>
+> **Verified (per package, from its own dir):** core lint+tsc+**15/15**; nmea-parser lint+tsc+**109/109**
+> (was 71) + build ESM+CJS+DTS + regeneration idempotent (identical sha256); norsub-emru lint+tsc+**45/45**
+> (source untouched — inherits both fixes); nmea wrapper **19/19**; norsub wrapper **34/34**. Repo-wide
+> `pnpm lint` clean, `--frozen-lockfile` clean, all five builds clean after the bumps.
+>
+> **⚠️ ONE THING FOR cru BEFORE MERGING: the queued `msg.protocols` → `msg.sentences` rename is ALSO a
+> breaking wrapper change.** If it lands after this release, `nmea-parser-nodered` needs **two majors
+> back-to-back** (3.0.0 now, 4.0.0 for the rename). Folding the rename into *this* 3.0.0 would avoid that.
+> Not done here because it was not part of the instruction — cru's call.
+>
+> ## 🆕 FIX 2 — PSXN sentence resolvers (2026-07-29)
+>
+> **cru's problem:** a Kongsberg MGC emits `$PSXN,20,...` and `$PSXN,23,...` — **same id, same field count
+> (5)** — so the KB (keyed `id + payload length`) cannot tell them apart. He had patched this in a legacy
+> Node-RED flow (`misc/parsers/nmea/flows.json`, ~200 hand-written lines per variant) and wanted it in the
+> parser. **Datasheet read and confirmed:** `misc/parsers/nmea/datasheets/mgcr3.pdf` pp. 108-109
+> (MGC-D-114/408705/15/O Rev. 15; PSXN20/23 introduced in Rev. 14).
+>
+> **Solution: a `SentenceResolver` registry** (`nmea-parser/src/resolvers.ts`) running BETWEEN generic parse
+> and KB lookup, mirroring `MetadataAggregators` exactly (dev-authored, keyed `${id}:${payloadLength}` on the
+> id **as received**, `protected registerResolvers()`). Built-in `'PSXN:5'`. Everything else is then **pure
+> data**: `PSXN20`/`PSXN23` are ordinary `nmea.yml` definitions under **`protocol: KONGSBERG SEATEX`,
+> `version: '15'`, `standard: false`** (cru chose the name + revision), and a `'PSXN20:5'` aggregator adds the
+> quality **`label`**s (`Normal` / `Reduced performance` / `Invalid data`), same shape as GGA's `gps_quality`.
+>
+> **cru's decisions:** keep the `message_number` field (payload stays aligned 1:1 with the raw CSV — the
+> legacy code dropped it) · resolve **regardless** of checksum state · `label`, not `value`, for the quality
+> metadata · protocol `KONGSBERG SEATEX` (SXN is the NMEA manufacturer mnemonic for Kongsberg Seatex; the
+> datasheet calls PSXN the "Seatex ID") · version `'15'` (the manual revision transcribed from).
+>
+> **Invariants:** `raw` is **never** rewritten (keeps `$PSXN,...`, so the checksum still verifies) —
+> only `id` changes; `metadata.talker` stays `PSXN`; an unknown message number keeps the generic `PSXN`
+> rather than inventing a definition.
+>
+> **🔍 A real finding that ties the two fixes together:** the captured `$PSXN,10,...*7` in cru's flow computes
+> to **`07`** — his device **drops the checksum's leading zero**. So fix 1 decodes it fully and reports
+> **only** the format error (the value still matches), which is a positive "content is intact" signal. **His
+> legacy `Patch to PSXN Checksum` node — which rewrote the checksum to a valid value just to get the sentence
+> parsed, destroying the evidence — is now OBSOLETE.**
+>
+> **Verified end-to-end on real captured sentences:** `$PSXN,20,0,0,0,0*3B` → `PSXN20` /
+> `KONGSBERG SEATEX 15`, four `label`s; `$PSXN,23,0.231,0.174,309.56,-0.033*2E` → `PSXN23` with
+> `roll/pitch/heading` in `deg` + `heave` in `m`; a 1-char checksum → resolved + decoded + format error only;
+> a missing `\r\n` between two PSXN → both resolved, first flagged; message number `99` → generic `PSXN`.
+>
+> ## FIX 1 — failed + garbage sentences (2026-07-29)
+>
+> **Nothing the parser receives is dropped silently any more.** Design was
+> converged with cru decision-by-decision (D1–D5 + Q1–Q4, all recorded below), then coded. **The CMA contract
+> is UNCHANGED** — cru's explicit constraint — the signal is the already-existing optional `errors: string[]`.
+> Full spec + the classification table now live in **[`docs/CMA.md`](CMA.md) §"Failed and garbage sentences"**.
+>
+> **Verified:** core lint+tsc+**15/15**; nmea-parser lint+tsc+**93/93** (was 71) + build ESM+CJS+DTS;
+> norsub-emru **45/45** (unchanged source — inherits for free); nmea wrapper **19/19**; norsub wrapper
+> **34/34** (one spec updated: garbage is now reported, not `[]`). Proven end-to-end through the BUILT
+> `norsub-emru` dist: `binary junk\x01$PNORSUB8,1,2*4$PHTRO,...*4E\r\n` → a garbage CMA, a `PNORSUB8`
+> carrying **three** errors (missing end flag + checksum format + mismatch), and a `PHTRO` still fully
+> decoded as `GYROCOMPAS1 1.2.0` with a mismatch error.
+>
+> **⚠️ REQUIRES `nmea-parser` 4.0.0 (MAJOR).** The type is identical, but the parser now emits CMAs it never
+> emitted before, so a consumer that assumed every emitted CMA was usable must check `errors` /
+> `id === 'unknown'`. **Not yet bumped — cru's call, and he commits when he has reviewed.**
+>
+> **🐛 Latent bug fixed on the way:** `bufferLimit` was stored + validated but **enforced nowhere** — the
+> buffer could grow without bound. It is now enforced (over-limit unterminated input is flushed as garbage).
+>
+> **➡️ NEXT: item 3, the `msg.protocols` → `msg.sentences` rename in `nmea-parser-nodered`** (breaking
+> msg-API ⇒ its own major, 2.0.1 → 3.0.0), unless cru has a further nmea-parser change first.
+
+# 🏁 PHASE 3 IS COMPLETE — norsub-emru is DONE, library AND wrapper, both live on npm.
 >
 > **🎉 2026-07-29 — `@coremarine/norsub-emru-nodered@2.0.0` IS LIVE ON npm.** PR
 > [#73](https://github.com/core-marine-dev/devices/pull/73) merged by cru at 08:37 UTC, merge commit
@@ -1322,42 +1417,59 @@ does this doc, name TBD (`parser`); (b) `DeviceParser` interface in core now or 
 (recommend now); (c) mirror the `protocols`-runs-on-test change to nmea-parser too?; (d) the four open
 data questions above.
 
-## Failed sentences — cru's NEW requirement (raised 2026-07-29, NOT yet scoped)
+## Failed sentences — cru's requirement (raised 2026-07-29) — ✅ DESIGNED & IMPLEMENTED same day
 
-> cru: *"a fix i need to get fails sentences"*. Deliberately NOT designed yet — **scope it with him first**.
-> What follows is the MEASURED current behaviour so that conversation starts from facts, not guesses.
+> **The behaviour spec lives in [`docs/CMA.md`](CMA.md) §"Failed and garbage sentences"** (classification
+> table + rationale). This section records **the decisions and WHY**, so nobody re-litigates them.
 
-**Measured 2026-07-29** by feeding each input to a fresh `NorsubParser` and printing the result plus the
-leftover buffer (the same pipeline nmea-parser uses, so this applies to both libraries):
+**cru's problem, in his words:** a real device sends a checksum with **only 1 character**. The parser's output
+was *"just an empty array — for me it is hiding the problem"*. Logging is not the answer either: *"i will have
+a huge amount of repetitive logs saying the same error"*. So: **when a sentence can be parsed, emit it WITH
+`errors`; when it cannot be parsed at all, still emit something** (`raw` + timestamp + `errors`) so the
+operator gets feedback. Two more cases he named: two sentences in a row where the **first lost its `\r\n`**,
+and **garbage between sentences**.
 
-| input | result today | visible to the consumer? |
-| --- | --- | --- |
-| valid sentence | 1 CMA | ✅ |
-| **bad** checksum (`*00`) | 1 CMA **with `errors: ["Invalid checksum: computed 2B, received 00"]`** | ✅ locked decision 4b |
-| unknown id, good checksum | 1 CMA, generic decode, `protocol.version: 'unknown'` | ✅ |
-| **no checksum at all** (`$HEHDT,123.4,T\r\n`) | **0 CMA, buffer emptied** | ❌ **silently gone** |
-| **no `$` start flag** | **0 CMA, buffer emptied** | ❌ **silently gone** |
-| **pure garbage** (`hello world\r\n`) | **0 CMA, buffer emptied** | ❌ **silently gone** |
-| garbage THEN valid | 1 CMA (the valid one); the garbage vanishes | ⚠️ partial |
-| valid THEN garbage | 1 CMA (the valid one); the garbage vanishes | ⚠️ partial |
+**cru's hard constraint: "I do not want to break the CMA contract at all."** So failed/garbage sentences are
+made to FIT the existing CMA type — mandatory values become `'unknown'`, nested ones too — and the detection
+signal is the **already-existing optional `errors: string[]`**. No new key, no new variant, no new schema.
 
-**So the gap is precise:** input that never becomes a candidate sentence at all is dropped **without a
-trace** — no CMA, no error, nothing left on the buffer. A bad *checksum* is reported; a bad *frame* is not.
-Nothing is corrupted (a following valid sentence still parses), but a consumer cannot tell that data was
-discarded — which is exactly what you want to know when a device is misconfigured or a line is noisy.
+**Decisions (all cru's, 2026-07-29):**
+- **D1 — detection = presence of `errors[]`.** Consistent with locked decision 4b (bad checksum).
+- **D2 — garbage sentence = everything mandatory set to `'unknown'`** (`id`, `protocol.name`,
+  `protocol.version`, `metadata.checksum`), `payload: []`. *"The important in the garbage sentence is we have
+  the raw (to see the garbage) + its timestamp to know when it was parsed + the errors[] telling us is
+  garbage."*
+- **D3 — a malformed checksum is still checked against the data**, so **two independent errors**: the format
+  one (not 2 characters) and the mismatch one. Consequence worth knowing: a device that drops the **leading
+  zero** (computes `0x04`, sends `*4`) gets **only** the format error, because `'4'` still compares equal — no
+  false corruption claim.
+- **D4 — missing `\r\n` ⇒ a regular parsed sentence + a "missing end flag" error.**
+- **D5 — the MODEL (`GarbageSentence` + `UNKNOWN`) goes in `protocol-core`; ALL the logic stays in
+  nmea-parser.** cru: *"norsub inherits this behaviour for free, because it lives in the nmea parser."*
+- **Q1 — a lone `\n` is a MALFORMED terminator** (parsed + error), not a missing one.
+- **Q2 — a `$`-chunk with NO `*` is GARBAGE, not a sentence.** cru's reasoning: *"if the `*` character is
+  missing, we don't know if there are missing more fields, so it is better to mark as garbage because we
+  don't really know how many characters are missing."* This **supersedes** the earlier note that
+  checksum-less input should simply be dropped.
+- **Q3 — garbage is emitted immediately.** cru: *"imagine we connect to a wrong device which is emitting
+  with a binary protocol — emit immediately the discarded input, at least give us some feedback."*
+- **Q4 — when the buffer overflows, flush its content as a garbage sentence.** cru: *"as you pointed (i have
+  experimented) many binary protocols include the `$` in their sentences"* — so an unterminated chunk could
+  grow forever and stay silent. **This also fixed a latent bug: `bufferLimit` was stored and validated but
+  enforced NOWHERE.**
 
-**Context the next session needs:**
-- The locked rule (**decision 4b**) covers only "bad checksum ⇒ emit WITH a sentence-level error, never
-  drop". It says nothing about "not a sentence at all".
-- cru already decided (2026-07-29) that **a checksum is ALWAYS present** on real NorSub/NMEA telegrams — the
-  manual's checksum-less RDI ADCP format is a typo. So *dropping* checksum-less input was the right call; the
-  open question is whether it should be **reported** rather than silent.
-- `CMA.errors` already exists (`string[]`, optional) and is how the bad-checksum case surfaces.
-- This is **core / nmea-parser-level** work (`extractSentences` / `parseSentence`), so it lands in
-  `@coremarine/protocol-core` + `nmea-parser` and every parser inherits it — norsub included, for free.
-- **Output-shape impact:** whatever shape is chosen is a **CMA-contract change** and therefore breaking for
-  Tracker. Options worth putting to cru: a separate `msg.failed` / return channel; a synthetic CMA carrying
-  only `raw` + `errors`; or a parser-level counter/event. Do not pick one unilaterally.
+**What changed in the code:**
+- **`protocol-core`:** `UNKNOWN` constant + the `GarbageSentence` type (model only, no logic — D5).
+- **`nmea-parser/src/sentences.ts`:** the old `getUnparsedNMEASentences` **filter chain is gone** — that was
+  the bug's root cause: *anything a `.filter()` rejected simply disappeared*. Replaced by **`scanBuffer`**,
+  which accounts for **every character** (sentence attempt / garbage / pending tail). Plus `garbageSentence`,
+  a checksum-format error, terminator handling for `\r\n` | `\n` | none, `lastIndexOf('*')` for the delimiter,
+  and adjacent-garbage **coalescing** (one report per noisy burst, not a flood). Blank space between
+  sentences is deliberately **ignored** — reporting it would be the exact noise cru wants to avoid.
+- **`nmea-parser/src/parser.ts`:** `extractSentences` maps scanned chunks → CMAs.
+- **Tests:** nmea-parser **71 → 93**. Two old specs that asserted the silent-drop behaviour were rewritten to
+  assert the new contract; the norsub wrapper's "garbage returns `[]`" spec likewise.
+- ⚠️ **Not yet done: the version bump to `4.0.0`** (see the banner) and the READMEs.
 
 ## Decisions (locked unless cru says otherwise)
 

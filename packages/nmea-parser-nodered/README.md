@@ -27,11 +27,34 @@ Each input proerty would be responded in the same output property
 
 | Output property        | Description                                                                                                                    |
 | :--------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| payload (array)        | The parsing output of the CoreMarine NMEA Parser — an array of **CMA** objects (the unified CoreMarine output format), one per NMEA sentence. |
+| payload (array)        | The parsing output of the CoreMarine NMEA Parser — an array of **CMA** objects (the unified CoreMarine output format), one per NMEA sentence. **Includes sentences that failed to parse** — see below. |
 | *`memory`* (object)    | Response to the *memory* input (look details below).                                                                           |
 | *`protocols`* (object) | Response to the *protocols* input (look details below).                                                                        |
 | *`sentence`* (string)  | Response to the *sentence* input (look details below).                                                                         |
 | *`fake`* (string)      | Response to the *fake* input (look details below).                                                                             |
+
+## Failed and garbage sentences
+
+**Since 3.0.0 nothing is dropped silently.** Real devices break the NMEA standard, and an empty
+`msg.payload` array used to hide that completely. Now every piece of input comes out in
+`msg.payload`, and a problem is signalled by the optional **`errors`** array on the CMA:
+
+- **A malformed sentence is still fully decoded** and carries `errors` — e.g. a device sending a
+  one-character checksum, or two sentences in a row where the first lost its `\r\n`.
+- **Undecodable input** (line noise, a wrong device speaking a binary protocol) comes out as a
+  *garbage* CMA: `id: 'unknown'`, `payload: []`, `protocol: { name: 'unknown', version: 'unknown' }`,
+  the discarded bytes in `raw`, and `errors` saying why.
+
+A `switch` node on `errors`/`id` is the usual way to route these to a separate branch:
+
+```javascript
+// in a function node, split good from bad without logging the same error forever
+const bad = msg.payload.filter((cma) => cma.errors !== undefined)
+const good = msg.payload.filter((cma) => cma.errors === undefined)
+return [{ payload: good }, bad.length ? { payload: bad } : null]
+```
+
+Full rules and the reasoning: [`docs/CMA.md`](https://github.com/core-marine-dev/devices/blob/main/docs/CMA.md).
 
 ## Details
 
@@ -95,6 +118,19 @@ This fake sentence is correct in terms of NMEA requirements but each field has g
 |       Input        |            Output            |
 | :----------------: | :--------------------------: |
 | `fake`: **string** | `fake`: **string** \| `null` |
+
+## Upgrading from 2.x
+
+The **msg API is unchanged** — same input and output properties. Two behavioural changes, both from
+the underlying library going to `4.0.0`:
+
+1. **`msg.payload` now also contains failed and garbage sentences** (see
+   [above](#failed-and-garbage-sentences)). Previously they were silently discarded, so a flow that
+   assumed every CMA in the array was usable should now check `errors` (or `id === 'unknown'`).
+   Nothing else about a good sentence changed.
+2. **Two new built-in sentences:** the proprietary Kongsberg Seatex `PSXN20` and `PSXN23`. A
+   `$PSXN,...` telegram now arrives with `id: 'PSXN20'` / `'PSXN23'` and fully named, typed fields
+   instead of a generic `PSXN` with unknown fields.
 
 ## Development
 

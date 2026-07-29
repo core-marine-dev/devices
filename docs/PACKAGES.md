@@ -8,8 +8,8 @@ Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`
 
 | Package | Version | Output | On `protocol-core` | Parser API |
 | --- | --- | --- | --- | --- |
-| `@coremarine/nmea-parser` | **3.2.0** (npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/norsub-emru` | **3.0.0** (npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/nmea-parser` | **4.0.0** (pending) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/norsub-emru` | **4.0.0** (pending) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ | `addData(buf)` + `parseData()` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ | `addData(buf)` + `getFrames()` |
 | `@coremarine/thelmabiotel-tblive` | 1.0.3 | **CMA-shaped** (not on the base class) | ❌ | `addData(str)` + `parseData()` |
@@ -23,11 +23,15 @@ is refactored.
 - **nmea-parser** — the finished CMA reference: `NMEAParser extends StringParser`, `CMA[]` output,
   3-level metadata (sentence / field / payload), timestamp metadata, `Result` pattern, knowledge fed by
   YAML string (`addSentences`) or the generated built-in (`protocols/nmea.yml` → `src/nmea.ts`). Since
-  3.1.0 it exposes two `protected` extension points for device parsers built on top —
+  3.1.0 it exposes `protected` extension points for device parsers built on top —
   `registerProtocols` and `registerAggregators` — see its README §"Extending" and
-  `tests/extension.test.ts`. Remaining cruft: a committed `legacy/` folder + stray root files
-  (`morenmea.tss`).
-- **norsub-emru** — **refactored onto CMA (2026-07-29), not yet released.** `NorsubParser implements
+  `tests/extension.test.ts`. **New in 4.0.0 (2026-07-29):** (a) **no input is dropped
+  silently** — malformed sentences are emitted with `errors[]` and undecodable input as *garbage
+  sentences* (`src/sentences.ts` `scanBuffer`), and `bufferLimit` is finally enforced; (b) **sentence
+  resolvers** (`src/resolvers.ts`, third extension point `registerResolvers`) split one wire id into
+  several definitions — built-in `$PSXN` → `PSXN20`/`PSXN23` (Kongsberg Seatex). Both in
+  [`CMA.md`](CMA.md). Remaining cruft: a committed `legacy/` folder + stray root files (`morenmea.tss`).
+- **norsub-emru** — refactored onto CMA. **4.0.0 (pending): inherits both nmea-parser 4.0.0 changes with no source change of its own.** `NorsubParser implements
   DeviceParser<string>` is a device facade that **composes** its protocol parser (one protocol active at a
   time, `protocol: 'nmea'` today) rather than extending one, so adding the binary protocols the device
   also supports (TSS1, Atlas, Ifremer Victor, Simrad EM 3000, custom) is additive. The protocol layer
@@ -55,8 +59,8 @@ Node id is `cma-<device>` in all of them.
 
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
-| nmea-parser-nodered | **2.0.1** (npm) | `workspace:^` → `^3.0.2` | `node:test`, **enabled in CI** (19/19) | **The template.** TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
-| norsub-emru-nodered | **2.0.0** (npm) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (34/34) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
+| nmea-parser-nodered | **3.0.0** (pending) | `workspace:^` → `^4.0.0` | `node:test`, **enabled in CI** (19/19) | **The template.** TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
+| norsub-emru-nodered | **3.0.0** (pending) | `workspace:^` → `^4.0.0` | `node:test`, **enabled in CI** (34/34) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | 1.0.1 | `workspace:^` | mocha, CI test job disabled | `test:vitest` script but no vitest.config.ts |
 | sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |
 | thelmabiotel-tblive-nodered | 1.0.0 | `workspace:^` | `test` script but **no specs** | commits Node-RED runtime junk in `tests/nodered/data/`; extra `receiver` node only in the docker mirror |
