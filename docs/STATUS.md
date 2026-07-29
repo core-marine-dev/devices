@@ -24,7 +24,14 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> **🟢 2026-07-29 — TASK 3b: the `norsub-emru-nodered` WRAPPER IS CODE-COMPLETE AND GREEN (uncommitted).**
+> **🚦 2026-07-29 — TASK 3b COMMITTED, PUSHED, PR [#73](https://github.com/core-marine-dev/devices/pull/73)
+> OPEN, `dev` CI GREEN — waiting on cru's merge (he said he will merge later).** 7 commits on `dev`
+> (`b8bb4be`..`4a13763`), tree clean apart from the pre-existing untracked `probe.tmp.ts`. The
+> `norsub-emru-nodered` workflow ran for the **FIRST TIME EVER** and is green on 22.x + 24.x; only that
+> workflow fired (nothing else changed). The merge publishes **`@coremarine/norsub-emru-nodered@2.0.0`**
+> and nothing else.
+>
+> **🟢 TASK 3b: the `norsub-emru-nodered` WRAPPER IS CODE-COMPLETE AND GREEN.**
 > Rebuilt from the `nmea-parser-nodered` template: TS → tsup → CJS, pure `src/lib.ts` + thin
 > `src/parser.ts`, `node:test` (**34/34**, incl. real headless node-red), new example flow, README and
 > node help written from scratch, CI **test job re-enabled + `needs: test` restored**. Version
