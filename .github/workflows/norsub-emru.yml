@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - packages/norsub-emru/**
+      # the shared protocols generator is a build input for this package
+      - scripts/**
 
 jobs:
   test:
@@ -31,9 +33,10 @@ jobs:
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      # norsub-emru extends nmea-parser — its dist must exist first.
+      # norsub-emru extends nmea-parser, which extends protocol-core — both
+      # `exports` point only at `dist/`, so both must be built first.
       - name: 🛠️ Build monorepo deps
-        run: "pnpm run nmea-parser:build"
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build"
 
       - name: 🧑‍🔬 Tests
         run: "pnpm run norsub-emru:test"
@@ -83,10 +86,11 @@ jobs:
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
 
-      # norsub-emru extends nmea-parser — its dist must exist first.
+      # norsub-emru extends nmea-parser, which extends protocol-core — both
+      # `exports` point only at `dist/`, so both must be built first.
       - name: 🛠️ Build monorepo deps
         if: steps.check.outputs.publish == 'true'
-        run: "pnpm run nmea-parser:build"
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build"
 
       - name: 🛠️ Build
         if: steps.check.outputs.publish == 'true'
