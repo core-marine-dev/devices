@@ -1,9 +1,11 @@
+// installed
 import type { ProtocolsFileContent } from '@coremarine/nmea-parser'
 
 export const NORSUB_SENTENCES: ProtocolsFileContent = {
   protocols: [
     {
       protocol: 'GYROCOMPAS1',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -11,7 +13,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
           payload: [
             {
               name: 'heading',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
             },
             {
@@ -25,7 +27,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
           payload: [
             {
               name: 'pitch',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
             },
             {
@@ -35,7 +37,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             },
             {
               name: 'roll',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
             },
             {
@@ -58,6 +60,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -98,7 +101,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n\n1 - No Error',
+              description: '0 - Error\n1 - No Error',
             },
           ],
         },
@@ -106,6 +109,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB2',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -152,7 +156,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n\n1 - No Error',
+              description: '0 - Error\n1 - No Error',
             },
           ],
         },
@@ -160,6 +164,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB6',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -256,7 +261,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n\n1 - No Error',
+              description: '0 - Error\n1 - No Error',
             },
           ],
         },
@@ -264,6 +269,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB7',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -397,6 +403,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB7b',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -534,6 +541,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB8',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -668,6 +676,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'NORSUB PRDID',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -689,6 +698,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'Tokimek PTVG',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -696,20 +706,18 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
           payload: [
             {
               name: 'pitch',
-              type: 'float64',
-              units: 'deg',
-              description: 'Multiplied by 100, a [-] bow up / a [space] bow down',
+              type: 'string',
+              description: 'abbbbP: value x100 with a trailing P, [-] bow up / [space] bow down. Decoded degrees are in the field metadata',
             },
             {
               name: 'roll',
-              type: 'float64',
-              units: 'deg',
-              description: 'Multiplied by 100, a [-] bow up / a [space] bow down',
+              type: 'string',
+              description: 'accccR: value x100 with a trailing R, [-] bow up / [space] bow down. Decoded degrees are in the field metadata',
             },
             {
               name: 'heading',
-              type: 'float64',
-              units: 'deg',
+              type: 'string',
+              description: 'ddd.dT: degrees with a trailing T. Decoded degrees are in the field metadata',
             },
           ],
         },
@@ -717,6 +725,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'RDI ADCP',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -745,6 +754,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'SMCA',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -763,7 +773,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
               description: '±100 degs, resolution 0.001 degs',
             },
             {
-              name: 'heading',
+              name: 'heave',
               type: 'float64',
               units: 'm',
               description: '±10 m, resolution 0.01 m',
@@ -786,6 +796,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
     },
     {
       protocol: 'SMCC',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {

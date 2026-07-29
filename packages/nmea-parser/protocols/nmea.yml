@@ -27,7 +27,7 @@ protocols:
               V = perpendicular not passed"
           # 3
           - name: arrival_circle_radius
-            type: float32
+            type: float64
           # 4
           - name: radius_units
             type: string
@@ -54,7 +54,7 @@ protocols:
             description: "Local datum subdivision code (x)"
           # 3
           - name: latitude_offset
-            type: float32
+            type: float64
             units: minutes
             description: Latitude offset, in minutes (x.x)
           # 4
@@ -63,7 +63,7 @@ protocols:
             description: N/S (x)
           # 5
           - name: longitude_offset
-            type: float32
+            type: float64
             units: minutes
             description: "Longitude offset, in minutes (x.x)"
           # 6
@@ -72,7 +72,7 @@ protocols:
             description: E/W (x)
           # 7
           - name: altitude_offset
-            type: float32
+            type: float64
             units: meters
             description: "Altitude offset, in meters (x.x)"
           # 8
@@ -283,15 +283,15 @@ protocols:
               64+ for GLONASS"
           # 15
           - name: pdop
-            type: float32
+            type: float64
             description: "PDOP: 0.5 to 99.9"
           # 16
           - name: hdop
-            type: float32
+            type: float64
             description: "HDOP: 0.5 to 99.9"
           # 17
           - name: vdop
-            type: float32
+            type: float64
             description: "VDOP: 0.5 to 99.9"
           # 18
           # - name: system_id
@@ -461,7 +461,7 @@ protocols:
         payload:
           # 1
           - name: heading
-            type: float32
+            type: float64
             description: "Heading, degrees True"
           # 2
           - name: "true"
@@ -472,7 +472,7 @@ protocols:
         payload:
           # 1
           - name: wind_angle
-            type: float32
+            type: float64
             units: deg
             description: "Wind angle, 0.0 to 359.9 degrees relative to the vessel's bow/centerline"
           # 2
@@ -481,7 +481,7 @@ protocols:
             description: "Reference: R = Relative, T = True"
           # 3
           - name: wind_speed
-            type: float32
+            type: float64
             description: "Wind speed to the nearest tenth of a unit"
           # 4
           - name: wind_speed_units
@@ -496,7 +496,7 @@ protocols:
         payload:
           # 1
           - name: heading
-            type: float32
+            type: float64
             units: deg
             description: "Heading in degrees True, 0.00 to 359.99"
           # 2
@@ -513,7 +513,7 @@ protocols:
         payload:
           # 1
           - name: track_degrees_true
-            type: float32
+            type: float64
             units: deg
             description: "Track angle in degrees True"
           # 2
@@ -522,7 +522,7 @@ protocols:
             description: "T = True"
           # 3
           - name: track_degrees_magnetic
-            type: float32
+            type: float64
             units: deg
             description: "Track angle in degrees Magnetic"
           # 4
@@ -531,7 +531,7 @@ protocols:
             description: "M = Magnetic"
           # 5
           - name: speed_knots
-            type: float32
+            type: float64
             units: knots
             description: "Speed over ground in knots"
           # 6
@@ -540,7 +540,7 @@ protocols:
             description: "N = Knots"
           # 7
           - name: speed_kilometers_per_hour
-            type: float32
+            type: float64
             units: km/h
             description: "Speed over ground in kilometers per hour"
           # 8
@@ -630,7 +630,7 @@ protocols:
           # --- Wave parameters: 43 value/status pairs ---
           # 6-7 — confirmed
           - name: SDp1
-            type: float32
+            type: float64
             units: m²/Hz
             description: "Primary wave spectral density"
           - name: SDp1_status
@@ -638,7 +638,7 @@ protocols:
             description: "Status code (0-9)"
           # 8-9 — confirmed
           - name: Hm0
-            type: float32
+            type: float64
             units: m
             description: "Significant wave height"
           - name: Hm0_status
@@ -646,7 +646,7 @@ protocols:
             description: "Status code (0-9)"
           # 10-11 — confirmed
           - name: Hmax
-            type: float32
+            type: float64
             units: m
             description: "Maximum wave height"
           - name: Hmax_status
@@ -654,7 +654,7 @@ protocols:
             description: "Status code (0-9)"
           # 12-13 — confirmed
           - name: HTmax
-            type: float32
+            type: float64
             units: m
             description: "Wave height of maximum wave period"
           - name: HTmax_status
@@ -662,7 +662,7 @@ protocols:
             description: "Status code (0-9)"
           # 14-15 — confirmed
           - name: Tp1
-            type: float32
+            type: float64
             units: s
             description: "Primary wave peak period"
           - name: Tp1_status
@@ -670,7 +670,7 @@ protocols:
             description: "Status code (0-9)"
           # 16-17 — confirmed
           - name: Tp2
-            type: float32
+            type: float64
             units: s
             description: "Secondary wave peak period"
           - name: Tp2_status
@@ -678,7 +678,7 @@ protocols:
             description: "Status code (0-9)"
           # 18-19 — confirmed
           - name: Tpc
-            type: float32
+            type: float64
             units: s
             description: "Calculated wave peak period"
           - name: Tpc_status
@@ -686,7 +686,7 @@ protocols:
             description: "Status code (0-9)"
           # 20-21 — confirmed
           - name: Ts
-            type: float32
+            type: float64
             units: s
             description: "Significant wave period"
           - name: Ts_status
@@ -694,7 +694,7 @@ protocols:
             description: "Status code (0-9)"
           # 22-23 — confirmed
           - name: Tm0_1
-            type: float32
+            type: float64
             units: s
             description: "Energy wave period (Te)"
           - name: Tm0_1_status
@@ -702,7 +702,7 @@ protocols:
             description: "Status code (0-9)"
           # 24-25 — confirmed
           - name: Tm0_2
-            type: float32
+            type: float64
             units: s
             description: "Integral wave period"
           - name: Tm0_2_status
@@ -710,7 +710,7 @@ protocols:
             description: "Status code (0-9)"
           # 26-27 — confirmed
           - name: Tm02
-            type: float32
+            type: float64
             units: s
             description: "Mean zero up-crossing period"
           - name: Tm02_status
@@ -718,7 +718,7 @@ protocols:
             description: "Status code (0-9)"
           # 28-29 — confirmed
           - name: Tm01
-            type: float32
+            type: float64
             units: s
             description: "Mean period"
           - name: Tm01_status
@@ -726,7 +726,7 @@ protocols:
             description: "Status code (0-9)"
           # 30-31 — confirmed
           - name: Tmax
-            type: float32
+            type: float64
             units: s
             description: "Maximum wave period"
           - name: Tmax_status
@@ -734,7 +734,7 @@ protocols:
             description: "Status code (0-9)"
           # 32-33 — confirmed
           - name: THmax
-            type: float32
+            type: float64
             units: s
             description: "Wave period of maximum wave height"
           - name: THmax_status
@@ -742,14 +742,14 @@ protocols:
             description: "Status code (0-9)"
           # 34-35 — inferred (?)
           - name: steepness
-            type: float32
+            type: float64
             description: "(?) Wave steepness"
           - name: steepness_status
             type: uint8
             description: "Status code (0-9)"
           # 36-37 — inferred (?)
           - name: Dp1_t
-            type: float32
+            type: float64
             units: degrees
             description: "(?) Primary wave peak direction, true north"
           - name: Dp1_t_status
@@ -757,7 +757,7 @@ protocols:
             description: "Status code (0-9)"
           # 38-39 — inferred (?)
           - name: Dm_t
-            type: float32
+            type: float64
             units: degrees
             description: "(?) Total energy mean direction, true north"
           - name: Dm_t_status
@@ -765,7 +765,7 @@ protocols:
             description: "Status code (0-9)"
           # 40-41 — inferred (?)
           - name: spread1
-            type: float32
+            type: float64
             units: degrees
             description: "(?) Primary directional spreading"
           - name: spread1_status
@@ -773,7 +773,7 @@ protocols:
             description: "Status code (0-9)"
           # 42-43 — inferred (?)
           - name: Dp2_t
-            type: float32
+            type: float64
             units: degrees
             description: "(?) Secondary wave peak direction, true north"
           - name: Dp2_t_status
@@ -781,7 +781,7 @@ protocols:
             description: "Status code (0-9)"
           # 44-45 — inferred (?)
           - name: Dm2_t
-            type: float32
+            type: float64
             units: degrees
             description: "(?) Secondary mean direction, true north"
           - name: Dm2_t_status
@@ -789,7 +789,7 @@ protocols:
             description: "Status code (0-9)"
           # 46-47 — inferred (?)
           - name: spread2
-            type: float32
+            type: float64
             units: degrees
             description: "(?) Secondary directional spreading"
           - name: spread2_status
@@ -797,21 +797,21 @@ protocols:
             description: "Status code (0-9)"
           # 48-49 — inferred (?)
           - name: epsilon
-            type: float32
+            type: float64
             description: "(?) Spectral narrowness parameter"
           - name: epsilon_status
             type: uint8
             description: "Status code (0-9)"
           # 50-51 — inferred (?)
           - name: nu
-            type: float32
+            type: float64
             description: "(?) Spectral bandwidth parameter"
           - name: nu_status
             type: uint8
             description: "Status code (0-9)"
           # 52-53 — inferred (?)
           - name: kappa
-            type: float32
+            type: float64
             description: "(?) Spectral peakedness parameter"
           - name: kappa_status
             type: uint8
@@ -858,98 +858,98 @@ protocols:
             description: "Status code (0-9)"
           # 64-65 — unknown, sample value 3.70
           - name: param_030
-            type: float32
+            type: float64
             description: "Unknown — sample value 3.70"
           - name: param_030_status
             type: uint8
             description: "Status code (0-9)"
           # 66-67 — unknown, sample value 52.51
           - name: param_031
-            type: float32
+            type: float64
             description: "Unknown — sample value 52.51"
           - name: param_031_status
             type: uint8
             description: "Status code (0-9)"
           # 68-69 — unknown, sample value 15.69
           - name: param_032
-            type: float32
+            type: float64
             description: "Unknown — sample value 15.69"
           - name: param_032_status
             type: uint8
             description: "Status code (0-9)"
           # 70-71 — unknown, sample value 157.7 (likely degrees)
           - name: param_033
-            type: float32
+            type: float64
             description: "Unknown — sample value 157.7"
           - name: param_033_status
             type: uint8
             description: "Status code (0-9)"
           # 72-73 — unknown, sample value 7.85
           - name: param_034
-            type: float32
+            type: float64
             description: "Unknown — sample value 7.85"
           - name: param_034_status
             type: uint8
             description: "Status code (0-9)"
           # 74-75 — unknown, sample value 45 (likely degrees)
           - name: param_035
-            type: float32
+            type: float64
             description: "Unknown — sample value 45"
           - name: param_035_status
             type: uint8
             description: "Status code (0-9)"
           # 76-77 — unknown, sample value 50
           - name: param_036
-            type: float32
+            type: float64
             description: "Unknown — sample value 50"
           - name: param_036_status
             type: uint8
             description: "Status code (0-9)"
           # 78-79 — unknown, sample value 45
           - name: param_037
-            type: float32
+            type: float64
             description: "Unknown — sample value 45"
           - name: param_037_status
             type: uint8
             description: "Status code (0-9)"
           # 80-81 — reserved (always empty, status 9)
           - name: reserved_038
-            type: float32
+            type: float64
             description: "Reserved (always empty)"
           - name: reserved_038_status
             type: uint8
             description: "Status code (0-9)"
           # 82-83
           - name: reserved_039
-            type: float32
+            type: float64
             description: "Reserved (always empty)"
           - name: reserved_039_status
             type: uint8
             description: "Status code (0-9)"
           # 84-85
           - name: reserved_040
-            type: float32
+            type: float64
             description: "Reserved (always empty)"
           - name: reserved_040_status
             type: uint8
             description: "Status code (0-9)"
           # 86-87
           - name: reserved_041
-            type: float32
+            type: float64
             description: "Reserved (always empty)"
           - name: reserved_041_status
             type: uint8
             description: "Status code (0-9)"
           # 88-89
           - name: reserved_042
-            type: float32
+            type: float64
             description: "Reserved (always empty)"
           - name: reserved_042_status
             type: uint8
             description: "Status code (0-9)"
           # 90-91
           - name: reserved_043
-            type: float32
+            type: float64
             description: "Reserved (always empty)"
           - name: reserved_043_status
             type: uint8
@@ -985,7 +985,7 @@ protocols:
             description: "Sequence number (max 8 chars)"
           # 6-7
           - name: current_speed_dir1
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 1"
           - name: current_speed_dir1_status
@@ -993,7 +993,7 @@ protocols:
             description: "Status code (0-9)"
           # 8-9
           - name: current_speed_dir2
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 2"
           - name: current_speed_dir2_status
@@ -1001,7 +1001,7 @@ protocols:
             description: "Status code (0-9)"
           # 10-11
           - name: current_speed_dir3
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 3"
           - name: current_speed_dir3_status
@@ -1009,7 +1009,7 @@ protocols:
             description: "Status code (0-9)"
           # 12-13
           - name: current_speed_dir4
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 4"
           - name: current_speed_dir4_status
@@ -1017,7 +1017,7 @@ protocols:
             description: "Status code (0-9)"
           # 14-15
           - name: current_speed_dir5
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 5"
           - name: current_speed_dir5_status
@@ -1025,7 +1025,7 @@ protocols:
             description: "Status code (0-9)"
           # 16-17
           - name: current_speed_dir6
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 6"
           - name: current_speed_dir6_status
@@ -1033,7 +1033,7 @@ protocols:
             description: "Status code (0-9)"
           # 18-19
           - name: current_speed_dir7
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 7"
           - name: current_speed_dir7_status
@@ -1041,7 +1041,7 @@ protocols:
             description: "Status code (0-9)"
           # 20-21
           - name: current_speed_dir8
-            type: float32
+            type: float64
             units: m/s
             description: "Current speed, direction 8"
           - name: current_speed_dir8_status
@@ -1049,7 +1049,7 @@ protocols:
             description: "Status code (0-9)"
           # 22-23
           - name: current_speed
-            type: float32
+            type: float64
             units: m/s
             description: "Aggregated surface current speed"
           - name: current_speed_status
@@ -1057,7 +1057,7 @@ protocols:
             description: "Status code (0-9)"
           # 24-25
           - name: current_direction_vessel
-            type: float32
+            type: float64
             units: degrees
             description: "Current direction relative to vessel heading"
           - name: current_direction_vessel_status
@@ -1065,7 +1065,7 @@ protocols:
             description: "Status code (0-9)"
           # 26-27
           - name: current_direction_true
-            type: float32
+            type: float64
             units: degrees
             description: "Current direction relative to true north"
           - name: current_direction_true_status
@@ -1113,12 +1113,12 @@ protocols:
             description: "Number of frequency bins"
           # 7
           - name: start_frequency
-            type: float32
+            type: float64
             units: Hz
             description: "Start frequency"
           # 8
           - name: frequency_resolution
-            type: float32
+            type: float64
             units: Hz
             description: "Frequency resolution"
           # 9
@@ -1133,7 +1133,7 @@ protocols:
           #   ...
           #   [(D)*n .. (D+1)*n-1] = Directional spectrum, direction D
           - name: spectrum_data
-            type: float32
+            type: float64
             description: "Variable-length array: num_frequencies * (1 + num_directions) floats.
               Parser must read num_frequencies and num_directions from header.
               First block = point spectrum, then one block per direction."
@@ -1142,7 +1142,7 @@ protocols:
             type: uint8
             description: "Status code for the spectrum (0-9)"
           - name: average_vessel_heading
-            type: float32
+            type: float64
             units: degrees
             description: "Average vessel heading during measurement"
           - name: reserved_1

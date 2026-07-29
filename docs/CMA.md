@@ -111,6 +111,23 @@ unknown>`; sentence metadata (`cma.metadata`) is a **loose** object — a typed,
   may change, so they are never used as keys. See [`docs/NMEA.md`](NMEA.md) for the
   `MetadataAggregator` contract + "How to add an aggregator" recipe (nmea-parser is the reference).
 
+### Device-level metadata may be mirrored at payload level (LOCKED 2026-07-28, cru)
+
+Metadata that describes **the whole device** rather than one field **MAY also be published at payload
+level** (`cma.metadata.payload`) even when a single field produced it — the "≥2 fields" rule above is
+the *minimum* for payload metadata, not an exclusivity rule.
+
+The reason is supply-chain substitutability: consumers (Tracker) then have **ONE read path** regardless
+of how a given device variant happens to split the data across fields. Worked example — the NorSub MRU
+status word: `PNORSUB8` carries it in a single `uint32` field, `PNORSUB7b` splits it into `status_a` +
+`status_b` (`uint16` each). Both publish the decoded tree at `cma.metadata.payload.status`; `PNORSUB8`
+*additionally* publishes it on its own field (`payload[23].metadata.status`) because that field is
+self-sufficient, while `PNORSUB7b` publishes nothing at field level (neither half decodes alone). Swap
+the hardware from a norsub7b to a norsub8 and no downstream code changes — only the electronics.
+
+Rule of thumb: put it where it belongs (field if one field suffices, payload if it took several) **and**
+mirror it at payload level when it characterises the device as a whole.
+
 ### Timestamp metadata (LOCKED 2026-07-13, cru)
 
 `cma.metadata.timestamp` is present on **every** emitted sentence, for every parser, and holds
@@ -147,12 +164,12 @@ threw before the refactor returns a `Result` after it.
 - `misc/archive/sbg2cma-comparison-dump.txt` (local) — captured comparison dump per SBG log type.
 - [SBG-REPORT.md](SBG-REPORT.md) — what sbg-ecom's legacy output looks like today.
 
-## Conformance state (2026-07)
+## Conformance state (2026-07-29)
 
 | Library | Output today |
 | --- | --- |
-| thelmabiotel-tblive | **CMA-shaped** (+extra `mode`/`firmware` top-level keys) |
-| nmea-parser | legacy `NMEASentence` (`received`/`sample` instead of `timestamp`/`raw`) |
-| norsub-emru | inherits nmea-parser legacy shape |
+| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`) |
+| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level (refactored 2026-07-29, release pending) |
+| thelmabiotel-tblive | **CMA-shaped** but not on the base class (+extra `mode`/`firmware` top-level keys, to move into `metadata`) |
 | septentrio-sbf | legacy `SBFResponse` (frame header/time/body) |
 | sbg-ecom | legacy `SBGFrameResponse` (frame header/data/footer) |

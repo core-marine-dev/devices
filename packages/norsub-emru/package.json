@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/norsub-emru",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Library to work with eMRU devices of NorSub company",
   "author": "Core Marine",
   "license": "MIT",
@@ -42,15 +42,15 @@
     "dist"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "scripts": {
-    "protocols": "node yaml-to-json.js ./protocols/norsub.yaml ./src/norsub.ts",
+    "protocols": "node ../../scripts/yaml-to-ts.mjs ./protocols/norsub.yml ./src/norsub.ts --name=NORSUB_SENTENCES --type=ProtocolsFileContent --type-from=@coremarine/nmea-parser",
     "build": "pnpm run protocols && pnpm run format && tsup",
     "lint": "eslint",
     "format": "eslint --fix",
-    "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test": "pnpm run protocols && vitest",
+    "test:coverage": "pnpm run protocols && vitest run --coverage"
   },
   "dependencies": {
     "@coremarine/nmea-parser": "workspace:^",

@@ -171,7 +171,7 @@ protocols:
             units: nautic miles               # optional
             description: A = entered, V = not passed   # optional
           - name: arrival_circle_radius
-            type: float32
+            type: float64
 ```
 
 Field `type` is one of the CMA types (`char`, `string`, `boolean`, `int8`…`int64`, `uint8`…`uint64`, `float32`, `float64`). Multiple definitions may share an `id` across versions (different field counts); on parse, the newest matching definition (by field count, then version) is applied.

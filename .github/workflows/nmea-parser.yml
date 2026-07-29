@@ -5,6 +5,8 @@ on:
   push:
     paths:
       - packages/nmea-parser/**
+      # the shared protocols generator is a build input for this package
+      - scripts/**
 
 jobs:
   test:
