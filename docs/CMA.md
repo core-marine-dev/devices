@@ -270,8 +270,8 @@ that is a positive "the content is intact" signal, which is exactly what it shou
 
 | Library | Output today |
 | --- | --- |
-| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`) |
-| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level (shipped 2026-07-29 as 3.0.0) |
-| thelmabiotel-tblive | **CMA-shaped** but not on the base class (+extra `mode`/`firmware` top-level keys, to move into `metadata`) |
+| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`, failed/garbage sentences, sentence resolvers). **npm 4.0.0** |
+| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level. **npm 4.0.0** |
+| thelmabiotel-tblive | **CMA-shaped** but not on the base class (+extra `mode`/`firmware` top-level keys, to move into `metadata`). **NEXT to convert** — nothing designed yet |
 | septentrio-sbf | legacy `SBFResponse` (frame header/time/body) |
 | sbg-ecom | legacy `SBGFrameResponse` (frame header/data/footer) |
