@@ -1,6 +1,6 @@
 # Package inventory
 
-State as of **2026-07-28** (branch `dev`). CMA = the unified output format, see [CMA.md](CMA.md).
+State as of **2026-07-29** (branch `dev`). CMA = the unified output format, see [CMA.md](CMA.md).
 Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`BinaryParser`,
 `DeviceParser<B>` contract, `Result`, CMA schemas), bundled into each parser via tsup `noExternal`.
 
@@ -8,14 +8,15 @@ Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`
 
 | Package | Version | Output | On `protocol-core` | Parser API |
 | --- | --- | --- | --- | --- |
-| `@coremarine/nmea-parser` | **3.1.0** (npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/norsub-emru` | 2.1.0 | legacy (extends pre-3.0 nmea-parser) | ❌ **in progress** | `parseData(text)` — does not build |
+| `@coremarine/nmea-parser` | **3.2.0** (in-tree; 3.1.0 on npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/norsub-emru` | **3.0.0** (unreleased) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ | `addData(buf)` + `parseData()` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ | `addData(buf)` + `getFrames()` |
 | `@coremarine/thelmabiotel-tblive` | 1.0.3 | **CMA-shaped** (not on the base class) | ❌ | `addData(str)` + `parseData()` |
 
-All: `type: module`, dual ESM/CJS via tsup `exports`, MIT. `engines.node`: `>=22` on nmea-parser (the
-two latest LTS are what we test); the other four still say `>= 18` — tighten each as it is refactored.
+All: `type: module`, dual ESM/CJS via tsup `exports`, MIT. `engines.node`: `>=22` on nmea-parser and
+norsub-emru (the two latest LTS are what we test); the other three still say `>= 18` — tighten each as it
+is refactored.
 
 ### Per-library notes / known issues
 
@@ -26,14 +27,17 @@ two latest LTS are what we test); the other four still say `>= 18` — tighten e
   `registerProtocols` and `registerAggregators` — see its README §"Extending" and
   `tests/extension.test.ts`. Remaining cruft: a committed `legacy/` folder + stray root files
   (`morenmea.tss`).
-- **norsub-emru** — **next in the rollout, design locked** (see `STATUS.md` §"Phase 3 — norsub-emru:
-  locked design"). Today it is pre-3.0 legacy and does **not build** (imports removed types, calls
-  `addProtocols`, overrides `parseData`, overwrites `metadata`). Target: a device facade
-  (`implements DeviceParser<string>`, one protocol active at a time) composing
-  `NorsubNMEAParser extends NMEAParser`, which registers the generated NORSUB definitions + status
-  aggregators. Also broken today: `protocols` script (missing `js-yaml` devDep, and the generator's
-  output symbol doesn't match `src/norsub.ts`), and its CI workflow builds `nmea-parser` without
-  building `protocol-core` first.
+- **norsub-emru** — **refactored onto CMA (2026-07-29), not yet released.** `NorsubParser implements
+  DeviceParser<string>` is a device facade that **composes** its protocol parser (one protocol active at a
+  time, `protocol: 'nmea'` today) rather than extending one, so adding the binary protocols the device
+  also supports (TSS1, Atlas, Ifremer Victor, Simrad EM 3000, custom) is additive. The protocol layer
+  `NorsubNMEAParser extends NMEAParser` registers the generated NORSUB definitions via
+  `registerProtocols` and 7 aggregators via `registerAggregators` (status × 6 + `PTVG:3`). Status lands at
+  field **and** payload level for the five single-`uint32` sentences, payload-only for `PNORSUB7b`; the old
+  top-level `metadata.status` is gone. No `sentenceTimestamp` override — `T1`/`T2` are a wrapping internal
+  counter, so only `received`/`parsed` are emitted. Protocol-specific extras are reached through the
+  `parser` getter, not delegated. 45/45 tests.
+
 - **septentrio-sbf** — SBF binary (GNSS). One firmware: `4.10.1` (`src/firmware/4-10-1/` —
   ReceiverTime, PVT group, Attitude group). Deps: `crc`, `gpstime`. Well tested (54/54). Will want a
   `sentenceTimestamp` override for TOW+WNc when refactored.
