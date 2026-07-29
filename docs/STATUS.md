@@ -24,7 +24,32 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> # 🚀 RELEASE READY (2026-07-29, later) — cru's TWO nmea-parser fixes + ALL FOUR packages bumped
+> # 🎉 SHIPPED 2026-07-29 — nmea-parser 4.0.0, norsub-emru 4.0.0, BOTH wrappers 3.0.0 ARE LIVE ON npm
+>
+> PR [#74](https://github.com/core-marine-dev/devices/pull/74) merged by cru at 12:24 UTC, merge commit
+> **`941fd58`**; **`main` @ `941fd58`**. All five workflows green; `npm view` → `nmea-parser 4.0.0`,
+> `norsub-emru 4.0.0`, `nmea-parser-nodered 3.0.0`, `norsub-emru-nodered 3.0.0`. **cru's three items are all
+> delivered: the two fixes + the msg rename.**
+>
+> **✅ Verified against the PUBLISHED packages** (empty temp dir, `npm i`, nothing from the workspace —
+> `npm ls` shows a lone `nmea-parser@4.0.0` + `norsub-emru@4.0.0`):
+> - **Fix 1:** `\x00noise$GPHDT,10.0,T*4\r\n` → a garbage CMA (`id: unknown`) **plus** an `HDT` fully decoded
+>   with only the checksum-**format** error — the dropped leading zero still matches, so no corruption claim.
+> - **Fix 2:** `$PSXN,20,0,1,2,0*3A` → `PSXN20` / `KONGSBERG SEATEX 15` with all four quality **labels**
+>   (`Normal` / `Reduced performance` / `Invalid data`), and `$PSXN,23,...` → `PSXN23` with roll/pitch/heading/
+>   heave. `raw` keeps `$PSXN,...` in both.
+> - **Inheritance:** the published `norsub-emru` reports garbage and a two-error `PHTRO` with **no source
+>   change of its own**.
+> - **Published wrapper tarball:** `3.0.0`, dep `^4.0.0`, `node-red.nodes` → `dist/parser.js`, ships exactly
+>   `dist/ examples/{2 files} README LICENSE` — **no `_cred.json` and no `.backup`** (the packing leak fix
+>   confirmed in production), and the shipped `parser.js` contains `msg.sentences` and **zero**
+>   `msg.protocols`.
+>
+> **➡️ NEXT: `thelmabiotel-tblive`** — move its extra top-level `mode`/`firmware` keys into `metadata` and
+> adopt the base class, then the two binary parsers (`septentrio-sbf`, `sbg-ecom`). One follow-up that is NOT
+> in this repo: **grep Tracker for `field.type` / `'float32'`** (see the note below).
+
+# 🗒️ (previous banner) RELEASE READY — cru's TWO nmea-parser fixes + ALL FOUR packages bumped
 >
 > **Both of cru's fixes are implemented, and they compose.** (1) **Failed + garbage sentences** — nothing is
 > dropped silently any more. (2) **PSXN sentence resolvers** — one wire id (`$PSXN`) split into `PSXN20` /
