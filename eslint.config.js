@@ -21,7 +21,6 @@ export default defineConfig([
     'pnpm-lock.yaml',
     '**/vitest.config.ts',
     '**/tsup.config.ts',
-    '**/yaml-to-json.js',
     '**/gpstime.d.ts',
     '**/legacy/',
   ]),

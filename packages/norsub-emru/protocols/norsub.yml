@@ -1,24 +1,25 @@
 protocols:
   - protocol: GYROCOMPAS1
+    version: '1.2.0'
     standard: false
     sentences:
       - id: HEHDT
         payload:
           - name: heading
-            type: float32
+            type: float64
             units: deg
           - name: symbol
             type: string
       - id: PHTRO
         payload:
           - name: pitch
-            type: float32
+            type: float64
             units: deg
           - name: pitch_direction
             type: string
             description: M bow up, P bow down
           - name: roll
-            type: float32
+            type: float64
             units: deg
           - name: roll_direction
             type: string
@@ -28,6 +29,7 @@ protocols:
           - name: status
             type: string
   - protocol: NORSUB
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PNORSUB
@@ -54,9 +56,9 @@ protocols:
             description: z-down
           - name: status
             type: uint32
-            description: "0 - Error\n
-              1 - No Error"
+            description: "0 - Error\n1 - No Error"
   - protocol: NORSUB2
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PNORSUB2
@@ -87,9 +89,9 @@ protocols:
             description: z-down
           - name: status
             type: uint32
-            description: "0 - Error\n
-              1 - No Error"
+            description: "0 - Error\n1 - No Error"
   - protocol: NORSUB6
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PNORSUB6
@@ -150,9 +152,9 @@ protocols:
             units: m/s2
           - name: status
             type: uint32
-            description: "0 - Error\n
-              1 - No Error"
+            description: "0 - Error\n1 - No Error"
   - protocol: NORSUB7
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PNORSUB7
@@ -232,6 +234,7 @@ protocols:
           - name: status
             type: uint32
   - protocol: NORSUB7b
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PNORSUB7b
@@ -313,6 +316,7 @@ protocols:
           - name: status_b
             type: uint16
   - protocol: NORSUB8
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PNORSUB8
@@ -393,6 +397,7 @@ protocols:
           - name: status
             type: uint32
   - protocol: NORSUB PRDID
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PRDID
@@ -404,6 +409,7 @@ protocols:
             type: float64
             units: deg
   - protocol: Tokimek PTVG
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PTVG
@@ -418,6 +424,7 @@ protocols:
             type: string
             description: "ddd.dT: degrees with a trailing T. Decoded degrees are in the field metadata"
   - protocol: RDI ADCP
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PRDID
@@ -434,6 +441,7 @@ protocols:
             type: float64
             units: deg
   - protocol: SMCA
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PSMCA
@@ -459,6 +467,7 @@ protocols:
             units: m
             description: "±10 m, resolution 0.01 m"
   - protocol: SMCC
+    version: '1.2.0'
     standard: false
     sentences:
       - id: PSMCC
