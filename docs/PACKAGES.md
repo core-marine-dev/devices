@@ -8,8 +8,8 @@ Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`
 
 | Package | Version | Output | On `protocol-core` | Parser API |
 | --- | --- | --- | --- | --- |
-| `@coremarine/nmea-parser` | **3.2.0** (in-tree; 3.1.0 on npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/norsub-emru` | **3.0.0** (unreleased) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/nmea-parser` | **3.2.0** (npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/norsub-emru` | **3.0.0** (npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ | `addData(buf)` + `parseData()` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ | `addData(buf)` + `getFrames()` |
 | `@coremarine/thelmabiotel-tblive` | 1.0.3 | **CMA-shaped** (not on the base class) | ❌ | `addData(str)` + `parseData()` |
@@ -56,7 +56,7 @@ Node id is `cma-<device>` in all of them.
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
 | nmea-parser-nodered | **2.0.1** (npm) | `workspace:^` → `^3.0.2` | `node:test`, **enabled in CI** (19/19) | **The template.** TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
-| norsub-emru-nodered | **2.0.0** (unreleased) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (34/34) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
+| norsub-emru-nodered | **2.0.0** (npm) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (34/34) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | 1.0.1 | `workspace:^` | mocha, CI test job disabled | `test:vitest` script but no vitest.config.ts |
 | sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |
 | thelmabiotel-tblive-nodered | 1.0.0 | `workspace:^` | `test` script but **no specs** | commits Node-RED runtime junk in `tests/nodered/data/`; extra `receiver` node only in the docker mirror |

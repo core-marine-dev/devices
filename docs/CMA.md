@@ -169,7 +169,7 @@ threw before the refactor returns a `Result` after it.
 | Library | Output today |
 | --- | --- |
 | nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`) |
-| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level (refactored 2026-07-29, release pending) |
+| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level (shipped 2026-07-29 as 3.0.0) |
 | thelmabiotel-tblive | **CMA-shaped** but not on the base class (+extra `mode`/`firmware` top-level keys, to move into `metadata`) |
 | septentrio-sbf | legacy `SBFResponse` (frame header/time/body) |
 | sbg-ecom | legacy `SBGFrameResponse` (frame header/data/footer) |
