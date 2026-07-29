@@ -1186,5 +1186,184 @@
     "y": 1400,
     "w": 780,
     "h": 180
+  },
+  {
+    "id": "g-failed",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Failed & garbage sentences — nothing is dropped silently",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "failed-inject-0",
+      "failed-inject-1",
+      "failed-inject-2",
+      "failed-parser",
+      "failed-split",
+      "failed-debug-ok",
+      "failed-debug-bad"
+    ],
+    "x": 140,
+    "y": 1620,
+    "w": 900,
+    "h": 240
+  },
+  {
+    "id": "failed-inject-0",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "1-character checksum (format + mismatch)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "$PHTRO,1.05,M,2.13,M*5\r\n",
+    "payloadType": "str",
+    "x": 260,
+    "y": 1660,
+    "wires": [
+      [
+        "failed-parser"
+      ]
+    ]
+  },
+  {
+    "id": "failed-inject-1",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "missing CRLF between two sentences",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "$HEHDT,123.456,T*28$HEHDT,123.456,T*28\r\n",
+    "payloadType": "str",
+    "x": 260,
+    "y": 1720,
+    "wires": [
+      [
+        "failed-parser"
+      ]
+    ]
+  },
+  {
+    "id": "failed-inject-2",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "line noise / wrong device",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "\u0000\u0001binary protocol data\u0002",
+    "payloadType": "str",
+    "x": 260,
+    "y": 1780,
+    "wires": [
+      [
+        "failed-parser"
+      ]
+    ]
+  },
+  {
+    "id": "failed-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 500,
+    "y": 1720,
+    "wires": [
+      [
+        "failed-split"
+      ]
+    ]
+  },
+  {
+    "id": "failed-split",
+    "type": "function",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "split clean / flagged",
+    "func": "// 4.0.0 — msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 680,
+    "y": 1720,
+    "wires": [
+      [
+        "failed-debug-ok"
+      ],
+      [
+        "failed-debug-bad"
+      ]
+    ]
+  },
+  {
+    "id": "failed-debug-ok",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "clean sentences",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 880,
+    "y": 1680,
+    "wires": []
+  },
+  {
+    "id": "failed-debug-bad",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-failed",
+    "name": "FLAGGED — see errors[]",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 880,
+    "y": 1760,
+    "wires": []
   }
 ]

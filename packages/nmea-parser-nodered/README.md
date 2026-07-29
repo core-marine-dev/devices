@@ -45,6 +45,11 @@ Each input proerty would be responded in the same output property
   *garbage* CMA: `id: 'unknown'`, `payload: []`, `protocol: { name: 'unknown', version: 'unknown' }`,
   the discarded bytes in `raw`, and `errors` saying why.
 
+
+The shipped example flow includes a **"Failed & garbage sentences"** group demonstrating all three
+cases — a one-character checksum, a missing `\r\n`, and line noise — wired through a `function` node
+to separate *clean* and *flagged* debug outputs.
+
 A `switch` node on `errors`/`id` is the usual way to route these to a separate branch:
 
 ```javascript

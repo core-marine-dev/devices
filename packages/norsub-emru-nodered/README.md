@@ -72,6 +72,11 @@ problem is signalled by the optional **`errors`** array on the CMA:
   CMA: `id: 'unknown'`, `payload: []`, `protocol: { name: 'unknown', version: 'unknown' }`, the
   discarded bytes in `raw`, and `errors` saying why.
 
+
+The shipped example flow includes a **"Failed & garbage sentences"** group demonstrating all three
+cases — a one-character checksum, a missing `\r\n`, and line noise — wired through a `function` node
+to separate *clean* and *flagged* debug outputs.
+
 Route them apart in a `function` node instead of logging the same error forever:
 
 ```javascript

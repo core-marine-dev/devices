@@ -1082,5 +1082,183 @@
         "10afdc0003c65cf3w"
       ]
     ]
+  },
+  {
+    "id": "g-failed",
+    "type": "group",
+    "z": "86f1271d07a48b44w",
+    "name": "Failed & garbage sentences — nothing is dropped silently",
+    "style": {
+      "stroke": "#000000",
+      "label": true,
+      "color": "#000000"
+    },
+    "nodes": [
+      "failed-inject-0",
+      "failed-inject-1",
+      "failed-inject-2",
+      "failed-parser",
+      "failed-split",
+      "failed-debug-ok",
+      "failed-debug-bad"
+    ],
+    "x": 34,
+    "y": 1470,
+    "w": 1232,
+    "h": 250
+  },
+  {
+    "id": "failed-inject-0",
+    "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "1-character checksum (dropped leading zero)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "$GPHDT,10.0,T*4\r\n",
+    "payloadType": "str",
+    "x": 180,
+    "y": 1520,
+    "wires": [
+      [
+        "failed-parser"
+      ]
+    ]
+  },
+  {
+    "id": "failed-inject-1",
+    "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "missing CRLF between two sentences",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "$GPGGA,132247.95,4807.038,N,01131.000,E,2,12,0.9,545.4,M,46.9,M,,*61$GPGGA,132247.95,4807.038,N,01131.000,E,2,12,0.9,545.4,M,46.9,M,,*61\r\n",
+    "payloadType": "str",
+    "x": 180,
+    "y": 1580,
+    "wires": [
+      [
+        "failed-parser"
+      ]
+    ]
+  },
+  {
+    "id": "failed-inject-2",
+    "type": "inject",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "line noise / wrong device",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "\u0000\u0001binary protocol data\u0002",
+    "payloadType": "str",
+    "x": 180,
+    "y": 1640,
+    "wires": [
+      [
+        "failed-parser"
+      ]
+    ]
+  },
+  {
+    "id": "failed-parser",
+    "type": "cma-nmea-parser",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "",
+    "memory": true,
+    "file": "",
+    "x": 490,
+    "y": 1580,
+    "wires": [
+      [
+        "failed-split"
+      ]
+    ]
+  },
+  {
+    "id": "failed-split",
+    "type": "function",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "split clean / flagged",
+    "func": "// 4.0.0 — msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 700,
+    "y": 1580,
+    "wires": [
+      [
+        "failed-debug-ok"
+      ],
+      [
+        "failed-debug-bad"
+      ]
+    ]
+  },
+  {
+    "id": "failed-debug-ok",
+    "type": "debug",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "clean sentences",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 940,
+    "y": 1540,
+    "wires": []
+  },
+  {
+    "id": "failed-debug-bad",
+    "type": "debug",
+    "z": "86f1271d07a48b44w",
+    "g": "g-failed",
+    "name": "FLAGGED — see errors[]",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 940,
+    "y": 1620,
+    "wires": []
   }
 ]
