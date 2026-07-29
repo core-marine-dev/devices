@@ -45,8 +45,16 @@
 > **➡️ NEXT: TASK 3b — the `norsub-emru-nodered` wrapper.** Clone `nmea-parser-nodered` (the proven
 > template), node type `cma-norsub-parser`, expose the facade's `protocol` selection in the config UI. The
 > ordering constraint is already satisfied: `norsub-emru@3.0.0` is live, so the wrapper's dep range will
-> resolve. Paste-ready prompt at the very end of this doc. cru also wants **further nmea-parser changes**
-> soon (he flagged them while deciding to publish 3.2.0) — ask which, they may reorder against 3b.
+> resolve. Paste-ready prompt at the very end of this doc.
+>
+> **ORDER LOCKED (cru, 2026-07-29): the norsub WRAPPER (3b) comes FIRST, and the further nmea-parser
+> changes cru wants come AFTER it.** Do not start the nmea work before 3b is done.
+>
+> **README/docs: DONE and published** — `packages/norsub-emru/README.md` was rewritten from scratch on
+> the 3.0.0 API (the old one documented the removed 2.x `NMEASentence` shape) and verified inside the
+> published tarball: no `NMEASentence` / `addProtocols` / top-level `metadata.status` / `received:`/`sample:`
+> anywhere. Also fixed its badge, which pointed at a non-existent `core-marine-dev/norsub-emru` repo and a
+> `publish.yml` workflow.
 >
 > **🟡 2026-07-29 (later) — cru's two remaining data decisions APPLIED, and they pull `nmea-parser` into
 > this release as `3.2.0`.** (1) **`version: '1.2.0'` on all 12 protocols in `norsub.yml`** (the OEM manual
