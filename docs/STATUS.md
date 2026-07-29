@@ -55,6 +55,17 @@
 > (source untouched — inherits both fixes); nmea wrapper **19/19**; norsub wrapper **34/34**. Repo-wide
 > `pnpm lint` clean, `--frozen-lockfile` clean, all five builds clean after the bumps.
 >
+> **Example flows checked and extended (cru asked, 2026-07-29).** Both shipped flows were already
+> correct — every sentence payload in each was re-run through the new parsers and **none** produces an
+> unexpected `errors[]`, so nothing was stale (this also answers cru's "I never checked the norsub ones":
+> all 8 of its payloads parse clean). They just did not SHOW the new behaviour, and examples ship in the
+> tarball — so each gained a **"Failed & garbage sentences"** group (1-char checksum · missing `\r\n` ·
+> line noise → a `function` node splitting clean vs flagged debugs). nmea demonstrates the dropped-leading-
+> zero case (format error only, data intact); norsub the non-matching case (both errors). **Verified by
+> booting real node-red against each shipped flow** (56 / 61 nodes, all instantiated, no unknown types) and
+> then driving the new group through that runtime with the debugs swapped for sinks. A PSXN example group
+> was deliberately skipped (cru's call — PSXN is covered in the README).
+>
 > **⚠️ ONE THING FOR cru BEFORE MERGING: the queued `msg.protocols` → `msg.sentences` rename is ALSO a
 > breaking wrapper change.** If it lands after this release, `nmea-parser-nodered` needs **two majors
 > back-to-back** (3.0.0 now, 4.0.0 for the rename). Folding the rename into *this* 3.0.0 would avoid that.
