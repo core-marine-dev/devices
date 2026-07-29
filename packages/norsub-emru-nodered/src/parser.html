@@ -12,25 +12,22 @@
     },
     paletteLabel: "NorSub parser",
     labelStyle: function () { return this.name ? "node_label_italic" : "" },
-    align: "left", // 'right'
-    // button: {
-    //   // toggle: "buttonState",
-    //   enabled: function() {
-    //     return !this.changed
-    //   },
-    //   visible: function() {
-    //     return this.hasButton
-    //   },
-    //   onclick: function() {}
-    // },
+    align: "left",
     // Input - Outputs
     inputs: 1,
     outputs: 1,
     inputLabels: "NorSub data",
-    outputLabels: "Parsed data",
+    outputLabels: "Parsed CMA data",
     // Logic
     defaults: {
       name: { value: "" },
+      // The protocol the eMRU is configured to emit. Only NMEA is implemented today;
+      // the device also supports TSS1, Atlas, Ifremer Victor, Simrad EM 3000 and a
+      // custom binary format, and each will add an <option> here.
+      protocol: {
+        value: "nmea",
+        required: true,
+      },
       memory: {
         value: true,
         required: true,
@@ -40,14 +37,6 @@
         required: false
       }
     },
-    // credentials: {},
-    // oneditprepare: function () {},
-    // oneditsave: function() {},
-    // oneditcancel: function() {},
-    // oneditdelete: function() {},
-    // oneditresize: function() {},
-    // onpaletteadd: function() {},
-    // onpaletteremove: function() {},
   });
 </script>
 
@@ -58,96 +47,135 @@
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
     <input type="text" id="node-input-name" placeholder="NorSub parser" />
   </div>
+  <!-- Protocol -->
+  <div class="form-row">
+    <label for="node-input-protocol"><i class="fa fa-exchange"></i> Protocol</label>
+    <select id="node-input-protocol">
+      <option value="nmea">NMEA (NorSub proprietary + NMEA 0183)</option>
+    </select>
+  </div>
+  <div class="form-tips">
+    The protocol this eMRU is configured to emit. Changing it discards anything currently buffered.
+  </div>
   <!-- Memory -->
   <div class="form-row">
-    <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
+    <label for="node-input-memory"><i class="fa fa-database"></i> Memory</label>
     <input type="checkbox" id="node-input-memory" checked/>
   </div>
-  <!-- Protocols File -->
+  <!-- Sentences file -->
   <div class="form-row">
-    <label for="node-input-file"><i class="fa fa-tag"></i> Protocols file path</label>
-    <input type="text" id="node-input-file" placeholder="/data/file.yaml" />
+    <label for="node-input-file"><i class="fa fa-file-code-o"></i> Sentences file path</label>
+    <input type="text" id="node-input-file" placeholder="/data/sentences.yml" />
   </div>
 </script>
 
 <!-- Help text -->
 <script type="text/markdown" data-help-name="cma-norsub-parser">
-Parser of NorSub propietary NMEA sentences and NMEA 0183 protocol sentences [check @coremarine/norsub-emru package docs](https://www.npmjs.com/package/@coremarine/norsub-emru)
+Parser for NorSub eMRU telegrams — the NorSub proprietary sentences **and** all of NMEA 0183 —
+emitting the unified **CMA** format. Wrapper of
+[@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru).
 
 ### Input
 
-: payload (string) : NMEA ASCII content (important, it is an *ASCII* string, not other encoding).
+: payload (string) : NorSub / NMEA ASCII content (important, it is an *ASCII* string, not another encoding).
 
-: *memory* (object): Object to check or enabled / disabled parser memory state (look details below).
+: *memory* (object) : Check or enable / disable the parser's memory (details below).
 
-: *protocols* (object) : Object to get or set the protocols supported and their sentences (look details below).
+: *protocol* (object) : Get or set which protocol the device is emitting (details below).
 
-: *sentence* (string): Sentence ID to get if it is supported and its info (look details below).
+: *sentences* (object) : Get the known sentence definitions, or add your own (details below).
 
-: *fake* (string): Sentence ID to get, if it is supported, a fake nmea sentence (look details below).
+: *sentence* (string) : Sentence ID, to check whether it is supported and read its definition.
+
+: *fake* (string) : Sentence ID, to get a valid sample sentence for testing.
 
 ### Output
 
-: payload (array) : It gives you the same parsing output that the CoreMarine NMEA Parser (an array of object with the info of each NMEA sentence).
+: payload (array) : An array of **CMA** objects, one per parsed sentence.
 
-: *memory* (object) : Response to the *memory* input (look details below).
+: *memory* (object) : Response to the *memory* input.
 
-: *protocols* (object) : Response to the *protocols* input (look details below).
+: *protocol* (object) : Response to the *protocol* input.
 
-: *sentence* (string): Response to the *sentence* input (look details below).
+: *sentences* (object) : Response to the *sentences* input.
 
-: *fake* (string): Response to the *fake* input (look details below).
+: *sentence* (object | null) : Response to the *sentence* input.
+
+: *fake* (string | null) : Response to the *fake* input.
+
+Any input key you do not send is absent from the output too. On a bad request the
+corresponding output key holds an error **string** instead of a result.
 
 ### Details
 
-NorSub parser translate NMEA ASCII string data into a JavaScript objects (one for each
-NMEA-like sentence). Each time it receives data from payload input, it gives the parsed sentences to payload output.
+Every time the node receives `payload` data it emits the sentences parsed from it. Incomplete
+input is buffered until the rest arrives, so a sentence split across two messages still parses.
 
-It just a wrapper of the npm library [@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru) (take a look on it).
+#### Device status
 
-To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
+The `PNORSUB*` sentences carry a 32-bit health/status bitfield, decoded for you:
 
-- If you request something in `msg.memory` | `msg.protocols` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.protocols` | `msg.sentence` output
+- `payload[i].payload[last].metadata.status` — for the five sentences whose status is a single
+  `uint32` field (`PNORSUB`, `PNORSUB2`, `PNORSUB6`, `PNORSUB7`, `PNORSUB8`).
+- `payload[i].metadata.payload.status` — for **all six**, including `PNORSUB7b`, whose status is
+  split across two `uint16` fields that mean nothing individually.
+
+Read it from `metadata.payload.status` and the same path works for every variant, so swapping a
+PNORSUB7b unit for a PNORSUB8 one costs you no flow changes.
+
+`PTVG` fields are strings on the wire (the unit letter is glued to the value); the decoded
+degrees are in each field's `metadata.degrees`.
 
 #### Memory
 
-It is enabled by default:
+Enabled by default:
 
-- memory enabled: Every time you inject data, it's attached to the internal data.
-- memory disabled: Every time you inject data, it clears internal data and add new one.
-
-Internally it has a buffer with a max number of characters
+- memory enabled: each injection is appended to whatever is still buffered.
+- memory disabled: each injection replaces the buffer.
 
 |                          Input                           |                            Output                             |
 | :------------------------------------------------------: | :-----------------------------------------------------------: |
 | `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `characters`: **number** } |
 |             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `characters`: **number** } |
 
-#### Protocols
+#### Protocol
 
-The parser can be feeded or expanded to understand more nmea sentences, standard or propietary.
-To do that it should be passed an object with the property `command` equal to `"set"` and one this three properties:
+An eMRU is configured to emit **one** protocol, so this selects it rather than combining several.
+`nmea` is the only value implemented today; the device also supports TSS1, Atlas, Ifremer Victor,
+Simrad EM 3000 and a custom binary format.
 
-1. `file`: It's the string file path to the protocols YAML file.
-2. `content`: It's the string content of the protocols YAML file.
-3. `protocols`: It's the JS object after parsing the protocols YAML file.
+⚠️ **Setting it discards internal state** — the buffer and any parsed-but-unsent sentences are
+dropped, because half a sentence in one protocol can never be completed by another. An unknown
+value is refused with an error string and the current protocol is kept.
 
-If you send more of them, parser only will read one (`file` upper other, `content` upper `protocols`)
+|                          Input                          |                             Output                              |
+| :-----------------------------------------------------: | :-------------------------------------------------------------: |
+| `protocol`: { `command`: `"set"`, `payload`: **string** } | `protocol`: { `protocol`: **string**, `protocols`: **string[]** } |
+|            `protocol`: { `command`: `"get"` }            | `protocol`: { `protocol`: **string**, `protocols`: **string[]** } |
 
-If you just want to know what are the known or supported sentences, you just need the command `get`.
+#### Sentences
 
-|                            Input                             |         Output         |
-| :----------------------------------------------------------: | :--------------------: |
-|   `protocols`: { `command`: `"set"`, `file`: **string** }    | `protocols`: **array** |
-|  `protocols`: { `command`: `"set"`, `content`: **string** }  | `protocols`: **array** |
-| `protocols`: { `command`: `"set"`, `protocols`: **object** } | `protocols`: **array** |
-|             `protocols`: { `command`: `"get"` }              | `protocols`: **array** |
+The NorSub and NMEA 0183 definitions are **built in** — you do not need to load anything. This is
+for adding your *own* sentences on top. Send `command: "set"` with **one** of:
+
+1. `content`: the YAML **string** of the definitions.
+2. `file`: a **string** path to a YAML file (read by the node).
+
+`content` takes precedence if both are sent. On bad YAML, a schema mismatch or an unreadable file
+the output is an error **string**. Use `get` to list what is currently known.
+
+|                           Input                            |         Output          |
+| :--------------------------------------------------------: | :---------------------: |
+| `sentences`: { `command`: `"set"`, `content`: **string** } | `sentences`: **object** |
+|  `sentences`: { `command`: `"set"`, `file`: **string** }   | `sentences`: **object** |
+|            `sentences`: { `command`: `"get"` }             | `sentences`: **object** |
+
+> Note: this key was called `protocols` before v2. It was renamed because the parser now also has
+> a *protocol* selection (above), and two keys one letter apart meaning unrelated things was a trap.
 
 #### Sentence
 
-If you want to know if a sentence is known / supported, you need to send the sentence id.
-Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
+Send a sentence id to check whether it is supported. The response is its definition, or `null`.
 
 |         Input          |              Output              |
 | :--------------------: | :------------------------------: |
@@ -155,9 +183,8 @@ Response will be an `object` with the whole info or `null` if it's unknown / not
 
 #### Fake
 
-If you want to get a NMEA-like sentence, maybe just to do some tests, you need to send the sentence id.
-Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
-This fake sentence is correct in terms of NMEA requirements but each field has garbage.
+Send a sentence id to get a syntactically valid sample sentence, useful for testing. The checksum
+and structure are correct; the field values are garbage. `null` if the id is unknown.
 
 |       Input        |            Output            |
 | :----------------: | :--------------------------: |
