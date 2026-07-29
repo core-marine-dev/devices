@@ -1160,3 +1160,83 @@ protocols:
           - name: reserved_5
             type: string
             description: "Reserved (empty, last field before checksum)"
+  # =================================================================
+  # NMEA 0183 — Proprietary sentences: Kongsberg Seatex (PSXN)
+  # =================================================================
+  #
+  # Source: MGC(R) COMPASS Installation Manual, MGC-D-114/408705/15/O,
+  #         Rev. 15 (October 2024), pages 108-109. PSXN20 + PSXN23 were
+  #         introduced in Rev. 14 (March 2024).
+  #
+  # `SXN` is the NMEA 0183 manufacturer mnemonic for Seatex (Kongsberg
+  # Seatex) — the datasheet calls PSXN the "Seatex ID".
+  #
+  # ⚠️ ON THE WIRE THESE ARE BOTH `$PSXN,...` — the id is the SAME and both
+  # carry the SAME number of fields (5), so they cannot be told apart by
+  # `id + payload length`. The first field is the message number (20 | 23),
+  # and a SENTENCE RESOLVER (src/resolvers.ts, keyed `PSXN:5`) rewrites the
+  # id to PSXN20 / PSXN23 before this knowledge base is consulted. `raw`
+  # keeps the original `$PSXN,...` and the checksum still verifies against it.
+  # =================================================================
+  - protocol: KONGSBERG SEATEX
+    version: '15'
+    standard: false
+    sentences:
+      # ---------------------------------------------------------------
+      # PSXN20 — quality indicators for roll, pitch, heading and position
+      # $PSXN,20,x,x,x,x*hh<CR><LF>
+      # ---------------------------------------------------------------
+      - id: PSXN20
+        description: "The proprietary PSXN20 NMEA sentence contains quality indicators for roll, pitch, heading and position. The sentence destination is positioning reference systems. The sentence is based on NMEA sentence format."
+        payload:
+          # 1
+          - name: message_number
+            type: uint8
+            description: "Message number: 20"
+          # 2
+          - name: horizontal_quality
+            type: uint8
+            description: "Horizontal position and velocity quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data"
+          # 3
+          - name: height_quality
+            type: uint8
+            description: "Height and vertical velocity quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data"
+          # 4
+          - name: heading_quality
+            type: uint8
+            description: "Heading quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data"
+          # 5
+          - name: roll_pitch_quality
+            type: uint8
+            description: "Roll and pitch quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data"
+      # ---------------------------------------------------------------
+      # PSXN23 — attitude and heave calculated in the MGC system
+      # $PSXN,23,x.x,x.x,x.x,x.x*hh<CR><LF>
+      # ---------------------------------------------------------------
+      - id: PSXN23
+        description: "The proprietary PSXN23 NMEA sentence contains attitude and heave data calculated in the MGC system. The sentence destination is PRS monitoring systems. The sentence is based on NMEA sentence format."
+        payload:
+          # 1
+          - name: message_number
+            type: uint8
+            description: "Message number: 23"
+          # 2
+          - name: roll
+            type: float64
+            units: deg
+            description: "Roll in degrees. Positive with port side up."
+          # 3
+          - name: pitch
+            type: float64
+            units: deg
+            description: "Pitch in degrees. Positive with bow up."
+          # 4
+          - name: heading
+            type: float64
+            units: deg
+            description: "Heading, degrees true."
+          # 5
+          - name: heave
+            type: float64
+            units: m
+            description: "Heave. Positive down."

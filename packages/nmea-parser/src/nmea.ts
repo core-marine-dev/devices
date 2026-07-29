@@ -1317,5 +1317,78 @@ export const PROTOCOLS: ProtocolsFileContent = {
         },
       ],
     },
+    {
+      protocol: 'KONGSBERG SEATEX',
+      version: '15',
+      standard: false,
+      sentences: [
+        {
+          id: 'PSXN20',
+          description: 'The proprietary PSXN20 NMEA sentence contains quality indicators for roll, pitch, heading and position. The sentence destination is positioning reference systems. The sentence is based on NMEA sentence format.',
+          payload: [
+            {
+              name: 'message_number',
+              type: 'uint8',
+              description: 'Message number: 20',
+            },
+            {
+              name: 'horizontal_quality',
+              type: 'uint8',
+              description: 'Horizontal position and velocity quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data',
+            },
+            {
+              name: 'height_quality',
+              type: 'uint8',
+              description: 'Height and vertical velocity quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data',
+            },
+            {
+              name: 'heading_quality',
+              type: 'uint8',
+              description: 'Heading quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data',
+            },
+            {
+              name: 'roll_pitch_quality',
+              type: 'uint8',
+              description: 'Roll and pitch quality\n0 = Normal\n1 = Reduced performance\n2 = Invalid data',
+            },
+          ],
+        },
+        {
+          id: 'PSXN23',
+          description: 'The proprietary PSXN23 NMEA sentence contains attitude and heave data calculated in the MGC system. The sentence destination is PRS monitoring systems. The sentence is based on NMEA sentence format.',
+          payload: [
+            {
+              name: 'message_number',
+              type: 'uint8',
+              description: 'Message number: 23',
+            },
+            {
+              name: 'roll',
+              type: 'float64',
+              units: 'deg',
+              description: 'Roll in degrees. Positive with port side up.',
+            },
+            {
+              name: 'pitch',
+              type: 'float64',
+              units: 'deg',
+              description: 'Pitch in degrees. Positive with bow up.',
+            },
+            {
+              name: 'heading',
+              type: 'float64',
+              units: 'deg',
+              description: 'Heading, degrees true.',
+            },
+            {
+              name: 'heave',
+              type: 'float64',
+              units: 'm',
+              description: 'Heave. Positive down.',
+            },
+          ],
+        },
+      ],
+    },
   ],
 }
