@@ -56,12 +56,12 @@ Node id is `cma-<device>` in all of them.
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
 | nmea-parser-nodered | **2.0.1** (npm) | `workspace:^` → `^3.0.2` | `node:test`, **enabled in CI** (19/19) | **The template.** TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
-| norsub-emru-nodered | 1.3.0 | `workspace:^` | mocha, CI test job disabled | next wrapper to refactor; still JS + docker |
+| norsub-emru-nodered | **2.0.0** (unreleased) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (34/34) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | 1.0.1 | `workspace:^` | mocha, CI test job disabled | `test:vitest` script but no vitest.config.ts |
 | sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |
 | thelmabiotel-tblive-nodered | 1.0.0 | `workspace:^` | `test` script but **no specs** | commits Node-RED runtime junk in `tests/nodered/data/`; extra `receiver` node only in the docker mirror |
 
-The four un-refactored wrappers still use mocha + `node-red-node-test-helper` (which is **incompatible
+The three un-refactored wrappers still use mocha + `node-red-node-test-helper` (which is **incompatible
 with node-red 5** — that is why their CI test jobs are disabled) and a docker env for manual tests.
 Each gets the nmea-parser-nodered treatment as its library is refactored: TS + tsup + `node:test` +
 `dev-server.mjs`, `engines.node >=22`, `node-red.version >=4.0.0`, `"!**/*.backup"` in `files`,

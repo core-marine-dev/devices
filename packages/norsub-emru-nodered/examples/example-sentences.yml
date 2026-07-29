@@ -1,0 +1,23 @@
+# Example sentence definitions for @coremarine/norsub-emru-nodered.
+#
+# The NorSub telegrams and all of NMEA 0183 are ALREADY built into the parser — you do
+# not need this file for them. It exists to show how to add your OWN sentences at
+# runtime ("hot-expand"):
+#   - as a YAML string -> msg.sentences = { command: 'set', content: <this file's text> }
+#   - as a file path   -> msg.sentences = { command: 'set', file: '<path to this file>' }
+#
+# See the "Sentences API" group in the example flow: parse PCMEX before (unknown, generic
+# decode) and after (decoded into named, typed fields).
+protocols:
+  - protocol: COREMARINE_EXAMPLE
+    standard: false
+    sentences:
+      - id: PCMEX
+        description: Example proprietary sentence - depth and water temperature
+        payload:
+          - name: depth
+            type: float64
+            units: m
+          - name: temperature
+            type: float64
+            units: C

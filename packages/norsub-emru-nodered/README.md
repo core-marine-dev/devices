@@ -1,99 +1,192 @@
-# Norsub-eMRU-NodeRED
+# NorSub eMRU — Node-RED
 
 ![npm (scoped)](https://img.shields.io/npm/v/%40coremarine/norsub-emru-nodered)
 [![publish](https://github.com/core-marine-dev/devices/actions/workflows/norsub-emru-nodered.yml/badge.svg)](https://github.com/core-marine-dev/devices/actions/workflows/norsub-emru-nodered.yml)
 ![npm](https://img.shields.io/npm/dy/%40coremarine/norsub-emru-nodered)
 
-Node-Red component to read NorSub NMEA propietary sentences and NMEA 0183 sentences. It is a wrapper of [@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru) (check it docs).
+Node-RED node that reads [NorSub](https://norsub.com) eMRU / OEM MRU telegrams — the NorSub
+proprietary sentences **and** all of NMEA 0183 — and emits them in the unified **CMA** format.
 
-## Input
+Wrapper of [@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru); see that
+package for the output format and the protocol details.
 
-NorSub component uses 5 properties to work:
+- Node type / palette: **`cma-norsub-parser`**, under the **CoreMarine** category.
+- Requires **Node ≥ 22** and **Node-RED ≥ 4**.
 
-- `payload` is the main property with NMEA content.
-- `protocols`, `sentence`, `memory` and `fake` are optionals.
+## Install
 
-| Input property         | Description                                                                            |
-| :--------------------- | :------------------------------------------------------------------------------------- |
-| `payload` (string)     | NMEA ASCII content (important, it is an *ASCII* string, not other encoding).           |
-| *`memory`* (object)    | Object to check or enabled / disabled parser memory state (look details below).        |
-| *`protocols`* (object) | Object to get or set the protocols supported and their sentences (look details below). |
-| *`sentence`* (string)  | Sentence ID to get if it is supported and its info (look details below).               |
-| *`fake`* (string)      | Sentence ID to get a full fake NMEA-like sentence if it is supported.                  |
+From the Node-RED palette manager, or:
 
-## Output
+```bash
+npm i @coremarine/norsub-emru-nodered
+```
 
-Each input proerty would be responded in the same output property
+An example flow ships with the package — import it from **Menu → Import → Examples → NorSub eMRU**.
 
-| Output property        | Description                                                                                                                    |
-| :--------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| payload (array)        | It gives you the same parsing output that the CoreMarine NMEA Parser (an array of object with the info of each NMEA sentence). |
-| *`memory`* (object)    | Response to the *memory* input (look details below).                                                                           |
-| *`protocols`* (object) | Response to the *protocols* input (look details below).                                                                        |
-| *`sentence`* (string)  | Response to the *sentence* input (look details below).                                                                         |
-| *`fake`* (string)      | Response to the *fake* input (look details below).                                                                             |
+## Configuration
 
-## Details
+| field | description |
+| --- | --- |
+| **Name** | Optional node label. |
+| **Protocol** | Which protocol the eMRU is configured to emit. `NMEA` is the only one implemented today. |
+| **Memory** | Keep incomplete input buffered between messages. On by default. |
+| **Sentences file path** | Optional YAML file of **your own** extra sentence definitions, loaded at deploy. The NorSub and NMEA 0183 definitions are already built in. |
 
-NorSub parser translate NMEA ASCII string data into a JavaScript objects (one for each
-NMEA sentence). Each time it receives data from payload input, it gives the parsed sentences to payload output.
+## Message API
 
-It just a wrapper of the npm library [@coremarine/norsub-emru](https://www.npmjs.com/package/@coremarine/norsub-emru) (take a look on it).
+`payload` is the data input; the other five keys are optional request/response channels. **Whatever
+key you send comes back on the same key**, and any key you do not send is absent from the output. On
+a bad request that key holds an **error string** instead of a result — the node does not throw.
 
-To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
+### Input
 
-- If you request something in `msg.memory` | `msg.protocols` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.protocols` | `msg.sentence` output
+| key | type | description |
+| --- | --- | --- |
+| `payload` | string | NorSub / NMEA ASCII data. Must be an *ASCII* string, not another encoding. |
+| `memory` | object | Get or set the memory setting. |
+| `protocol` | object | Get or set which protocol the device is emitting. |
+| `sentences` | object | Get the known sentence definitions, or add your own. |
+| `sentence` | string | A sentence id, to read its definition. |
+| `fake` | string | A sentence id, to get a valid sample sentence. |
 
-### Memory
+### Output
 
-It is enabled by default:
+| key | type | description |
+| --- | --- | --- |
+| `payload` | array | **CMA[]** — one object per parsed sentence. |
+| `memory` | object | `{ memory: boolean, characters: number }` |
+| `protocol` | object | `{ protocol: string, protocols: string[] }` |
+| `sentences` | object | The known definitions, grouped by protocol. |
+| `sentence` | object \| null | The definition, or `null` if the id is unknown. |
+| `fake` | string \| null | A sample sentence, or `null` if the id is unknown. |
 
-- memory enabled: Every time you inject data, it's attached to the internal data.
-- memory disabled: Every time you inject data, it clears internal data and add new one.
+## Parsing
 
-Internally it has a buffer with a max number of characters
+Feed ASCII into `payload`; the node emits everything it could complete. Incomplete input is buffered
+(with **Memory** on), so a sentence split across two messages still parses.
 
-|                          Input                           |                            Output                             |
-| :------------------------------------------------------: | :-----------------------------------------------------------: |
-| `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `characters`: **number** } |
-|             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `characters`: **number** } |
+```jsonc
+// in
+{ "payload": "$PNORSUB8,1234567,890,1.234,…,4160749567*40\r\n" }
 
-### Protocols
+// out — payload[0], trimmed
+{
+  "id": "PNORSUB8",
+  "protocol": { "name": "NORSUB8", "version": "1.2.0" },
+  "payload": [
+    { "raw": "1234567", "name": "time",  "type": "uint32",  "value": 1234567, "units": "us" },
+    { "raw": "1.234",   "name": "roll",  "type": "float64", "value": 1.234,   "units": "deg" },
+    // …
+    { "name": "status", "type": "uint32", "value": 4160749567,
+      "metadata": { "status": { "main": { "ok": true, "health": true } } } }
+  ],
+  "metadata": {
+    "checksum": "40",
+    "payload": { "status": { "main": { "ok": true, "health": true } } },
+    "timestamp": { "received": 1785308158376, "parsed": 1785308158376 }
+  }
+}
+```
 
-The parser can be feeded or expanded to understand more nmea sentences, standard or propietary.
-To do that it should be passed an object with the property `command` equal to `"set"` and one this three properties:
+### Device status
 
-1. `file`: It's the string file path to the protocols YAML file.
-2. `content`: It's the string content of the protocols YAML file.
-3. `protocols`: It's the JS object after parsing the protocols YAML file.
+The `PNORSUB*` sentences carry a 32-bit health/status bitfield, decoded for you into a nested object
+(`main`, `system`, `sensor`, `algorithms`, `aiding` — see the library README):
 
-If you send more of them, parser only will read one (`file` upper other, `content` upper `protocols`)
+- `payload[i].payload[last].metadata.status` — for the five sentences whose status is a single
+  `uint32` field (`PNORSUB`, `PNORSUB2`, `PNORSUB6`, `PNORSUB7`, `PNORSUB8`).
+- `payload[i].metadata.payload.status` — for **all six**, including `PNORSUB7b`, whose status is
+  split across two `uint16` fields that mean nothing individually.
 
-If you just want to know what are the known or supported sentences, you just need the command `get`.
+**Read it from `metadata.payload.status`** and the same path works for every variant, so swapping a
+PNORSUB7b unit for a PNORSUB8 one costs you no flow changes.
 
-|                            Input                             |         Output         |
-| :----------------------------------------------------------: | :--------------------: |
-|   `protocols`: { `command`: `"set"`, `file`: **string** }    | `protocols`: **array** |
-|  `protocols`: { `command`: `"set"`, `content`: **string** }  | `protocols`: **array** |
-| `protocols`: { `command`: `"set"`, `protocols`: **object** } | `protocols`: **array** |
-|             `protocols`: { `command`: `"get"` }              | `protocols`: **array** |
+`PTVG` fields are strings on the wire (the unit letter is glued to the value); the decoded degrees
+are in each field's `metadata.degrees`.
 
-### Sentence
+## Memory
 
-If you want to know if a sentence is known / supported, you need to send the sentence id.
-Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
+- **on** — each injection is appended to whatever is still buffered.
+- **off** — each injection replaces the buffer.
 
-|         Input          |              Output              |
-| :--------------------: | :------------------------------: |
-| `sentence`: **string** | `sentence`: **object** \| `null` |
+| Input | Output |
+| --- | --- |
+| `memory`: `{ command: 'get' }` | `memory`: `{ memory, characters }` |
+| `memory`: `{ command: 'set', payload: boolean }` | `memory`: `{ memory, characters }` |
 
-### Fake
+## Protocol
 
-If you want to get a NMEA-like sentence, maybe just to do some tests, you need to send the sentence id.
-Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
-This fake sentence is correct in terms of NMEA requirements but each field has garbage.
+An eMRU is configured to emit **one** protocol, so this selects it rather than combining several.
+`nmea` is the only value implemented today; the device also supports TSS1, Atlas, Ifremer Victor,
+Simrad EM 3000 and a custom binary format, and each will simply appear in `protocols`.
 
-|       Input        |            Output            |
-| :----------------: | :--------------------------: |
-| `fake`: **string** | `fake`: **string** \| `null` |
+> ⚠️ **Setting it discards internal state** — the buffer and any parsed-but-unsent sentences are
+> dropped, because half a sentence in one protocol can never be completed by another. An unknown
+> value is refused with an error string and the current protocol is kept.
+
+| Input | Output |
+| --- | --- |
+| `protocol`: `{ command: 'get' }` | `protocol`: `{ protocol, protocols }` |
+| `protocol`: `{ command: 'set', payload: 'nmea' }` | `protocol`: `{ protocol, protocols }` |
+
+## Sentences
+
+The NorSub and NMEA 0183 definitions are **built in**. This channel is for adding your *own*
+sentences on top, at runtime. Send `command: 'set'` with **one** of:
+
+1. `content` — the YAML **string** of the definitions.
+2. `file` — a **string** path to a YAML file, read by the node.
+
+`content` wins if both are sent. Bad YAML, a schema mismatch or an unreadable file give an error
+string back. `get` lists everything currently known.
+
+| Input | Output |
+| --- | --- |
+| `sentences`: `{ command: 'get' }` | `sentences`: object |
+| `sentences`: `{ command: 'set', content: string }` | `sentences`: object |
+| `sentences`: `{ command: 'set', file: string }` | `sentences`: object |
+
+A ready-to-use file ships as [`examples/example-sentences.yml`](examples/example-sentences.yml), and
+the example flow shows the before/after of hot-expanding the parser with it.
+
+## Sentence & Fake
+
+| Input | Output |
+| --- | --- |
+| `sentence`: `'PNORSUB8'` | `sentence`: the definition, or `null` |
+| `fake`: `'PNORSUB8'` | `fake`: a valid sample sentence, or `null` |
+
+A fake sentence is structurally correct with a valid checksum; the field values are garbage. Useful
+for exercising a flow without a device attached.
+
+## Upgrading from 1.x
+
+The node was rewritten for the CMA output format. Breaking changes:
+
+- **`payload` output is now `CMA[]`**, not the old `NMEASentence[]`.
+- **`msg.protocols` is now `msg.sentences`.** It always meant "the sentence definitions", and the
+  node now *also* has a `protocol` selection — two keys one letter apart meaning unrelated things
+  was a trap, so the definitions channel took the library's own word for them.
+- **`sentences.set` no longer accepts a pre-parsed `protocols` object** — pass `content` (a YAML
+  string) or `file`.
+- **Device status moved.** It was a top-level `metadata.status`; it is now field-level and/or
+  payload-level metadata (see [Device status](#device-status)).
+- **New `protocol` config field and message channel.**
+- Requires **Node ≥ 22** (was ≥ 18).
+
+## Development
+
+```bash
+pnpm run norsub-emru:nodered:build       # tsup -> CJS + copy parser.html/icons
+pnpm run norsub-emru:nodered:test        # node:test — unit + real headless Node-RED
+pnpm run norsub-emru:nodered:dev         # local Node-RED on a scratch flow, no docker
+pnpm run norsub-emru:nodered:examples    # local Node-RED editing the SHIPPED example flow
+```
+
+`:dev` and `:examples` boot a real Node-RED at <http://localhost:1880> with this node under the
+CoreMarine category. In this monorepo the sibling `@coremarine/*-nodered` nodes also appear, which
+is harmless and expected — an end user who installs only this package never sees them.
+
+## License
+
+MIT
