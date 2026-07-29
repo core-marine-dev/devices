@@ -8,8 +8,10 @@ import { BUILTIN_METADATA_AGGREGATORS } from './metadata'
 import type { MetadataAggregators } from './metadata'
 import { PROTOCOLS } from './nmea'
 import { getStoredSentences, parseProtocols } from './protocols'
+import { BUILTIN_SENTENCE_RESOLVERS } from './resolvers'
+import type { SentenceResolvers } from './resolvers'
 import { ProtocolsFileContentSchema, StringSchema } from './schemas'
-import { createFakeSentence, getTalker, getUnparsedNMEASentences, lastUncompletedSentence, newestDefinition, parseSentence } from './sentences'
+import { createFakeSentence, garbageSentence, getTalker, newestDefinition, parseSentence, scanBuffer } from './sentences'
 import type { MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence } from './types'
 
 // NMEA 0183 parser. Extends the shared StringParser (which owns the
@@ -21,6 +23,9 @@ export class NMEAParser extends StringParser {
   // Field/payload metadata aggregators, keyed `${id}:${payloadLength}`. Own copy
   // of the built-ins so a subclass can add its own (see registerAggregators).
   protected _aggregators: MetadataAggregators = { ...BUILTIN_METADATA_AGGREGATORS }
+  // Id resolvers for formats that carry their real sentence type in a field
+  // (e.g. PSXN). Own copy of the built-ins, same as the aggregators.
+  protected _resolvers: SentenceResolvers = { ...BUILTIN_SENTENCE_RESOLVERS }
 
   constructor(options: ParserOptions = {}) {
     super(options)
@@ -49,6 +54,14 @@ export class NMEAParser extends StringParser {
     this._aggregators = { ...this._aggregators, ...aggregators }
   }
 
+  // Register id resolvers, keyed `${id}:${payloadLength}` on the id AS RECEIVED.
+  // `protected` for the same reason as the aggregators: a device whose sentences
+  // share an id and field count (the real type living in a field) can be decoded
+  // by plain YAML definitions once the id is resolved. Later registrations win.
+  protected registerResolvers(resolvers: SentenceResolvers): void {
+    this._resolvers = { ...this._resolvers, ...resolvers }
+  }
+
   // Single knowledge-feed input: a protocols YAML string. On the web use
   // `await file.text()`; on node read the file yourself, then pass the text.
   // Never throws — a non-string input or invalid YAML/schema is a Result error.
@@ -62,9 +75,15 @@ export class NMEAParser extends StringParser {
     return { success: true, value: undefined }
   }
 
+  // Every character of the buffer is accounted for: a sentence (decoded as far
+  // as possible, with `errors` for anything malformed), a garbage sentence, or
+  // the still-incomplete tail that goes back on the buffer. Nothing is dropped
+  // silently — bad input must be visible in the OUTPUT, not only in a log.
   protected extractSentences(buffer: string): ExtractedSentences<string> {
-    const remainder = lastUncompletedSentence(buffer) ?? ''
-    const sentences = getUnparsedNMEASentences(buffer).map((raw) => parseSentence(raw, this._definitions, this._aggregators))
+    const { chunks, remainder } = scanBuffer(buffer, this._bufferLimit)
+    const sentences = chunks.map((chunk) => (chunk.garbage
+      ? garbageSentence(chunk.raw, chunk.errors)
+      : parseSentence(chunk.raw, this._definitions, this._aggregators, chunk.errors, this._resolvers)))
     return { sentences, remainder }
   }
 

@@ -3,6 +3,7 @@ export type { Float32, Float64, Int16, Int32, Int8, Uint16, Uint32, Uint8 } from
 
 // coded
 import type { CMASchema, ErrorsSchema, FieldSchema, MetadataSchema, ProtocolSchema, SentenceMetadataSchema, TimestampMetadataSchema, TimestampSchema, TypeSchema, ValueSchema } from './cma'
+import type { UNKNOWN } from './constants'
 
 // Note: `char` values and 64-bit integers (int64/uint64) are all typed as
 // plain `string` — see CharSchema / Int64Schema / Uint64Schema in schemas.ts
@@ -26,6 +27,22 @@ export type CMA = ReturnType<typeof CMASchema.parse>
 // `addData`, so a CMA is never emitted without its timestamp — no placeholders,
 // no optional contract. Derived from CMA so CMA stays the single source of truth.
 export type DraftCMA = Omit<CMA, 'metadata'> & { metadata?: Metadata }
+
+// A chunk of input the parser could not decode as a sentence at all (noise on
+// the line, a wrong device, a truncated telegram of unknown length). It is still
+// a full CMA — the contract is never bent — with every mandatory string set to
+// `UNKNOWN` and an empty payload. What it carries that matters: `raw` (the
+// discarded input, so it can be inspected), the timestamps, and `errors`
+// explaining WHY it could not be parsed. Emitting these is what keeps bad input
+// visible instead of silently dropped; a consumer detects any problem, garbage
+// or not, by the presence of `errors`. The MODEL lives here so every parser
+// builds the same shape; the decision of what counts as garbage is protocol-specific.
+export type GarbageSentence = DraftCMA & {
+  id: typeof UNKNOWN
+  protocol: { name: typeof UNKNOWN, version: typeof UNKNOWN }
+  payload: []
+  errors: Errors
+}
 
 // PARSER
 export type Input = string | Uint8Array
