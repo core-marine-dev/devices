@@ -1,5 +1,25 @@
-// import type { NMEASentence } from '@coremarine/nmea-parser'
-import { StatusInputSchema, StatusSchema } from './schemas'
+// coded
+import type { StatusInputSchema, StatusSchema } from './schemas'
+
+// PARSER
+// The MRU is configured to emit ONE protocol, so this is protocol *selection*,
+// not multiplexing. Only NMEA is implemented today; the device also supports
+// TSS1, Atlas, Ifremer Victor, Simrad EM 3000 and a custom binary format, and
+// `NorsubParser` composes its protocol parser precisely so that adding one of
+// those is an additive minor (one registry entry + one class) instead of a
+// reshape of the exported class.
+export type NorsubProtocol = 'nmea'
+
+export interface ProtocolParserOptions {
+  memory?: boolean
+  bufferLimit?: number
+}
+
+export interface NorsubParserOptions extends ProtocolParserOptions {
+  protocol?: NorsubProtocol
+}
+
+// STATUS
 
 /** STATUS
  * Bit - Parameter            - Description
