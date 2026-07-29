@@ -24,21 +24,29 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> **🚦 2026-07-29 — COMMITTED, PUSHED, PR [#72](https://github.com/core-marine-dev/devices/pull/72) OPEN,
-> `dev` CI GREEN — WAITING ONLY ON THE MERGE (cru's click).** 7 commits on `dev` (`8d8e7c4`..`4fb43a7`),
-> tree clean. **`dev` CI is green on BOTH workflows** (`nmea-parser` + `norsub-emru`, node 22.x & 24.x) —
-> **norsub-emru CI passed for the FIRST TIME since the CMA refactor began.** Only those two workflows fired
-> (path filters correct: the wrapper and the other four packages never triggered). **The merge publishes
-> `@coremarine/norsub-emru@3.0.0` AND `@coremarine/nmea-parser@3.2.0`** via OIDC + the version gate.
-> An agent attempt to `gh pr merge` was **blocked by the local permission policy**, so the merge is cru's
-> to do. **Both MUST go in the same merge:** norsub-emru packs its `workspace:^` dep as `^3.2.0`, so
-> publishing it against a 3.1.0 registry would leave a package that cannot install (this is why the
-> "freeze the nmea publish" idea was dropped).
+> **🎉 2026-07-29 — SHIPPED. `@coremarine/norsub-emru@3.0.0` AND `@coremarine/nmea-parser@3.2.0` ARE LIVE
+> ON npm.** PR [#72](https://github.com/core-marine-dev/devices/pull/72) merged by cru at 07:38 UTC, merge
+> commit `1109ffe`; **`main` @ `1109ffe`**. Both publish jobs succeeded (OIDC + provenance); `npm view` →
+> `norsub-emru 3.0.0`, `nmea-parser 3.2.0`. `nmea-parser-nodered` stayed at `2.0.1` (path-filtered,
+> untouched — correct). Only the two intended workflows fired; the other four packages never triggered.
+> **`norsub-emru` CI went green for the first time since the CMA refactor began.**
 >
-> **⚠️ ONE OPEN CALL, and it is irreversible once merged:** `nmea-parser` 3.2.0 is a **minor**. It is
-> **breaking, and should be `4.0.0`, IF Tracker branches on `field.type === 'float32'` anywhere** — the
-> float sweep changes that label (values are untouched). One line in `packages/nmea-parser/package.json`,
-> and it must be decided BEFORE the merge, because npm versions cannot be reused.
+> **✅ Fresh-install verification with ONLY npm-published packages:** in an empty temp dir,
+> `npm i @coremarine/norsub-emru` → `npm ls` shows a lone `@coremarine/norsub-emru@3.0.0` (its `^3.2.0` dep
+> resolved), and an ESM run produced `PNORSUB8` → `protocol: {NORSUB8, 1.2.0}`, status at **both** field and
+> payload level, `metadata.timestamp: [received, parsed]` (no `sentence`), `PTVG` → `[-0.36, 0.21, 101.8]`,
+> and an inherited `$INHDT` → `HDT float64 123.456`. **The whole Phase 3 lib contract is confirmed in
+> production.**
+>
+> **⚠️ STILL OPEN, now with a published version behind it:** `nmea-parser@3.2.0` went out as a **minor**.
+> If Tracker branches on `field.type === 'float32'` anywhere, that sweep is breaking for it and the next
+> release should own that (3.2.0 cannot be unpublished). Values were never affected — only the `type` label.
+>
+> **➡️ NEXT: TASK 3b — the `norsub-emru-nodered` wrapper.** Clone `nmea-parser-nodered` (the proven
+> template), node type `cma-norsub-parser`, expose the facade's `protocol` selection in the config UI. The
+> ordering constraint is already satisfied: `norsub-emru@3.0.0` is live, so the wrapper's dep range will
+> resolve. Paste-ready prompt at the very end of this doc. cru also wants **further nmea-parser changes**
+> soon (he flagged them while deciding to publish 3.2.0) — ask which, they may reorder against 3b.
 >
 > **🟡 2026-07-29 (later) — cru's two remaining data decisions APPLIED, and they pull `nmea-parser` into
 > this release as `3.2.0`.** (1) **`version: '1.2.0'` on all 12 protocols in `norsub.yml`** (the OEM manual
