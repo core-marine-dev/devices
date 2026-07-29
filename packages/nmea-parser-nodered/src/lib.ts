@@ -13,7 +13,7 @@ export interface MemoryInput {
   payload?: unknown
 }
 
-export interface ProtocolsInput {
+export interface SentencesInput {
   command?: unknown
   file?: unknown
   content?: unknown
@@ -24,7 +24,7 @@ export interface MemoryReport {
   characters: number
 }
 
-// Reads a protocols YAML file by path. Injected so the logic stays side-effect-free
+// Reads a sentences YAML file by path. Injected so the logic stays side-effect-free
 // and testable; the adapter supplies a node:fs reader.
 export type FileReader = (path: string) => string
 
@@ -51,17 +51,19 @@ export const applyMemory = (parser: NMEAParser, memory: MemoryInput | undefined)
   return 'memory.command should be "get" or "set"'
 }
 
-// protocols: { command: 'get' } | { command: 'set', file?: string, content?: string }
-// New lib API: feed a YAML string via addSentences (Result, never throws). A file
-// path is read via the injected reader (node-only concern kept out of this module).
-export const applyProtocols = (
+// sentences: { command: 'get' } | { command: 'set', file?: string, content?: string }
+// Named for the library's own vocabulary (addSentences / getSentencesByProtocol):
+// this channel carries sentence DEFINITIONS. Feeds a YAML string via addSentences
+// (Result, never throws); a file path is read via the injected reader, keeping the
+// node-only concern out of this module.
+export const applySentences = (
   parser: NMEAParser,
-  protocols: ProtocolsInput | undefined,
+  sentences: SentencesInput | undefined,
   readFile: FileReader,
 ): ReturnType<NMEAParser['getSentencesByProtocol']> | string | undefined => {
-  if (isNil(protocols)) return undefined
-  const { command, file, content } = protocols
-  if (!isString(command)) return 'protocols.command should be "get" or "set"'
+  if (isNil(sentences)) return undefined
+  const { command, file, content } = sentences
+  if (!isString(command)) return 'sentences.command should be "get" or "set"'
   if (command === 'get') return parser.getSentencesByProtocol()
   if (command === 'set') {
     let yaml: string
@@ -71,16 +73,16 @@ export const applyProtocols = (
       try {
         yaml = readFile(file)
       } catch {
-        return `protocols: cannot read file "${file}"`
+        return `sentences: cannot read file "${file}"`
       }
     } else {
-      return 'protocols.set needs a "content" (YAML string) or a "file" path'
+      return 'sentences.set needs a "content" (YAML string) or a "file" path'
     }
     const result = parser.addSentences(yaml)
-    if (!result.success) return `protocols: ${result.error.message}`
+    if (!result.success) return `sentences: ${result.error.message}`
     return parser.getSentencesByProtocol()
   }
-  return 'protocols.command should be "get" or "set"'
+  return 'sentences.command should be "get" or "set"'
 }
 
 // sentence: string id -> stored sentence info | null

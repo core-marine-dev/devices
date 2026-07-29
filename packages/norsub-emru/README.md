@@ -209,11 +209,35 @@ both the 2-field NorSub telegram and the 3-field RDI ADCP one).
 | `Status`, `StatusInput`, `NorsubProtocol`, `NorsubParserOptions` | Types. |
 | `StatusSchema`, `StatusInputSchema` | Runtime validators. |
 
+## Failed and garbage sentences
+
+Inherited from [`@coremarine/nmea-parser`](https://www.npmjs.com/package/@coremarine/nmea-parser)
+**4.0.0**: **nothing you feed the parser is dropped silently.** A problem is signalled by the optional
+`errors: string[]` on the CMA.
+
+- **A malformed sentence is still fully decoded** and carries `errors` — a checksum that is not two hex
+  characters, a checksum that does not match, a missing or malformed `\r\n`.
+- **Undecodable input** — line noise, or a device speaking a different protocol entirely — comes back as
+  a *garbage sentence*: a valid CMA with `id: 'unknown'`, `payload: []`,
+  `protocol: { name: 'unknown', version: 'unknown' }`, the discarded input in `raw`, and `errors`.
+
+```typescript
+parser.parseData('$PNORSUB8,1,2*4')
+// -> id 'PNORSUB8', decoded, with errors:
+//    ['Missing end flag: expected \\r\\n',
+//     'Invalid checksum format: expected 2 hexadecimal characters, received "4"',
+//     'Invalid checksum: computed 7C, received 4']
+```
+
+Full rules: [`docs/CMA.md`](https://github.com/core-marine-dev/devices/blob/main/docs/CMA.md).
+
 ## Notes
 
-- Sentences must be terminated with `\r\n`; without it the parser (correctly) keeps waiting for the rest.
-- A sentence with **no checksum at all** is not treated as NMEA and is discarded. Every NorSub telegram
-  carries one.
+- Sentences should be terminated with `\r\n`. A trailing unterminated sentence is kept on the buffer
+  (it may still be completed); one that is *provably* truncated — because more data follows it — is
+  emitted with a `Missing end flag` error.
+- A sentence with **no checksum at all** cannot be delimited (its length is unknowable), so it is
+  reported as a garbage sentence rather than decoded. Every NorSub telegram carries one.
 - The definitions are bundled pre-generated, so the parser never parses YAML at startup and needs no
   filesystem access.
 

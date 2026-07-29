@@ -6,3 +6,5 @@ export * from './types'
 // sentences + their derived metadata) — see the README "Extending" section.
 export { BUILTIN_METADATA_AGGREGATORS } from './metadata'
 export type { MetadataAggregator, MetadataAggregators } from './metadata'
+export { BUILTIN_SENTENCE_RESOLVERS } from './resolvers'
+export type { SentenceResolver, SentenceResolvers } from './resolvers'

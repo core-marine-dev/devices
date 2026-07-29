@@ -1,12 +1,14 @@
 // installed
-import { TYPE_SCHEMAS } from '@coremarine/protocol-core'
-import type { DraftCMA, Field, Type, Value } from '@coremarine/protocol-core'
+import { TYPE_SCHEMAS, UNKNOWN } from '@coremarine/protocol-core'
+import type { DraftCMA, Field, GarbageSentence, Type, Value } from '@coremarine/protocol-core'
 
 // coded
 import { calculateChecksum, numberChecksumToString, stringChecksumToNumber } from './checksum'
-import { CHECKSUM_LENGTH, DELIMITER, END_FLAG, END_FLAG_LENGTH, MINIMAL_LENGTH, NMEA_ID_LENGTH, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from './constants'
+import { CHECKSUM_LENGTH, DELIMITER, DELIMITER_LENGTH, END_FLAG, END_FLAG_LENGTH, NMEA_ID_LENGTH, SEPARATOR, SEPARATOR_LENGTH, START_FLAG, START_FLAG_LENGTH, TALKERS, TALKERS_SPECIAL } from './constants'
 import { aggregateMetadata } from './metadata'
 import type { MetadataAggregators } from './metadata'
+import { resolveSentenceId } from './resolvers'
+import type { SentenceResolvers } from './resolvers'
 import type { MapStoredSentences, NMEALike, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from './types'
 import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
 
@@ -25,43 +27,140 @@ export const lastUncompletedSentence = (text: string): string | null => {
   return remainder
 }
 
-const hasSingleDelimiter = (str: string): boolean => {
-  const first = str.indexOf(DELIMITER)
-  return first !== -1 && first === str.lastIndexOf(DELIMITER)
+// A chunk of the buffer, classified. EVERY character of the buffer ends up in
+// exactly one chunk (or in the pending remainder) — nothing is ever discarded
+// silently, which is the whole point: malformed input must reach the consumer as
+// a CMA carrying `errors`, not vanish. `errors` here are the FRAMING errors
+// (terminator/structure); checksum errors are added when the body is parsed.
+export interface ScannedChunk {
+  raw: string
+  garbage: boolean
+  errors: string[]
 }
 
-const hasChecksumFormat = (str: string): boolean => {
-  const cs = str.split(DELIMITER)[1] ?? ''
-  return cs.length === CHECKSUM_LENGTH && /^[0-9A-Fa-f]{2}$/.test(cs)
+export interface ScannedBuffer {
+  chunks: ScannedChunk[]
+  remainder: string
 }
 
-const hasValidPayload = (str: string): boolean => {
-  const payload = str.split(DELIMITER)[0]
-  return payload.includes(SEPARATOR) && !['\r', '\n'].some((char) => payload.includes(char))
+export const MISSING_END_FLAG_ERROR = 'Missing end flag: expected \\r\\n'
+export const INVALID_END_FLAG_ERROR = 'Invalid end flag: expected \\r\\n, received \\n'
+export const GARBAGE_ERROR = 'Unparseable input: not an NMEA sentence'
+export const NO_DELIMITER_ERROR = `Unparseable input: no checksum delimiter (${DELIMITER}), so the sentence length is unknown`
+export const INVALID_ID_ERROR = 'Unparseable input: invalid sentence id'
+export const bufferLimitError = (limit: number): string => `Buffer limit exceeded (${limit} characters): discarded unterminated input`
+
+// An NMEA id is alphanumeric (talker + mnemonic, e.g. `GPGGA`, `PNORSUB8`).
+const VALID_ID = /^[A-Za-z0-9]+$/
+const LINE_FEED = '\n'
+const CARRIAGE_RETURN = '\r'
+
+// Strip the terminator so the body can be split regardless of how (or whether)
+// the sentence was terminated: `\r\n`, a lone `\n`, or not at all.
+const stripTerminator = (raw: string): string => {
+  if (raw.endsWith(END_FLAG)) return raw.slice(0, -END_FLAG_LENGTH)
+  if (raw.endsWith(LINE_FEED)) return raw.slice(0, -LINE_FEED.length)
+  return raw
 }
 
-// Extract every well-formed candidate sentence from the buffer. Checksum VALUE
-// is not verified here (a bad checksum is emitted with an error downstream, per
-// the CMA "never drop" rule) — only structural shape qualifies a candidate.
-export const getUnparsedNMEASentences = (text: string): NMEALike[] => {
-  if ([START_FLAG, SEPARATOR, DELIMITER, END_FLAG].some((flag) => !text.includes(flag))) {
-    return []
+// Where the `$`-chunk starting at `start` ends, and what is wrong with the way
+// it ends. `null` = not terminated yet: it may still be completed by more data,
+// so it must NOT be reported as an error — it goes back on the buffer.
+const closeChunk = (text: string, start: number): { end: number, errors: string[] } | null => {
+  const feed = text.indexOf(LINE_FEED, start)
+  const nextStart = text.indexOf(START_FLAG, start + START_FLAG_LENGTH)
+  // A following `$` before any terminator PROVES this chunk will never get one.
+  if (nextStart !== -1 && (feed === -1 || nextStart < feed)) {
+    return { end: nextStart, errors: [MISSING_END_FLAG_ERROR] }
   }
-  return text
-    .split(END_FLAG)
-    .filter((str) => str.length > MINIMAL_LENGTH)
-    .filter((str) => str.includes(START_FLAG))
-    .map((str) => str.split(START_FLAG).at(-1) as string)
-    .filter(hasSingleDelimiter)
-    .filter(hasChecksumFormat)
-    .filter(hasValidPayload)
-    .map((str) => `${START_FLAG}${str}${END_FLAG}` as NMEALike)
+  if (feed === -1) return null
+  // Every `\r\n` contains the `\n` we just found, so the first line feed is the
+  // first terminator either way — only its shape differs.
+  const errors = (text[feed - 1] === CARRIAGE_RETURN) ? [] : [INVALID_END_FLAG_ERROR]
+  return { end: feed + 1, errors }
 }
 
-export const getIdPayloadAndChecksum = (raw: NMEALike): { id: string, payload: string, checksum: string } => {
-  const [info, checksum] = raw.slice(START_FLAG.length, -END_FLAG_LENGTH).split(DELIMITER)
+const garbageChunk = (raw: string, error: string = GARBAGE_ERROR): ScannedChunk => ({ raw, garbage: true, errors: [error] })
+
+// Blank space between sentences (an extra empty line, a stray `\r`) is normal on
+// a serial line and carries no information — reporting it would be exactly the
+// repetitive noise this feature exists to avoid.
+const isIgnorable = (raw: string): boolean => raw.trim().length === 0
+
+// Adjacent junk is merged so one noisy burst yields ONE garbage sentence
+// instead of a flood of tiny ones.
+const pushGarbage = (chunks: ScannedChunk[], raw: string, error?: string): void => {
+  if (isIgnorable(raw)) return
+  const previous = chunks.at(-1)
+  if (previous?.garbage === true) {
+    previous.raw += raw
+    if (error !== undefined && !previous.errors.includes(error)) previous.errors.push(error)
+    return
+  }
+  chunks.push(garbageChunk(raw, error))
+}
+
+// A `$`-chunk is a sentence attempt only if the extent of its data is KNOWN and
+// it is identifiable. Without a `*` we cannot tell how much is missing, so
+// claiming a field list would be a lie — that is garbage, not a sentence.
+const classifyChunk = (raw: string, framing: string[]): ScannedChunk => {
+  const body = stripTerminator(raw).slice(START_FLAG_LENGTH)
+  const delimiter = body.lastIndexOf(DELIMITER)
+  if (delimiter === -1) return garbageChunk(raw, NO_DELIMITER_ERROR)
+  const id = body.slice(0, delimiter).split(SEPARATOR)[0]
+  if (!VALID_ID.test(id)) return garbageChunk(raw, INVALID_ID_ERROR)
+  return { raw, garbage: false, errors: framing }
+}
+
+// Walk the buffer and classify all of it: sentence attempts, garbage, and the
+// still-incomplete tail. Replaces the old filter chain, which silently dropped
+// everything it rejected.
+export const scanBuffer = (text: string, bufferLimit: number): ScannedBuffer => {
+  const chunks: ScannedChunk[] = []
+  let index = 0
+  while (index < text.length) {
+    const start = text.indexOf(START_FLAG, index)
+    // No `$` left — the rest can never become a sentence, so report it now
+    // rather than waiting for a start flag that may never arrive.
+    if (start === -1) {
+      pushGarbage(chunks, text.slice(index))
+      return { chunks, remainder: '' }
+    }
+    if (start > index) pushGarbage(chunks, text.slice(index, start))
+    const boundary = closeChunk(text, start)
+    if (boundary === null) {
+      const pending = text.slice(start)
+      // Unterminated but still growing. Binary protocols routinely contain `$`
+      // bytes, so without this the buffer would grow forever and the wrong-device
+      // case would stay silent — the one outcome we are removing.
+      if (pending.length > bufferLimit) {
+        pushGarbage(chunks, pending, bufferLimitError(bufferLimit))
+        return { chunks, remainder: '' }
+      }
+      return { chunks, remainder: pending }
+    }
+    const chunk = classifyChunk(text.slice(start, boundary.end), boundary.errors)
+    // Route garbage through pushGarbage too, so a run of unusable `$` fragments
+    // merges into one report instead of one per fragment.
+    if (chunk.garbage) {
+      pushGarbage(chunks, chunk.raw, chunk.errors[0])
+    } else {
+      chunks.push(chunk)
+    }
+    index = boundary.end
+  }
+  return { chunks, remainder: '' }
+}
+
+// Tolerates a missing/malformed terminator and takes the LAST `*` as the
+// checksum delimiter (per NMEA), so a `*` inside the payload cannot hide it.
+export const getIdPayloadAndChecksum = (raw: string): { id: string, payload: string, checksum: string } => {
+  const body = stripTerminator(raw).slice(START_FLAG_LENGTH)
+  const delimiter = body.lastIndexOf(DELIMITER)
+  const info = (delimiter === -1) ? body : body.slice(0, delimiter)
+  const checksum = (delimiter === -1) ? '' : body.slice(delimiter + DELIMITER_LENGTH)
   const id = info.split(SEPARATOR)[0]
-  const payload = info.slice(id.length + SEPARATOR.length)
+  const payload = info.slice(id.length + SEPARATOR_LENGTH)
   return { id, payload, checksum }
 }
 
@@ -115,15 +214,37 @@ const genericField = (raw: string): Field => ({
   value: raw === '' ? null : raw,
 })
 
+const CHECKSUM_FORMAT = /^[0-9A-Fa-f]{2}$/
+
+// Two INDEPENDENT problems, so both can be reported at once: the checksum is not
+// two hex characters, and/or it does not match the data. A device that drops the
+// leading zero (computes 0x04, sends `*4`) gets only the format error, because
+// the value still compares equal — no false corruption claim.
 const checksumErrors = (info: string, checksum: string): string[] => {
+  const errors: string[] = []
+  if (!CHECKSUM_FORMAT.test(checksum)) {
+    errors.push(`Invalid checksum format: expected ${CHECKSUM_LENGTH} hexadecimal characters, received "${checksum}"`)
+  }
   const computed = calculateChecksum(info)
-  if (stringChecksumToNumber(checksum) === computed) return []
-  return [`Invalid checksum: computed ${numberChecksumToString(computed)}, received ${checksum}`]
+  if (stringChecksumToNumber(checksum) !== computed) {
+    errors.push(`Invalid checksum: computed ${numberChecksumToString(computed)}, received ${checksum}`)
+  }
+  return errors
 }
 
-const parseGenericSentence = (raw: NMEALike): DraftCMA => {
+// A sentence with no `,` at all: the extent IS known (the `*` bounds it), so it
+// is reported rather than dropped, but it has no fields to decode.
+export const MISSING_SEPARATOR_ERROR = `Missing field separator (${SEPARATOR})`
+
+const genericPayload = (info: string, payload: string): Field[] => (
+  info.includes(SEPARATOR) ? payload.split(SEPARATOR).map(genericField) : []
+)
+
+// `framing` = errors found while chunking the buffer (bad/missing terminator).
+const parseGenericSentence = (raw: string, framing: string[] = []): DraftCMA => {
   const { id, payload, checksum } = getIdPayloadAndChecksum(raw)
-  const info = `${id}${SEPARATOR}${payload}`
+  const hasSeparator = payload.length > 0 || raw.includes(SEPARATOR)
+  const info = hasSeparator ? `${id}${SEPARATOR}${payload}` : id
   const talker = getTalker(id)
   const metadata: Record<string, unknown> = { checksum, standard: false }
   if (talker !== null) metadata.talker = talker
@@ -131,14 +252,28 @@ const parseGenericSentence = (raw: NMEALike): DraftCMA => {
     raw,
     timestamp: Date.now(),
     id,
-    protocol: { name: 'NMEA', version: 'unknown' },
-    payload: payload.split(SEPARATOR).map(genericField),
+    protocol: { name: 'NMEA', version: UNKNOWN },
+    payload: genericPayload(info, payload),
     metadata,
   }
-  const errors = checksumErrors(info, checksum)
+  const errors = [...framing, ...checksumErrors(info, checksum)]
+  if (!hasSeparator) errors.push(MISSING_SEPARATOR_ERROR)
   if (errors.length > 0) generic.errors = errors
   return generic
 }
+
+// Undecodable input, as a valid CMA: every mandatory string is UNKNOWN and the
+// payload is empty. What matters is `raw` (the junk itself), the timestamps, and
+// `errors` saying why. See `GarbageSentence` in protocol-core.
+export const garbageSentence = (raw: string, errors: string[]): GarbageSentence => ({
+  raw,
+  timestamp: Date.now(),
+  id: UNKNOWN,
+  protocol: { name: UNKNOWN, version: UNKNOWN },
+  payload: [],
+  metadata: { checksum: UNKNOWN, standard: false },
+  errors,
+})
 
 // UPGRADE (match against the knowledge base) -------------------------------------------------------------------------
 export const hasSameNumberOfFields = (payload: string, sentence: StoredSentence): boolean => (
@@ -201,10 +336,21 @@ const upgradeKnownSentence = (generic: DraftCMA, definitions: MapStoredSentences
   return generic
 }
 
-// `aggregators` defaults to the built-ins; a parser passes its own registry so
-// subclass-registered aggregators are applied too.
-export const parseSentence = (raw: NMEALike, definitions: MapStoredSentences, aggregators?: MetadataAggregators): DraftCMA => (
-  aggregateMetadata(upgradeKnownSentence(parseGenericSentence(raw), definitions), aggregators)
+// The pipeline: decode generically -> resolve the id (for formats that carry
+// their real type in a field, e.g. PSXN) -> match the knowledge base -> derive
+// metadata. `aggregators`/`resolvers` default to the built-ins; a parser passes
+// its own registries so subclass-registered ones are applied too.
+export const parseSentence = (
+  raw: string,
+  definitions: MapStoredSentences,
+  aggregators?: MetadataAggregators,
+  framing: string[] = [],
+  resolvers?: SentenceResolvers,
+): DraftCMA => (
+  aggregateMetadata(
+    upgradeKnownSentence(resolveSentenceId(parseGenericSentence(raw, framing), resolvers), definitions),
+    aggregators,
+  )
 )
 
 // TESTING — FAKE SENTENCE GENERATION ---------------------------------------------------------------------------------

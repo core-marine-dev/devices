@@ -188,8 +188,22 @@ describe('parsePayload', () => {
     assert.equal(cma.protocol.name, 'NMEA')
   })
 
-  test('garbage returns an empty array rather than throwing', () => {
-    assert.deepEqual(parsePayload(new NorsubParser(), 'not a sentence'), [])
+  // Garbage is REPORTED, not dropped: it comes out as a valid CMA whose
+  // mandatory values are 'unknown' and whose `errors` say why. Inherited from
+  // nmea-parser for free. See docs/CMA.md §"Failed and garbage sentences".
+  test('garbage is reported as a garbage sentence rather than dropped', () => {
+    const [cma] = parsePayload(new NorsubParser(), 'not a sentence') as {
+      raw: string
+      id: string
+      protocol: { name: string, version: string }
+      payload: unknown[]
+      errors: string[]
+    }[]
+    assert.equal(cma.raw, 'not a sentence')
+    assert.equal(cma.id, 'unknown')
+    assert.deepEqual(cma.protocol, { name: 'unknown', version: 'unknown' })
+    assert.deepEqual(cma.payload, [])
+    assert.ok(cma.errors.length > 0)
   })
 })
 

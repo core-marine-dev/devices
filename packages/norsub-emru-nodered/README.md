@@ -53,12 +53,39 @@ a bad request that key holds an **error string** instead of a result — the nod
 
 | key | type | description |
 | --- | --- | --- |
-| `payload` | array | **CMA[]** — one object per parsed sentence. |
+| `payload` | array | **CMA[]** — one object per sentence, **including ones that failed to parse** (see [Failed and garbage sentences](#failed-and-garbage-sentences)). |
 | `memory` | object | `{ memory: boolean, characters: number }` |
 | `protocol` | object | `{ protocol: string, protocols: string[] }` |
 | `sentences` | object | The known definitions, grouped by protocol. |
 | `sentence` | object \| null | The definition, or `null` if the id is unknown. |
 | `fake` | string \| null | A sample sentence, or `null` if the id is unknown. |
+
+## Failed and garbage sentences
+
+**Since 3.0.0 nothing is dropped silently.** Real devices break the NMEA standard, and an empty
+`msg.payload` used to hide it completely. Every piece of input now comes out in `msg.payload`, and a
+problem is signalled by the optional **`errors`** array on the CMA:
+
+- **A malformed sentence is still fully decoded** and carries `errors` — a checksum that is not two hex
+  characters or does not match, a missing or malformed `\r\n`.
+- **Undecodable input** (line noise, or a device speaking a different protocol) comes out as a *garbage*
+  CMA: `id: 'unknown'`, `payload: []`, `protocol: { name: 'unknown', version: 'unknown' }`, the
+  discarded bytes in `raw`, and `errors` saying why.
+
+
+The shipped example flow includes a **"Failed & garbage sentences"** group demonstrating all three
+cases — a one-character checksum, a missing `\r\n`, and line noise — wired through a `function` node
+to separate *clean* and *flagged* debug outputs.
+
+Route them apart in a `function` node instead of logging the same error forever:
+
+```javascript
+const bad = msg.payload.filter((cma) => cma.errors !== undefined)
+const good = msg.payload.filter((cma) => cma.errors === undefined)
+return [{ payload: good }, bad.length ? { payload: bad } : null]
+```
+
+Full rules: [`docs/CMA.md`](https://github.com/core-marine-dev/devices/blob/main/docs/CMA.md).
 
 ## Parsing
 
@@ -158,6 +185,14 @@ the example flow shows the before/after of hot-expanding the parser with it.
 
 A fake sentence is structurally correct with a valid checksum; the field values are garbage. Useful
 for exercising a flow without a device attached.
+
+## Upgrading from 2.x
+
+The **msg API is unchanged**. One behavioural change, from the underlying libraries going to `4.0.0`:
+**`msg.payload` now also contains failed and garbage sentences** (see
+[above](#failed-and-garbage-sentences)). Previously they were silently discarded, so a flow that
+assumed every CMA was usable should now check `errors` (or `id === 'unknown'`). Nothing about a good
+sentence changed.
 
 ## Upgrading from 1.x
 

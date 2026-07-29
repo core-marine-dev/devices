@@ -1,1190 +1,1369 @@
 [
-  {
-    "id": "norsub-examples-tab",
-    "type": "tab",
-    "label": "NorSub Parser Examples",
-    "disabled": false,
-    "info": ""
-  },
-  {
-    "id": "err-catch",
-    "type": "catch",
-    "z": "norsub-examples-tab",
-    "g": "g-errors",
-    "name": "catch all",
-    "scope": null,
-    "uncaught": false,
-    "x": 200,
-    "y": 80,
-    "wires": [
-      [
-        "err-debug"
-      ]
-    ]
-  },
-  {
-    "id": "err-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-errors",
-    "name": "flow error",
-    "active": true,
-    "tosidebar": true,
-    "complete": "true",
-    "targetType": "full",
-    "x": 420,
-    "y": 80,
-    "wires": []
-  },
-  {
-    "id": "parse-parser",
-    "type": "cma-norsub-parser",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "",
-    "protocol": "nmea",
-    "memory": true,
-    "file": "",
-    "x": 460,
-    "y": 260,
-    "wires": [
-      [
-        "parse-debug"
-      ]
-    ]
-  },
-  {
-    "id": "parse-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 660,
-    "y": 260,
-    "wires": []
-  },
-  {
-    "id": "in-n8",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "PNORSUB8 (status + motion)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 180,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-n7b",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "PNORSUB7b (split status)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$PNORSUB7b,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65535,65535*0E\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 220,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-ptvg",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "PTVG (decoded in metadata)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$PTVG,-0036P, 0021R,101.8T*42\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 260,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-hehdt",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "HEHDT (Gyrocompas1)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$HEHDT,123.456,T*28\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 300,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-psmca",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "PSMCA (SMCA)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$PSMCA,1.1,2.2,3.3,4.4,5.5*4E\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 340,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-gga",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "GGA (inherited NMEA 0183)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 380,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "fn-split",
-    "type": "function",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "send PNORSUB8 in 2 halves",
-    "func": "const s = \"$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\\r\\n\"\nconst cut = Math.floor(s.length / 2)\nnode.send({ payload: s.slice(0, cut) })\nreturn { payload: s.slice(cut) }",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 220,
-    "y": 430,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-split",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "partial sentence (buffered)",
-    "props": [
-      {
-        "p": "payload",
-        "v": "",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 470,
-    "wires": [
-      [
-        "fn-split"
-      ]
-    ]
-  },
-  {
-    "id": "fn-batch",
-    "type": "function",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "send 3 sentences at once",
-    "func": "return { payload: \"$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\\r\\n$PTVG,-0036P, 0021R,101.8T*42\\r\\n$HEHDT,123.456,T*28\\r\\n\" }",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 220,
-    "y": 520,
-    "wires": [
-      [
-        "parse-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-batch",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-parse",
-    "name": "batch of 3",
-    "props": [
-      {
-        "p": "payload",
-        "v": "",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 560,
-    "wires": [
-      [
-        "fn-batch"
-      ]
-    ]
-  },
-  {
-    "id": "mem-parser",
-    "type": "cma-norsub-parser",
-    "z": "norsub-examples-tab",
-    "g": "g-memory",
-    "name": "",
-    "protocol": "nmea",
-    "memory": true,
-    "file": "",
-    "x": 460,
-    "y": 660,
-    "wires": [
-      [
-        "mem-debug"
-      ]
-    ]
-  },
-  {
-    "id": "mem-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-memory",
-    "name": "output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 660,
-    "y": 660,
-    "wires": []
-  },
-  {
-    "id": "in-mem-get",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-memory",
-    "name": "memory GET",
-    "props": [
-      {
-        "p": "memory",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 620,
-    "wires": [
-      [
-        "mem-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-mem-on",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-memory",
-    "name": "memory SET true",
-    "props": [
-      {
-        "p": "memory",
-        "v": "{\"command\":\"set\",\"payload\":true}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 660,
-    "wires": [
-      [
-        "mem-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-mem-off",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-memory",
-    "name": "memory SET false",
-    "props": [
-      {
-        "p": "memory",
-        "v": "{\"command\":\"set\",\"payload\":false}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 700,
-    "wires": [
-      [
-        "mem-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-mem-bad",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-memory",
-    "name": "memory SET bad -> error string",
-    "props": [
-      {
-        "p": "memory",
-        "v": "{\"command\":\"set\",\"payload\":\"nope\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 740,
-    "wires": [
-      [
-        "mem-parser"
-      ]
-    ]
-  },
-  {
-    "id": "proto-parser",
-    "type": "cma-norsub-parser",
-    "z": "norsub-examples-tab",
-    "g": "g-protocol",
-    "name": "",
-    "protocol": "nmea",
-    "memory": true,
-    "file": "",
-    "x": 460,
-    "y": 860,
-    "wires": [
-      [
-        "proto-debug"
-      ]
-    ]
-  },
-  {
-    "id": "proto-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-protocol",
-    "name": "output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 660,
-    "y": 860,
-    "wires": []
-  },
-  {
-    "id": "in-proto-get",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-protocol",
-    "name": "protocol GET",
-    "props": [
-      {
-        "p": "protocol",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 820,
-    "wires": [
-      [
-        "proto-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-proto-set",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-protocol",
-    "name": "protocol SET nmea",
-    "props": [
-      {
-        "p": "protocol",
-        "v": "{\"command\":\"set\",\"payload\":\"nmea\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 860,
-    "wires": [
-      [
-        "proto-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-proto-bad",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-protocol",
-    "name": "protocol SET tss1 -> error string",
-    "props": [
-      {
-        "p": "protocol",
-        "v": "{\"command\":\"set\",\"payload\":\"tss1\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 900,
-    "wires": [
-      [
-        "proto-parser"
-      ]
-    ]
-  },
-  {
-    "id": "sent-parser",
-    "type": "cma-norsub-parser",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "",
-    "protocol": "nmea",
-    "memory": true,
-    "file": "",
-    "x": 460,
-    "y": 1020,
-    "wires": [
-      [
-        "sent-debug"
-      ]
-    ]
-  },
-  {
-    "id": "sent-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 660,
-    "y": 1020,
-    "wires": []
-  },
-  {
-    "id": "in-sent-get",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "sentences GET (all known)",
-    "props": [
-      {
-        "p": "sentences",
-        "v": "{\"command\":\"get\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 960,
-    "wires": [
-      [
-        "sent-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-pcmex-before",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "1. parse PCMEX -> unknown",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$PCMEX,12.5,18.3*4F\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1000,
-    "wires": [
-      [
-        "sent-parser"
-      ]
-    ]
-  },
-  {
-    "id": "fn-yaml",
-    "type": "function",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "YAML as content",
-    "func": "msg.sentences = { command: 'set', content: [\n  'protocols:',\n  '  - protocol: COREMARINE_EXAMPLE',\n  '    standard: false',\n  '    sentences:',\n  '      - id: PCMEX',\n  '        description: Example proprietary sentence - depth and water temperature',\n  '        payload:',\n  '          - name: depth',\n  '            type: float64',\n  '            units: m',\n  '          - name: temperature',\n  '            type: float64',\n  '            units: C'\n].join('\\n') }\nreturn msg",
-    "outputs": 1,
-    "timeout": 0,
-    "noerr": 0,
-    "initialize": "",
-    "finalize": "",
-    "libs": [],
-    "x": 240,
-    "y": 1040,
-    "wires": [
-      [
-        "sent-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-sent-content",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "2a. sentences SET via content",
-    "props": [
-      {
-        "p": "payload",
-        "v": "",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1080,
-    "wires": [
-      [
-        "fn-yaml"
-      ]
-    ]
-  },
-  {
-    "id": "in-sent-file",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "2b. sentences SET via file",
-    "props": [
-      {
-        "p": "sentences",
-        "v": "{\"command\":\"set\",\"file\":\"examples/example-sentences.yml\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1120,
-    "wires": [
-      [
-        "sent-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-pcmex-after",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "3. parse PCMEX -> decoded",
-    "props": [
-      {
-        "p": "payload",
-        "v": "$PCMEX,12.5,18.3*4F\r\n",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1160,
-    "wires": [
-      [
-        "sent-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-sent-bad",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentences",
-    "name": "sentences SET bad YAML -> error string",
-    "props": [
-      {
-        "p": "sentences",
-        "v": "{\"command\":\"set\",\"content\":\"foo: bar\"}",
-        "vt": "json"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1200,
-    "wires": [
-      [
-        "sent-parser"
-      ]
-    ]
-  },
-  {
-    "id": "one-parser",
-    "type": "cma-norsub-parser",
-    "z": "norsub-examples-tab",
-    "g": "g-sentence",
-    "name": "",
-    "protocol": "nmea",
-    "memory": true,
-    "file": "",
-    "x": 460,
-    "y": 1300,
-    "wires": [
-      [
-        "one-debug"
-      ]
-    ]
-  },
-  {
-    "id": "one-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-sentence",
-    "name": "output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 660,
-    "y": 1300,
-    "wires": []
-  },
-  {
-    "id": "in-one-n8",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentence",
-    "name": "sentence GET PNORSUB8",
-    "props": [
-      {
-        "p": "sentence",
-        "v": "PNORSUB8",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1260,
-    "wires": [
-      [
-        "one-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-one-hehdt",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentence",
-    "name": "sentence GET HEHDT",
-    "props": [
-      {
-        "p": "sentence",
-        "v": "HEHDT",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1300,
-    "wires": [
-      [
-        "one-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-one-gga",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentence",
-    "name": "sentence GET GGA (inherited)",
-    "props": [
-      {
-        "p": "sentence",
-        "v": "GGA",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1340,
-    "wires": [
-      [
-        "one-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-one-none",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-sentence",
-    "name": "sentence GET NOPE -> null",
-    "props": [
-      {
-        "p": "sentence",
-        "v": "NOPE",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1380,
-    "wires": [
-      [
-        "one-parser"
-      ]
-    ]
-  },
-  {
-    "id": "fake-parser",
-    "type": "cma-norsub-parser",
-    "z": "norsub-examples-tab",
-    "g": "g-fake",
-    "name": "",
-    "protocol": "nmea",
-    "memory": true,
-    "file": "",
-    "x": 460,
-    "y": 1480,
-    "wires": [
-      [
-        "fake-debug"
-      ]
-    ]
-  },
-  {
-    "id": "fake-debug",
-    "type": "debug",
-    "z": "norsub-examples-tab",
-    "g": "g-fake",
-    "name": "output",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "true",
-    "targetType": "full",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 660,
-    "y": 1480,
-    "wires": []
-  },
-  {
-    "id": "in-fake-n8",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-fake",
-    "name": "fake PNORSUB8",
-    "props": [
-      {
-        "p": "fake",
-        "v": "PNORSUB8",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1440,
-    "wires": [
-      [
-        "fake-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-fake-n7b",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-fake",
-    "name": "fake PNORSUB7b",
-    "props": [
-      {
-        "p": "fake",
-        "v": "PNORSUB7b",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1480,
-    "wires": [
-      [
-        "fake-parser"
-      ]
-    ]
-  },
-  {
-    "id": "in-fake-none",
-    "type": "inject",
-    "z": "norsub-examples-tab",
-    "g": "g-fake",
-    "name": "fake NOPE -> null",
-    "props": [
-      {
-        "p": "fake",
-        "v": "NOPE",
-        "vt": "str"
-      }
-    ],
-    "repeat": "",
-    "crontab": "",
-    "once": false,
-    "onceDelay": 0.1,
-    "topic": "",
-    "x": 200,
-    "y": 1520,
-    "wires": [
-      [
-        "fake-parser"
-      ]
-    ]
-  },
-  {
-    "id": "g-errors",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Flow Errors",
-    "style": {
-      "label": true
+    {
+        "id": "norsub-examples-tab",
+        "type": "tab",
+        "label": "NorSub Parser Examples",
+        "disabled": false,
+        "info": ""
     },
-    "nodes": [
-      "err-catch",
-      "err-debug"
-    ],
-    "x": 140,
-    "y": 40,
-    "w": 540,
-    "h": 100
-  },
-  {
-    "id": "g-parse",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Examples — parse to CMA[]",
-    "style": {
-      "label": true
+    {
+        "id": "g-errors",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Flow Errors",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "err-catch",
+            "err-debug"
+        ],
+        "x": 34,
+        "y": 39,
+        "w": 412,
+        "h": 82
     },
-    "nodes": [
-      "parse-parser",
-      "parse-debug",
-      "in-n8",
-      "in-n7b",
-      "in-ptvg",
-      "in-hehdt",
-      "in-psmca",
-      "in-gga",
-      "fn-split",
-      "in-split",
-      "fn-batch",
-      "in-batch"
-    ],
-    "x": 140,
-    "y": 140,
-    "w": 780,
-    "h": 480
-  },
-  {
-    "id": "g-memory",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Memory API",
-    "style": {
-      "label": true
+    {
+        "id": "g-parse",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Examples — parse to CMA[]",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "parse-parser",
+            "parse-debug",
+            "in-n8",
+            "in-n7b",
+            "in-ptvg",
+            "in-hehdt",
+            "in-psmca",
+            "in-gga",
+            "fn-split",
+            "in-split",
+            "fn-batch",
+            "in-batch"
+        ],
+        "x": 34,
+        "y": 139,
+        "w": 652,
+        "h": 442
     },
-    "nodes": [
-      "mem-parser",
-      "mem-debug",
-      "in-mem-get",
-      "in-mem-on",
-      "in-mem-off",
-      "in-mem-bad"
-    ],
-    "x": 140,
-    "y": 580,
-    "w": 780,
-    "h": 220
-  },
-  {
-    "id": "g-protocol",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Protocol API — which protocol the device emits",
-    "style": {
-      "label": true
+    {
+        "id": "g-memory",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Memory API",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "mem-parser",
+            "mem-debug",
+            "in-mem-get",
+            "in-mem-on",
+            "in-mem-off",
+            "in-mem-bad"
+        ],
+        "x": 34,
+        "y": 599,
+        "w": 672,
+        "h": 202
     },
-    "nodes": [
-      "proto-parser",
-      "proto-debug",
-      "in-proto-get",
-      "in-proto-set",
-      "in-proto-bad"
-    ],
-    "x": 140,
-    "y": 780,
-    "w": 780,
-    "h": 180
-  },
-  {
-    "id": "g-sentences",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Sentences API — hot-expand the parser",
-    "style": {
-      "label": true
+    {
+        "id": "g-protocol",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Protocol API — which protocol the device emits",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "proto-parser",
+            "proto-debug",
+            "in-proto-get",
+            "in-proto-set",
+            "in-proto-bad"
+        ],
+        "x": 34,
+        "y": 819,
+        "w": 672,
+        "h": 162
     },
-    "nodes": [
-      "sent-parser",
-      "sent-debug",
-      "in-sent-get",
-      "in-pcmex-before",
-      "fn-yaml",
-      "in-sent-content",
-      "in-sent-file",
-      "in-pcmex-after",
-      "in-sent-bad"
-    ],
-    "x": 140,
-    "y": 920,
-    "w": 780,
-    "h": 340
-  },
-  {
-    "id": "g-sentence",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Sentence API — is this id known?",
-    "style": {
-      "label": true
+    {
+        "id": "g-sentences",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Sentences API — hot-expand the parser",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "sent-parser",
+            "sent-debug",
+            "in-sent-get",
+            "in-pcmex-before",
+            "fn-yaml",
+            "in-sent-content",
+            "in-sent-file",
+            "in-pcmex-after",
+            "in-sent-bad"
+        ],
+        "x": 34,
+        "y": 999,
+        "w": 712,
+        "h": 322
     },
-    "nodes": [
-      "one-parser",
-      "one-debug",
-      "in-one-n8",
-      "in-one-hehdt",
-      "in-one-gga",
-      "in-one-none"
-    ],
-    "x": 140,
-    "y": 1220,
-    "w": 780,
-    "h": 220
-  },
-  {
-    "id": "g-fake",
-    "type": "group",
-    "z": "norsub-examples-tab",
-    "name": "Fake API — a valid sample sentence",
-    "style": {
-      "label": true
+    {
+        "id": "g-sentence",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Sentence API — is this id known?",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "one-parser",
+            "one-debug",
+            "in-one-n8",
+            "in-one-hehdt",
+            "in-one-gga",
+            "in-one-none"
+        ],
+        "x": 34,
+        "y": 1339,
+        "w": 652,
+        "h": 202
     },
-    "nodes": [
-      "fake-parser",
-      "fake-debug",
-      "in-fake-n8",
-      "in-fake-n7b",
-      "in-fake-none"
-    ],
-    "x": 140,
-    "y": 1400,
-    "w": 780,
-    "h": 180
-  }
+    {
+        "id": "g-fake",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Fake API — a valid sample sentence",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "fake-parser",
+            "fake-debug",
+            "in-fake-n8",
+            "in-fake-n7b",
+            "in-fake-none"
+        ],
+        "x": 34,
+        "y": 1559,
+        "w": 592,
+        "h": 162
+    },
+    {
+        "id": "g-failed",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "Failed & garbage sentences — nothing is dropped silently",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "failed-inject-0",
+            "failed-inject-1",
+            "failed-inject-2",
+            "failed-parser",
+            "failed-split",
+            "failed-debug-ok",
+            "failed-debug-bad"
+        ],
+        "x": 34,
+        "y": 1739,
+        "w": 1072,
+        "h": 162
+    },
+    {
+        "id": "err-catch",
+        "type": "catch",
+        "z": "norsub-examples-tab",
+        "g": "g-errors",
+        "name": "catch all",
+        "scope": null,
+        "uncaught": false,
+        "x": 120,
+        "y": 80,
+        "wires": [
+            [
+                "err-debug"
+            ]
+        ]
+    },
+    {
+        "id": "err-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-errors",
+        "name": "flow error",
+        "active": true,
+        "tosidebar": true,
+        "complete": "true",
+        "targetType": "full",
+        "x": 340,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "parse-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 440,
+        "y": 260,
+        "wires": [
+            [
+                "parse-debug"
+            ]
+        ]
+    },
+    {
+        "id": "parse-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "in-n8",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "PNORSUB8 (status + motion)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 180,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-n7b",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "PNORSUB7b (split status)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$PNORSUB7b,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65535,65535*0E\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 220,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-ptvg",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "PTVG (decoded in metadata)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$PTVG,-0036P, 0021R,101.8T*42\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 260,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-hehdt",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "HEHDT (Gyrocompas1)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$HEHDT,123.456,T*28\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 300,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-psmca",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "PSMCA (SMCA)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$PSMCA,1.1,2.2,3.3,4.4,5.5*4E\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 340,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-gga",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "GGA (inherited NMEA 0183)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 380,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "fn-split",
+        "type": "function",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "send PNORSUB8 in 2 halves",
+        "func": "const s = \"$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\\r\\n\"\nconst cut = Math.floor(s.length / 2)\nnode.send({ payload: s.slice(0, cut) })\nreturn { payload: s.slice(cut) }",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 420,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-split",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "partial sentence (buffered)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 460,
+        "wires": [
+            [
+                "fn-split"
+            ]
+        ]
+    },
+    {
+        "id": "fn-batch",
+        "type": "function",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "send 3 sentences at once",
+        "func": "return { payload: \"$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\\r\\n$PTVG,-0036P, 0021R,101.8T*42\\r\\n$HEHDT,123.456,T*28\\r\\n\" }",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 210,
+        "y": 500,
+        "wires": [
+            [
+                "parse-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-batch",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "batch of 3",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 540,
+        "wires": [
+            [
+                "fn-batch"
+            ]
+        ]
+    },
+    {
+        "id": "mem-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 460,
+        "y": 680,
+        "wires": [
+            [
+                "mem-debug"
+            ]
+        ]
+    },
+    {
+        "id": "mem-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 610,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "in-mem-get",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "memory GET",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 270,
+        "y": 640,
+        "wires": [
+            [
+                "mem-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-mem-on",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "memory SET true",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 680,
+        "wires": [
+            [
+                "mem-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-mem-off",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "memory SET false",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":false}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 250,
+        "y": 720,
+        "wires": [
+            [
+                "mem-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-mem-bad",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "memory SET bad -> error string",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":\"nope\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 760,
+        "wires": [
+            [
+                "mem-parser"
+            ]
+        ]
+    },
+    {
+        "id": "proto-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-protocol",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 460,
+        "y": 900,
+        "wires": [
+            [
+                "proto-debug"
+            ]
+        ]
+    },
+    {
+        "id": "proto-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-protocol",
+        "name": "output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 610,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "in-proto-get",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-protocol",
+        "name": "protocol GET",
+        "props": [
+            {
+                "p": "protocol",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 270,
+        "y": 860,
+        "wires": [
+            [
+                "proto-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-proto-set",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-protocol",
+        "name": "protocol SET nmea",
+        "props": [
+            {
+                "p": "protocol",
+                "v": "{\"command\":\"set\",\"payload\":\"nmea\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 250,
+        "y": 900,
+        "wires": [
+            [
+                "proto-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-proto-bad",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-protocol",
+        "name": "protocol SET tss1 -> error string",
+        "props": [
+            {
+                "p": "protocol",
+                "v": "{\"command\":\"set\",\"payload\":\"tss1\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 940,
+        "wires": [
+            [
+                "proto-parser"
+            ]
+        ]
+    },
+    {
+        "id": "sent-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 500,
+        "y": 1100,
+        "wires": [
+            [
+                "sent-debug"
+            ]
+        ]
+    },
+    {
+        "id": "sent-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 650,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "in-sent-get",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "sentences GET (all known)",
+        "props": [
+            {
+                "p": "sentences",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 270,
+        "y": 1040,
+        "wires": [
+            [
+                "sent-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-pcmex-before",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "1. parse PCMEX -> unknown",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$PCMEX,12.5,18.3*4F\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 1080,
+        "wires": [
+            [
+                "sent-parser"
+            ]
+        ]
+    },
+    {
+        "id": "fn-yaml",
+        "type": "function",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "YAML as content",
+        "func": "msg.sentences = { command: 'set', content: [\n  'protocols:',\n  '  - protocol: COREMARINE_EXAMPLE',\n  '    standard: false',\n  '    sentences:',\n  '      - id: PCMEX',\n  '        description: Example proprietary sentence - depth and water temperature',\n  '        payload:',\n  '          - name: depth',\n  '            type: float64',\n  '            units: m',\n  '          - name: temperature',\n  '            type: float64',\n  '            units: C'\n].join('\\n') }\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 290,
+        "y": 1120,
+        "wires": [
+            [
+                "sent-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-sent-content",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "2a. sentences SET via content",
+        "props": [
+            {
+                "p": "payload",
+                "v": "",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 1160,
+        "wires": [
+            [
+                "fn-yaml"
+            ]
+        ]
+    },
+    {
+        "id": "in-sent-file",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "2b. sentences SET via file",
+        "props": [
+            {
+                "p": "sentences",
+                "v": "{\"command\":\"set\",\"file\":\"examples/example-sentences.yml\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 270,
+        "y": 1200,
+        "wires": [
+            [
+                "sent-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-pcmex-after",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "3. parse PCMEX -> decoded",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$PCMEX,12.5,18.3*4F\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 1240,
+        "wires": [
+            [
+                "sent-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-sent-bad",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "sentences SET bad YAML -> error string",
+        "props": [
+            {
+                "p": "sentences",
+                "v": "{\"command\":\"set\",\"content\":\"foo: bar\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 1280,
+        "wires": [
+            [
+                "sent-parser"
+            ]
+        ]
+    },
+    {
+        "id": "one-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 440,
+        "y": 1420,
+        "wires": [
+            [
+                "one-debug"
+            ]
+        ]
+    },
+    {
+        "id": "one-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 1420,
+        "wires": []
+    },
+    {
+        "id": "in-one-n8",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "sentence GET PNORSUB8",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "PNORSUB8",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1380,
+        "wires": [
+            [
+                "one-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-one-hehdt",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "sentence GET HEHDT",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "HEHDT",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 1420,
+        "wires": [
+            [
+                "one-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-one-gga",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "sentence GET GGA (inherited)",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "GGA",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1460,
+        "wires": [
+            [
+                "one-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-one-none",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "sentence GET NOPE -> null",
+        "props": [
+            {
+                "p": "sentence",
+                "v": "NOPE",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1500,
+        "wires": [
+            [
+                "one-parser"
+            ]
+        ]
+    },
+    {
+        "id": "fake-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-fake",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 380,
+        "y": 1640,
+        "wires": [
+            [
+                "fake-debug"
+            ]
+        ]
+    },
+    {
+        "id": "fake-debug",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-fake",
+        "name": "output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 1640,
+        "wires": []
+    },
+    {
+        "id": "in-fake-n8",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-fake",
+        "name": "fake PNORSUB8",
+        "props": [
+            {
+                "p": "fake",
+                "v": "PNORSUB8",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 180,
+        "y": 1600,
+        "wires": [
+            [
+                "fake-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-fake-n7b",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-fake",
+        "name": "fake PNORSUB7b",
+        "props": [
+            {
+                "p": "fake",
+                "v": "PNORSUB7b",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 1640,
+        "wires": [
+            [
+                "fake-parser"
+            ]
+        ]
+    },
+    {
+        "id": "in-fake-none",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-fake",
+        "name": "fake NOPE -> null",
+        "props": [
+            {
+                "p": "fake",
+                "v": "NOPE",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 1680,
+        "wires": [
+            [
+                "fake-parser"
+            ]
+        ]
+    },
+    {
+        "id": "failed-inject-0",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "1-character checksum (format + mismatch)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "$PHTRO,1.05,M,2.13,M*5\r\n",
+        "payloadType": "str",
+        "x": 240,
+        "y": 1780,
+        "wires": [
+            [
+                "failed-parser"
+            ]
+        ]
+    },
+    {
+        "id": "failed-inject-1",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "missing CRLF between two sentences",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "$HEHDT,123.456,T*28$HEHDT,123.456,T*28\r\n",
+        "payloadType": "str",
+        "x": 250,
+        "y": 1820,
+        "wires": [
+            [
+                "failed-parser"
+            ]
+        ]
+    },
+    {
+        "id": "failed-inject-2",
+        "type": "inject",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "line noise / wrong device",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "\u0000\u0001binary protocol data\u0002",
+        "payloadType": "str",
+        "x": 290,
+        "y": 1860,
+        "wires": [
+            [
+                "failed-parser"
+            ]
+        ]
+    },
+    {
+        "id": "failed-parser",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 520,
+        "y": 1820,
+        "wires": [
+            [
+                "failed-split"
+            ]
+        ]
+    },
+    {
+        "id": "failed-split",
+        "type": "function",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "split clean / flagged",
+        "func": "// 4.0.0 — msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 1820,
+        "wires": [
+            [
+                "failed-debug-ok"
+            ],
+            [
+                "failed-debug-bad"
+            ]
+        ]
+    },
+    {
+        "id": "failed-debug-ok",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "clean sentences",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 920,
+        "y": 1800,
+        "wires": []
+    },
+    {
+        "id": "failed-debug-bad",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "g-failed",
+        "name": "FLAGGED — see errors[]",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 950,
+        "y": 1840,
+        "wires": []
+    }
 ]

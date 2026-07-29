@@ -78,6 +78,27 @@ const aggregateGGA: MetadataAggregator = (sentence) => ({
   payload: ggaPosition(sentence.payload),
 })
 
+// PSXN20 (Kongsberg Seatex) ------------------------------------------------------------------------------------------
+// Four quality codes -> human-readable labels, the same way GGA's gps_quality
+// works. Field 0 is the message number, so the codes are at indexes 1..4.
+// Source: MGC COMPASS Installation Manual Rev. 15, page 108.
+const PSXN20_QUALITIES: Record<number, string> = {
+  0: 'Normal',
+  1: 'Reduced performance',
+  2: 'Invalid data',
+}
+
+const PSXN20_QUALITY_INDEXES = [1, 2, 3, 4]
+
+const aggregatePSXN20: MetadataAggregator = (sentence) => {
+  const fields: Record<number, Metadata> = {}
+  for (const index of PSXN20_QUALITY_INDEXES) {
+    const code = sentence.payload[index].value
+    if (typeof code === 'number') fields[index] = { label: PSXN20_QUALITIES[code] ?? 'unknown' }
+  }
+  return { fields }
+}
+
 // REGISTRY -----------------------------------------------------------------------------------------------------------
 // Keyed by `${id}:${payloadLength}` — the stable identity of a definition.
 export type MetadataAggregators = Record<string, MetadataAggregator>
@@ -88,6 +109,8 @@ export type MetadataAggregators = Record<string, MetadataAggregator>
 // `registerAggregators` without touching this module.
 export const BUILTIN_METADATA_AGGREGATORS: MetadataAggregators = {
   'GGA:14': aggregateGGA,
+  // Keyed by the RESOLVED id (see src/resolvers.ts) — on the wire it is `$PSXN`.
+  'PSXN20:5': aggregatePSXN20,
 }
 
 const applyFields = (payload: Field[], fields: Record<number, Metadata>): Field[] => (

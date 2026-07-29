@@ -16,7 +16,8 @@ import { describe, expect, test } from 'vitest'
 // coded
 import { DELIMITER, END_FLAG, SEPARATOR, START_FLAG, TALKERS, TALKERS_SPECIAL } from '../src/constants'
 import { NMEALikeSchema, StoredSentenceSchema } from '../src/schemas'
-import { createFakeSentence, createPayload, createValue, getIdPayloadAndChecksum, getTalker, getUnparsedNMEASentences, hasSameNumberOfFields, lastUncompletedSentence, newestDefinition, parseSentence, parseValue } from '../src/sentences'
+import { createFakeSentence, createPayload, createValue, garbageSentence, getIdPayloadAndChecksum, getTalker, hasSameNumberOfFields, lastUncompletedSentence, newestDefinition, parseSentence, parseValue, scanBuffer } from '../src/sentences'
+import { GARBAGE_ERROR, INVALID_END_FLAG_ERROR, INVALID_ID_ERROR, MISSING_END_FLAG_ERROR, MISSING_SEPARATOR_ERROR, NO_DELIMITER_ERROR, bufferLimitError } from '../src/sentences'
 import { MapStoredSentences, ProtocolFieldType, StoredSentence, Talker } from '../src/types'
 
 const TEST_STORED_SENTENCE: StoredSentence = {
@@ -64,42 +65,135 @@ describe('lastUncompletedSentence', () => {
   })
 })
 
-describe('getUnparsedNMEASentences', () => {
+// The scanner must account for EVERY character of the buffer: nothing is
+// dropped silently — bad input surfaces as a sentence carrying `errors` or as a
+// garbage sentence. See docs/CMA.md §"Failed and garbage sentences".
+describe('scanBuffer', () => {
   const sample1 = '$TEST,a,b,c*5A\r\n'
   const sample2 = '$TEST,-1,3,4,T*59\r\n'
+  const LIMIT = 1024
+  const scan = (text: string): ReturnType<typeof scanBuffer> => scanBuffer(text, LIMIT)
 
-  test('Happy path', () => {
-    const sample = `$$as;dfj;aklsfj${sample1}\r\n**aslkjh${sample2}`
-    expect(getUnparsedNMEASentences(sample)).toEqual([sample1, sample2])
+  test('Happy path — two clean sentences, no errors, nothing pending', () => {
+    const { chunks, remainder } = scan(`${sample1}${sample2}`)
+    expect(chunks).toEqual([
+      { raw: sample1, garbage: false, errors: [] },
+      { raw: sample2, garbage: false, errors: [] },
+    ])
+    expect(remainder).toBe('')
   })
 
-  test('none if it does not contain "\\r\\n"', () => {
-    expect(getUnparsedNMEASentences(sample1.replace(END_FLAG, ''))).toHaveLength(0)
+  test('every character is accounted for — the concatenation of all chunks plus the remainder IS the buffer', () => {
+    const text = `noise${sample1}\r\n**junk${sample2}$TEST,pend`
+    const { chunks, remainder } = scan(text)
+    expect(chunks.map((chunk) => chunk.raw).join('') + remainder).toBe(text)
   })
 
-  test('none if below minimal length', () => {
-    expect(getUnparsedNMEASentences('$*de\r\n')).toHaveLength(0)
+  test('garbage BETWEEN sentences is reported, sentences still parse', () => {
+    const { chunks } = scan(`${sample1}hello world${sample2}`)
+    expect(chunks).toEqual([
+      { raw: sample1, garbage: false, errors: [] },
+      { raw: 'hello world', garbage: true, errors: [GARBAGE_ERROR] },
+      { raw: sample2, garbage: false, errors: [] },
+    ])
   })
 
-  test('none if it does not contain "$"', () => {
-    expect(getUnparsedNMEASentences(sample1.replace(START_FLAG, ''))).toHaveLength(0)
+  test('pure garbage is emitted immediately (no "$" can never become a sentence)', () => {
+    const { chunks, remainder } = scan('hello world\r\n')
+    expect(chunks).toEqual([{ raw: 'hello world\r\n', garbage: true, errors: [GARBAGE_ERROR] }])
+    expect(remainder).toBe('')
   })
 
-  test('none if it does not contain "*"', () => {
-    expect(getUnparsedNMEASentences(sample1.replace(DELIMITER, ''))).toHaveLength(0)
+  test('adjacent junk is COALESCED into a single garbage chunk (no flood)', () => {
+    const { chunks } = scan(`$$as;dfj;aklsfj${sample1}`)
+    expect(chunks).toHaveLength(2)
+    expect(chunks[0]).toEqual({ raw: '$$as;dfj;aklsfj', garbage: true, errors: [NO_DELIMITER_ERROR] })
+    expect(chunks[1].garbage).toBe(false)
   })
 
-  test('none if it does not contain ","', () => {
-    expect(getUnparsedNMEASentences(sample1.replaceAll(SEPARATOR, ''))).toHaveLength(0)
+  test('blank space between sentences is ignored, NOT reported as garbage', () => {
+    const { chunks } = scan(`${sample1}\r\n \t\r\n${sample2}`)
+    expect(chunks.every((chunk) => !chunk.garbage)).toBe(true)
+    expect(chunks).toHaveLength(2)
   })
 
-  test('a bad checksum is NOT dropped — it is a candidate (error added downstream)', () => {
+  // cru's case: two sentences in a row where the first lost its terminator.
+  test('missing \\r\\n between two sentences — BOTH are emitted, the first flagged', () => {
+    const { chunks } = scan(`$TEST,a,b,c*5A${sample2}`)
+    expect(chunks).toEqual([
+      { raw: '$TEST,a,b,c*5A', garbage: false, errors: [MISSING_END_FLAG_ERROR] },
+      { raw: sample2, garbage: false, errors: [] },
+    ])
+  })
+
+  test('a lone \\n is a MALFORMED terminator, not a missing one', () => {
+    const { chunks } = scan('$TEST,a,b,c*5A\n')
+    expect(chunks).toEqual([{ raw: '$TEST,a,b,c*5A\n', garbage: false, errors: [INVALID_END_FLAG_ERROR] }])
+  })
+
+  test('an unterminated tail is PENDING — never an error (it is still streaming)', () => {
+    const { chunks, remainder } = scan(`${sample1}$TEST,a,b`)
+    expect(chunks).toHaveLength(1)
+    expect(chunks[0].errors).toEqual([])
+    expect(remainder).toBe('$TEST,a,b')
+  })
+
+  test('a "$" chunk with NO "*" is garbage — the sentence length is unknowable', () => {
+    const { chunks } = scan('$HEHDT,123.4,T\r\n')
+    expect(chunks).toEqual([{ raw: '$HEHDT,123.4,T\r\n', garbage: true, errors: [NO_DELIMITER_ERROR] }])
+  })
+
+  test('a malformed 1-character checksum is still a SENTENCE (no framing error)', () => {
+    const { chunks } = scan('$TEST,a,b,c*5\r\n')
+    expect(chunks).toEqual([{ raw: '$TEST,a,b,c*5\r\n', garbage: false, errors: [] }])
+  })
+
+  // A comma-less sentence (some proprietary commands look like this). The `*`
+  // bounds it, so the extent IS known — it is reported, not treated as garbage.
+  test('no field separator — a sentence with no fields, flagged', () => {
+    const { chunks } = scan('$PSTOP*48\r\n')
+    expect(chunks).toEqual([{ raw: '$PSTOP*48\r\n', garbage: false, errors: [] }])
+    const cma = parseSentence('$PSTOP*48\r\n', HDT_DEFINITIONS)
+    expect(cma.id).toBe('PSTOP')
+    expect(cma.payload).toEqual([])
+    expect(cma.errors).toEqual([MISSING_SEPARATOR_ERROR])
+  })
+
+  test('an unusable id is garbage', () => {
+    const { chunks } = scan('$*de\r\n')
+    expect(chunks).toEqual([{ raw: '$*de\r\n', garbage: true, errors: [INVALID_ID_ERROR] }])
+  })
+
+  test('a bad checksum VALUE is a sentence — the error is added when the body is parsed', () => {
     const badChecksum = sample1.replace('5A', '5B')
-    expect(getUnparsedNMEASentences(badChecksum)).toEqual([badChecksum])
+    expect(scan(badChecksum)).toEqual({ chunks: [{ raw: badChecksum, garbage: false, errors: [] }], remainder: '' })
   })
 
-  test('none if info contains invalid characters', () => {
-    expect(getUnparsedNMEASentences(sample1.replace('a', '-1\r'))).toHaveLength(0)
+  // Q4: binary protocols routinely contain "$" bytes, so an unterminated chunk
+  // could otherwise grow forever and the wrong-device case would stay silent.
+  test('buffer limit exceeded — the unterminated input is flushed as garbage', () => {
+    const long = `$${'A'.repeat(40)}`
+    const { chunks, remainder } = scanBuffer(long, 10)
+    expect(chunks).toEqual([{ raw: long, garbage: true, errors: [bufferLimitError(10)] }])
+    expect(remainder).toBe('')
+  })
+
+  test('under the limit the same input is still pending', () => {
+    const short = '$ABCDE'
+    expect(scanBuffer(short, 10)).toEqual({ chunks: [], remainder: short })
+  })
+})
+
+describe('garbageSentence', () => {
+  test('is a valid CMA with every mandatory value UNKNOWN and an empty payload', () => {
+    const garbage = garbageSentence('binary junk', [GARBAGE_ERROR])
+    expect(garbage.raw).toBe('binary junk')
+    expect(garbage.id).toBe('unknown')
+    expect(garbage.protocol).toEqual({ name: 'unknown', version: 'unknown' })
+    expect(garbage.payload).toEqual([])
+    expect(garbage.metadata).toEqual({ checksum: 'unknown', standard: false })
+    expect(garbage.errors).toEqual([GARBAGE_ERROR])
+    expect(typeof garbage.timestamp).toBe('number')
   })
 })
 

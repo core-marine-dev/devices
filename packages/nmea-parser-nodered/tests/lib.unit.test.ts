@@ -6,7 +6,7 @@ import { describe, test } from 'node:test'
 import { NMEAParser } from '@coremarine/nmea-parser'
 
 // coded
-import { applyMemory, applyProtocols, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from '../src/lib'
+import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from '../src/lib'
 
 const GGA = '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n'
 const noop = (): string => ''
@@ -33,25 +33,25 @@ describe('applyMemory', () => {
   })
 })
 
-describe('applyProtocols', () => {
+describe('applySentences', () => {
   test('absent input -> undefined', () => {
-    assert.equal(applyProtocols(new NMEAParser(), undefined, noop), undefined)
+    assert.equal(applySentences(new NMEAParser(), undefined, noop), undefined)
   })
   test('get -> defined protocol listing', () => {
-    assert.notEqual(applyProtocols(new NMEAParser(), { command: 'get' }, noop), undefined)
+    assert.notEqual(applySentences(new NMEAParser(), { command: 'get' }, noop), undefined)
   })
   test('set without content/file -> error string', () => {
-    assert.match(String(applyProtocols(new NMEAParser(), { command: 'set' }, noop)), /content.*file/)
+    assert.match(String(applySentences(new NMEAParser(), { command: 'set' }, noop)), /content.*file/)
   })
   test('set with invalid YAML content -> error string', () => {
-    const out = applyProtocols(new NMEAParser(), { command: 'set', content: ':\n::bad' }, noop)
-    assert.match(String(out), /^protocols:/)
+    const out = applySentences(new NMEAParser(), { command: 'set', content: ':\n::bad' }, noop)
+    assert.match(String(out), /^sentences:/)
   })
   test('set with file whose reader throws -> cannot read file', () => {
     const throwing = (): string => {
       throw new Error('ENOENT')
     }
-    const out = applyProtocols(new NMEAParser(), { command: 'set', file: '/nope.yml' }, throwing)
+    const out = applySentences(new NMEAParser(), { command: 'set', file: '/nope.yml' }, throwing)
     assert.match(String(out), /cannot read file/)
   })
 })

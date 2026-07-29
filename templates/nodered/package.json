@@ -30,7 +30,8 @@
   "files": [
     "dist",
     "examples",
-    "!**/*.backup"
+    "!**/*.backup",
+    "!**/*_cred.json"
   ],
   "scripts": {
     "build": "pnpm run format && tsup && node copy-assets.mjs",

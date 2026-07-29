@@ -157,6 +157,108 @@ bare literals, structured `{ kind, message }` errors, `await p.then(ok).catch(er
 chaining; `try/catch` nested only where strictly necessary, never propagated). Any function that
 threw before the refactor returns a `Result` after it.
 
+## Failed and garbage sentences (LOCKED 2026-07-29, cru)
+
+**Nothing the parser receives is ever dropped silently.** Every character of the buffer either
+decodes into a sentence, comes out as a *garbage sentence*, or stays on the buffer as the
+still-incomplete tail. cru's requirement, from real hardware: a device that violates the standard
+(e.g. a **1-character checksum**) used to yield an **empty array** — the problem was invisible.
+Logging it instead is not acceptable either: the same error repeats forever and drowns the log.
+**Feedback has to be in the OUTPUT**, so a consumer can act on it per sentence.
+
+**How a consumer detects a problem: the optional `errors: string[]` is present.** That is the only
+signal, and it already existed (bad checksums used it) — so **the CMA contract is unchanged**. No
+new key, no new variant.
+
+**A failed sentence is a NORMAL CMA + `errors`.** It is decoded as far as it can be: id, fields,
+types, units, protocol match, metadata aggregation. A framing or checksum problem never stops the
+decode, because the data is usually still usable — that is the whole point of reporting instead of
+dropping.
+
+**A garbage sentence** is input that cannot be interpreted at all. Still a valid CMA — every
+mandatory value is `UNKNOWN` (`'unknown'`, exported by `protocol-core`), with `payload: []` and
+`metadata.checksum: 'unknown'`. What it carries that matters: **`raw`** (the discarded input, so it
+can be inspected), the **timestamps** (when it arrived), and **`errors`** (why it failed). The
+model is `GarbageSentence` in `protocol-core`; the *decision* of what counts as garbage is
+protocol-specific (today: nmea-parser, which norsub-emru inherits for free).
+
+**Classification (nmea-parser).** A `$`-chunk is a *sentence attempt* only when its extent is
+**known** — i.e. it has a `*`. Without one we cannot tell how many fields are missing, so claiming
+a field list would be a lie ⇒ garbage.
+
+| input | result |
+| --- | --- |
+| valid sentence | CMA, no `errors` |
+| checksum wrong (2 hex chars) | full CMA + `Invalid checksum: computed X, received Y` |
+| checksum not 2 hex chars (`*4`) | full CMA + a **format** error, **plus** a mismatch error only if it also does not match |
+| terminated by a lone `\n` | full CMA + `Invalid end flag` |
+| no terminator, but another `$` follows | full CMA + `Missing end flag` (a following `$` PROVES it will never be completed) |
+| no `,` at all (`$PSTOP*48`) | CMA with `payload: []` + `Missing field separator` |
+| `$`-chunk with **no `*`** | **garbage** — length unknowable |
+| `$`-chunk with an unusable id | **garbage** |
+| text outside any `$`-chunk | **garbage** (adjacent junk is **coalesced** into one, so a noisy burst is one report, not a flood) |
+| blank space between sentences | **ignored** — normal on a serial line, and reporting it would be the very noise this avoids |
+| unterminated trailing `$`-chunk | **pending** on the buffer — never an error, it is still streaming |
+| pending chunk exceeds `bufferLimit` | **garbage** + `Buffer limit exceeded`, buffer reset |
+
+A dropped **leading zero** (device computes `0x04`, sends `*4`) yields **only** the format error:
+`'4'` still compares equal to `4`, so there is never a false corruption claim.
+
+**Why the buffer limit matters (cru, measured):** binary protocols routinely contain `$` bytes, so
+a wrong-device connection can open a chunk that never terminates. Without enforcing the limit the
+buffer would grow forever and that case would stay **silent** — the exact outcome being removed.
+`bufferLimit` was previously stored and validated but **never enforced anywhere**; it now is.
+
+**⚠️ Breaking for Tracker even though the type is identical:** the parser now emits CMAs it never
+emitted before (garbage, and previously-dropped malformed sentences). A consumer that assumed every
+emitted CMA was usable must check `errors` / `id === 'unknown'`. ⇒ `nmea-parser` **4.0.0**.
+
+## Sentence resolvers — one id, several sentences (LOCKED 2026-07-29, cru)
+
+Some proprietary formats put the real sentence type **in a field** instead of in the id. Kongsberg
+Seatex is the reference case: the MGC COMPASS emits **both** variants as `$PSXN,...` with the **same
+field count (5)**, and only the first field says which one it is —
+
+```
+$PSXN,20,x,x,x,x*hh              -> PSXN20  quality indicators (horiz/hgt/head/roll-pitch)
+$PSXN,23,x.x,x.x,x.x,x.x*hh      -> PSXN23  attitude + heave (roll/pitch/heading/heave)
+```
+
+The knowledge base keys definitions by **`id + payload length`**, so these two are *indistinguishable*
+there — no YAML can express them. A **`SentenceResolver`** (`nmea-parser/src/resolvers.ts`) therefore
+runs **before** the knowledge-base lookup and returns the id the sentence should be looked up under
+(or `null` to keep the one it has):
+
+```
+parseGenericSentence -> resolveSentenceId -> upgradeKnownSentence -> aggregateMetadata
+```
+
+The registry is the **same model as `MetadataAggregators`** — dev-authored, known-only, keyed
+`${id}:${payloadLength}` (on the id **as received**), with a `protected registerResolvers()` so a
+subclass or a device package can add its own. Built-in: `'PSXN:5'`.
+
+**Why this shape:** once the id is resolved, the variants are **ordinary YAML definitions**
+(`PSXN20`/`PSXN23` under `protocol: KONGSBERG SEATEX`, `version: '15'`, `standard: false`) and every
+downstream step — names, types, units, descriptions, protocol match, metadata aggregation — is plain
+data. The legacy Node-RED implementation of this hand-wrote ~200 lines per variant; here it is one
+3-line resolver plus YAML.
+
+**Invariants (cru, locked):**
+- **`raw` is NEVER rewritten** — it keeps the `$PSXN,...` the device actually sent, so the checksum
+  still verifies against it. **Only `id` changes.** `metadata.talker` likewise stays `PSXN`.
+- **The message-number field is KEPT** (`message_number`, `uint8`), so `payload[i]` stays aligned 1:1
+  with the raw CSV fields. (The legacy code dropped it.)
+- **Resolution is independent of the checksum.** The message number is right there in the payload, and
+  any checksum problem is already reported in `errors` — a corrupted PSXN is more useful as a flagged
+  `PSXN23` than as an unrecognised generic sentence.
+- **An unknown message number resolves to nothing** — the sentence stays a generic `PSXN` rather than
+  having a definition invented for it.
+
+**Verified against a real MGC capture:** the device's 1-character checksums are **dropped leading
+zeros** — a captured `$PSXN,10,...*7` computes to `07`. So with the failed-sentence fix above, such a
+sentence is fully decoded and reports **only** the format error, because the value still matches;
+that is a positive "the content is intact" signal, which is exactly what it should mean.
+
 ## Reference material
 
 - `misc/tests/sbg/` (local, gitignored) — SBG binary corpus + `sbg-to-cma.ts` /
@@ -169,7 +271,7 @@ threw before the refactor returns a `Result` after it.
 | Library | Output today |
 | --- | --- |
 | nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`) |
-| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level (refactored 2026-07-29, release pending) |
+| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level (shipped 2026-07-29 as 3.0.0) |
 | thelmabiotel-tblive | **CMA-shaped** but not on the base class (+extra `mode`/`firmware` top-level keys, to move into `metadata`) |
 | septentrio-sbf | legacy `SBFResponse` (frame header/time/body) |
 | sbg-ecom | legacy `SBGFrameResponse` (frame header/data/footer) |

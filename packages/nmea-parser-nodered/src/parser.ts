@@ -6,7 +6,7 @@ import { NMEAParser } from '@coremarine/nmea-parser'
 import type { Node, NodeAPI, NodeDef } from 'node-red'
 
 // coded
-import { applyMemory, applyProtocols, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from './lib'
+import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from './lib'
 
 interface ParserConfig extends NodeDef {
   memory: boolean
@@ -22,11 +22,11 @@ const init = (RED: NodeAPI): void => {
     RED.nodes.createNode(this, config)
     const node = this
     const parser = new NMEAParser({ memory: config.memory ?? true })
-    // Optional built-in protocols file, read at setup (node runs on Node.js).
+    // Optional sentence-definitions file, read at setup (node runs on Node.js).
     if (config.file) {
       try {
         const result = parser.addSentences(readFile(config.file))
-        if (!result.success) node.error(`problem loading protocols file: ${result.error.message}`)
+        if (!result.success) node.error(`problem loading sentences file: ${result.error.message}`)
       } catch (err) {
         node.error(err as Error, {})
       }
@@ -34,7 +34,7 @@ const init = (RED: NodeAPI): void => {
     node.on('input', (msg: Record<string, unknown>, send, done) => {
       try {
         msg.memory = applyMemory(parser, msg.memory as never)
-        msg.protocols = applyProtocols(parser, msg.protocols as never, readFile)
+        msg.sentences = applySentences(parser, msg.sentences as never, readFile)
         msg.sentence = getSentenceInfo(parser, msg.sentence)
         msg.fake = getFakeSentence(parser, msg.fake)
         msg.payload = parsePayload(parser, msg.payload)

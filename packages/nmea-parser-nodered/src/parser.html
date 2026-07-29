@@ -63,9 +63,9 @@
     <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
     <input type="checkbox" id="node-input-memory" checked/>
   </div>
-  <!-- Protocols File -->
+  <!-- Sentences file -->
   <div class="form-row">
-    <label for="node-input-file"><i class="fa fa-tag"></i> Protocols file path</label>
+    <label for="node-input-file"><i class="fa fa-file-code-o"></i> Sentences file path</label>
     <input type="text" id="node-input-file" placeholder="/data/file.yaml" />
   </div>
 </script>
@@ -80,7 +80,7 @@ Parser of NMEA 0183 protocol sentences [check @coremarine/nmea-parser package do
 
 : *memory* (object): Object to check or enabled / disabled parser memory state (look details below).
 
-: *protocols* (object) : Object to get or set the protocols supported and their sentences (look details below).
+: *sentences* (object) : Object to get or set the sentence definitions the parser knows (look details below).
 
 : *sentence* (string): Sentence ID to get if it is supported and its info (look details below).
 
@@ -92,7 +92,7 @@ Parser of NMEA 0183 protocol sentences [check @coremarine/nmea-parser package do
 
 : *memory* (object) : Response to the *memory* input (look details below).
 
-: *protocols* (object) : Response to the *protocols* input (look details below).
+: *sentences* (object) : Response to the *sentences* input (look details below).
 
 : *sentence* (string): Response to the *sentence* input (look details below).
 
@@ -105,10 +105,10 @@ NMEA 0183 sentence). Each time it receives data from payload input, it gives the
 
 It just a wrapper of the npm library [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (take a look on it).
 
-To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
+To interact with the *memory* | *sentences* | *sentence* API is through the `memory` | `sentences` | `sentence` property:
 
-- If you request something in `msg.memory` | `msg.protocols` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.protocols` | `msg.sentence` output
+- If you request something in `msg.memory` | `msg.sentences` | `msg.sentence` input
+- The response will be in `msg.memory` | `msg.sentences` | `msg.sentence` output
 
 #### Memory
 
@@ -124,23 +124,24 @@ Internally it has a buffer with a max number of characters
 | `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `characters`: **number** } |
 |             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `characters`: **number** } |
 
-#### Protocols
+#### Sentences
 
 The parser can be fed or expanded to understand more NMEA sentences, standard or proprietary.
 To do that, send an object with `command` equal to `"set"` and **one** of:
 
-1. `content`: the YAML **string** of the protocols definitions.
-2. `file`: a **string** file path to the protocols YAML file (read by the node).
+1. `content`: the YAML **string** of the sentence definitions.
+2. `file`: a **string** file path to the sentences YAML file (read by the node).
 
-If both are sent, `content` takes precedence over `file`. On error (bad YAML/schema or unreadable file) the `protocols` output is an error **string**.
+If both are sent, `content` takes precedence over `file`. On error (bad YAML/schema or unreadable file) the `sentences` output is an error **string**.
 
-If you just want to know the known / supported sentences, use the command `get`.
+If you just want to know the known / supported sentences, use the command `get`. Either way the
+response is the known definitions **grouped by protocol name**.
 
 |                           Input                            |         Output          |
 | :--------------------------------------------------------: | :---------------------: |
-| `protocols`: { `command`: `"set"`, `content`: **string** } | `protocols`: **object** |
-|  `protocols`: { `command`: `"set"`, `file`: **string** }   | `protocols`: **object** |
-|            `protocols`: { `command`: `"get"` }             | `protocols`: **object** |
+| `sentences`: { `command`: `"set"`, `content`: **string** } | `sentences`: **object** |
+|  `sentences`: { `command`: `"set"`, `file`: **string** }   | `sentences`: **object** |
+|            `sentences`: { `command`: `"get"` }             | `sentences`: **object** |
 
 #### Sentence
 
