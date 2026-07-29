@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/norsub-emru-nodered",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-RED component to read NorSub eMRU telegrams as CMA",

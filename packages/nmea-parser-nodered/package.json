@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser-nodered",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-Red component to read NMEA 0183 sentences",
