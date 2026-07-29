@@ -66,6 +66,24 @@
 > then driving the new group through that runtime with the debugs swapped for sinks. A PSXN example group
 > was deliberately skipped (cru's call — PSXN is covered in the README).
 >
+> **🐛 2026-07-29 (later) — A SECOND PACKAGING LEAK FOUND AND FIXED while verifying cru's example-flow
+> layout edits: node-red writes a `<flowfile>_cred.json` credentials store next to any flow it opens, and
+> BOTH wrappers were packing it** (`examples/` shipped 3 files, not 2 — the extra being node-red's encrypted
+> credential blob). The repo already **gitignored** these in both wrappers and in `templates/nodered`, but
+> `files` overrides `.gitignore` when packing and only excluded `"!**/*.backup"` — the sibling case got the
+> git treatment and never the packing one. **Exactly the same class of bug as the `.backup` leak fixed
+> 2026-07-24, in the same array, one line away.** Fixed by adding **`"!**/*_cred.json"`** to both wrappers
+> AND the template, verified by re-packing with the cruft deliberately left on disk. Nothing sensitive
+> leaked today (no example node carries credentials), but it would have the moment one did. No version bump
+> needed — both wrappers are unpublished at 3.0.0 in this release. **Lesson for every future wrapper: any
+> node-red runtime artefact that gets a `.gitignore` rule needs a `files` exclusion too.**
+>
+> **cru's example-flow layout edits (2026-07-29) are committed.** Node-RED rewrote both files on deploy so
+> the textual diff is total, but comparing the parsed JSON node-by-node with `x`/`y`/`w`/`h` excluded gives
+> **zero** differences — same 56 / 61 nodes, every payload, wire, function body and config untouched.
+> Re-validated anyway by booting real node-red against both shipped flows and re-driving the new group
+> through that runtime.
+>
 > **⚠️ ONE THING FOR cru BEFORE MERGING: the queued `msg.protocols` → `msg.sentences` rename is ALSO a
 > breaking wrapper change.** If it lands after this release, `nmea-parser-nodered` needs **two majors
 > back-to-back** (3.0.0 now, 4.0.0 for the rename). Folding the rename into *this* 3.0.0 would avoid that.
