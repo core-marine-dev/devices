@@ -1,7 +1,11 @@
-export const PROTOCOLS = {
+// coded
+import type { ProtocolsFileContent } from '../src/types'
+
+export const PROTOCOLS: ProtocolsFileContent = {
   protocols: [
     {
       protocol: 'GYROCOMPAS1',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -9,7 +13,7 @@ export const PROTOCOLS = {
           payload: [
             {
               name: 'heading',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
             },
             {
@@ -23,7 +27,7 @@ export const PROTOCOLS = {
           payload: [
             {
               name: 'pitch',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
             },
             {
@@ -33,7 +37,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'roll',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
             },
             {
@@ -56,6 +60,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -96,7 +101,7 @@ export const PROTOCOLS = {
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n 1 - No Error',
+              description: '0 - Error\n1 - No Error',
             },
           ],
         },
@@ -104,6 +109,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB2',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -150,7 +156,7 @@ export const PROTOCOLS = {
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n 1 - No Error',
+              description: '0 - Error\n1 - No Error',
             },
           ],
         },
@@ -158,6 +164,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB6',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -254,7 +261,7 @@ export const PROTOCOLS = {
             {
               name: 'status',
               type: 'uint32',
-              description: '0 - Error\n 1 - No Error',
+              description: '0 - Error\n1 - No Error',
             },
           ],
         },
@@ -262,6 +269,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB7',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -395,6 +403,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB7b',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -532,6 +541,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB8',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -666,6 +676,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'NORSUB PRDID',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -687,6 +698,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'Tokimek PTVG',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -713,6 +725,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'RDI ADCP',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -741,6 +754,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'SMCA',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {
@@ -782,6 +796,7 @@ export const PROTOCOLS = {
     },
     {
       protocol: 'SMCC',
+      version: '1.2.0',
       standard: false,
       sentences: [
         {

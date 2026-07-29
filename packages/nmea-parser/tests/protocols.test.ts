@@ -13,7 +13,7 @@ const readNorsub = (): string => fs.readFileSync(PROTOCOLS_FILE, 'utf-8')
 const EXPECTED_STORED: Record<string, StoredSentence> = {
   PNORSUB8: {
     id: 'PNORSUB8',
-    protocol: { name: 'NORSUB8', standard: false, version: undefined },
+    protocol: { name: 'NORSUB8', standard: false, version: '1.2.0' },
     description: 'The whole regular attitude information from the MRU',
     payload: [
       { name: 'time', type: 'uint32', units: 'us' },
@@ -44,10 +44,10 @@ const EXPECTED_STORED: Record<string, StoredSentence> = {
   },
   HEHDT: {
     id: 'HEHDT',
-    protocol: { name: 'GYROCOMPAS1', standard: false, version: undefined },
+    protocol: { name: 'GYROCOMPAS1', standard: false, version: '1.2.0' },
     description: undefined,
     payload: [
-      { name: 'heading', type: 'float32', units: 'deg' },
+      { name: 'heading', type: 'float64', units: 'deg' },
       { name: 'symbol', type: 'string' },
     ],
   },

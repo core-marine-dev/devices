@@ -1,4 +1,7 @@
-export const PROTOCOLS = {
+// coded
+import type { ProtocolsFileContent } from './types'
+
+export const PROTOCOLS: ProtocolsFileContent = {
   protocols: [
     {
       protocol: 'NMEA',
@@ -21,7 +24,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'arrival_circle_radius',
-              type: 'float32',
+              type: 'float64',
             },
             {
               name: 'radius_units',
@@ -50,7 +53,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'latitude_offset',
-              type: 'float32',
+              type: 'float64',
               units: 'minutes',
               description: 'Latitude offset, in minutes (x.x)',
             },
@@ -61,7 +64,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'longitude_offset',
-              type: 'float32',
+              type: 'float64',
               units: 'minutes',
               description: 'Longitude offset, in minutes (x.x)',
             },
@@ -72,7 +75,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'altitude_offset',
-              type: 'float32',
+              type: 'float64',
               units: 'meters',
               description: 'Altitude offset, in meters (x.x)',
             },
@@ -236,17 +239,17 @@ export const PROTOCOLS = {
             },
             {
               name: 'pdop',
-              type: 'float32',
+              type: 'float64',
               description: 'PDOP: 0.5 to 99.9',
             },
             {
               name: 'hdop',
-              type: 'float32',
+              type: 'float64',
               description: 'HDOP: 0.5 to 99.9',
             },
             {
               name: 'vdop',
-              type: 'float32',
+              type: 'float64',
               description: 'VDOP: 0.5 to 99.9',
             },
           ],
@@ -423,7 +426,7 @@ export const PROTOCOLS = {
           payload: [
             {
               name: 'heading',
-              type: 'float32',
+              type: 'float64',
               description: 'Heading, degrees True',
             },
             {
@@ -439,7 +442,7 @@ export const PROTOCOLS = {
           payload: [
             {
               name: 'wind_angle',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
               description: 'Wind angle, 0.0 to 359.9 degrees relative to the vessel\'s bow/centerline',
             },
@@ -450,7 +453,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'wind_speed',
-              type: 'float32',
+              type: 'float64',
               description: 'Wind speed to the nearest tenth of a unit',
             },
             {
@@ -471,7 +474,7 @@ export const PROTOCOLS = {
           payload: [
             {
               name: 'heading',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
               description: 'Heading in degrees True, 0.00 to 359.99',
             },
@@ -488,7 +491,7 @@ export const PROTOCOLS = {
           payload: [
             {
               name: 'track_degrees_true',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
               description: 'Track angle in degrees True',
             },
@@ -499,7 +502,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'track_degrees_magnetic',
-              type: 'float32',
+              type: 'float64',
               units: 'deg',
               description: 'Track angle in degrees Magnetic',
             },
@@ -510,7 +513,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'speed_knots',
-              type: 'float32',
+              type: 'float64',
               units: 'knots',
               description: 'Speed over ground in knots',
             },
@@ -521,7 +524,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'speed_kilometers_per_hour',
-              type: 'float32',
+              type: 'float64',
               units: 'km/h',
               description: 'Speed over ground in kilometers per hour',
             },
@@ -611,7 +614,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'SDp1',
-              type: 'float32',
+              type: 'float64',
               units: 'm²/Hz',
               description: 'Primary wave spectral density',
             },
@@ -622,7 +625,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Hm0',
-              type: 'float32',
+              type: 'float64',
               units: 'm',
               description: 'Significant wave height',
             },
@@ -633,7 +636,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Hmax',
-              type: 'float32',
+              type: 'float64',
               units: 'm',
               description: 'Maximum wave height',
             },
@@ -644,7 +647,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'HTmax',
-              type: 'float32',
+              type: 'float64',
               units: 'm',
               description: 'Wave height of maximum wave period',
             },
@@ -655,7 +658,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tp1',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Primary wave peak period',
             },
@@ -666,7 +669,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tp2',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Secondary wave peak period',
             },
@@ -677,7 +680,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tpc',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Calculated wave peak period',
             },
@@ -688,7 +691,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Ts',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Significant wave period',
             },
@@ -699,7 +702,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tm0_1',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Energy wave period (Te)',
             },
@@ -710,7 +713,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tm0_2',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Integral wave period',
             },
@@ -721,7 +724,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tm02',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Mean zero up-crossing period',
             },
@@ -732,7 +735,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tm01',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Mean period',
             },
@@ -743,7 +746,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Tmax',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Maximum wave period',
             },
@@ -754,7 +757,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'THmax',
-              type: 'float32',
+              type: 'float64',
               units: 's',
               description: 'Wave period of maximum wave height',
             },
@@ -765,7 +768,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'steepness',
-              type: 'float32',
+              type: 'float64',
               description: '(?) Wave steepness',
             },
             {
@@ -775,7 +778,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Dp1_t',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: '(?) Primary wave peak direction, true north',
             },
@@ -786,7 +789,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Dm_t',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: '(?) Total energy mean direction, true north',
             },
@@ -797,7 +800,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'spread1',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: '(?) Primary directional spreading',
             },
@@ -808,7 +811,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Dp2_t',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: '(?) Secondary wave peak direction, true north',
             },
@@ -819,7 +822,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'Dm2_t',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: '(?) Secondary mean direction, true north',
             },
@@ -830,7 +833,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'spread2',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: '(?) Secondary directional spreading',
             },
@@ -841,7 +844,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'epsilon',
-              type: 'float32',
+              type: 'float64',
               description: '(?) Spectral narrowness parameter',
             },
             {
@@ -851,7 +854,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'nu',
-              type: 'float32',
+              type: 'float64',
               description: '(?) Spectral bandwidth parameter',
             },
             {
@@ -861,7 +864,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'kappa',
-              type: 'float32',
+              type: 'float64',
               description: '(?) Spectral peakedness parameter',
             },
             {
@@ -926,7 +929,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_030',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 3.70',
             },
             {
@@ -936,7 +939,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_031',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 52.51',
             },
             {
@@ -946,7 +949,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_032',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 15.69',
             },
             {
@@ -956,7 +959,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_033',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 157.7',
             },
             {
@@ -966,7 +969,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_034',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 7.85',
             },
             {
@@ -976,7 +979,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_035',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 45',
             },
             {
@@ -986,7 +989,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_036',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 50',
             },
             {
@@ -996,7 +999,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'param_037',
-              type: 'float32',
+              type: 'float64',
               description: 'Unknown — sample value 45',
             },
             {
@@ -1006,7 +1009,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'reserved_038',
-              type: 'float32',
+              type: 'float64',
               description: 'Reserved (always empty)',
             },
             {
@@ -1016,7 +1019,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'reserved_039',
-              type: 'float32',
+              type: 'float64',
               description: 'Reserved (always empty)',
             },
             {
@@ -1026,7 +1029,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'reserved_040',
-              type: 'float32',
+              type: 'float64',
               description: 'Reserved (always empty)',
             },
             {
@@ -1036,7 +1039,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'reserved_041',
-              type: 'float32',
+              type: 'float64',
               description: 'Reserved (always empty)',
             },
             {
@@ -1046,7 +1049,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'reserved_042',
-              type: 'float32',
+              type: 'float64',
               description: 'Reserved (always empty)',
             },
             {
@@ -1056,7 +1059,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'reserved_043',
-              type: 'float32',
+              type: 'float64',
               description: 'Reserved (always empty)',
             },
             {
@@ -1097,7 +1100,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir1',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 1',
             },
@@ -1108,7 +1111,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir2',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 2',
             },
@@ -1119,7 +1122,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir3',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 3',
             },
@@ -1130,7 +1133,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir4',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 4',
             },
@@ -1141,7 +1144,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir5',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 5',
             },
@@ -1152,7 +1155,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir6',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 6',
             },
@@ -1163,7 +1166,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir7',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 7',
             },
@@ -1174,7 +1177,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed_dir8',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Current speed, direction 8',
             },
@@ -1185,7 +1188,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_speed',
-              type: 'float32',
+              type: 'float64',
               units: 'm/s',
               description: 'Aggregated surface current speed',
             },
@@ -1196,7 +1199,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_direction_vessel',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: 'Current direction relative to vessel heading',
             },
@@ -1207,7 +1210,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'current_direction_true',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: 'Current direction relative to true north',
             },
@@ -1254,13 +1257,13 @@ export const PROTOCOLS = {
             },
             {
               name: 'start_frequency',
-              type: 'float32',
+              type: 'float64',
               units: 'Hz',
               description: 'Start frequency',
             },
             {
               name: 'frequency_resolution',
-              type: 'float32',
+              type: 'float64',
               units: 'Hz',
               description: 'Frequency resolution',
             },
@@ -1271,7 +1274,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'spectrum_data',
-              type: 'float32',
+              type: 'float64',
               description: 'Variable-length array: num_frequencies * (1 + num_directions) floats. Parser must read num_frequencies and num_directions from header. First block = point spectrum, then one block per direction.',
             },
             {
@@ -1281,7 +1284,7 @@ export const PROTOCOLS = {
             },
             {
               name: 'average_vessel_heading',
-              type: 'float32',
+              type: 'float64',
               units: 'degrees',
               description: 'Average vessel heading during measurement',
             },
