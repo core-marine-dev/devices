@@ -957,19 +957,32 @@ test/build" requirement):**
   aggregator putting the decoded degrees in FIELD metadata** — strip the trailing letter, `/100` for
   pitch/roll, sign convention `[-]` bow up / `[space]` bow down. `units` were dropped from the field
   definitions (the raw value is not degrees); the decoded metadata carries the real quantity.
-- **The two `PRDID` definitions: LEFT AS-IS deliberately** (cru: *"if it is too complicated to resolve,
-  leave this topic — I think they are sentences I don't use at all"*). Analysis for the record: NORSUB
-  PRDID is `$PRDID,pitch,roll,*CS` — trailing comma ⇒ **3** wire fields, third empty — and RDI ADCP
-  PRDID is `$PRDID,pitch,roll,heading` with **no checksum**; identical id + identical field count, so
-  field-count matching cannot separate them. With equal (absent) versions `newestDefinition` keeps the
-  **first registered**, i.e. the earliest in the YAML. Today the 2-field NORSUB definition never matches
-  real traffic and the RDI-ADCP one wins, which is in fact the **least-lossy** outcome: pitch/roll/heading
-  keep their correct names in both cases; a NorSub PRDID is merely labelled protocol "RDI ADCP" and gains
-  a spurious `heading: null`. (Making NORSUB PRDID a 3-field definition so it wins first would be WORSE —
-  a real RDI-ADCP heading value would then land in a field named "unused".) **Do not "fix" this by
-  reordering or padding.** The only clean discriminator is the checksum's presence, which would need an
-  optional discriminator flag in nmea-parser's KB schema + a tiebreak in `upgradeKnownSentence`
-  (~20 lines + a minor release) — deferred until a real device needs it.
+- **`PRDID`: the KB handles the two definitions correctly — CORRECTED 2026-07-28 (cru was right).** An
+  earlier note in this doc called them "colliding"; that was wrong. Verified empirically (built dist +
+  the real `norsub.yaml` through `addSentences`): both definitions register under id `PRDID` (NORSUB
+  PRDID = 2 fields `pitch,roll`; RDI ADCP = 3 fields `pitch,roll,heading`) and the field-count filter
+  separates them cleanly — `$PRDID,-000.49,-000.14*57` → `NORSUB PRDID`, 2 fields. **Same id + different
+  payload length is exactly what the multi-definition KB is for; no change needed.**
+  - **The one genuinely open item is empirical, for cru:** the manual's NORSUB PRDID telegram AND its
+    example both carry a **trailing comma** before the checksum (`$PRDID,pitch,roll,*CS`,
+    `$PRDID,-000.49,-000.14,*61`). A trailing comma = a third, empty payload slot, so such a sentence
+    has 3 fields and legitimately matches the 3-field RDI-ADCP definition (verified: values right,
+    `heading: null`, protocol labelled "RDI ADCP"). **Does the device actually emit that trailing
+    comma?** If it is a doc artifact, nothing to do. If it is real, NORSUB PRDID would need a 3-field
+    definition — and THEN it would truly clash with RDI ADCP, separable only by the checksum's presence
+    (NorSub has `*CS`, RDI ADCP has none), which would need an optional discriminator flag in the KB
+    schema + a tiebreak in `upgradeKnownSentence` (~20 lines + a minor release). Do not build that
+    speculatively.
+- **⚠️ Behaviour worth a decision (found 2026-07-28, NOT acted on): a sentence with NO checksum is
+  silently discarded.** The manual's RDI ADCP format is `$PRDID,sddd.dd, sddd.dd, sddd.dd<CR><LF>` —
+  no `*CS` at all — and `parseData` returns **0 sentences with an empty buffer** (not buffered, not
+  emitted with an error). A following valid sentence still parses, so nothing is corrupted. The locked
+  rule "bad checksum ⇒ emit WITH a sentence-level error, never drop" does not cover "checksum absent".
+  Decide deliberately: is a `$…<CR><LF>` without `*CS` a valid sentence (emit with
+  `metadata.checksum: null`) or not NMEA at all (keep dropping — current, and the standing
+  recommendation)? Matters only if a device is configured to emit a checksum-less protocol.
+- **Do not trust the manual's example checksums** — `$PRDID,-000.49,-000.14,*61` actually computes to
+  `6F`, and the PNORSUB2 example reuses PNORSUB's `*62`. Recompute when writing test fixtures.
 - Nit still open (harmless): `HEHDT`/`PHTRO` are `float32` while everything else is `float64` (manual
   says DBL for the NORSUB ones, unspecified for Gyrocompas 1). Unify to `float64`?
 
@@ -1371,10 +1384,10 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 > 2. **`PSMCA` field 3 renamed `heading` → `heave`** — already applied to all 4 data files.
 > 3. **`PTVG` fields are now `string`** — already applied; the decode goes in the `PTVG:3` aggregator
 >    (step 3 above).
-> 4. **The two `PRDID` definitions: leave exactly as they are.** Read the rationale in the locked-design
->    section ("LEFT AS-IS deliberately") before touching anything here — today's behaviour is the
->    least-lossy one and both "obvious fixes" (reordering, padding NORSUB PRDID to 3 fields) make it
->    worse. Do not change it.
+> 4. **`PRDID` needs NO code change** — the KB already separates the two definitions by payload length
+>    (2 vs 3), verified empirically. The only follow-up is an empirical question for cru (does the device
+>    emit the trailing comma the manual shows?) — read the corrected note in the locked-design section
+>    before touching this, and do NOT add a 3-field NORSUB PRDID definition speculatively.
 > 5. Only genuinely-open nit: `HEHDT`/`PHTRO` are `float32` while everything else is `float64` — ask cru
 >    if he wants them unified, it is a one-line data change.
 >
