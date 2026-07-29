@@ -196,9 +196,13 @@
 > and an inherited `$INHDT` → `HDT float64 123.456`. **The whole Phase 3 lib contract is confirmed in
 > production.**
 >
-> **⚠️ STILL OPEN, now with a published version behind it:** `nmea-parser@3.2.0` went out as a **minor**.
-> If Tracker branches on `field.type === 'float32'` anywhere, that sweep is breaking for it and the next
-> release should own that (3.2.0 cannot be unpublished). Values were never affected — only the `type` label.
+> **⚠️ OPEN IN TRACKER, NOT HERE (clarified 2026-07-29 — the sweep itself IS fully applied):** zero `float32`
+> remains in ANY protocol data file (`nmea.yml`, both `norsub.yml` copies, the generated consts); it survives
+> only as a still-valid CMA *type* in `constants.ts`, in the fake-sentence generator's switch, and in test
+> fixtures. The loose end is that the sweep shipped as `nmea-parser@3.2.0`, a **minor**, and it did change
+> `field.type` in emitted CMAs. Values were never affected — only the `type` label. **Action: grep TRACKER
+> for `field.type` / `'float32'`.** Moot for anything released from 4.0.0 on (a major owns the change); the
+> only question is whether a Tracker deployment on 3.2.0 was silently affected, and any fix belongs there.
 >
 > **➡️ NEXT: TASK 3b — the `norsub-emru-nodered` wrapper.** Clone `nmea-parser-nodered` (the proven
 > template), node type `cma-norsub-parser`, expose the facade's `protocol` selection in the config UI. The
@@ -1790,10 +1794,11 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 >
 > ### ALSO STILL OPEN (smaller, decide with cru)
 >
-> - **Is `nmea-parser@3.2.0` really a minor?** The `float32` → `float64` sweep changed `field.type` in emitted
->   CMAs (values were NOT affected — `parseValue` does `Number(raw)` then a range check, never a precision
->   truncation). **If Tracker branches on `field.type === 'float32'` anywhere, that was breaking** and the next
->   release should own it. 3.2.0 cannot be unpublished. A grep in Tracker settles it.
+> - **A grep to run in TRACKER, not work in this repo.** The `float32` → `float64` sweep is fully applied here
+>   (zero `float32` in any protocol data file). But it shipped as `nmea-parser@3.2.0`, a **minor**, and it did
+>   change `field.type` in emitted CMAs — values were NOT affected (`parseValue` does `Number(raw)` then a
+>   range check, never a precision truncation). **If Tracker branches on `field.type === 'float32'` anywhere,
+>   3.2.0 was breaking for it**; 3.2.0 cannot be unpublished. Moot from 4.0.0 on, since a major owns it.
 > - **The norsub protocol-switch test gap.** The locked "switching `protocol` discards the buffer and undrained
 >   sentences" branch cannot be exercised while `NorsubProtocol` has a single member — there is nothing to
 >   switch to. It gets its test with protocol #2. A comment in `packages/norsub-emru/tests/index.test.ts`
