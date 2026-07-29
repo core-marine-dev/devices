@@ -1,1402 +1,1190 @@
 [
   {
-      "id": "86f1271d07a48b44",
-      "type": "tab",
-      "label": "NorSub Parser Examples",
-      "disabled": false,
-      "info": "",
-      "env": []
+    "id": "norsub-examples-tab",
+    "type": "tab",
+    "label": "NorSub Parser Examples",
+    "disabled": false,
+    "info": ""
   },
   {
-      "id": "c6173b4100b89d67",
-      "type": "group",
-      "z": "86f1271d07a48b44",
-      "name": "Memory API",
-      "style": {
-          "label": true,
-          "color": "#000000",
-          "stroke": "#000000"
-      },
-      "nodes": [
-          "de261a7c3f50bbf0",
-          "a9bf8d69eb284777",
-          "ad0a91f034562096",
-          "bd6316d49443a80f",
-          "967eb861d987b29f",
-          "e1b9690ac78ec5b7",
-          "6b5fe8e3d0c0eb8f",
-          "536f3356259a40af"
-      ],
-      "x": 34,
-      "y": 459,
-      "w": 772,
-      "h": 282
-  },
-  {
-      "id": "53b0d00e97623318",
-      "type": "group",
-      "z": "86f1271d07a48b44",
-      "name": "Protocols API",
-      "style": {
-          "stroke": "#000000",
-          "label": true,
-          "color": "#000000"
-      },
-      "nodes": [
-          "2fe2bdeabd247e22",
-          "3afa552110c23ef1",
-          "bf2a96cea47ba3ad",
-          "d4ebce20546db205",
-          "269e1a1de526763c",
-          "a41dbddd012c9d6a",
-          "5417d129493270f5",
-          "91ce8e2a79b6c65d",
-          "7473b39722cc3634",
-          "2065967e9d991a8c",
-          "4cfda5d7ffa6635c",
-          "5303b60c2825a26b",
-          "18ace2ab075396cd",
-          "b0d3ea9162bcf883",
-          "a799a18c3051b088",
-          "65db0fa7479e8788",
-          "46be7d75ba4d2ef6",
-          "832cb99361322328",
-          "ea6bd07f5cb75657",
-          "7905ea2f5b0a851b",
-          "1ec980ce9dd8e614"
-      ],
-      "x": 34,
-      "y": 759,
-      "w": 872,
-      "h": 442
-  },
-  {
-      "id": "dc5b2f693b2e96ea",
-      "type": "group",
-      "z": "86f1271d07a48b44",
-      "name": "Sentence API",
-      "style": {
-          "stroke": "#000000",
-          "label": true,
-          "color": "#000000"
-      },
-      "nodes": [
-          "498115cc86e91fe0",
-          "bf14cc613f0600be",
-          "b9e07f8aa72b23ea",
-          "07a3d42569a07962",
-          "786045250c7cc8df",
-          "d4a975743249b0f2",
-          "613041712b2e392b"
-      ],
-      "x": 34,
-      "y": 1219,
-      "w": 792,
-      "h": 242
-  },
-  {
-      "id": "9283b11f486aa6af",
-      "type": "group",
-      "z": "86f1271d07a48b44",
-      "name": "Flow Errors",
-      "style": {
-          "stroke": "#000000",
-          "label": true,
-          "color": "#000000"
-      },
-      "nodes": [
-          "3dcdbb2ff53d1ac2",
-          "cd7a546b03381262"
-      ],
-      "x": 34,
-      "y": 19,
-      "w": 352,
-      "h": 82
-  },
-  {
-      "id": "fa79e06be881de74",
-      "type": "group",
-      "z": "86f1271d07a48b44",
-      "name": "Examples",
-      "style": {
-          "stroke": "#000000",
-          "label": true,
-          "color": "#000000"
-      },
-      "nodes": [
-          "90c7ca5349d43283",
-          "eaa03f0bec292507",
-          "b813bdb71d0159a5",
-          "85d2882bbc1cd92a",
-          "dc93f536316883f8",
-          "bf1bf2211a0a99f4",
-          "0386967af97e8c2b",
-          "dbd393817b992915",
-          "d51965f52ed5458a",
-          "0d643452dedfda51",
-          "bab379433f7607f5",
-          "cd19a759b4514bb4",
-          "65878cad1b303cfb",
-          "72790933090ccc7f"
-      ],
-      "x": 34,
-      "y": 119,
-      "w": 1132,
-      "h": 322
-  },
-  {
-      "id": "6dc737be34668f3e",
-      "type": "group",
-      "z": "86f1271d07a48b44",
-      "name": "Fake API",
-      "style": {
-          "stroke": "#000000",
-          "label": true,
-          "color": "#000000"
-      },
-      "nodes": [
-          "826783ad34641686",
-          "8375f8aa145326b9",
-          "4d51478913d0f4c9",
-          "3c95ecbee73cfb3d",
-          "37f2b3ac8f27d53d"
-      ],
-      "x": 34,
-      "y": 1519,
-      "w": 772,
-      "h": 162
-  },
-  {
-      "id": "2fe2bdeabd247e22",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Protocols GET",
-      "props": [
-          {
-              "p": "protocols",
-              "v": "{\"command\":\"get\"}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 160,
-      "y": 840,
-      "wires": [
-          [
-              "832cb99361322328",
-              "ea6bd07f5cb75657",
-              "7905ea2f5b0a851b",
-              "1ec980ce9dd8e614"
-          ]
+    "id": "err-catch",
+    "type": "catch",
+    "z": "norsub-examples-tab",
+    "g": "g-errors",
+    "name": "catch all",
+    "scope": null,
+    "uncaught": false,
+    "x": 200,
+    "y": 80,
+    "wires": [
+      [
+        "err-debug"
       ]
+    ]
   },
   {
-      "id": "de261a7c3f50bbf0",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "MEMORY - API",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "memory",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 680,
-      "y": 600,
-      "wires": []
+    "id": "err-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-errors",
+    "name": "flow error",
+    "active": true,
+    "tosidebar": true,
+    "complete": "true",
+    "targetType": "full",
+    "x": 420,
+    "y": 80,
+    "wires": []
   },
   {
-      "id": "498115cc86e91fe0",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "Sentence GET AAM standard",
-      "props": [
-          {
-              "p": "sentence",
-              "v": "AAM",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 240,
-      "y": 1260,
-      "wires": [
-          [
-              "613041712b2e392b"
-          ]
+    "id": "parse-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 460,
+    "y": 260,
+    "wires": [
+      [
+        "parse-debug"
       ]
+    ]
   },
   {
-      "id": "3dcdbb2ff53d1ac2",
-      "type": "catch",
-      "z": "86f1271d07a48b44",
-      "g": "9283b11f486aa6af",
-      "name": "ERRORS",
-      "scope": null,
-      "uncaught": false,
-      "x": 120,
-      "y": 60,
-      "wires": [
-          [
-              "cd7a546b03381262"
-          ]
+    "id": "parse-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 660,
+    "y": 260,
+    "wires": []
+  },
+  {
+    "id": "in-n8",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "PNORSUB8 (status + motion)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 180,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "cd7a546b03381262",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "9283b11f486aa6af",
-      "name": "ERRORS",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "true",
-      "targetType": "full",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 280,
-      "y": 60,
-      "wires": []
-  },
-  {
-      "id": "a9bf8d69eb284777",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Memory GET",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"get\"}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 230,
-      "y": 500,
-      "wires": [
-          [
-              "536f3356259a40af"
-          ]
+    "id": "in-n7b",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "PNORSUB7b (split status)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PNORSUB7b,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,65535,65535*0E\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 220,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "ad0a91f034562096",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Memory SET true",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"set\",\"payload\":true}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 220,
-      "y": 580,
-      "wires": [
-          [
-              "536f3356259a40af"
-          ]
+    "id": "in-ptvg",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "PTVG (decoded in metadata)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PTVG,-0036P, 0021R,101.8T*42\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 260,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "bd6316d49443a80f",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Memory SET false",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"set\",\"payload\":false}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 210,
-      "y": 540,
-      "wires": [
-          [
-              "536f3356259a40af"
-          ]
+    "id": "in-hehdt",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "HEHDT (Gyrocompas1)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$HEHDT,123.456,T*28\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 300,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "967eb861d987b29f",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Memory SET invalid",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"set\",\"payload\":{\"hello\":\"world\"}}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 210,
-      "y": 620,
-      "wires": [
-          [
-              "536f3356259a40af"
-          ]
+    "id": "in-psmca",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "PSMCA (SMCA)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PSMCA,1.1,2.2,3.3,4.4,5.5*4E\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 340,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "e1b9690ac78ec5b7",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Memory invalid API",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"comand\":\"set\",\"payload\":{\"hello\":\"world\"}}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 210,
-      "y": 700,
-      "wires": [
-          [
-              "536f3356259a40af"
-          ]
+    "id": "in-gga",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "GGA (inherited NMEA 0183)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 380,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "6b5fe8e3d0c0eb8f",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Memory invalid command",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"sett\",\"payload\":true}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 190,
-      "y": 660,
-      "wires": [
-          [
-              "536f3356259a40af"
-          ]
+    "id": "fn-split",
+    "type": "function",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "send PNORSUB8 in 2 halves",
+    "func": "const s = \"$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\\r\\n\"\nconst cut = Math.floor(s.length / 2)\nnode.send({ payload: s.slice(0, cut) })\nreturn { payload: s.slice(cut) }",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 220,
+    "y": 430,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "3afa552110c23ef1",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "PROTOCOLS file - Edit Dialog",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "protocols",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 730,
-      "y": 840,
-      "wires": []
-  },
-  {
-      "id": "bf2a96cea47ba3ad",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Protocols SET",
-      "props": [
-          {
-              "p": "protocols",
-              "v": "{\"command\":\"set\",\"file\":\"/tests/norsub.yaml\"}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 170,
-      "y": 920,
-      "wires": [
-          [
-              "1ec980ce9dd8e614"
-          ]
+    "id": "in-split",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "partial sentence (buffered)",
+    "props": [
+      {
+        "p": "payload",
+        "v": "",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 470,
+    "wires": [
+      [
+        "fn-split"
       ]
+    ]
   },
   {
-      "id": "d4ebce20546db205",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "PROTOCOLS file path - API",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "protocols",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 720,
-      "y": 920,
-      "wires": []
-  },
-  {
-      "id": "269e1a1de526763c",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "PROTOCOLS file content - API",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "protocols",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 730,
-      "y": 1000,
-      "wires": []
-  },
-  {
-      "id": "a41dbddd012c9d6a",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Protocols file",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "/tests/norsub.yaml",
-      "payloadType": "str",
-      "x": 170,
-      "y": 1000,
-      "wires": [
-          [
-              "5417d129493270f5"
-          ]
+    "id": "fn-batch",
+    "type": "function",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "send 3 sentences at once",
+    "func": "return { payload: \"$PNORSUB8,1234567,890,1.234,-0.567,123.456,0.101,-0.202,0.303,0.012,-0.034,0.056,0.021,-0.043,0.065,0.077,-0.088,9.807,7.1,8.2,9.3,0.41,0.52,0.63,4160749567*40\\r\\n$PTVG,-0036P, 0021R,101.8T*42\\r\\n$HEHDT,123.456,T*28\\r\\n\" }",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 220,
+    "y": 520,
+    "wires": [
+      [
+        "parse-parser"
       ]
+    ]
   },
   {
-      "id": "5417d129493270f5",
-      "type": "file in",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "",
-      "filename": "payload",
-      "filenameType": "msg",
-      "format": "utf8",
-      "chunk": false,
-      "sendError": false,
-      "encoding": "none",
-      "allProps": false,
-      "x": 340,
-      "y": 1040,
-      "wires": [
-          [
-              "91ce8e2a79b6c65d"
-          ]
+    "id": "in-batch",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-parse",
+    "name": "batch of 3",
+    "props": [
+      {
+        "p": "payload",
+        "v": "",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 560,
+    "wires": [
+      [
+        "fn-batch"
       ]
+    ]
   },
   {
-      "id": "91ce8e2a79b6c65d",
-      "type": "change",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "file content",
-      "rules": [
-          {
-              "t": "set",
-              "p": "protocols.command",
-              "pt": "msg",
-              "to": "set",
-              "tot": "str"
-          },
-          {
-              "t": "move",
-              "p": "payload",
-              "pt": "msg",
-              "to": "protocols.content",
-              "tot": "msg"
-          }
-      ],
-      "action": "",
-      "property": "",
-      "from": "",
-      "to": "",
-      "reg": false,
-      "x": 510,
-      "y": 1040,
-      "wires": [
-          [
-              "7905ea2f5b0a851b"
-          ]
+    "id": "mem-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-memory",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 460,
+    "y": 660,
+    "wires": [
+      [
+        "mem-debug"
       ]
+    ]
   },
   {
-      "id": "7473b39722cc3634",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "PROTOCOLS protocols - API",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "protocols",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 720,
-      "y": 1120,
-      "wires": []
+    "id": "mem-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-memory",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 660,
+    "y": 660,
+    "wires": []
   },
   {
-      "id": "2065967e9d991a8c",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Protocols file",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "/tests/norsub.yaml",
-      "payloadType": "str",
-      "x": 170,
-      "y": 1120,
-      "wires": [
-          [
-              "4cfda5d7ffa6635c"
-          ]
+    "id": "in-mem-get",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-memory",
+    "name": "memory GET",
+    "props": [
+      {
+        "p": "memory",
+        "v": "{\"command\":\"get\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 620,
+    "wires": [
+      [
+        "mem-parser"
       ]
+    ]
   },
   {
-      "id": "4cfda5d7ffa6635c",
-      "type": "file in",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "",
-      "filename": "payload",
-      "filenameType": "msg",
-      "format": "utf8",
-      "chunk": false,
-      "sendError": false,
-      "encoding": "none",
-      "allProps": false,
-      "x": 340,
-      "y": 1160,
-      "wires": [
-          [
-              "5303b60c2825a26b"
-          ]
+    "id": "in-mem-on",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-memory",
+    "name": "memory SET true",
+    "props": [
+      {
+        "p": "memory",
+        "v": "{\"command\":\"set\",\"payload\":true}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 660,
+    "wires": [
+      [
+        "mem-parser"
       ]
+    ]
   },
   {
-      "id": "5303b60c2825a26b",
-      "type": "yaml",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "property": "payload",
-      "name": "",
-      "x": 490,
-      "y": 1160,
-      "wires": [
-          [
-              "18ace2ab075396cd"
-          ]
+    "id": "in-mem-off",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-memory",
+    "name": "memory SET false",
+    "props": [
+      {
+        "p": "memory",
+        "v": "{\"command\":\"set\",\"payload\":false}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 700,
+    "wires": [
+      [
+        "mem-parser"
       ]
+    ]
   },
   {
-      "id": "18ace2ab075396cd",
-      "type": "change",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "protocols object",
-      "rules": [
-          {
-              "t": "set",
-              "p": "protocols.command",
-              "pt": "msg",
-              "to": "set",
-              "tot": "str"
-          },
-          {
-              "t": "move",
-              "p": "payload.protocols",
-              "pt": "msg",
-              "to": "protocols.protocols",
-              "tot": "msg"
-          }
-      ],
-      "action": "",
-      "property": "",
-      "from": "",
-      "to": "",
-      "reg": false,
-      "x": 660,
-      "y": 1160,
-      "wires": [
-          [
-              "ea6bd07f5cb75657"
-          ]
+    "id": "in-mem-bad",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-memory",
+    "name": "memory SET bad -> error string",
+    "props": [
+      {
+        "p": "memory",
+        "v": "{\"command\":\"set\",\"payload\":\"nope\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 740,
+    "wires": [
+      [
+        "mem-parser"
       ]
+    ]
   },
   {
-      "id": "bf14cc613f0600be",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "Sentence GET AAM GPS",
-      "props": [
-          {
-              "p": "sentence",
-              "v": "GPAAM",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 250,
-      "y": 1300,
-      "wires": [
-          [
-              "613041712b2e392b"
-          ]
+    "id": "proto-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-protocol",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 460,
+    "y": 860,
+    "wires": [
+      [
+        "proto-debug"
       ]
+    ]
   },
   {
-      "id": "b9e07f8aa72b23ea",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "Sentence GET AAM Galileo",
-      "props": [
-          {
-              "p": "sentence",
-              "v": "GAAAM",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 240,
-      "y": 1340,
-      "wires": [
-          [
-              "613041712b2e392b"
-          ]
+    "id": "proto-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-protocol",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 660,
+    "y": 860,
+    "wires": []
+  },
+  {
+    "id": "in-proto-get",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-protocol",
+    "name": "protocol GET",
+    "props": [
+      {
+        "p": "protocol",
+        "v": "{\"command\":\"get\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 820,
+    "wires": [
+      [
+        "proto-parser"
       ]
+    ]
   },
   {
-      "id": "07a3d42569a07962",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "Sentence GET AAM Unknown talker",
-      "props": [
-          {
-              "p": "sentence",
-              "v": "XXAAM",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 220,
-      "y": 1380,
-      "wires": [
-          [
-              "613041712b2e392b"
-          ]
+    "id": "in-proto-set",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-protocol",
+    "name": "protocol SET nmea",
+    "props": [
+      {
+        "p": "protocol",
+        "v": "{\"command\":\"set\",\"payload\":\"nmea\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 860,
+    "wires": [
+      [
+        "proto-parser"
       ]
+    ]
   },
   {
-      "id": "786045250c7cc8df",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "SENTENCE - API",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "sentence",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 690,
-      "y": 1340,
-      "wires": []
-  },
-  {
-      "id": "b0d3ea9162bcf883",
-      "type": "comment",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Feed parser with File Path - Edit dialog",
-      "info": "",
-      "x": 530,
-      "y": 800,
-      "wires": []
-  },
-  {
-      "id": "a799a18c3051b088",
-      "type": "comment",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Feed parser with File Path - API",
-      "info": "",
-      "x": 510,
-      "y": 880,
-      "wires": []
-  },
-  {
-      "id": "65db0fa7479e8788",
-      "type": "comment",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Feed parser with File Content - API",
-      "info": "",
-      "x": 520,
-      "y": 960,
-      "wires": []
-  },
-  {
-      "id": "46be7d75ba4d2ef6",
-      "type": "comment",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Feed parser with File Parsed - API",
-      "info": "",
-      "x": 520,
-      "y": 1080,
-      "wires": []
-  },
-  {
-      "id": "d4a975743249b0f2",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "SENTENCE Unknown",
-      "props": [
-          {
-              "p": "sentence",
-              "v": "XXXXX",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 260,
-      "y": 1420,
-      "wires": [
-          [
-              "613041712b2e392b"
-          ]
+    "id": "in-proto-bad",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-protocol",
+    "name": "protocol SET tss1 -> error string",
+    "props": [
+      {
+        "p": "protocol",
+        "v": "{\"command\":\"set\",\"payload\":\"tss1\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 900,
+    "wires": [
+      [
+        "proto-parser"
       ]
+    ]
   },
   {
-      "id": "90c7ca5349d43283",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "1 sentence",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "$XXAAM,xy5f7kze5kk,fuz9v8nzwh,0.3979531228542328,0.033725704223103836,0dw3qj5rrnoa*00",
-      "payloadType": "str",
-      "x": 500,
-      "y": 240,
-      "wires": [
-          [
-              "eaa03f0bec292507"
-          ]
+    "id": "sent-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 460,
+    "y": 1020,
+    "wires": [
+      [
+        "sent-debug"
       ]
+    ]
   },
   {
-      "id": "eaa03f0bec292507",
-      "type": "function",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Attach CRLF",
-      "func": "const payload = msg.payload + '\\r\\n'\n\nreturn { payload }\n",
-      "outputs": 1,
-      "timeout": 0,
-      "noerr": 0,
-      "initialize": "",
-      "finalize": "",
-      "libs": [],
-      "x": 710,
-      "y": 260,
-      "wires": [
-          [
-              "72790933090ccc7f"
-          ]
+    "id": "sent-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 660,
+    "y": 1020,
+    "wires": []
+  },
+  {
+    "id": "in-sent-get",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "sentences GET (all known)",
+    "props": [
+      {
+        "p": "sentences",
+        "v": "{\"command\":\"get\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 960,
+    "wires": [
+      [
+        "sent-parser"
       ]
+    ]
   },
   {
-      "id": "b813bdb71d0159a5",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Multiple sentences once",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "/tests/samples.txt",
-      "payloadType": "str",
-      "x": 180,
-      "y": 360,
-      "wires": [
-          [
-              "85d2882bbc1cd92a"
-          ]
+    "id": "in-pcmex-before",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "1. parse PCMEX -> unknown",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PCMEX,12.5,18.3*4F\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1000,
+    "wires": [
+      [
+        "sent-parser"
       ]
+    ]
   },
   {
-      "id": "85d2882bbc1cd92a",
-      "type": "file in",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "",
-      "filename": "payload",
-      "filenameType": "msg",
-      "format": "",
-      "chunk": false,
-      "sendError": false,
-      "encoding": "ascii",
-      "allProps": false,
-      "x": 440,
-      "y": 360,
-      "wires": [
-          [
-              "dc93f536316883f8"
-          ]
+    "id": "fn-yaml",
+    "type": "function",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "YAML as content",
+    "func": "msg.sentences = { command: 'set', content: [\n  'protocols:',\n  '  - protocol: COREMARINE_EXAMPLE',\n  '    standard: false',\n  '    sentences:',\n  '      - id: PCMEX',\n  '        description: Example proprietary sentence - depth and water temperature',\n  '        payload:',\n  '          - name: depth',\n  '            type: float64',\n  '            units: m',\n  '          - name: temperature',\n  '            type: float64',\n  '            units: C'\n].join('\\n') }\nreturn msg",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 240,
+    "y": 1040,
+    "wires": [
+      [
+        "sent-parser"
       ]
+    ]
   },
   {
-      "id": "dc93f536316883f8",
-      "type": "function",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Attach CRLF to each line",
-      "func": "/** @type {Buffer}*/\nconst buffer = msg.payload\n\nconst ascii = buffer.toString('ascii').replaceAll('\\n', '\\r\\n')\n\nreturn { payload: ascii }\n",
-      "outputs": 1,
-      "timeout": 0,
-      "noerr": 0,
-      "initialize": "",
-      "finalize": "",
-      "libs": [],
-      "x": 650,
-      "y": 360,
-      "wires": [
-          [
-              "72790933090ccc7f"
-          ]
+    "id": "in-sent-content",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "2a. sentences SET via content",
+    "props": [
+      {
+        "p": "payload",
+        "v": "",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1080,
+    "wires": [
+      [
+        "fn-yaml"
       ]
+    ]
   },
   {
-      "id": "bf1bf2211a0a99f4",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Sentences",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "{\t    \"memory\": msg.memory,\t    \"protocols\": msg.protocols,\t    \"sentence\": msg.sentence,\t    \"payload\": msg.payload\t}",
-      "targetType": "jsonata",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 1050,
-      "y": 280,
-      "wires": []
-  },
-  {
-      "id": "0386967af97e8c2b",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Multiple sentences one-by-one",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "/tests/samples.txt",
-      "payloadType": "str",
-      "x": 210,
-      "y": 400,
-      "wires": [
-          [
-              "dbd393817b992915"
-          ]
+    "id": "in-sent-file",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "2b. sentences SET via file",
+    "props": [
+      {
+        "p": "sentences",
+        "v": "{\"command\":\"set\",\"file\":\"examples/example-sentences.yml\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1120,
+    "wires": [
+      [
+        "sent-parser"
       ]
+    ]
   },
   {
-      "id": "dbd393817b992915",
-      "type": "file in",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "read file lines",
-      "filename": "payload",
-      "filenameType": "msg",
-      "format": "lines",
-      "chunk": false,
-      "sendError": false,
-      "encoding": "ascii",
-      "allProps": false,
-      "x": 450,
-      "y": 400,
-      "wires": [
-          [
-              "d51965f52ed5458a"
-          ]
+    "id": "in-pcmex-after",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "3. parse PCMEX -> decoded",
+    "props": [
+      {
+        "p": "payload",
+        "v": "$PCMEX,12.5,18.3*4F\r\n",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1160,
+    "wires": [
+      [
+        "sent-parser"
       ]
+    ]
   },
   {
-      "id": "d51965f52ed5458a",
-      "type": "function",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Attach CRLF to line",
-      "func": "\nreturn { payload: msg.payload + '\\r\\n' }",
-      "outputs": 1,
-      "timeout": 0,
-      "noerr": 0,
-      "initialize": "",
-      "finalize": "",
-      "libs": [],
-      "x": 670,
-      "y": 400,
-      "wires": [
-          [
-              "72790933090ccc7f"
-          ]
+    "id": "in-sent-bad",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentences",
+    "name": "sentences SET bad YAML -> error string",
+    "props": [
+      {
+        "p": "sentences",
+        "v": "{\"command\":\"set\",\"content\":\"foo: bar\"}",
+        "vt": "json"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1200,
+    "wires": [
+      [
+        "sent-parser"
       ]
+    ]
   },
   {
-      "id": "0d643452dedfda51",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Memory ON",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"set\",\"payload\":true}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 710,
-      "y": 200,
-      "wires": [
-          [
-              "72790933090ccc7f"
-          ]
+    "id": "one-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-sentence",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 460,
+    "y": 1300,
+    "wires": [
+      [
+        "one-debug"
       ]
+    ]
   },
   {
-      "id": "bab379433f7607f5",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "Memory OFF",
-      "props": [
-          {
-              "p": "memory",
-              "v": "{\"command\":\"set\",\"payload\":false}",
-              "vt": "json"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 710,
-      "y": 160,
-      "wires": [
-          [
-              "72790933090ccc7f"
-          ]
+    "id": "one-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-sentence",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 660,
+    "y": 1300,
+    "wires": []
+  },
+  {
+    "id": "in-one-n8",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentence",
+    "name": "sentence GET PNORSUB8",
+    "props": [
+      {
+        "p": "sentence",
+        "v": "PNORSUB8",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1260,
+    "wires": [
+      [
+        "one-parser"
       ]
+    ]
   },
   {
-      "id": "cd19a759b4514bb4",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "1/2 sentence",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "$XXAAM,xy5f7kze5kk,fuz9v8nzwh,0.3979531228",
-      "payloadType": "str",
-      "x": 510,
-      "y": 280,
-      "wires": [
-          []
+    "id": "in-one-hehdt",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentence",
+    "name": "sentence GET HEHDT",
+    "props": [
+      {
+        "p": "sentence",
+        "v": "HEHDT",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1300,
+    "wires": [
+      [
+        "one-parser"
       ]
+    ]
   },
   {
-      "id": "65878cad1b303cfb",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "2/2 sentence",
-      "props": [
-          {
-              "p": "payload"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "payload": "542328,0.033725704223103836,0dw3qj5rrnoa*00",
-      "payloadType": "str",
-      "x": 510,
-      "y": 320,
-      "wires": [
-          [
-              "eaa03f0bec292507"
-          ]
+    "id": "in-one-gga",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentence",
+    "name": "sentence GET GGA (inherited)",
+    "props": [
+      {
+        "p": "sentence",
+        "v": "GGA",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1340,
+    "wires": [
+      [
+        "one-parser"
       ]
+    ]
   },
   {
-      "id": "826783ad34641686",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "6dc737be34668f3e",
-      "name": "GET Fake Sentence PNORSUB8",
-      "props": [
-          {
-              "p": "fake",
-              "v": "PNORSUB8",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 230,
-      "y": 1560,
-      "wires": [
-          [
-              "37f2b3ac8f27d53d"
-          ]
+    "id": "in-one-none",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-sentence",
+    "name": "sentence GET NOPE -> null",
+    "props": [
+      {
+        "p": "sentence",
+        "v": "NOPE",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1380,
+    "wires": [
+      [
+        "one-parser"
       ]
+    ]
   },
   {
-      "id": "8375f8aa145326b9",
-      "type": "debug",
-      "z": "86f1271d07a48b44",
-      "g": "6dc737be34668f3e",
-      "name": "FAKE - API",
-      "active": true,
-      "tosidebar": true,
-      "console": false,
-      "tostatus": false,
-      "complete": "fake",
-      "targetType": "msg",
-      "statusVal": "",
-      "statusType": "auto",
-      "x": 690,
-      "y": 1600,
-      "wires": []
-  },
-  {
-      "id": "4d51478913d0f4c9",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "6dc737be34668f3e",
-      "name": "GET Fake Sentence GPAAM",
-      "props": [
-          {
-              "p": "fake",
-              "v": "GPAAM",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 200,
-      "y": 1600,
-      "wires": [
-          [
-              "37f2b3ac8f27d53d"
-          ]
+    "id": "fake-parser",
+    "type": "cma-norsub-parser",
+    "z": "norsub-examples-tab",
+    "g": "g-fake",
+    "name": "",
+    "protocol": "nmea",
+    "memory": true,
+    "file": "",
+    "x": 460,
+    "y": 1480,
+    "wires": [
+      [
+        "fake-debug"
       ]
+    ]
   },
   {
-      "id": "3c95ecbee73cfb3d",
-      "type": "inject",
-      "z": "86f1271d07a48b44",
-      "g": "6dc737be34668f3e",
-      "name": "GET Fake Sentence XXX",
-      "props": [
-          {
-              "p": "fake",
-              "v": "XXX",
-              "vt": "str"
-          }
-      ],
-      "repeat": "",
-      "crontab": "",
-      "once": false,
-      "onceDelay": 0.1,
-      "topic": "",
-      "x": 210,
-      "y": 1640,
-      "wires": [
-          [
-              "37f2b3ac8f27d53d"
-          ]
-      ]
+    "id": "fake-debug",
+    "type": "debug",
+    "z": "norsub-examples-tab",
+    "g": "g-fake",
+    "name": "output",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 660,
+    "y": 1480,
+    "wires": []
   },
   {
-      "id": "72790933090ccc7f",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "fa79e06be881de74",
-      "name": "",
-      "memory": true,
-      "file": "",
-      "x": 880,
-      "y": 280,
-      "wires": [
-          [
-              "bf1bf2211a0a99f4"
-          ]
+    "id": "in-fake-n8",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-fake",
+    "name": "fake PNORSUB8",
+    "props": [
+      {
+        "p": "fake",
+        "v": "PNORSUB8",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1440,
+    "wires": [
+      [
+        "fake-parser"
       ]
+    ]
   },
   {
-      "id": "536f3356259a40af",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "c6173b4100b89d67",
-      "name": "Changing parser memory",
-      "memory": true,
-      "file": "",
-      "x": 450,
-      "y": 600,
-      "wires": [
-          [
-              "de261a7c3f50bbf0"
-          ]
+    "id": "in-fake-n7b",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-fake",
+    "name": "fake PNORSUB7b",
+    "props": [
+      {
+        "p": "fake",
+        "v": "PNORSUB7b",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1480,
+    "wires": [
+      [
+        "fake-parser"
       ]
+    ]
   },
   {
-      "id": "832cb99361322328",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Parser fed through file - Edit Dialog",
-      "memory": true,
-      "file": "",
-      "x": 420,
-      "y": 840,
-      "wires": [
-          [
-              "3afa552110c23ef1"
-          ]
+    "id": "in-fake-none",
+    "type": "inject",
+    "z": "norsub-examples-tab",
+    "g": "g-fake",
+    "name": "fake NOPE -> null",
+    "props": [
+      {
+        "p": "fake",
+        "v": "NOPE",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "x": 200,
+    "y": 1520,
+    "wires": [
+      [
+        "fake-parser"
       ]
+    ]
   },
   {
-      "id": "ea6bd07f5cb75657",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Parser fed through protocols - API",
-      "memory": true,
-      "file": "",
-      "x": 420,
-      "y": 1120,
-      "wires": [
-          [
-              "7473b39722cc3634"
-          ]
-      ]
+    "id": "g-errors",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Flow Errors",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "err-catch",
+      "err-debug"
+    ],
+    "x": 140,
+    "y": 40,
+    "w": 540,
+    "h": 100
   },
   {
-      "id": "7905ea2f5b0a851b",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Parser fed through file content - API",
-      "memory": true,
-      "file": "",
-      "x": 420,
-      "y": 1000,
-      "wires": [
-          [
-              "269e1a1de526763c"
-          ]
-      ]
+    "id": "g-parse",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Examples — parse to CMA[]",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "parse-parser",
+      "parse-debug",
+      "in-n8",
+      "in-n7b",
+      "in-ptvg",
+      "in-hehdt",
+      "in-psmca",
+      "in-gga",
+      "fn-split",
+      "in-split",
+      "fn-batch",
+      "in-batch"
+    ],
+    "x": 140,
+    "y": 140,
+    "w": 780,
+    "h": 480
   },
   {
-      "id": "1ec980ce9dd8e614",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "53b0d00e97623318",
-      "name": "Parser fed through file path - API",
-      "memory": true,
-      "file": "",
-      "x": 410,
-      "y": 920,
-      "wires": [
-          [
-              "d4ebce20546db205"
-          ]
-      ]
+    "id": "g-memory",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Memory API",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "mem-parser",
+      "mem-debug",
+      "in-mem-get",
+      "in-mem-on",
+      "in-mem-off",
+      "in-mem-bad"
+    ],
+    "x": 140,
+    "y": 580,
+    "w": 780,
+    "h": 220
   },
   {
-      "id": "613041712b2e392b",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "dc5b2f693b2e96ea",
-      "name": "Sentence API",
-      "memory": true,
-      "file": "",
-      "x": 480,
-      "y": 1340,
-      "wires": [
-          [
-              "786045250c7cc8df"
-          ]
-      ]
+    "id": "g-protocol",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Protocol API — which protocol the device emits",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "proto-parser",
+      "proto-debug",
+      "in-proto-get",
+      "in-proto-set",
+      "in-proto-bad"
+    ],
+    "x": 140,
+    "y": 780,
+    "w": 780,
+    "h": 180
   },
   {
-      "id": "37f2b3ac8f27d53d",
-      "type": "cma-norsub-parser",
-      "z": "86f1271d07a48b44",
-      "g": "6dc737be34668f3e",
-      "name": "Fake Sentence API",
-      "memory": true,
-      "file": "",
-      "x": 490,
-      "y": 1600,
-      "wires": [
-          [
-              "8375f8aa145326b9"
-          ]
-      ]
+    "id": "g-sentences",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Sentences API — hot-expand the parser",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "sent-parser",
+      "sent-debug",
+      "in-sent-get",
+      "in-pcmex-before",
+      "fn-yaml",
+      "in-sent-content",
+      "in-sent-file",
+      "in-pcmex-after",
+      "in-sent-bad"
+    ],
+    "x": 140,
+    "y": 920,
+    "w": 780,
+    "h": 340
+  },
+  {
+    "id": "g-sentence",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Sentence API — is this id known?",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "one-parser",
+      "one-debug",
+      "in-one-n8",
+      "in-one-hehdt",
+      "in-one-gga",
+      "in-one-none"
+    ],
+    "x": 140,
+    "y": 1220,
+    "w": 780,
+    "h": 220
+  },
+  {
+    "id": "g-fake",
+    "type": "group",
+    "z": "norsub-examples-tab",
+    "name": "Fake API — a valid sample sentence",
+    "style": {
+      "label": true
+    },
+    "nodes": [
+      "fake-parser",
+      "fake-debug",
+      "in-fake-n8",
+      "in-fake-n7b",
+      "in-fake-none"
+    ],
+    "x": 140,
+    "y": 1400,
+    "w": 780,
+    "h": 180
   }
 ]
