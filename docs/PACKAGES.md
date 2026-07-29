@@ -59,7 +59,7 @@ Node id is `cma-<device>` in all of them.
 
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
-| nmea-parser-nodered | **3.0.0** (pending) | `workspace:^` → `^4.0.0` | `node:test`, **enabled in CI** (19/19) | **The template.** TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
+| nmea-parser-nodered | **3.0.0** (pending) | `workspace:^` → `^4.0.0` | `node:test`, **enabled in CI** (22/22) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
 | norsub-emru-nodered | **3.0.0** (pending) | `workspace:^` → `^4.0.0` | `node:test`, **enabled in CI** (34/34) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | 1.0.1 | `workspace:^` | mocha, CI test job disabled | `test:vitest` script but no vitest.config.ts |
 | sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |

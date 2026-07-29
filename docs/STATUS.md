@@ -84,10 +84,19 @@
 > Re-validated anyway by booting real node-red against both shipped flows and re-driving the new group
 > through that runtime.
 >
-> **⚠️ ONE THING FOR cru BEFORE MERGING: the queued `msg.protocols` → `msg.sentences` rename is ALSO a
-> breaking wrapper change.** If it lands after this release, `nmea-parser-nodered` needs **two majors
-> back-to-back** (3.0.0 now, 4.0.0 for the rename). Folding the rename into *this* 3.0.0 would avoid that.
-> Not done here because it was not part of the instruction — cru's call.
+> **✅ THE `msg.protocols` → `msg.sentences` RENAME IS DONE AND FOLDED INTO THIS SAME 3.0.0** (cru's call,
+> 2026-07-29): the wrapper was already going out as a major for the `nmea-parser@4.0.0` dep, so the rename
+> rides along and users absorb ONE breaking change instead of two consecutive majors. **The two wrappers now
+> agree** — the definitions channel takes the library's vocabulary (`addSentences` /
+> `getSentencesByProtocol`), leaving `protocol` free for the device-protocol meaning it has in norsub's
+> `msg.protocol`. `applyProtocols`/`ProtocolsInput` → `applySentences`/`SentencesInput`, name for name with
+> norsub. Behaviour is otherwise identical (same `command`/`content`/`file`, same response grouped by
+> protocol name); only the error strings now say `sentences:`. **The YAML schema's own top-level
+> `protocols:` key is deliberately untouched** — that belongs to the knowledge format, not the msg API.
+> Config dialog, help markdown, README ("Upgrading from 2.x" leads with the rename) and the example flow
+> (group → "Sentences API", 3 injects, the debug JSONata) all updated. **3 integration specs added** driving
+> REAL node-red: `msg.sentences` GET answered + grouped, the OLD `msg.protocols` **ignored** (passed through
+> untouched, never answered), and a SET expanding the parser so a new sentence decodes. **19/19 → 22/22.**
 >
 > ## 🆕 FIX 2 — PSXN sentence resolvers (2026-07-29)
 >
@@ -140,13 +149,15 @@
 >
 > **⚠️ REQUIRES `nmea-parser` 4.0.0 (MAJOR).** The type is identical, but the parser now emits CMAs it never
 > emitted before, so a consumer that assumed every emitted CMA was usable must check `errors` /
-> `id === 'unknown'`. **Not yet bumped — cru's call, and he commits when he has reviewed.**
+> `id === 'unknown'`. **Bumped and committed** — see the release table in the banner above.
 >
 > **🐛 Latent bug fixed on the way:** `bufferLimit` was stored + validated but **enforced nowhere** — the
 > buffer could grow without bound. It is now enforced (over-limit unterminated input is flushed as garbage).
 >
-> **➡️ NEXT: item 3, the `msg.protocols` → `msg.sentences` rename in `nmea-parser-nodered`** (breaking
-> msg-API ⇒ its own major, 2.0.1 → 3.0.0), unless cru has a further nmea-parser change first.
+> **➡️ ALL THREE of cru's items are now DONE** (the two fixes + the rename, all in PR
+> [#74](https://github.com/core-marine-dev/devices/pull/74)). **NEXT after the merge: `thelmabiotel-tblive`**
+> — move its extra top-level `mode`/`firmware` keys into `metadata` and adopt the base class, then the two
+> binary parsers.
 
 # 🏁 PHASE 3 IS COMPLETE — norsub-emru is DONE, library AND wrapper, both live on npm.
 >
