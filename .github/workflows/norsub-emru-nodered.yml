@@ -5,6 +5,13 @@ on:
   push:
     paths:
       - packages/norsub-emru-nodered/**
+      # Its tests run against the real upstream library.
+      - packages/norsub-emru/**
+      # These packages BUNDLE the private @coremarine/protocol-core into their dists
+      # (tsup noExternal), so a core change alters what they publish and can break
+      # their tests. The version gate keeps the extra trigger harmless: tests run,
+      # publish no-ops unless the version changed.
+      - packages/core/**
 
 jobs:
   test:

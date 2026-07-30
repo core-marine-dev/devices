@@ -5,6 +5,11 @@ on:
   push:
     paths:
       - packages/nmea-parser/**
+      # These packages BUNDLE the private @coremarine/protocol-core into their dists
+      # (tsup noExternal), so a core change alters what they publish and can break
+      # their tests. The version gate keeps the extra trigger harmless: tests run,
+      # publish no-ops unless the version changed.
+      - packages/core/**
       # the shared protocols generator is a build input for this package
       - scripts/**
 
