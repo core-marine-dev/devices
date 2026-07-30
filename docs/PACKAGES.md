@@ -8,11 +8,11 @@ Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`
 
 | Package | Version | Output | On `protocol-core` | Parser API |
 | --- | --- | --- | --- | --- |
-| `@coremarine/nmea-parser` | **5.0.0** | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/norsub-emru` | **5.0.0** | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/nmea-parser` | **5.0.0** (npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/norsub-emru` | **5.0.0** (npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ | `addData(buf)` + `parseData()` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ | `addData(buf)` + `getFrames()` |
-| `@coremarine/thelmabiotel-tblive` | **2.0.0** | **CMA** on `protocol-core` | ✅ | `addData(str)` + `parseData(): CMA[]` |
+| `@coremarine/thelmabiotel-tblive` | **2.0.0** (npm) | **CMA** on `protocol-core` | ✅ | `addData(str)` + `parseData(): CMA[]` |
 
 All: `type: module`, dual ESM/CJS via tsup `exports`, MIT. `engines.node`: `>=22` on nmea-parser and
 norsub-emru (the two latest LTS are what we test); septentrio-sbf and sbg-ecom still say `>= 18` — tighten each as it
@@ -83,11 +83,11 @@ Node id is `cma-<device>` in all of them.
 
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
-| nmea-parser-nodered | **5.0.0** | `workspace:^` → `^5.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
-| norsub-emru-nodered | **5.0.0** | `workspace:^` → `^5.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
+| nmea-parser-nodered | **5.0.0** (npm) | `workspace:^` → `^5.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
+| norsub-emru-nodered | **5.0.0** (npm) | `workspace:^` → `^5.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | 1.0.1 | `workspace:^` | mocha, CI test job disabled | `test:vitest` script but no vitest.config.ts |
 | sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |
-| thelmabiotel-tblive-nodered | **2.0.0** | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
+| thelmabiotel-tblive-nodered | **2.0.0** (npm) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
 
 The two un-refactored wrappers still use mocha + `node-red-node-test-helper` (which is **incompatible
 with node-red 5** — that is why their CI test jobs are disabled) and a docker env for manual tests.

@@ -25,7 +25,34 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> # 🎉 SHIPPED 2026-07-29 — nmea-parser 4.0.0, norsub-emru 4.0.0, BOTH wrappers 3.0.0 ARE LIVE ON npm
+> # 🎉 SHIPPED 2026-07-30 — SIX PACKAGES LIVE ON npm; nmea + norsub + thelmabiotel are DONE
+
+PR [#75](https://github.com/core-marine-dev/devices/pull/75) (merge `c6d7d5d`) published
+`thelmabiotel-tblive@2.0.0`; PR [#76](https://github.com/core-marine-dev/devices/pull/76)
+(merge **`ef4480b`**) published the other five. **All five publish workflows green.**
+**`dev` == `main` == `ef4480b`, tree clean.**
+
+| package | npm | pairs with |
+| --- | --- | --- |
+| `@coremarine/nmea-parser` | **5.0.0** | ↔ `nmea-parser-nodered` **5.0.0** |
+| `@coremarine/norsub-emru` | **5.0.0** | ↔ `norsub-emru-nodered` **5.0.0** |
+| `@coremarine/thelmabiotel-tblive` | **2.0.0** | ↔ `thelmabiotel-tblive-nodered` **2.0.0** |
+
+**✅ Verified against npm, nothing from the workspace:** in an empty temp dir,
+`npm i` of the three wrappers resolved each one's library to the **matching major** —
+wrapper 5.0.0 → dep `^5.0.0` → library 5.0.0, and 2.0.0 → `^2.0.0` → 2.0.0. The version policy
+holds in production, not just in the monorepo.
+
+**➡️ cru's remaining manual step:** refresh the Node-RED flow-library entries for all three
+components (each went to a new major). After that these **three devices are DONE**.
+
+**➡️ NEXT DEVICES: the two binary parsers, `septentrio-sbf` and `sbg-ecom`** — still on their legacy
+output (`SBFResponse` / `SBGFrameResponse`), neither on `protocol-core`. They are the last two of the
+five. Note they extend `BinaryParser`, not `StringParser`, so `raw` is Base64 and the framing is
+length-prefixed rather than text-delimited — a different shape of problem from the three text
+protocols just finished. `sbg-ecom` also has **zero specs** today.
+
+# 🎉 SHIPPED 2026-07-29 — nmea-parser 4.0.0, norsub-emru 4.0.0, BOTH wrappers 3.0.0 ARE LIVE ON npm
 >
 > PR [#74](https://github.com/core-marine-dev/devices/pull/74) merged by cru at 12:24 UTC, merge commit
 > **`941fd58`**; **`main` @ `941fd58`**. All five workflows green; `npm view` → `nmea-parser 4.0.0`,

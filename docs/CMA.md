@@ -266,12 +266,12 @@ that is a positive "the content is intact" signal, which is exactly what it shou
 - `misc/archive/sbg2cma-comparison-dump.txt` (local) — captured comparison dump per SBG log type.
 - [SBG-REPORT.md](SBG-REPORT.md) — what sbg-ecom's legacy output looks like today.
 
-## Conformance state (2026-07-30)
+## Conformance state (2026-07-30 — three of five devices done)
 
 | Library | Output today |
 | --- | --- |
-| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`, failed/garbage sentences, sentence resolvers). **npm 4.0.0** |
-| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level. **npm 4.0.0** |
-| thelmabiotel-tblive | **CMA**, on `protocol-core` — `TBLiveParser extends StringParser`. Frameless-protocol tokenizer, learned firmware as `protocol.version`, `mode` in metadata, failed/garbage sentences + interference reporting. The opaque emitter `data` field is deliberately NOT decoded. Adds `getFakeSentence` + `getSentenceDefinition`, both `Result`-returning. **Library done 2026-07-30, unreleased at `2.0.0`; wrapper next** |
+| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`, failed/garbage sentences, sentence resolvers). **npm 5.0.0** |
+| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level. **npm 5.0.0** |
+| thelmabiotel-tblive | **CMA**, on `protocol-core` — `TBLiveParser extends StringParser`. Frameless-protocol tokenizer, learned firmware as `protocol.version`, `mode` in metadata, failed/garbage sentences + interference reporting. The opaque emitter `data` field is deliberately NOT decoded. Adds `getFakeSentence` + `getSentenceDefinition`, both `Result`-returning. **npm 2.0.0** (wrapper 2.0.0) |
 | septentrio-sbf | legacy `SBFResponse` (frame header/time/body) |
 | sbg-ecom | legacy `SBGFrameResponse` (frame header/data/footer) |
