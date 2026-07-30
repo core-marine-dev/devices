@@ -1749,6 +1749,73 @@ call for a reason worth recording: with a name match, an 8-field sentence whose 
   `2.0.0`, `engines.node >=22`; drop the stray `tango.json` and the committed `coverage/`. Then the
   wrapper (full rebuild from the `nmea-parser-nodered` template).
 
+## 🚧 thelmabiotel-tblive-nodered — REBUILT 2026-07-30 (uncommitted; cru is reviewing the examples)
+
+Full rebuild from the `nmea-parser-nodered` / `norsub-emru-nodered` template. **42 tests green** (34
+unit + 8 real-headless-node-red), lint + tsc clean, CI order replayed from a deleted-dist state.
+**NOT committed: cru wants to check the example flow first.**
+
+- **Node type deliberately UNCHANGED — `cma-thelmabiotel-tblive`.** The other two wrappers use
+  `cma-<device>-parser`, but renaming this one would make the node **vanish from every deployed
+  flow**, which is not a trade worth making for naming symmetry on hardware that sits on an FPSO for
+  years. Recorded in `parser.ts` so nobody "fixes" it later. Flag if cru wants the rename.
+- **`src/lib.ts` — the msg API, refactored onto the new parser** (zero node-red imports, so it unit-
+  tests against a real `TBLiveParser`): `applyMemory`, **`applyFirmware`**, **`getIds`**,
+  **`getDefinition`**, **`getFakeSentence`**, `parsePayload`, `cleanUndefined`. Every handler turns a
+  failed `Result` into the error **string** node-red shows the user, so nothing throws and no `null`
+  escapes.
+  - **`msg.firmware`** replaces norsub's `msg.protocol` as the device selector, because for TB Live
+    the firmware *is* the protocol version. **Unlike norsub's protocol switch it does NOT discard the
+    buffer** — the firmware changes how a sentence is read, not how the stream is framed. Asserted.
+  - **`msg.definition`** (not `msg.sentence` as in the older wrappers) and **no `msg.sentences`
+    get/set channel**: TB Live's definitions are compiled in, so a `set` would be half-dead. Accepts a
+    bare id or `{ id, protocol? }`.
+  - **`msg.ids`** is new — the discovery counterpart to `definition`, so a flow can enumerate what to
+    ask about. Together they are the remote-diagnosis story from a flow.
+  - **`msg.fake`** must be an OBJECT (`{ id, protocol, options? }`), where norsub's was a bare string,
+    because `protocol` is mandatory for generation.
+- **`src/parser.ts`** thin RED adapter; **`src/parser.html`** config dialog (a **Firmware** select
+  defaulting to "Learn from the stream", plus Memory) with help markdown rewritten for the new msg
+  API, the `null`-is-not-zero warning, the interference behaviour and an "Upgrading from 1.x" section.
+- **package.json — every item cru listed is done:** version `1.0.0` → **`2.0.0`**, `engines.node`
+  `>=18.0.0` → **`>=22`**, `node-red.version` `>=3.0.0` → **`>=4.0.0`**, `main` fixed (it pointed at a
+  non-existent `index.js`) → `dist/parser.js`, `files` gained the **`!**/*.backup`** and
+  **`!**/*_cred.json`** exclusions, and **the dependency problem is fixed: the stray
+  `peerDependencies: { valibot }` is GONE** — valibot is the library's own runtime dependency, and as a
+  peer here it would have forced consumers to install it themselves.
+- **Legacy dropped:** `Dockerfile`, `docker-compose.yml`, `manual_tests.sh`, `src/parser.js`, and the
+  whole `tests/nodered/` tree — which held committed node-red runtime state **including
+  `flows_cred.json`**, the exact artefact class behind both earlier packing leaks. Root scripts lost
+  `:nodered:docker` and gained `:nodered:lint|build|dev|examples`.
+- **Example flow rebuilt: 56 nodes, 9 groups, ONLY built-in node types** (inject / function / debug /
+  catch), so it imports with no contrib nodes. Every payload is a datasheet example. Groups: listening
+  data · the empty-`data` case · failed and garbage sentences · memory and split sentences · firmware
+  learning vs pinning · command-mode responses · diagnostics · fake sentences · parser and output. A
+  `function` node splits output three ways — **CLEAN / FLAGGED / RESPONSES** — which is how the flow
+  teaches that `errors` must be checked.
+  - **Validated by BOOTING real node-red against the shipped file:** all 46 nodes instantiate, **zero
+    unknown types**. Then every demo was **driven through that runtime** with the debugs swapped for
+    sinks, and **two flaws in the flow I authored were found and fixed**:
+    1. `'serial number + ping'` concatenated two `SN=` sentences — but the ping is the *longer match at
+       the same offset*, so it demonstrated **interference**, not what its label claimed. Split into two
+       honest injects, and the ambiguous pair kept as its own garbage-group example.
+    2. The memory group's title now spells out the click order (`fire ON, then 1/2, then 2/2`), because
+       firing them out of order shows a *correct* failure that reads like a broken example.
+- **CI: test job RE-ENABLED** (it had been commented out with `needs: test` disabled, so the old
+  wrapper could publish untested). Matrix 22.x + 24.x, dep chain `protocol-core → thelmabiotel-tblive`
+  then the wrapper build, then `node:test`. **Also triggers on `packages/thelmabiotel-tblive/**` and
+  `packages/core/**`** — the wrapper's tests run against the real library, which bundles the private
+  core, so a change to either could break this package with no job running.
+- **Verified:** `pnpm pack` resolves `workspace:^` → **`^2.0.0`** (npm's own `pack` leaves it literal —
+  CI publishes with pnpm, so pnpm is what matters); tarball = **8 files / 41.4 kB**
+  (`dist/{parser.js,parser.html,icons/}` + `examples/` + README + LICENSE + manifest); **no
+  `peerDependencies`**; and the `files` exclusions were re-proved by creating a `_cred.json` and a
+  `.backup` next to the example flow and re-packing — **neither leaked**.
+- **⚠️ PUBLISH ORDERING:** the packed dep is `^2.0.0` and the library's **2.0.0 is not on npm yet**
+  (latest is `1.0.3`). Both publish on the same `dev` → `main` merge and their workflows run in
+  parallel, so the wrapper may briefly be on npm before the library it needs. Same constraint as the
+  earlier releases — worth watching the two runs on merge.
+
 ## 🅿️ PARKED — cross-parser API alignment owed to nmea-parser + norsub-emru (+ both wrappers)
 
 **Decided with cru 2026-07-30 while designing tblive's fake-sentence API. Do this AFTER the tblive
