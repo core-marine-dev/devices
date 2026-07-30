@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/thelmabiotel-tblive-nodered",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-RED component to read Thelma Biotel TB Live receiver output as CMA",
