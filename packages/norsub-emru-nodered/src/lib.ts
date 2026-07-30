@@ -129,18 +129,24 @@ const readYaml = (content: unknown, file: unknown, readFile: FileReader): string
   }
 }
 
-// sentence: string id -> stored sentence info | null
-export const getSentenceInfo = (parser: NorsubParser, sentence: unknown): ReturnType<NorsubParser['parser']['getSentence']> | string | undefined => {
-  if (isNil(sentence)) return undefined
-  if (!isString(sentence)) return 'sentence must be a string'
-  return parser.parser.getSentence(sentence)
+// definition: string id -> every stored definition of it
+// Renamed from `sentence` in v5: an id in and a DEFINITION out, so the key now says
+// which. The library returns a Result, and an array — one entry per version of the id.
+export const getDefinition = (parser: NorsubParser, definition: unknown): unknown[] | string | undefined => {
+  if (isNil(definition)) return undefined
+  if (!isString(definition)) return 'definition must be a sentence id string'
+  const result = parser.parser.getSentenceDefinition(definition)
+  return result.success ? result.value : result.error.message
 }
 
-// fake: string id -> a fake NMEA-like sentence | null
-export const getFakeSentence = (parser: NorsubParser, fake: unknown): ReturnType<NorsubParser['parser']['getFakeSentenceByID']> | string | undefined => {
+// fake: string id -> a fake NMEA-like sentence
+// The library returns a Result, so an unknown id now arrives as an error STRING the
+// user can read rather than a bare `null` they have to interpret.
+export const getFakeSentence = (parser: NorsubParser, fake: unknown): string | undefined => {
   if (isNil(fake)) return undefined
   if (!isString(fake)) return 'fake sentence id must be a string'
-  return parser.parser.getFakeSentenceByID(fake)
+  const result = parser.parser.getFakeSentence(fake)
+  return result.success ? result.value : result.error.message
 }
 
 // payload: ASCII NorSub/NMEA string -> CMA[]

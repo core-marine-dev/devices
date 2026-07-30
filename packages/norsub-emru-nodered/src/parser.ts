@@ -7,7 +7,7 @@ import { NorsubParser } from '@coremarine/norsub-emru'
 import type { Node, NodeAPI, NodeDef } from 'node-red'
 
 // coded
-import { applyMemory, applyProtocol, applySentences, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from './lib'
+import { applyMemory, applyProtocol, applySentences, cleanUndefined, getFakeSentence, getDefinition, parsePayload } from './lib'
 
 interface ParserConfig extends NodeDef {
   protocol?: NorsubProtocol
@@ -39,7 +39,7 @@ const init = (RED: NodeAPI): void => {
         msg.memory = applyMemory(parser, msg.memory as never)
         msg.protocol = applyProtocol(parser, msg.protocol as never)
         msg.sentences = applySentences(parser, msg.sentences as never, readFile)
-        msg.sentence = getSentenceInfo(parser, msg.sentence)
+        msg.definition = getDefinition(parser, msg.definition)
         msg.fake = getFakeSentence(parser, msg.fake)
         msg.payload = parsePayload(parser, msg.payload)
         cleanUndefined(msg)

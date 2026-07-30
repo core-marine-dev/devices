@@ -188,7 +188,7 @@ active):
 
 ```typescript
 parser.parser.getFakeSentenceByID('PNORSUB8')   // a valid sample sentence
-parser.parser.getSentence('PNORSUB8')           // the stored definition
+parser.parser.getSentenceDefinition('PNORSUB8') // Result<Sentence[], NMEAError>
 parser.parser.getSentencesByProtocol()          // definitions grouped by protocol
 parser.parser.addSentences(yaml)                // add your own sentences at runtime
 ```

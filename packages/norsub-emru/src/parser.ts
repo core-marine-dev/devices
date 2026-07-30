@@ -46,8 +46,8 @@ export class NorsubParser implements DeviceParser<string> {
   }
 
   // The active protocol parser, exposed so protocol-specific extras are reachable —
-  // `norsub.parser.getFakeSentenceByID('PNORSUB8')`, `.addSentences(yaml)`,
-  // `.getSentence(id)`, `.getSentencesByProtocol()`. Deliberately NOT delegated
+  // `norsub.parser.getFakeSentence('PNORSUB8')`, `.addSentences(yaml)`,
+  // `.getSentenceDefinition(id)`, `.getSentencesByProtocol()`. Deliberately NOT delegated
   // method by method: the facade's API would balloon as protocols are added, and
   // most of those methods are meaningless for whichever protocol is active.
   get parser(): ProtocolParser { return this._parser }

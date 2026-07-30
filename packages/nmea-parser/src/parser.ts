@@ -12,7 +12,7 @@ import { BUILTIN_SENTENCE_RESOLVERS } from './resolvers'
 import type { SentenceResolvers } from './resolvers'
 import { ProtocolsFileContentSchema, StringSchema } from './schemas'
 import { createFakeSentence, garbageSentence, getTalker, newestDefinition, parseSentence, scanBuffer } from './sentences'
-import type { MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence } from './types'
+import type { MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence, Talker } from './types'
 
 // NMEA 0183 parser. Extends the shared StringParser (which owns the
 // memory/buffer/drain machinery and the addData/parseData contract) and
@@ -113,23 +113,44 @@ export class NMEAParser extends StringParser {
     return response
   }
 
-  getSentence(id: string): Sentence | null {
-    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) return null
+  // Resolve an id to its stored definitions, either directly or by stripping a
+  // talker prefix. Returns the definitions AND the talker that was consumed, so
+  // callers can attach it or rebuild the full id.
+  private lookup(id: string): Result<{ definitions: StoredSentence[], talker?: Talker }, NMEAError> {
+    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) {
+      return { success: false, error: { kind: 'invalid-id', message: `invalid sentence id: ${JSON.stringify(id)}` } }
+    }
     const direct = this._definitions.get(id)
-    if (direct !== undefined) return { ...newestDefinition(direct) }
+    if (direct !== undefined) return { success: true, value: { definitions: direct } }
     const talker = getTalker(id)
-    if (talker === null) return null
-    const stored = this._definitions.get(id.slice(talker.value.length))
-    return (stored !== undefined) ? { ...newestDefinition(stored), talker } : null
+    const stored = (talker === null) ? undefined : this._definitions.get(id.slice(talker.value.length))
+    if (talker === null || stored === undefined) {
+      return { success: false, error: { kind: 'unknown-id', message: `unknown sentence id: ${JSON.stringify(id)}` } }
+    }
+    return { success: true, value: { definitions: stored, talker } }
   }
 
-  getFakeSentenceByID(id: string): NMEALike | null {
-    if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) return null
-    const direct = this._definitions.get(id)
-    if (direct !== undefined) return createFakeSentence(newestDefinition(direct))
-    const talker = getTalker(id)
-    if (talker === null) return null
-    const stored = this._definitions.get(id.slice(talker.value.length))
-    return (stored !== undefined) ? createFakeSentence(newestDefinition(stored), talker.value) : null
+  // What this parser knows about a sentence: an ARRAY, because the same id can
+  // have several definitions across NMEA versions and the older ones are worth
+  // seeing — the previous `getSentence` silently returned only the newest.
+  //
+  // A `Result`, not `null`: an id that is malformed and an id that is simply
+  // unknown are different mistakes, and `null` could not tell them apart.
+  getSentenceDefinition(id: string): Result<Sentence[], NMEAError> {
+    const found = this.lookup(id)
+    if (!found.success) return found
+    const { definitions, talker } = found.value
+    const sentences = definitions.map((definition) =>
+      (talker === undefined) ? { ...definition } : { ...definition, talker })
+    return { success: true, value: sentences }
+  }
+
+  // A syntactically valid sample sentence for testing: correct structure and
+  // checksum, garbage field values. Built from the NEWEST definition of the id.
+  getFakeSentence(id: string): Result<NMEALike, NMEAError> {
+    const found = this.lookup(id)
+    if (!found.success) return found
+    const { definitions, talker } = found.value
+    return { success: true, value: createFakeSentence(newestDefinition(definitions), talker?.value) }
   }
 }

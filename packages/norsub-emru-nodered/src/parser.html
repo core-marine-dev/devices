@@ -85,7 +85,7 @@ emitting the unified **CMA** format. Wrapper of
 
 : *sentences* (object) : Get the known sentence definitions, or add your own (details below).
 
-: *sentence* (string) : Sentence ID, to check whether it is supported and read its definition.
+: *definition* (string) : Sentence ID, to read every stored definition of it.
 
 : *fake* (string) : Sentence ID, to get a valid sample sentence for testing.
 
@@ -99,9 +99,9 @@ emitting the unified **CMA** format. Wrapper of
 
 : *sentences* (object) : Response to the *sentences* input.
 
-: *sentence* (object | null) : Response to the *sentence* input.
+: *definition* (array | string) : Response to the *definition* input.
 
-: *fake* (string | null) : Response to the *fake* input.
+: *fake* (string) : Response to the *fake* input.
 
 Any input key you do not send is absent from the output too. On a bad request the
 corresponding output key holds an error **string** instead of a result.
@@ -173,21 +173,27 @@ the output is an error **string**. Use `get` to list what is currently known.
 > Note: this key was called `protocols` before v2. It was renamed because the parser now also has
 > a *protocol* selection (above), and two keys one letter apart meaning unrelated things was a trap.
 
-#### Sentence
+#### Definition
 
-Send a sentence id to check whether it is supported. The response is its definition, or `null`.
+Send a sentence id to read what the parser knows about it. The response is an **array** — one entry
+per version of that id — because the knowledge base holds a definition per version and the older
+ones are worth seeing. An unknown or malformed id comes back as an error **string** saying which.
 
-|         Input          |              Output              |
-| :--------------------: | :------------------------------: |
-| `sentence`: **string** | `sentence`: **object** \| `null` |
+|          Input           |                Output                 |
+| :----------------------: | :-----------------------------------: |
+| `definition`: **string** | `definition`: **array** \| **string** |
+
+> Note: this key was called `sentence` before v5, which read like "give me a sentence" when it
+> actually returns a definition — one word away from `fake`, which does give you a sentence.
 
 #### Fake
 
 Send a sentence id to get a syntactically valid sample sentence, useful for testing. The checksum
-and structure are correct; the field values are garbage. `null` if the id is unknown.
+and structure are correct; the field values are garbage. An unknown id comes back as an error
+**string** rather than `null`, so you can read why.
 
-|       Input        |            Output            |
-| :----------------: | :--------------------------: |
-| `fake`: **string** | `fake`: **string** \| `null` |
+|       Input        |       Output       |
+| :----------------: | :----------------: |
+| `fake`: **string** | `fake`: **string** |
 
 </script>

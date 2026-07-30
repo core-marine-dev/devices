@@ -106,7 +106,7 @@ test('output CMA carries the core timestamp metadata and no sentence timestamp',
 
 test('keys not sent on the input are absent from the output', () => {
   const msg = captured.at(-1)!
-  for (const key of ['memory', 'protocol', 'sentences', 'sentence', 'fake']) {
+  for (const key of ['memory', 'protocol', 'sentences', 'definition', 'fake']) {
     assert.ok(!(key in msg), `${key} was not requested, so it is not on the output`)
   }
 })

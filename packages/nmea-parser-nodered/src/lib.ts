@@ -3,7 +3,7 @@
    undefined when that input key is absent. The union is the contract, not an accident. */
 
 // installed
-import type { NMEAParser } from '@coremarine/nmea-parser'
+import type { NMEALike, NMEAParser, Sentence } from '@coremarine/nmea-parser'
 
 // Pure wrapper logic — NO node-red dependency, so it is unit-testable with a real
 // NMEAParser and node:test. The thin RED adapter (parser.ts) wires msg -> these.
@@ -85,18 +85,25 @@ export const applySentences = (
   return 'sentences.command should be "get" or "set"'
 }
 
-// sentence: string id -> stored sentence info | null
-export const getSentenceInfo = (parser: NMEAParser, sentence: unknown): ReturnType<NMEAParser['getSentence']> | string | undefined => {
-  if (isNil(sentence)) return undefined
-  if (!isString(sentence)) return 'sentence must be a string'
-  return parser.getSentence(sentence)
+// definition: string id -> every stored definition of it
+// Renamed from `sentence` in v5: an id in and a DEFINITION out, so the key now says
+// which. The library returns a Result, and an array — one entry per NMEA version of
+// the id — so an older revision is inspectable instead of hidden behind the newest.
+export const getDefinition = (parser: NMEAParser, definition: unknown): Sentence[] | string | undefined => {
+  if (isNil(definition)) return undefined
+  if (!isString(definition)) return 'definition must be a sentence id string'
+  const result = parser.getSentenceDefinition(definition)
+  return result.success ? result.value : result.error.message
 }
 
-// fake: string id -> a fake NMEA-like sentence | null
-export const getFakeSentence = (parser: NMEAParser, fake: unknown): ReturnType<NMEAParser['getFakeSentenceByID']> | string | undefined => {
+// fake: string id -> a fake NMEA-like sentence
+// The library returns a Result, so an unknown id now arrives as an error STRING the
+// user can read rather than a bare `null` they have to interpret.
+export const getFakeSentence = (parser: NMEAParser, fake: unknown): NMEALike | string | undefined => {
   if (isNil(fake)) return undefined
   if (!isString(fake)) return 'fake sentence id must be a string'
-  return parser.getFakeSentenceByID(fake)
+  const result = parser.getFakeSentence(fake)
+  return result.success ? result.value : result.error.message
 }
 
 // payload: ASCII NMEA string -> CMA[]

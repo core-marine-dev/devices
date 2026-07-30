@@ -18,7 +18,7 @@ NMEA component uses 5 properties to work:
 | `payload` (string)     | NMEA ASCII content (important, it is an *ASCII* string, not other encoding).           |
 | *`memory`* (object)    | Object to check or enabled / disabled parser memory state (look details below).        |
 | *`sentences`* (object) | Object to get or set the sentence definitions the parser knows (look details below). |
-| *`sentence`* (string)  | Sentence ID to get if it is supported and its info (look details below).               |
+| *`definition`* (string) | Sentence ID, to read every stored definition of it (look details below).              |
 | *`fake`* (string)      | Sentence ID to get a full fake NMEA-like sentence if it is supported.                  |
 
 ## Output
@@ -30,7 +30,7 @@ Each input proerty would be responded in the same output property
 | payload (array)        | The parsing output of the CoreMarine NMEA Parser — an array of **CMA** objects (the unified CoreMarine output format), one per NMEA sentence. **Includes sentences that failed to parse** — see below. |
 | *`memory`* (object)    | Response to the *memory* input (look details below).                                                                           |
 | *`sentences`* (object) | Response to the *sentences* input (look details below).                                                                        |
-| *`sentence`* (string)  | Response to the *sentence* input (look details below).                                                                         |
+| *`definition`* (array \| string) | Response to the *definition* input (look details below).                                                             |
 | *`fake`* (string)      | Response to the *fake* input (look details below).                                                                             |
 
 ## Failed and garbage sentences
@@ -107,17 +107,19 @@ If you just want to know the known / supported sentences, use the command `get`.
 
 ### Sentence
 
-If you want to know if a sentence is known / supported, you need to send the sentence id.
+If you want to know what the parser knows about a sentence, send the sentence id. The response is an
+**array** — one entry per version of that id — or an error **string** if the id is unknown.
 Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
 
 |         Input          |              Output              |
 | :--------------------: | :------------------------------: |
-| `sentence`: **string** | `sentence`: **object** \| `null` |
+| `definition`: **string** | `definition`: **array** \| **string** |
 
 ### Fake
 
 If you want to get a NMEA-like sentence, maybe just to do some tests, you need to send the sentence id.
-Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
+Response will be a `string` with the whole ASCII sentence, or an error **string** if the id is
+unknown / not supported yet.
 This fake sentence is correct in terms of NMEA requirements but each field has garbage.
 
 |       Input        |            Output            |
@@ -175,3 +177,17 @@ Node-RED reads/writes the on-disk flow file directly, so edits you make in the e
 - **`:examples`** edits the **committed, published** example under `examples/` (the flow-library
   requires examples; they're shipped via `files` and appear in Node-RED's *Import → Examples*). Set
   `EXAMPLE=<file>` to target a specific one. Examples live in `examples/`, **not** `dist/`.
+
+## Upgrading from 3.x
+
+The library it wraps went to **5.0.0**, and wrapper/library majors are now locked together, so
+`@coremarine/nmea-parser-nodered@5.x` always wraps `@coremarine/nmea-parser@5.x`. That is why the version jumps
+from 3.x straight to 5.0.0.
+
+- **`msg.sentence` is now `msg.definition`.** It read like "give me a sentence" when it actually
+  returns a definition — one word away from `msg.fake`, which *does* give you a sentence.
+- **`msg.definition` responds with an ARRAY**, one entry per version of that id. The knowledge base
+  has always held a definition per version; the old call silently returned only the newest.
+- **An unknown id is an error STRING, not `null`.** `msg.definition` and `msg.fake` both say *why*
+  now — a malformed id and an unknown id are different mistakes that `null` could not distinguish.
+

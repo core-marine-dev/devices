@@ -41,6 +41,39 @@ describe('Parser', () => {
     NORSUB_PROTOCOL_NAMES.forEach((name) => expect(name in protocols).toBeTruthy())
   })
 
+  // The whole reason getSentenceDefinition returns an ARRAY: the knowledge base
+  // holds one definition PER VERSION of an id, and the old `getSentence` returned
+  // only the newest — so an older revision was impossible to inspect at all.
+  test('getSentenceDefinition returns every version of an id', () => {
+    const parser = new Parser()
+    const before = parser.getSentenceDefinition('AAM')
+    expect(before.success ? before.value.length : 0).toBe(1)
+    // A second revision of an id the built-in already knows.
+    const result = parser.addSentences([
+      'protocols:',
+      '  - protocol: NMEA',
+      '    version: \'4.0\'',
+      '    standard: true',
+      '    sentences:',
+      '      - id: AAM',
+      '        description: Waypoint Arrival Alarm, revised',
+      '        payload:',
+      '          - name: status',
+      '            type: string',
+    ].join('\n'))
+    expect(result.success).toBe(true)
+    const after = parser.getSentenceDefinition('AAM')
+    expect(after.success).toBe(true)
+    const versions = after.success ? after.value.map((d) => d.protocol.version) : []
+    expect(versions).toHaveLength(2)
+    expect(versions).toContain('3.1')
+    expect(versions).toContain('4.0')
+    // The fake sentence still uses the NEWEST definition, which now has one field.
+    const fake = parser.getFakeSentence('AAM')
+    expect(fake.success).toBe(true)
+    expect(fake.success ? fake.value.split(',').length : 0).toBe(2)
+  })
+
   test('addSentences returns a Result error on invalid content (never throws)', () => {
     const parser = new Parser()
     expect(parser.addSentences('').success).toBe(false)
@@ -114,21 +147,37 @@ describe('Parser', () => {
     })
   })
 
-  test('getSentence info + talker', () => {
+  test('getSentenceDefinition info + talker', () => {
     const parser = new Parser()
-    expect(parser.getSentence('AAM')?.protocol.name).toBe('NMEA')
-    expect(parser.getSentence('AAM')?.protocol.standard).toBeTruthy()
-    expect(parser.getSentence('AAM')?.talker).toBeUndefined()
-    expect(parser.getSentence('GPAAM')?.talker?.value).toBe('GP')
-    expect(parser.getSentence('U8AAM')?.talker?.value).toBe('U8')
-    expect(parser.getSentence('PdfgsdfAAM')).toBeNull()
-    expect(parser.getSentence('XXAAM')).toBeNull()
+    // Now an ARRAY (one entry per NMEA version of the id) inside a Result.
+    const aam = parser.getSentenceDefinition('AAM')
+    expect(aam.success).toBe(true)
+    const definitions = aam.success ? aam.value : []
+    expect(definitions.length).toBeGreaterThan(0)
+    expect(definitions[0].protocol.name).toBe('NMEA')
+    expect(definitions[0].protocol.standard).toBeTruthy()
+    expect(definitions[0].talker).toBeUndefined()
+    const talkerOf = (id: string): string | undefined => {
+      const found = parser.getSentenceDefinition(id)
+      return found.success ? found.value[0].talker?.value : undefined
+    }
+    expect(talkerOf('GPAAM')).toBe('GP')
+    expect(talkerOf('U8AAM')).toBe('U8')
+    // A Result rather than null, so the two kinds of failure are distinguishable.
+    const unknown = parser.getSentenceDefinition('PdfgsdfAAM')
+    expect(unknown.success).toBe(false)
+    expect(unknown.success ? '' : unknown.error.kind).toBe('unknown-id')
+    expect(parser.getSentenceDefinition('XXAAM').success).toBe(false)
+    const invalid = parser.getSentenceDefinition('X')
+    expect(invalid.success ? '' : invalid.error.kind).toBe('invalid-id')
   })
 
   test('Generate + parse fake sentences without talkers', () => {
     const parser = new Parser({ memory: false })
     parser.getSentences().forEach((sentence) => {
-      const fake = parser.getFakeSentenceByID(sentence.id)
+      const result = parser.getFakeSentence(sentence.id)
+      expect(result.success).toBe(true)
+      const fake = result.success ? result.value : null
       expect(fake).not.toBeNull()
       expect(NMEALikeSchema.is(fake)).toBeTruthy()
       const parsed = parser.parseData(fake as string)
@@ -141,7 +190,9 @@ describe('Parser', () => {
     const parser = new Parser({ memory: false })
     parser.getSentences().forEach((sentence) => {
       const talker = 'GP'
-      const fake = parser.getFakeSentenceByID(talker + sentence.id)
+      const result = parser.getFakeSentence(talker + sentence.id)
+      expect(result.success).toBe(true)
+      const fake = result.success ? result.value : null
       expect(fake).not.toBeNull()
       expect(NMEALikeSchema.is(fake)).toBeTruthy()
       expect((fake as string).startsWith(talker, 1)).toBeTruthy()
@@ -154,7 +205,7 @@ describe('Parser', () => {
 
   test('Fake sentence for unknown id is null', () => {
     const parser = new Parser();
-    ['XXX', 'YYY'].forEach((id) => expect(parser.getFakeSentenceByID(id)).toBeNull())
+    ['XXX', 'YYY'].forEach((id) => expect(parser.getFakeSentence(id).success).toBe(false))
   })
 })
 

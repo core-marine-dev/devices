@@ -154,7 +154,7 @@
         "id": "g-failed",
         "type": "group",
         "z": "86f1271d07a48b44w",
-        "name": "Failed & garbage sentences — nothing is dropped silently",
+        "name": "Failed & garbage sentences \u2014 nothing is dropped silently",
         "style": {
             "stroke": "#000000",
             "label": true,
@@ -197,10 +197,10 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "dc5b2f693b2e96eaw",
-        "name": "Sentence GET AAM standard",
+        "name": "Definition GET AAM standard",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "AAM",
                 "vt": "str"
             }
@@ -413,10 +413,10 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "dc5b2f693b2e96eaw",
-        "name": "Sentence GET AAM GPS",
+        "name": "Definition GET AAM GPS",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "GPAAM",
                 "vt": "str"
             }
@@ -439,10 +439,10 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "dc5b2f693b2e96eaw",
-        "name": "Sentence GET AAM Galileo",
+        "name": "Definition GET AAM Galileo",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "GAAAM",
                 "vt": "str"
             }
@@ -465,10 +465,10 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "dc5b2f693b2e96eaw",
-        "name": "Sentence GET AAM Unknown talker",
+        "name": "Definition GET AAM Unknown talker",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "XXAAM",
                 "vt": "str"
             }
@@ -496,7 +496,7 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "sentence",
+        "complete": "definition",
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
@@ -509,10 +509,10 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "dc5b2f693b2e96eaw",
-        "name": "SENTENCE Unknown",
+        "name": "DEFINITION Unknown",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "XXXXX",
                 "vt": "str"
             }
@@ -970,7 +970,7 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "53b0d00e97623318w",
-        "name": "1 · parse PCMEX (before expand)",
+        "name": "1 \u00b7 parse PCMEX (before expand)",
         "props": [
             {
                 "p": "payload",
@@ -995,7 +995,7 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "53b0d00e97623318w",
-        "name": "2 · expand via CONTENT (embedded YAML)",
+        "name": "2 \u00b7 expand via CONTENT (embedded YAML)",
         "props": [
             {
                 "p": "sentences",
@@ -1020,7 +1020,7 @@
         "type": "inject",
         "z": "86f1271d07a48b44w",
         "g": "53b0d00e97623318w",
-        "name": "3 · parse PCMEX (after expand)",
+        "name": "3 \u00b7 parse PCMEX (after expand)",
         "props": [
             {
                 "p": "payload",
@@ -1207,7 +1207,7 @@
         "z": "86f1271d07a48b44w",
         "g": "g-failed",
         "name": "split clean / flagged",
-        "func": "// 4.0.0 — msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
+        "func": "// 4.0.0 \u2014 msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1248,7 +1248,7 @@
         "type": "debug",
         "z": "86f1271d07a48b44w",
         "g": "g-failed",
-        "name": "FLAGGED — see errors[]",
+        "name": "FLAGGED \u2014 see errors[]",
         "active": true,
         "tosidebar": true,
         "console": false,
