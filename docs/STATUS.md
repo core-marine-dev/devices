@@ -1816,11 +1816,71 @@ unit + 8 real-headless-node-red), lint + tsc clean, CI order replayed from a del
   parallel, so the wrapper may briefly be on npm before the library it needs. Same constraint as the
   earlier releases — worth watching the two runs on merge.
 
+## 🔗 VERSION POLICY — a library and its wrapper SHARE A MAJOR (locked with cru 2026-07-30)
+
+`<library>@N.x` is always wrapped by `<library>-nodered@N.x`. Read the generation off the major.
+
+| library | version | wrapper | version |
+| --- | --- | --- | --- |
+| `nmea-parser` | **5.0.0** | `nmea-parser-nodered` | **5.0.0** |
+| `norsub-emru` | **5.0.0** | `norsub-emru-nodered` | **5.0.0** |
+| `thelmabiotel-tblive` | **2.0.0** | `thelmabiotel-tblive-nodered` | **2.0.0** |
+
+**MAJORS only, not major.minor** — cru accepted the reasoning:
+- A library major is **inherently** breaking for its wrapper (the wrapper's whole job is emitting the
+  library's output), so the wrapper must go major anyway. Coupling costs nothing; it only stops drift.
+- A library **minor** is additive and often needs no wrapper change. This repo already hit that at
+  `nmea-parser@3.2.0`, where STATUS recorded *"the wrapper needs NO change and NO bump… bumping it
+  would publish an identical package."* Locking minors would force exactly that.
+- It breaks the other way too: the tblive wrapper's own new features (`msg.ids`, `msg.definition`, the
+  firmware selector) are a wrapper minor that must not drag the library into a pointless release.
+
+**cru accepted the version jumps** (both wrappers 3.0.0 → 5.0.0): *"even if it is a huge jump into the
+npm history version (sorry not to sorry)"*.
+
+**🔑 THE MECHANISM, and a correction cru asked about.** He wondered whether to pin the dependency to
+`latest`. **`latest` would break the very thing it is meant to guarantee** — a wrapper at 5.x would
+happily install a library at 6.x. What already enforces it is **`workspace:^`**, which pnpm packs as
+`^<library version>`: resolving inside that major and never the next. Verified in the packed
+manifests: `nmea-parser-nodered@5.0.0` → `^5.0.0`, `norsub-emru-nodered@5.0.0` → `^5.0.0`,
+`thelmabiotel-tblive-nodered@2.0.0` → `^2.0.0`. (Note `npm pack` leaves `workspace:^` literal — only
+**pnpm** rewrites it, and CI publishes with pnpm.)
+
+**🛡️ GUARDED, not just intended.** Each wrapper now has `tests/version.unit.test.ts` asserting that
+its major equals the library's, that the dependency is declared `workspace:^`, and that the library is
+the one it claims to wrap. **Proved it catches drift:** bumping `nmea-parser` to 6.0.0 alone fails with
+`wrapper 5.0.0 and library 6.0.0 must share a major`.
+
 ## 🅿️ PARKED — cross-parser API alignment owed to nmea-parser + norsub-emru (+ both wrappers)
 
-**Decided with cru 2026-07-30 while designing tblive's fake-sentence API. Do this AFTER the tblive
-library and its wrapper are finished — but do NOT forget it.** Two APIs get renamed and both move to
-the `Result` pattern, so both are **breaking changes** for the libraries and their wrappers.
+**✅ DONE 2026-07-30 — all four packages refactored, released as `nmea-parser@5.0.0`,
+`norsub-emru@5.0.0` and both wrappers at `5.0.0`.** Kept below for the reasoning. What shipped:
+
+- **`getSentence(id)` → `getSentenceDefinition(id)` returning `Result<Sentence[], NMEAError>`.** An
+  **array**, because the knowledge base holds one definition **per version** of an id and the old call
+  silently returned only the newest — an earlier revision could not be inspected at all. A test proves
+  it earns the array: adding a second revision of `AAM` returns both `3.1` and `4.0`.
+- **`getFakeSentenceByID(id)` → `getFakeSentence(id)` returning `Result<NMEALike, NMEAError>`.**
+- **`NMEAError.kind` gained `'invalid-id'` and `'unknown-id'`**, so a malformed id and an unknown one
+  are distinguishable — the thing `null` could never express.
+- **A shared private `lookup()`** now does the talker-aware resolution both methods needed, instead of
+  each duplicating it.
+- **Both wrappers: `getSentenceInfo` → `getDefinition`, and the msg key `msg.sentence` →
+  `msg.definition`.** `sentence` read like "give me a sentence" while returning a *definition*, one
+  word from `msg.fake` which does give you a sentence — the same footgun class as
+  `msg.protocols`/`msg.sentences`. Unknown ids now surface the library's error **message** instead of
+  a bare `null`.
+- **Both example flows updated and re-verified** — injects, labels and debug targets renamed, then
+  **driven through real headless node-red** to confirm the new shapes actually arrive: definitions come
+  back as arrays with the talker reported, and unknown ids as readable error strings.
+- **The `packages/core/**` CI trigger gap is closed in all six workflows**, plus each dependent now
+  also triggers on its upstream library. That gap meant a core change could break a package with no
+  job running.
+- **`null` audit:** these two were the only `null`-returning public APIs in either library. The
+  remaining `null` returns are internal helpers (`getTalker`, `decimalDegrees`, `getStatus`, …) where
+  `null` means "no value" rather than "failure", so they stay.
+
+Original reasoning follows.
 
 **Why it matters (cru's reason, worth keeping):** these parsers get deployed on a **remote FPSO with
 restricted internet access and live there for decades**. A parser that can describe its own sentence
