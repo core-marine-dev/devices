@@ -6,109 +6,221 @@
     // UI
     color: "#ccc4b0",
     icon: "cma-logo-blue.png",
-    label: () => 'TB-Live',
-    paletteLabel: "TB-Live parser",
+    label: function () {
+      const { name } = this;
+      return name || "TB Live";
+    },
+    paletteLabel: "TB Live parser",
     labelStyle: function () { return this.name ? "node_label_italic" : "" },
-    align: "left", // 'right'
-    // button: {
-    //   // toggle: "buttonState",
-    //   enabled: function() {
-    //     return !this.changed
-    //   },
-    //   visible: function() {
-    //     return this.hasButton
-    //   },
-    //   onclick: function() {}
-    // },
+    align: "left",
     // Input - Outputs
     inputs: 1,
     outputs: 1,
-    inputLabels: "TB-Live data",
-    outputLabels: "Parsed data",
+    inputLabels: "TB Live data",
+    outputLabels: "Parsed CMA data",
     // Logic
     defaults: {
       name: { value: "" },
+      // The receiver firmware, which for TB Live IS the protocol version: 1.0.1 and
+      // 1.0.2 differ in field counts. Leave empty to let the parser learn it from the
+      // stream; pin it when the deployment knows better than the wire does.
+      firmware: {
+        value: "",
+        required: false,
+      },
       memory: {
         value: true,
         required: true,
-      },
+      }
     },
-    // credentials: {},
-    // oneditprepare: function() {
-    //   $("#node-input-memory").typedInput({
-    //     types: [
-    //       {
-    //         value: true,
-    //         options: ["true", "false"]
-    //       }
-    //     ]
-    //   })
-    // },
-    // oneditsave: function() {},
-    // oneditcancel: function() {},
-    // oneditdelete: function() {},
-    // oneditresize: function() {},
-    // onpaletteadd: function() {},
-    // onpaletteremove: function() {},
   });
 </script>
-  
+
 <!-- Edit dialog -->
-<script type="text/html" data-template-name= "cma-thelmabiotel-tblive">
+<script type="text/html" data-template-name="cma-thelmabiotel-tblive">
   <!-- Name -->
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="TB-Live parser" />
+    <input type="text" id="node-input-name" placeholder="TB Live parser" />
+  </div>
+  <!-- Firmware -->
+  <div class="form-row">
+    <label for="node-input-firmware"><i class="fa fa-microchip"></i> Firmware</label>
+    <select id="node-input-firmware">
+      <option value="">Learn from the stream</option>
+      <option value="1.0.1">1.0.1</option>
+      <option value="1.0.2">1.0.2</option>
+    </select>
+  </div>
+  <div class="form-tips">
+    The firmware decides how a sentence is read — 1.0.1 detections carry 9 fields, 1.0.2 carries 8.
+    Left on <i>learn</i>, the parser reports <code>unknown</code> until the receiver proves it.
   </div>
   <!-- Memory -->
   <div class="form-row">
-    <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
+    <label for="node-input-memory"><i class="fa fa-database"></i> Memory</label>
     <input type="checkbox" id="node-input-memory" checked/>
   </div>
 </script>
-  
+
 <!-- Help text -->
-<script type="text/markdown" data-help-name= "cma-thelmabiotel-tblive">
-Parser of TB-Live propietary protocol sentences check [@coremarine/thelmabiotel-tblive](https://www.npmjs.com/package/@coremarine/thelmabiotel-tblive) package docs
+<script type="text/markdown" data-help-name="cma-thelmabiotel-tblive">
+Parser for the **Thelma Biotel TB Live** acoustic receiver (hydrophone), emitting the unified
+**CMA** format. Wrapper of
+[@coremarine/thelmabiotel-tblive](https://www.npmjs.com/package/@coremarine/thelmabiotel-tblive).
 
 ### Input
 
-: payload (string) : ASCII output from TB-Live device to be parsed.
-: memory (boolean) : If you want parser attatchs new input to previous values (memory = true) or just parses the input.
+: payload (string) : TB Live ASCII content (important, it is an *ASCII* string, not another encoding).
 
+: *memory* (object) : Check or enable / disable the parser's memory (details below).
+
+: *firmware* (object) : Get or pin the receiver firmware (details below).
+
+: *ids* (any) : Any truthy value, to list every sentence id this parser knows.
+
+: *definition* (string | object) : A sentence id, or `{ id, protocol? }`, to read its definition.
+
+: *fake* (object) : `{ id, protocol, options? }`, to generate a valid sample sentence for testing.
 
 ### Output
 
-: payload (array) : It is the same output @coremarine/thelmabiotel-tblive gives. Look details for more info.
-: memory (boolean) : Memory state of the parser
-: firmwares (boolean) : If you want parser attatches new input to previous values (memory = true) or just parse the input.
+: payload (array) : An array of **CMA** objects, one per parsed sentence.
+
+: *memory* (object) : Response to the *memory* input.
+
+: *firmware* (object) : Response to the *firmware* input.
+
+: *ids* (array) : Response to the *ids* input.
+
+: *definition* (array | string) : Response to the *definition* input.
+
+: *fake* (string) : Response to the *fake* input.
+
+Any input key you do not send is absent from the output too. On a bad request the
+corresponding output key holds an error **string** instead of a result.
 
 ### Details
 
-The output is an `Sentence[]` where `Sentence` has this type definiton
+Every time the node receives `payload` data it emits the sentences parsed from it. Incomplete
+input is buffered until the rest arrives, so a sentence split across two messages still parses —
+which matters here, because the receiver transmits **one character per millisecond** in listening
+mode.
 
-```typescript
-interface Sentence {
-  timestamp: number
-  raw: string
-  id: string
-  mode: 'listening' | 'command' | 'upgrade' | 'unknown'
-  firmware: '1.0.1' | '1.0.2' | 'unknown'
-  payload: Array<{
-    raw: string
-    name: string
-    type: "string" | "boolean" | "int8" | "int16" | "int32" | "uint8" | "uint16" | "uint32"
-    value: boolean | string | number
-    units?: string
-    metadata?: Record<string, any>
-    description?: string
-    errors?: string[]
-  }>
-  metadata?: Record<string, any>
-  description?: string
-  errors?: string[]
-}
-```
+#### Nothing is dropped silently
+
+Every character either decodes, comes out as a *garbage sentence*, or waits on the buffer as the
+still-incomplete tail. The signal is the optional **`errors`** array on each CMA. A garbage
+sentence is a valid CMA whose `id` and `protocol` are `"unknown"` with an empty `payload`, but it
+keeps `raw` so you can see the discarded bytes.
+
+⚠️ **Two things a flow must handle:**
+
+- A field can be **`null`** — meaning present but empty. The emitter `data` field is empty for
+  ID-only transmit protocols (`R256`, `R04K`, `R64K`, `R01M`, `OPi`). **`null` means "no
+  measurement" and must never be read as zero.**
+- Sentences can arrive carrying `errors`. Check `errors` and `id === "unknown"` before trusting a
+  reading.
+
+#### Half-duplex interference
+
+The receiver is half duplex and badly behaved: a response can be emitted *inside* a detection or
+a log, arriving as corrupted bytes rather than a clean insertion. The wrecked sentence's extent is
+therefore unknowable, so the parser **keeps the sentence in the middle and does not try to
+recompose the one it wrecked** — you get the intact inner sentence plus garbage entries carrying
+`Interrupted by <id>`.
+
+#### The emitter `data` field
+
+Those 16 bits carry whatever the *emitter's* firmware encodes — an inclinometer, or tilt plus
+depth — which is not part of the TB Live protocol. The node emits `data` as an opaque `uint16`
+(or `null`), and **decoding it is your flow's job**.
+
+#### Memory
+
+Enabled by default:
+
+- memory enabled: each injection is appended to whatever is still buffered.
+- memory disabled: each injection replaces the buffer.
+
+|                          Input                           |                            Output                             |
+| :------------------------------------------------------: | :-----------------------------------------------------------: |
+| `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `characters`: **number** } |
+|             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `characters`: **number** } |
+
+#### Firmware
+
+The firmware **is** the protocol version: 1.0.1 detections carry 9 fields and logs 8, while 1.0.2
+carries 8 and 7. The parser normally **learns** it — from an `FV=` response, or from whether the
+receiver entered command mode with `LIVECM` (1.0.1) or `TBRC` (1.0.2) — and reports `unknown`
+until something proves it, rather than guessing.
+
+Pin it when your deployment knows better than the wire does. Unlike a protocol switch this does
+**not** discard the buffer: the firmware changes how a sentence is read, not how the stream is
+framed.
+
+|                          Input                           |                              Output                               |
+| :------------------------------------------------------: | :---------------------------------------------------------------: |
+| `firmware`: { `command`: `"set"`, `payload`: **string** } | `firmware`: { `firmware`: **string**, `firmwares`: **string[]** } |
+|            `firmware`: { `command`: `"get"` }            | `firmware`: { `firmware`: **string**, `firmwares`: **string[]** } |
+
+#### Ids
+
+Send any truthy value to list every sentence id this parser knows — the discovery counterpart to
+*definition*.
+
+|      Input      |       Output        |
+| :-------------: | :-----------------: |
+| `ids`: **true** | `ids`: **string[]** |
+
+#### Definition
+
+What the parser believes a sentence looks like: its `payload` field definitions with types, units
+and descriptions, the `mode` (which of the device's two APIs it belongs to), and prose saying how
+it is recognised on the wire. Omit the protocol to get **every** firmware version, which is how
+you see what the firmware changes.
+
+There is no `set`: TB Live's definitions are compiled in, because it is a closed protocol with one
+vendor and 17 sentences.
+
+This is a **diagnostic** tool. A receiver on a remote installation with restricted internet stays
+there for years, and being able to ask the running node what it expects settles a question that
+would otherwise need the datasheets.
+
+|                             Input                             |                Output                 |
+| :-----------------------------------------------------------: | :-----------------------------------: |
+|                    `definition`: **string**                    | `definition`: **array** \| **string** |
+| `definition`: { `id`: **string**, `protocol`: **string** } | `definition`: **array** \| **string** |
+
+#### Fake
+
+Generate a syntactically valid sample sentence for testing. `protocol` is **required**, because
+the output genuinely differs by firmware. It is **deterministic** — the same request always
+returns the same string — and with no `options` it reproduces the datasheets' own example
+sentences.
+
+`options` overrides individual fields and depends on the id: a detection accepts `receiverID`,
+`seconds`, `milliseconds`, `transmitProtocol`, `emitterID`, `data`, `snr`, `frequency` and `sent`;
+a log accepts `receiverID`, `seconds`, `log`, `temperature`, `noiseAverage`, `noisePeak`,
+`frequency` and `sent`. Pass `data: null` to get the empty field an ID-only protocol produces.
+
+|                                   Input                                    |       Output       |
+| :------------------------------------------------------------------------: | :----------------: |
+|            `fake`: { `id`: **string**, `protocol`: **string** }             | `fake`: **string** |
+| `fake`: { `id`: **string**, `protocol`: **string**, `options`: **object** } | `fake`: **string** |
+
+### Upgrading from 1.x
+
+The output is now **CMA** rather than the old `ParsedSentence`, and the msg API changed:
+
+- `msg.firmwares` (a bare array, always emitted) is gone — use `msg.firmware` with
+  `{ command: "get" }`, which reports both the current firmware and the available ones.
+- `msg.memory` was a bare boolean; it is now `{ command, payload }` in and a report out.
+- The output CMA has no top-level `mode` or `firmware` keys: `mode` moved into `metadata.mode`,
+  and the firmware is now `protocol.version`.
+- Field values can be `null`, and sentences that used to vanish (malformed input, line noise,
+  interference) now arrive carrying `errors`.
+- The inclination decode was **removed** from the library — `metadata.angle` no longer exists, so a
+  flow that relied on it must decode the `data` field itself.
 
 </script>
-  

@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "preserve",
+    "types": ["node", "node-red"]
+  },
+  "include": ["src/**/*", "tests/**/*", "dev-server.mjs"],
+  "exclude": ["node_modules", "dist"]
+}

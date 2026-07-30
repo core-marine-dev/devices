@@ -83,8 +83,11 @@
     "thelmabiotel-tblive:build": "pnpm --filter @coremarine/thelmabiotel-tblive run build",
     "thelmabiotel-tblive:test": "pnpm --filter @coremarine/thelmabiotel-tblive run test",
     "thelmabiotel-tblive:test:coverage": "pnpm --filter @coremarine/thelmabiotel-tblive run test:coverage",
-    "thelmabiotel-tblive:nodered:docker": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run docker",
+    "thelmabiotel-tblive:nodered:lint": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run lint",
+    "thelmabiotel-tblive:nodered:build": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run build",
     "thelmabiotel-tblive:nodered:test": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run test",
+    "thelmabiotel-tblive:nodered:dev": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run dev",
+    "thelmabiotel-tblive:nodered:examples": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run examples",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "act:list": "gh act -l"
