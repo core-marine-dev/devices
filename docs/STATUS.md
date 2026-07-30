@@ -46,6 +46,10 @@ holds in production, not just in the monorepo.
 **➡️ cru's remaining manual step:** refresh the Node-RED flow-library entries for all three
 components (each went to a new major). After that these **three devices are DONE**.
 
+**➡️ NEXT SESSION: `septentrio-sbf`, then `sbg-ecom` — the two binary parsers.** Use the paste-ready
+**"Prompt for the NEXT SESSION"** at the very END of this doc. **Nothing about septentrio has been
+read or researched yet — deliberately (cru's instruction).**
+
 **➡️ NEXT DEVICES: the two binary parsers, `septentrio-sbf` and `sbg-ecom`** — still on their legacy
 output (`SBFResponse` / `SBGFrameResponse`), neither on `protocol-core`. They are the last two of the
 five. Note they extend `BinaryParser`, not `StringParser`, so `raw` is Base64 and the framing is
@@ -1459,7 +1463,7 @@ omit it when the clock is evidently unset rather than emitting a fake date.
     (internal only, never exported from `index.ts`, so no API break).
     **⚠️ OPERATIONAL RISK — Tracker must implement the decode BEFORE this parser reaches production**,
     or `payload[5].metadata` and `metadata.angle` stop arriving and mooring-line inclination silently
-    disappears. That is why `TBLIVE-NOTES-FOR-TRACKER.md` exists.
+    disappears. That is why `TBLIVE-NOTES-FOR-TRACKER.md` was written (now untracked — see below).
   - **`metadata.payload` deliberately mirrors identity/quality facts** (cru, 2026-07-30): `receiver`,
     `emitter`, `snr`, `temperature` — whichever the sentence has. **He knows it is redundant and wants
     it anyway**, and the reason is operational, not cosmetic: nobody can guarantee which firmware a
@@ -1468,7 +1472,10 @@ omit it when the clock is evidently unset rather than emitting a fake date.
     corrected it to **`$root.metadata.payload`**. **No CMA rule change is needed** — this is exactly the
     "device-level metadata MAY be mirrored at payload level" rule already locked 2026-07-28 for the
     NorSub status word; TB Live is now its second instance.
-- **📄 `TBLIVE-NOTES-FOR-TRACKER.md` (repo root, temporary, untracked).** The `emitter101`/`emitter102`/
+- **📄 `TBLIVE-NOTES-FOR-TRACKER.md` — DELIBERATELY UNTRACKED AND GITIGNORED (cru, 2026-07-30).** It
+  was committed briefly, then removed from tracking: cru is moving it into the **Tracker** repo, and a
+  copy left here would go stale the moment Tracker's version changed. It lives on disk only. **If it is
+  already gone, that is expected — do not recreate it.** What it held: The `emitter101`/`emitter102`/
   `receiver101`/`receiver102` docblocks from `sample.ts` — verbatim, verified line-for-line — plus the
   datasheet facts they depend on and the decode helpers. They describe **how to interpret** values,
   which is Tracker's job. cru moves them into Tracker and deletes the file.
@@ -2577,118 +2584,151 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 - `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
 - P08-Trident harness (`misc/tests/p08trident/`) status unknown — ask cru if still live.
 
-
-## 📋 Paste-ready prompt for the NEXT SESSION (START HERE — the nmea + norsub track is CLOSED)
+## 📋 Paste-ready prompt for the NEXT SESSION (START HERE — three of five devices are DONE)
 
 > Continue the CoreMarine **devices** monorepo refactor. Branch `dev`, repo
 > `/home/klin/Coding/CoreMarine/products/devices`. **Read `docs/STATUS.md` top-to-bottom FIRST** — the
-> banner, then the newest §Done entries and §Decisions. Run `git log --oneline -10` before touching
-> anything.
+> banner, then §"VERSION POLICY", then the newest §Done entries and §Decisions. Run
+> `git log --oneline -12` before touching anything.
 >
-> **HOW cru WORKS (respect this, it is not optional):** **discuss and converge decisions BEFORE coding, one
-> step at a time.** Ask rather than guess; when something is genuinely his call (an output shape, a name, a
-> version), put the options to him with a recommendation and let him choose. Output-format changes are
-> **breaking changes for Tracker**. Verify **per package, from its own directory**: `lint` → `tsc --noEmit`
-> → `test` → `build`. Update **`docs/STATUS.md` in the SAME TURN** as any meaningful change — never save it
-> for the end, limits hit without warning. **Commit only when cru asks.** No AI co-author trailer (this repo
-> has none — do not add one). **For ANY npm / pnpm / node-red / TypeScript / GitHub-Actions / library
-> specifics, fetch current docs with the `ctx7` CLI — never answer from memory.** Code style: no semicolons,
-> single quotes, 2-space indent, arrow functions, import groups (`// built-in` → `// installed` → `// coded`),
-> functions ≤50 lines / cyclomatic ≤10 / cognitive ≤15 (`docs/CodeStyle.md`).
+> **HOW cru WORKS (respect this, it is not optional):** **discuss and converge decisions BEFORE coding,
+> one step at a time.** Ask rather than guess; when something is genuinely his call (an output shape, a
+> name, a version), put the options to him with a recommendation and let him choose. He will often
+> improve the proposal — take it seriously, he knows the hardware. Output-format changes are **breaking
+> changes for Tracker**. Verify **per package, from its own directory**: `lint` → `tsc --noEmit` →
+> `test` → `build`. Update **`docs/STATUS.md` in the SAME TURN** as any meaningful change — never save
+> it for the end, limits hit without warning. **Commit only when cru asks.** No AI co-author trailer
+> (this repo has none). **For ANY npm / pnpm / node-red / TypeScript / GitHub-Actions / library
+> specifics, fetch current docs with the `ctx7` CLI — never answer from memory.** Code style: no
+> semicolons, single quotes, 2-space indent, arrow functions, import groups (`// built-in` →
+> `// installed` → `// coded`), functions ≤50 lines / cyclomatic ≤10 / cognitive ≤15
+> (`docs/CodeStyle.md`).
 >
-> ### STATE — the whole nmea + norsub track is DONE AND PUBLISHED. Do not redo or "improve" any of it.
+> ### STATE — six packages live on npm. Three devices DONE. Do not redo any of it.
 >
-> `dev` == `main` == `941fd58` plus docs commits, tree clean. **Live on npm:**
+> `dev` == `main` == `ef4480b` + docs commits, tree clean.
 >
-> | package | version | what it is |
-> | --- | --- | --- |
-> | `@coremarine/nmea-parser` | **4.0.0** | the CMA reference library |
-> | `@coremarine/nmea-parser-nodered` | **3.0.0** | the wrapper TEMPLATE — clone this for every new wrapper |
-> | `@coremarine/norsub-emru` | **4.0.0** | device facade composing a protocol parser |
-> | `@coremarine/norsub-emru-nodered` | **3.0.0** | its Node-RED node (`cma-norsub-parser`) |
+> | library | npm | wrapper | npm |
+> | --- | --- | --- | --- |
+> | `@coremarine/nmea-parser` | **5.0.0** | `nmea-parser-nodered` | **5.0.0** |
+> | `@coremarine/norsub-emru` | **5.0.0** | `norsub-emru-nodered` | **5.0.0** |
+> | `@coremarine/thelmabiotel-tblive` | **2.0.0** | `thelmabiotel-tblive-nodered` | **2.0.0** |
 >
 > `@coremarine/protocol-core` is the private, unpublished shared base (`DeviceParser<B>`,
 > `Parser`/`StringParser`/`BinaryParser`, `Result`, the CMA schemas, `UNKNOWN`, `GarbageSentence`).
-> Tests: core **15/15**, nmea-parser **109/109**, norsub-emru **45/45**, nmea wrapper **22/22**, norsub
-> wrapper **34/34**. All CI green. Everything shipped 2026-07-29 in PR
-> [#74](https://github.com/core-marine-dev/devices/pull/74) was verified against the PUBLISHED packages, not
-> the workspace.
+> Tests: core **15/15**, nmea-parser **110/110**, norsub-emru **45/45**, tblive **259/259**, and the
+> wrappers **28/28**, **37/37**, **45/45**.
 >
-> **What landed in 4.0.0 that you must know about, because every future parser inherits it** (full specs in
-> [`docs/CMA.md`](CMA.md) §"Failed and garbage sentences" and §"Sentence resolvers"):
-> - **Nothing is dropped silently.** `scanBuffer` accounts for every character of the buffer. A malformed
->   sentence is decoded as far as possible and carries `errors[]`; undecodable input becomes a *garbage
->   sentence* (a valid CMA, every mandatory value `UNKNOWN`, `payload: []`, the junk in `raw`). The
->   detection signal is the pre-existing optional `errors[]` — **the CMA contract did not change.**
->   `bufferLimit` is now actually enforced (it never was).
-> - **Sentence resolvers** — a third `protected` extension point (`registerResolvers`) for formats that
->   carry their real type in a FIELD rather than the id. Built-in: `$PSXN` → `PSXN20` / `PSXN23`.
+> **Conventions now settled across all three devices — follow them, do not re-litigate:**
+> - **A library and its wrapper share a MAJOR** (§"VERSION POLICY"), enforced by `workspace:^` and
+>   guarded by a `tests/version.unit.test.ts` in every wrapper.
+> - **Nothing is dropped silently.** Malformed input decodes as far as it can and carries `errors[]`;
+>   undecodable input becomes a *garbage sentence* (valid CMA, mandatory values `UNKNOWN`,
+>   `payload: []`, the junk in `raw`). `bufferLimit` is enforced.
+> - **`Result`, never `null`,** for anything that can fail. `null` cannot say *why*.
+> - **API vocabulary:** `getSentenceDefinition(id[, protocol])` and `getFakeSentence(id[, protocol,
+>   options])`, both `Result`-returning; wrapper msg keys `msg.definition`, `msg.fake`, `msg.sentences`
+>   (definitions), `msg.protocol` (device protocol selector), `msg.memory`.
+> - **The parser reports structural and type problems; it never judges plausibility.** Expected ranges
+>   go in `description`, not in validation.
 >
-> ### THE WORK — `thelmabiotel-tblive` + its Node-RED wrapper
+> ### THE WORK — `septentrio-sbf`, then `sbg-ecom`
 >
-> cru's next target, agreed at the end of the previous session. **NOTHING has been researched, measured or
-> designed yet — deliberately.** Do not arrive with a plan built from this doc's one-line description; read
-> the actual package first, then converge the design with cru step by step, exactly the way norsub-emru was
-> done.
+> The last two of the five, and **the first BINARY ones**. cru's instruction at the end of the
+> 2026-07-30 session: **NOTHING about septentrio has been read, researched or designed yet —
+> deliberately.** Do not arrive with a plan built from this doc. Read the actual package first, then
+> converge the design with cru step by step, exactly the way tblive was done.
 >
-> What this doc already believes about it (VERIFY ALL OF IT against the code — these notes are old):
-> - It is the **only parser whose output is already CMA-*ish*** — but it is **not** on the base class.
-> - It has **extra top-level `mode` / `firmware` keys** that must move into `metadata` (locked CMA rule: no
->   per-protocol keys at the top level).
-> - **Protocol-version matching is the hard part** — it was called the least-clean protocol of the five.
-> - `engines.node` is still `">= 18"`; tighten to `">=22"` like the others.
-> - Its wrapper `thelmabiotel-tblive-nodered` has a `test` script but **no specs at all**, and its CI test
->   job is commented out.
-> - Wire format notes may exist in [`docs/PROTOCOLS.md`](PROTOCOLS.md).
+> What this doc already believes (from `docs/PACKAGES.md` — **verify all of it against the code**):
+> - `septentrio-sbf@1.0.1`, output is a legacy `SBFResponse` (frame header / time / body), **not** on
+>   `protocol-core`. One firmware, `4.10.1`, under `src/firmware/4-10-1/`.
+> - `sbg-ecom@0.0.1`, output is a legacy `SBGFrameResponse` (frame header / data / footer), **zero
+>   specs**. So that one starts by characterising current behaviour before changing anything.
+> - Wrappers `septentrio-sbf-nodered@1.0.1` and `sbg-ecom-nodered@0.0.2`: mocha +
+>   `node-red-node-test-helper` (**incompatible with node-red 5** — that is why their CI test jobs are
+>   disabled), docker envs for manual tests, `main: index.js` pointing at a file that does not exist.
+>   `septentrio-sbf-nodered` has a `test:vitest` script but no `vitest.config.ts`; `sbg-ecom-nodered`
+>   ships bin/csv fixtures.
+> - Reference material already in-repo: **`docs/SBG-REPORT.md`** (what sbg-ecom's legacy output looks
+>   like today) and, local/gitignored, `misc/tests/sbg/` (binary corpus + `sbg-to-cma.ts` /
+>   `sbg-cma-compare.ts`, legacy vs target CMA side by side) plus
+>   `misc/archive/sbg2cma-comparison-dump.txt`.
+>
+> **⚠️ WHY THESE TWO ARE A DIFFERENT SHAPE OF PROBLEM — expect the text-protocol habits not to
+> transfer:**
+> - They extend **`BinaryParser`** (buffer is `Uint8Array`, `concat` copies, `defaultBufferLimit` is
+>   `MAX_BYTES`), not `StringParser`.
+> - **CMA `raw` is Base64** for binary protocols, at both sentence and field level.
+> - Framing is **length-prefixed with a CRC**, not text-delimited — so the tokenizer thinking from
+>   tblive does not apply, but the *garbage/failed* classification still must: a bad CRC should decode
+>   and flag, not drop.
+> - **Septentrio carries a real sentence time on every frame** (TOW + WNc), so unlike norsub and
+>   tblive it SHOULD populate `metadata.timestamp.sentence` via the `sentenceTimestamp` hook. See
+>   `docs/CMA.md` §"Timestamp metadata".
+> - The knowledge base is **per firmware** already (`src/firmware/4-10-1/`), which is closer to
+>   tblive's firmware handling than to nmea's YAML.
 >
 > **Suggested shape of the session** (cru decides the order, ASK HIM FIRST): (1) read the package and
 > REPORT what its current output actually looks like, measured not assumed; (2) converge the CMA mapping
-> with cru — especially where `mode`/`firmware` go and how protocol versions are matched; (3) implement the
-> library; (4) then the wrapper from the `nmea-parser-nodered` template; (5) release both.
+> with cru; (3) implement the library; (4) then the wrapper from the `nmea-parser-nodered` template;
+> (5) release both, majors aligned.
 >
-> ### PATTERNS TO REUSE (all proven in production — do not reinvent them)
+> ### PATTERNS TO REUSE (all proven in production across three devices — do not reinvent them)
 >
-> - **Library recipe:** extend `StringParser`/`BinaryParser` from `protocol-core` and implement only
->   `extractSentences`; object-arg constructor `{ memory?, bufferLimit? }`; `addData`/`parseData(): CMA[]`;
->   never throw — return `Result<T,E>`; knowledge authored in `protocols/*.yml` and generated to a typed
->   const by the ONE shared `scripts/yaml-to-ts.mjs` (idempotent, so `protocols` can run on `test`); type
->   the generated const so `tsc` validates the whole knowledge base. Read
->   `packages/nmea-parser/tests/extension.test.ts` — it is the executable spec for the extension seams.
+> - **Library recipe:** extend `StringParser`/`BinaryParser` and implement only `extractSentences`;
+>   object-arg constructor; `addData`/`parseData(): CMA[]`; never throw — return `Result<T,E>`. Read
+>   `packages/nmea-parser/tests/extension.test.ts` — the executable spec for the extension seams.
+> - **Knowledge as DATA, typed.** nmea generates YAML → a typed const via the shared
+>   `scripts/yaml-to-ts.mjs` (idempotent, so `protocols` can run on `test`). tblive skipped YAML
+>   deliberately — a closed 17-sentence protocol whose recognition rules cannot be expressed as data;
+>   it uses a typed const table instead (`packages/thelmabiotel-tblive/src/definitions.ts`). **Decide
+>   which of those two the binary protocols are before writing anything.**
 > - **Device facade** (only if the device speaks several protocols): `implements DeviceParser<B>` and
->   COMPOSE protocol parsers via a factory registry, do NOT extend one — see `norsub-emru/src/parser.ts`
->   and the `parser` getter for protocol-specific extras.
-> - **Wrapper recipe:** clone `packages/nmea-parser-nodered`. TS → tsup → CJS (`export = init`,
->   `"module": "preserve"`); pure `src/lib.ts` with **zero** node-red imports + a thin `src/parser.ts`
->   adapter; `node:test` unit specs **plus** a real-headless-node-red integration test via `RED.init` + the
->   flowFile pattern (NOT `node-red-node-test-helper` — it breaks on node-red 5 + pnpm); `dev-server.mjs`,
->   no docker; `engines.node ">=22"` + `node-red.version ">=4.0.0"`; node-red stays a ROOT devDep.
->   **msg-API vocabulary is now settled across both wrappers: `msg.sentences` = sentence DEFINITIONS,
->   `msg.protocol` = the device protocol selector. Follow it.**
-> - **`files` exclusions are a trap:** node-red writes `<flowfile>_cred.json` and `.<flowfile>.backup` next
->   to any flow it opens, and **`files` overrides `.gitignore` when packing**. Both are excluded in the
->   template now. **Rule: any node-red runtime artefact that earns a `.gitignore` rule needs a `files`
->   exclusion too** — this bit us twice.
-> - **Verify example flows by BOOTING real node-red against the flow file** — malformed flow JSON and
->   missing node types only surface at runtime. Keep third-party node types OUT of shipped example flows.
->   Give each flow a group demonstrating failed/garbage sentences (both wrappers have one).
-> - **Release mechanics:** land on `dev`, confirm the `dev` CI run is green, THEN open the PR `dev` → `main`;
->   the merge publishes via OIDC + an `npm view` version gate. Isolate the version bump in its own
->   `chore(release):` commit. **A library must be live on npm BEFORE its wrapper publishes**, because
->   `workspace:^` packs as `^<in-tree version>` — and check the PUBLISHED dep ranges of every dependent: a
->   caret range cannot resolve a new major, so each dependent needs republishing or it never receives the
->   change (that is why all four went out together in 4.0.0/3.0.0).
-> - **Verify a release against the PUBLISHED tarball** in an empty temp dir with nothing from the workspace.
+>   COMPOSE protocol parsers via a factory registry — see `norsub-emru/src/parser.ts` and its `parser`
+>   getter.
+> - **Wrapper recipe:** clone `packages/nmea-parser-nodered` (or tblive's, which is the newest). TS →
+>   tsup → CJS (`export = init`, `"module": "preserve"`); pure `src/lib.ts` with **zero** node-red
+>   imports + a thin `src/parser.ts` adapter; `node:test` unit specs **plus** a real-headless-node-red
+>   integration test via `RED.init` + the flowFile pattern (NOT `node-red-node-test-helper`);
+>   `dev-server.mjs`, no docker; `engines.node ">=22"` + `node-red.version ">=4.0.0"`; node-red stays a
+>   ROOT devDep; add the `tests/version.unit.test.ts` major-correlation guard.
+> - **`files` exclusions are a trap:** node-red writes `<flowfile>_cred.json` and
+>   `.<flowfile>.backup` next to any flow it opens, and **`files` overrides `.gitignore` when packing**.
+>   **Rule: any node-red runtime artefact that earns a `.gitignore` rule needs a `files` exclusion
+>   too** — this bit the repo THREE times (nmea `.backup`, both wrappers' `_cred.json`, and tblive's
+>   wrapper had neither rule at all until 2026-07-30).
+> - **Verify example flows by BOOTING real node-red against the flow file, then DRIVING every inject
+>   through that runtime.** Loading only proves the JSON parses and the types exist; driving is what
+>   caught two mislabelled demos in tblive's flow. Keep third-party node types OUT of shipped flows.
+> - **Release mechanics:** land on `dev`, confirm the `dev` CI runs are green, THEN open the PR
+>   `dev` → `main`; the merge publishes via OIDC + an `npm view` version gate. Isolate the version bump
+>   in its own `chore(release):` commit. **A library must be live on npm BEFORE its wrapper resolves** —
+>   all workflows fire in parallel on merge, so a wrapper can briefly precede its library; it settles
+>   within the minute. **Verify a release against the PUBLISHED tarball** in an empty temp dir with
+>   nothing from the workspace.
+> - **CI checklist for a new/refactored package:** build the dep chain first (`protocol-core` → the
+>   library → the wrapper); trigger on `packages/core/**` **and** the upstream library, not just the
+>   package's own directory; run tests **with coverage** if thresholds are configured (they are inert
+>   under a plain `vitest`); re-enable any commented-out test job and restore `needs: test` on publish.
 >
-> ### ALSO OPEN (smaller, decide with cru)
+> ### ALSO OPEN
 >
-> - **Not in this repo: grep Tracker for `field.type` / `'float32'`.** The `float32` → `float64` sweep is
->   fully applied here, but it shipped in `nmea-parser@3.2.0` as a **minor** while changing `field.type` in
->   emitted CMAs. Moot from 4.0.0 on (a major owns it); the question is only whether a Tracker deployment on
->   3.2.0 was silently affected.
-> - **cru's manual step:** refresh the Node-RED flow-library entries — both wrappers went to a new major.
+> - **cru's manual step, carried over:** refresh the Node-RED flow-library entries for **all three**
+>   components — every one went to a new major on 2026-07-30.
+> - **NOT in this repo — Tracker must implement the TB Live inclination bit split** before the new
+>   tblive parser reaches production, or mooring-line inclination silently stops arriving. The notes
+>   were handed over in `TBLIVE-NOTES-FOR-TRACKER.md`, which is **deliberately untracked and
+>   gitignored** (cru is moving it into the Tracker repo, after which it disappears from here). If it is
+>   already gone, that is expected — do not recreate it.
+> - **Not in this repo: grep Tracker for `field.type` / `'float32'`.** The sweep is fully applied here
+>   but shipped in `nmea-parser@3.2.0` as a *minor* while changing `field.type`. Moot from 4.0.0 on; the
+>   only question is whether a Tracker deployment on 3.2.0 was silently affected.
 > - **The norsub protocol-switch test gap.** "Switching `protocol` discards the buffer and undrained
->   sentences" cannot be exercised while `NorsubProtocol` has a single member. It gets its test with
->   protocol #2. A comment in `packages/norsub-emru/tests/index.test.ts` marks the spot.
-> - See §"Open threads / known bugs" for the rest (three wrapper CI test jobs still disabled, `sbg-ecom` has
->   zero specs, nmea-parser's committed `legacy/` folder, docker `npm i`, `clean_monorepo.sh` coverage,
->   P08-Trident harness status).
+>   sentences" cannot be exercised while `NorsubProtocol` has a single member. A comment in
+>   `packages/norsub-emru/tests/index.test.ts` marks the spot; it gets its test with protocol #2.
+> - **tblive `metadata.payload` shape nit (raised, cru has not ruled):** a sample nests the device time
+>   under `metadata.payload.time`, while the `UT=` response puts `{ seconds, total_milliseconds }`
+>   directly at `metadata.payload`. Defensible either way; ask if uniformity is wanted.
+> - See §"Open threads / known bugs" for the rest (two wrapper CI test jobs still disabled,
+>   `sbg-ecom` has zero specs, nmea-parser's committed `legacy/` folder, docker `npm i`,
+>   `clean_monorepo.sh` coverage, P08-Trident harness status).

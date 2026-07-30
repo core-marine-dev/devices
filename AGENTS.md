@@ -17,10 +17,12 @@ CoreMarine monorepo (pnpm workspaces) of TypeScript **marine device protocol par
 + their **Node-RED wrappers**, under `packages/`. They are the parsing layer
 of the Tracker telemetry product, so output shapes are contracts. A deep refactor is in
 progress: all parsers must converge on the unified **CMA output format** —
-[`docs/CMA.md`](docs/CMA.md) — on the shared base `@coremarine/protocol-core`. **Done and published (2026-07-29):
-`nmea-parser@4.0.0` (the reference) and `norsub-emru@4.0.0`, each with its Node-RED wrapper at `3.0.0`.
-NEXT = `thelmabiotel-tblive` (CMA-shaped but not on the base class) + its wrapper, then the binary
-parsers `septentrio-sbf` and `sbg-ecom`.**
+[`docs/CMA.md`](docs/CMA.md) — on the shared base `@coremarine/protocol-core`. **THREE OF FIVE DEVICES
+ARE DONE and published (2026-07-30): `nmea-parser@5.0.0` (the reference), `norsub-emru@5.0.0` and
+`thelmabiotel-tblive@2.0.0`, each with its Node-RED wrapper at the SAME MAJOR (a library and its
+wrapper share a major — see `docs/STATUS.md` §"VERSION POLICY"). NEXT = the two BINARY parsers,
+`septentrio-sbf` then `sbg-ecom` — `BinaryParser`, Base64 `raw`, length-prefixed framing with a CRC,
+so the text-protocol habits do not transfer.**
 
 ## Docs map
 

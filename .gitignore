@@ -1,6 +1,9 @@
 # Custom
 .idea
 .DS_Store
+# Hand-off notes destined for the Tracker repo, not for this one. Kept local so it
+# can be moved out and deleted without leaving a stale copy here.
+TBLIVE-NOTES-FOR-TRACKER.md
 packages/**/lib/
 imgs/discards
 package-lock.json

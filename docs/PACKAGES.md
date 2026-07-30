@@ -10,7 +10,7 @@ Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`
 | --- | --- | --- | --- | --- |
 | `@coremarine/nmea-parser` | **5.0.0** (npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/norsub-emru` | **5.0.0** (npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ | `addData(buf)` + `parseData()` |
+| `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ **NEXT** | `addData(buf)` + `parseData()` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ | `addData(buf)` + `getFrames()` |
 | `@coremarine/thelmabiotel-tblive` | **2.0.0** (npm) | **CMA** on `protocol-core` | ✅ | `addData(str)` + `parseData(): CMA[]` |
 
