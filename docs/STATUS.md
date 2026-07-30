@@ -51,6 +51,26 @@
 > **"Prompt for the NEXT SESSION"** at the very END of this doc; it carries the working method, the proven
 > patterns, and the traps. One follow-up that is NOT in this repo: **grep Tracker for `field.type` /
 > `'float32'`**.
+>
+> **🔎 2026-07-30 — tblive is now AUDITED (measured, not assumed): §"thelmabiotel-tblive — MEASURED
+> audit".** Read it before designing anything. Headlines: it shares **zero** code with
+> `protocol-core`; `protocol` is **missing** from the output while the word `protocol` is already
+> taken twice by tblive's own domain (acoustic tag protocols); `metadata.timestamp` already exists
+> with a DIFFERENT shape than CMA's; there is **no YAML knowledge base at all**; `firmware` is
+> **guessed from field count** and hardcoded `'1.0.2'` elsewhere; and three real bugs
+> (`bufferLimit` never enforced, input dropped silently, sentence timestamp built by string
+> concatenation → wrong date whenever ms is not zero-padded). **Design still to be converged with
+> cru — nothing decided.**
+>
+> **🔴 2026-07-30 (later) — the three datasheets are now READ, and testing their own examples found
+> three MORE bugs, one of them serious.** An **empty `data` field is reported as a real 0.0°
+> inclination** with no error (the docs document blank data for ID-only protocols and ship that exact
+> example) — a missing measurement is indistinguishable from a perfectly vertical mooring line, in the
+> product whose entire job is noticing when a line is not vertical. Also: a `Live Sensor` log (the
+> 1.0.2 datasheet's own spelling) is parsed as a **fish detection** with every field shifted; and
+> `NaN` leaks into `Field.value`. Plus the real framing insight: **this protocol has no framing at
+> all in command mode**, which is why `parse.ts` looks the way it does. See §"What the datasheets
+> actually say" and §"The real internal problem, named".
 
 # 🗒️ (previous banner) RELEASE READY — cru's TWO nmea-parser fixes + ALL FOUR packages bumped
 >
@@ -1164,6 +1184,645 @@ Strokes:
   - Result: `pnpm audit` reports **0 known vulnerabilities**.
   - GitHub still shows 75 vulns on `main` (default branch) — they'll clear once `dev` is merged
     to `main`.
+
+## thelmabiotel-tblive — MEASURED audit (2026-07-30, nothing designed yet)
+
+Read the package and **ran it** (throwaway `tsx` probes, deleted after; 134/134 vitest green,
+`1.0.3`, `engines.node >= 18`). This section is FACTS ONLY — the design is still to be converged
+with cru. Where this doc's older one-line notes were wrong, the correction is called out.
+
+**Shape of the library.** `TBLive` is a **standalone class, zero shared code** — no
+`protocol-core`, no `Result`, its own local `Type`/`Field`/`Metadata` in `src/types.ts`. Its public
+surface is *already* `memory` / `buffer` / `bufferLimit` / `addData(string)` / `parseData(): T[]`,
+i.e. `DeviceParser<string>` **by coincidence, not by contract**. ~2.2k lines of `src`, of which
+`sample.ts` is 4 copy-pasted ~100-line functions (emitter/receiver × 1.0.1/1.0.2) and `command.ts`
+is 863 lines of the same style. **There is NO knowledge base** — no `protocols/*.yml`, nothing for
+`scripts/yaml-to-ts.mjs` to generate. Every field name/type/unit/description is hand-written TS.
+
+**Output vs CMA — the real gaps** (`ParsedSentence`, `src/types.ts:33`):
+
+| gap | today | CMA requires |
+| --- | --- | --- |
+| `protocol` | **absent entirely** | `{ name, version }`, required |
+| `mode`, `firmware` | top-level keys | inside `metadata` (locked rule) |
+| `metadata` | **optional** (`metadata?`) | always present |
+| `metadata.timestamp` | the *sentence's own* time as `{ value, date: ISO }` | the typed `{ received, parsed, sentence? }` block — **direct collision on the same key** |
+| payload metadata | mirrored into `metadata[field.name]` (`metadata.angle`, `metadata.snr`, `metadata.temperature`) | flat under `metadata.payload`, and **field names are explicitly never keys** |
+| `Field.value` | `number \| string \| boolean` | `… \| null` |
+| `Field.type` | local list (no `char`/`int64`/`uint64`, has `float32`) | core's `Type` + core's `TYPE_SCHEMAS` validation |
+
+**Two vocabularies for sentence names:** the internal `SENTENCES_NAME` is camelCase
+(`clockRound`, `serialNumber`, `intervals`) while the emitted `id` is snake_case (`clock_round`,
+`serial_number`, `log_intervals`), and `sample` splits at parse time into ids `emitter` /
+`receiver`. Needs one convention.
+
+**⚠️ `protocol` is ALREADY taken, twice, and both meanings differ from CMA's.** A sample's
+field 3 is `protocol` = the *acoustic tag* protocol (`S64K`, `R01M`…), and the `LM=` command
+sentence has id **`protocols`** listing the active ones. CMA's `protocol` means the *device wire
+format*. Three meanings on one word — the same footgun that forced the `msg.protocols` →
+`msg.sentences` rename in the wrappers. **Naming decision for cru.**
+
+**Firmware/version matching — confirmed as the hard part, and worse than "hard": it is mostly
+guessed.** There is no protocol *version*, only a device `firmware`, and it is derived
+**per sentence from the field count**: 9 → `1.0.1`, 7 → `1.0.2`, 8 → *either* (disambiguated by
+sniffing `fields[2]` for the string `'tbr sensor'`), anything else → `firmware: 'unknown'` +
+`payload: []`. Every listening/command sentence that carries no version evidence is **hardcoded
+`'1.0.2'`** (`listening.ts:10,45,62,77`, most of `command.ts`) — a guess presented as a fact.
+`FIRMWARES_AVAILABLE = ['1.0.1','1.0.2','unknown']`. Nothing tracks the firmware learned from an
+actual `FV=` sentence and applies it to later ones.
+
+**Three real bugs found, all measured:**
+1. **`bufferLimit` is stored, validated, and enforced NOWHERE** — byte-identical to the latent bug
+   found in nmea-parser 4.0.0. Measured: `new TBLive({ bufferLimit: 10 })` + 5000 junk chars →
+   `buffer.length === 5000`.
+2. **Input is dropped silently — the whole nmea 4.0.0 fix has to be redone here.** `'hello world'`
+   → `[]` and it **sits on the buffer forever** (never garbage-collected, never reported).
+   `'noise$1234567,…\r'` → the `noise` prefix is discarded with no trace. A wrong-field-count sample
+   *is* reported (`errors[]`, `payload: []`), so the machinery is half there.
+3. **Sentence timestamp is computed by STRING CONCATENATION** (`sample.ts:181`):
+   `Number(\`${seconds.raw}${milliseconds.raw}\`)`. Correct only when the device zero-pads to 3
+   digits. Measured with `,50,`: `155457933050` → **1974-12-05**, instead of `1554579330050`.
+   Should be `seconds * 1000 + ms`. Also, the whole `metadata` block is skipped when *any* field has
+   an error (early `return`), so one bad field loses all the good metadata.
+
+**Field type/value disagreements** (cosmetic today, but they are the contract): the
+`TB Live serial number` and `emitter` fields declare `type: 'string'` and carry
+`value: Number(...)`; ping's `serial number` declares `type: 'uint16'` and carries `1234567`, which
+does not fit a uint16. Core's `TYPE_SCHEMAS` will reject these on adoption.
+
+**Corrections to this doc's older notes:** "CMA-shaped, only `mode`/`firmware` extra" **understates
+it** — `protocol` is missing, `metadata` is optional, and `metadata.timestamp` means something else.
+No wire-format notes for TB-Live exist in `docs/PROTOCOLS.md` (checked). Stray `tango.json` sits at
+the package root (a TANGO/IMMS MQTT payload sample, unrelated to tblive).
+
+### Business + physical context (cru, 2026-07-30) — why this device exists
+
+These parsers are the ETL front end of **Tracker**, which ships CMA over RabbitMQ to the
+**CoreIntegrity** SaaS, which predicts **mooring-line loss** on FPSOs/FSUs. Sensors are normally
+GNSS + motion (MRU/AHRS/gyro/MGC) + occasional wave radar / anemometer. **Mooring-line sensors with
+a usable battery life do not exist on the market** (COTS ≈ 5 days; CoreMarine needs ~10 years), so
+CoreMarine repurposes **fish-tracking acoustic tags**: their 25-second transmit rate is what buys
+the decade of battery.
+
+So the physical chain is: Thelma Biotel **emitters** (acoustic tags, normally implanted in fish;
+CoreMarine's are **modified to carry an inclinometer, or an inclinometer + depth sensor**) are
+**clamped to each mooring line**; **TB Live receivers** (hydrophones) sit under the FPSO / above the
+lines. The emitters keep Thelma's standard sentence and **CoreMarine encodes its own meaning into
+the one `data` field**. We only ever talk to the **receiver** — the emitter↔receiver link is not our
+concern. cru's own assessment: it is a clever workaround but **an operationally horrible one** — no
+ack, noise-sensitive, high uncertainty.
+
+**Frequency:** 15 channels, 63–77 kHz; up to 3 simultaneous. ⚠️ **Conflict to resolve:** cru says the
+configured `FC` is the **centre** and it hears centre ±2 kHz (70 → 68/70/72); the 1.0.1 datasheet
+§FC says the configured value is the **bottom** and the others are +2/+4 (67 → 67/69/71). Both agree
+on 2 kHz spacing. Affects metadata/validation only, never decoding.
+
+### What the datasheets actually say (READ 2026-07-30 — `misc/parsers/thelmabiotel/datasheets/`)
+
+Three PDFs, all of them thin: `receiver-1.0.1.pdf` (16 pp, the only one documenting command mode),
+`receiver-1.0.2.pdf` (6 pp, listening printouts + wiring **only** — no command mode at all), and
+`emitter-1.0.1.pdf` (3 pp, the CoreMarine-commissioned tag firmware). cru's warning that some of the
+documentation only ever existed as now-lost emails is consistent with what is here.
+
+**Sentence inventory, from the docs, with real captures:**
+
+| firmware | sentence | example | fields |
+| --- | --- | --- | --- |
+| 1.0.1 | detection | `$1000042,1589557202,615,S64K,1285,0,24,69,11\r` | 9 |
+| 1.0.1 | log | `$1000042,1589557600,TBR Sensor,297,15,29,69,6\r` | 8 |
+| 1.0.2 | detection | `$001129,1551087409,421,OPs,15,2,37,69\r` | 8 |
+| 1.0.2 | log | `$001129,1551087600,Live Sensor,280,7,14,69\r` | 7 |
+
+Detection fields: serial · seconds · ms · transmit protocol · transmitter ID · **data** · SNR ·
+frequency · (1.0.1 only) strings-sent. Log fields: serial · seconds · log id · temperature
+(`(x-50)/10` °C) · avg noise · peak noise · frequency · (1.0.1 only) strings-sent.
+
+**The transmit-protocol table is real, useful, and NOT in the code today** — it bounds both ID and
+data per protocol, and is the authority for when `data` is legitimately empty:
+
+| protocol | ID range | data range | note |
+| --- | --- | --- | --- |
+| R256 / R04K / R64K / R01M | 1-256 / 1-4096 / 1-65536 / 1-1048576 | **NA** | ID-only; R01M extra-strong CRC |
+| S256 / S64K | 1-256 / 1-65536 | 0-255 | S64K extra-strong CRC |
+| HS256 | 1-256 | 0-65535 | "high resolution data" |
+| DS256 | 1-256 | 0-65535 (**0-255 + 0-255**) | "**double** sensor data" |
+| OPi / OPs | 1-1048576 / 1-65536 | NA / 0-4095 | shared open network |
+
+**The emitter datasheet confirms CoreMarine's 16-bit encoding, verbatim:** "*the average uses 10 bits
+[LSB] … 0~102.3º with 0.1º resolution (0~1023/10) and the std dev uses the remaining 6 bits [MSB] …
+0-15.75º with 0.25º resolution (0~63/4). **HS256 encoding with 8bit ID and 16bit payload**.*" That is
+exactly `getLineAngle` in `src/utils.ts`. It also gives the 25 s TX rate (`TXmin`/`TXmax` = 25), the
+15 s-on / 10 s-silent duty cycle, and — matching the **commented-out** `SERIAL_NUMBERS_RESERVED` in
+`constants.ts` — "*Sensor IDs should all be odd numbers and not any of these numbers: 104, 105, 106,
+107, 110, 111*".
+
+**⇒ Open question worth real thought:** `HS256` (16-bit, "high resolution") vs `DS256` ("double
+sensor data", explicitly 0-255 + 0-255) look like they map 1:1 onto cru's inclinometer (10+6) and
+depth sensor (8+8 tilt+depth). If so the *encoding* is discriminated **by the wire protocol field**,
+not only by a private emitter-ID list — which changes where the decode can legitimately live.
+
+**Command mode (1.0.1 doc only).** Enter with `LIVECM` (1.0.1) / `TBRC` (1.0.2), exit `EX!`, auto-exit
+after ~60 min idle. Getters `SN? UT? FV? FC? LM? LI? HE?`, setters `UT= FC= LM= LI=`, actions
+`EX! RR! FS! UF!`. **Every response echoes the request byte-for-byte** (`FC=71` → `FC=71`), so a
+response is indistinguishable from a command on the wire. `HE?` dumps the whole API as prose — which
+is why `API_TYPICAL_CONTENT_101/102` exist and why the help text contains every other token.
+Listening-mode commands: `?` → `SN=000745 ><>`, `(+)` → `ack01`, `(+)TTTTTTTTTC` → `ack02` (Luhn
+check digit over the 9 most-significant digits of the timestamp). `UF!` is the undocumented third
+mode — bootloader, "may brick the device", so recognise it and stay away.
+
+**Doc-quality evidence, since it constrains what we can promise:** the 1.0.2 doc is titled 1.0.2 but
+says its format "is used in standard firmware v1.0.0"; its headline log example says **`Live Sensor`**
+while its own capture dump two paragraphs later says **`TBR Sensor`**; the 1.0.1 doc labels log
+field 6 "Detection SNR" where the value is plainly the listening frequency (the code already carries
+a `TYPO IN DOCS` comment there, and 1.0.2 confirms it is frequency); serial number is "6-digit" in
+listening mode and "7-digit" in command mode **in the same document**; `FV?` returns `FV=1.0.1` in
+the table and `FV=v1.0.1` in the prose. 1.0.1 says an unset clock counts **seconds since power up**;
+1.0.2 says the clock **resets to 1 Jan 2000** on power loss.
+
+### 🐛 Three MORE bugs, found by testing the datasheet's own examples
+
+4. **🔴 THE SERIOUS ONE — an empty `data` field is silently reported as a real 0.0° inclination.**
+   The docs state data is blank for ID-only protocols ("`,,` blank for non-data transmit protocols",
+   and `R*` rows have data range **NA**), and the 1.0.1 doc ships the literal example
+   `$1000042,0000002185,897,R64K,1023,,24,69,9`. Measured: field 5 becomes `value: 0` with
+   **no error**, and the aggregator publishes `average: {degrees: 0}, deviation: {degrees: 0}`.
+   **A missing measurement is indistinguishable from a mooring line hanging perfectly vertical** —
+   in the one product whose job is to notice when a line stops hanging vertically. CMA's
+   `value: null` is precisely the fix.
+5. **🔴 A `Live Sensor` log is parsed as a fish detection.** The 8-field ambiguity (1.0.1 log vs
+   1.0.2 detection) is resolved by sniffing `fields[2]` for the literal `'tbr sensor'`
+   (`sample.ts:15`), and the 1.0.2 datasheet's own headline example says `Live Sensor`. Measured on
+   `$1000042,1589557600,Live Sensor,297,15,29,69,6\r`: `id: 'emitter'`, firmware claimed `1.0.2`,
+   and the fields shift by one so **temperature 297 becomes the transmit protocol, peak noise 29
+   becomes an angle of 2.9°, and the frequency 69 becomes the SNR**. It does carry one error
+   (`milliseconds … Live Sensor`), so it is at least flagged — but as the wrong sentence type with
+   fabricated values.
+6. **`NaN` leaks into `Field.value`.** `value: Number(raw)` with a non-numeric raw yields `NaN`,
+   which the declared type `number | string | boolean` does not admit and which only *looks* right
+   downstream because `JSON.stringify` turns `NaN` into `null`. Any consumer reading the value before
+   serialisation gets `NaN`.
+
+Also: **the parser cannot tell epoch time from uptime.** With an unset clock the device sends
+seconds-since-power-up, so `metadata.timestamp.date` confidently reports **1970-01-01** (measured:
+`raw: '0000002185'` → 2185 s). CMA's **optional** `metadata.timestamp.sentence` is the right home —
+omit it when the clock is evidently unset rather than emitting a fake date.
+
+### Decisions taken with cru (2026-07-30) — tblive refactor
+
+- **✅ Frequency range is NOT the parser's business.** cru: the parser "has to parse everything which
+  has the TB Live protocol". He would **not** check 63–77 kHz and would **not** raise an error for an
+  out-of-range frequency — the receiver's expected main frequency lives in Tracker, so the filter
+  lives there. Generalised rule for this package: **the parser reports structural and type problems
+  (undecodable input, framing, interference, a non-numeric value in a numeric field); it never judges
+  plausibility of an in-range-unknown value.** Expected ranges belong in `description`.
+- **⚠️ CONSEQUENCE — declared types must be honestly WIDE, because in the shared core the declared
+  type IS a range check.** `nmea-parser/src/sentences.ts:196` `parseValue` ends
+  `schema.is(num) ? num : null`, so a value outside its declared type silently becomes `null`. The
+  ping serial is declared **`uint16`** today while real serials are 7 digits (`SN=1000045`,
+  1.0.1 doc §SN) ⇒ it would become `null`. **Never use a narrow type as a de-facto validator.** The
+  same helper gives two of our bug fixes for free: `raw === ''` → `null` (the empty-`data` bug) and
+  `Number.isNaN` → `null` (the NaN leak).
+- **✅ Command-mode sentences become CMA too** (cru, 2026-07-30). Not only samples/logs — every
+  response in the command and listening APIs is emitted as a CMA. **`payload` carries a single
+  element** (the response), and **`metadata.mode` states the mode of that sentence**. This settles the
+  earlier open question of where `mode` goes: into `metadata`, per-sentence, not as a device-state
+  top-level key.
+- **✅ Output contract, locked with cru 2026-07-30 (all confirmed by him):**
+  - **`protocol: { name: 'TBLive', version: <firmware> }`** — the firmware *is* the wire-format
+    version (1.0.1 vs 1.0.2 differ in field counts), so the old top-level `firmware` key **disappears**
+    rather than moving into `metadata`. `'unknown'` until there is evidence.
+  - **`metadata.mode`** = **which API the sentence belongs to**, not the device state afterwards:
+    `listening` | `command` | `update` | `unknown`.
+  - **Sentence ids: `emitter` (detection) and `receiver` (log)** — cru's call, and the more coherent
+    one: both name **who the sentence is about**. No collision; the 16 ids are unique.
+  - **`id` for the two mode-switch sentences names the mode it takes you INTO** (cru, explicitly):
+    `LIVECM`/`TBRC` → `id: 'command'`, `EX!` → `id: 'listening'`. Combined with the rule above this
+    means **both look self-contradictory, consistently and deliberately**: `id: 'command'` +
+    `mode: 'listening'` (a listening-API command that enters command mode) and `id: 'listening'` +
+    `mode: 'command'` (a command-API action that resumes listening). cru: *"it tells me what it is
+    enabling or doing"*. **Both differ from today, where `mode` always equals `id`.** Do not "fix" this.
+  - **Field renames:** `'TB Live serial number'` → **`receiver_serial_number`** (both sentences; kills
+    the spaces-and-capitals inconsistency with `noise_average`/`noise_peak`); detection field 3
+    `protocol` → **`transmit_protocol`**; the `LM=` sentence id `protocols` → **`listening_mode`**. The
+    last two come from the datasheets' own wording, freeing `protocol` for CMA's meaning.
+  - **Field 4 of a detection stays `emitter`** (cru's literal words, 2026-07-30 — flagged back to him,
+    since it makes `emitter` both a sentence id and a field name).
+  - **🔑 SERIAL NUMBERS ARE `string`, NOT NUMERIC** (cru, 2026-07-30) — `receiver_serial_number`, the
+    detection's `emitter`, and the ping's serial. **This is a correctness fix, not a preference.**
+    Reasons, all from the field: (a) the firmware pads inconsistently — sometimes leading zeros,
+    sometimes a `1` prepended — and `Number()` **destroys that evidence** (measured on the datasheet's
+    own example: `raw: '001129'` → `value: 1129`); (b) the docs contradict themselves on whether the
+    serial is **6 or 7** characters, so the parser must not commit; (c) the team identifies a device by
+    its **last three digits**, and Tracker's check is therefore a **string suffix match**, never
+    arithmetic. Today's code already declares field 0 as `type: 'string'` and then assigns
+    `Number(...)` — the declaration was right and the value was the bug.
+    **General rule for this package: identifiers are `string`; only measurements are numeric**
+    (`seconds`, `milliseconds`, `temperature`, `snr`, `noise_*`, `frequency`, `sent`, `time`).
+    This also dissolves the `uint16`/`uint32` range trap for both serial fields, and stays consistent
+    with "no plausibility validation" — the datasheet's ID ranges (1-1048576 for `R01M`/`OPi`) are
+    deliberately **not** enforced. A padded serial is data, **not** an `errors[]` entry.
+    `metadata.payload.receiver` / `.emitter` are strings too, matching their fields.
+  - **The `data` field is NOT decoded here** (cru, 2026-07-30). It stays generic: name **`data`**,
+    `uint16` (the emitter datasheet's "16bit payload"), the raw number, **`null` when the transmit
+    protocol carries none** — with **no field metadata and no `metadata.payload` mirror**. Tracker
+    renames it and adds the angle / tilt+depth interpretation. **The line: the library decodes what
+    Thelma's protocol defines; it does not decode what CoreMarine encoded into the opaque `data`
+    field.** `snr` and `temperature` keep their decodes because those are Thelma's own documented
+    scalings. ⇒ **`getLineAngle` and the `EMITTER_ANGLE_*` constants are DELETED from the library**
+    (internal only, never exported from `index.ts`, so no API break).
+    **⚠️ OPERATIONAL RISK — Tracker must implement the decode BEFORE this parser reaches production**,
+    or `payload[5].metadata` and `metadata.angle` stop arriving and mooring-line inclination silently
+    disappears. That is why `TBLIVE-NOTES-FOR-TRACKER.md` exists.
+  - **`metadata.payload` deliberately mirrors identity/quality facts** (cru, 2026-07-30): `receiver`,
+    `emitter`, `snr`, `temperature` — whichever the sentence has. **He knows it is redundant and wants
+    it anyway**, and the reason is operational, not cosmetic: nobody can guarantee which firmware a
+    production unit runs, so a **single fixed read path** for the key facts insulates Tracker and the
+    supply chain from the field-count/firmware variation. He first said `$root.metadata`, then
+    corrected it to **`$root.metadata.payload`**. **No CMA rule change is needed** — this is exactly the
+    "device-level metadata MAY be mirrored at payload level" rule already locked 2026-07-28 for the
+    NorSub status word; TB Live is now its second instance.
+- **📄 `TBLIVE-NOTES-FOR-TRACKER.md` (repo root, temporary, untracked).** The `emitter101`/`emitter102`/
+  `receiver101`/`receiver102` docblocks from `sample.ts` — verbatim, verified line-for-line — plus the
+  datasheet facts they depend on and the decode helpers. They describe **how to interpret** values,
+  which is Tracker's job. cru moves them into Tracker and deletes the file.
+
+### Feedback model — locked with cru 2026-07-30 (same contract as nmea-parser 4.0.0)
+
+cru's explicit requirement: **"not silent errors please, put there, like the garbage sentences"** —
+tblive gets the same no-input-dropped model as nmea 4.0.0. The signal is the pre-existing optional
+`errors: string[]`, so **the CMA contract still does not change**. But the *classification* rules had
+to be derived from scratch, because **TB Live has NO checksum anywhere**: NMEA's key heuristics — "a
+`$`-chunk is a sentence attempt only if it has a `*`" and "the checksum still matches, so the payload
+is intact" — have no equivalent here. A framing anomaly on TB Live means the field alignment is
+genuinely unverifiable. (cru's substitute for a checksum is **fake-sentence filtering in Tracker** —
+e.g. an emitter ID that does not correspond to its frequency — not a parser concern.)
+
+| input | result |
+| --- | --- |
+| `$…\r` with 9 / 8 / 7 fields, all decodable | CMA, no `errors` |
+| a field fails its declared type | **full CMA** + `errors` at field and sentence level, that field `value: null` |
+| `data` empty on an ID-only protocol | CMA, `value: null`, **no error** — documented behaviour, not a fault |
+| `$…\r` with any other field count | **`id: 'unknown'`** + the CSV split kept as **generic string fields** + `Unknown field count: N` (cru: "yes, as nmea" — nmea's `genericField` behaviour; the data stays inspectable rather than `payload: []`) |
+| `$…` followed by another `$`, no `\r` | **full CMA** + `Missing end flag` |
+| another complete sentence sits **inside** a sentence's extent | **inner sentence emitted decoded; the wrecked outer fragments become GARBAGE** + an error naming the interference. Ordered by position in the buffer. |
+| text matching no known token | **garbage**, adjacent junk coalesced into one report |
+| pending `$…` / `SN=…` / api dump, no terminator yet | **pending** on the buffer — never an error, still streaming |
+| pending chunk exceeds `bufferLimit` | **garbage** + `Buffer limit exceeded`, buffer reset |
+| whitespace / `\r\n` between sentences | **ignored** — reporting it is the very noise this avoids |
+
+**⚠️ The interference rule is cru's "salomonic decision", and the reasoning matters — do not
+"improve" it into reconstruction.** Real interference is **NOT** a clean insertion of a well-formed
+sentence; it arrives as **corrupted bits / weird characters**, so the true boundary of the wrecked
+sentence is unknowable and the corner cases are **exponential**. The rule is therefore: **take the
+sentence in the middle** (the interloper — it is the one that transmitted intact) and **do not attempt
+to recompose the sentence it wrecked**. It happens in both directions: a pong landing inside a
+sample/log (cru's old client-side "ping on timeout" made this common; he has since removed it) **and**
+samples/logs landing inside a command-mode response. The old code discarded the wrecked sentence
+**silently**; now it is reported as garbage.
+
+**🔧 The 8-field ambiguity gets a structural discriminator, not a string sniff.** A 1.0.1 **log** has
+8 fields and a 1.0.2 **detection** also has 8, so the count cannot decide. Today `sample.ts:15` tests
+field 2 for the literal `'tbr sensor'`, which is fragile: the datasheets use **two spellings**
+(`TBR Sensor` in 1.0.1 and in 1.0.2's capture dump, `Live Sensor` in 1.0.2's headline example), and a
+miss silently misparses the log as a detection with every field shifted (measured: temperature 297 →
+transmit protocol, peak noise 29 → **an angle of 2.9°**, frequency 69 → SNR).
+
+**Rule (cru chose this, 2026-07-30): widen the match to a case-insensitive `sensor`** — covering
+`TBR Sensor`, `Live Sensor` and any casing of either. A structural alternative was offered ("field 2
+numeric ⇒ detection, non-numeric ⇒ log") and **cru preferred the name match**, which is the better
+call for a reason worth recording: with a name match, an 8-field sentence whose field 2 is
+**corrupted junk** stays a *detection* carrying a type error on `milliseconds` — honestly reporting
+"not recognised as a log" — whereas the structural rule would sweep any non-numeric junk into
+`receiver`.
+
+### 🚧 IN PROGRESS — implementation started 2026-07-30 (uncommitted)
+
+**Step 1 + 2 of 5 done, `tsc --noEmit` + `eslint` clean, behaviour verified by hand.** New files sit
+**alongside** the legacy ones so the package keeps compiling through the transition; the legacy
+`parse.ts` / `sample.ts` / `command.ts` / `listening.ts` / `utils.ts` / `types.ts` come out at the end.
+
+- **`src/definitions.ts` — the typed sentence table.** Replaces ~2.2k lines of hand-written per-
+  sentence functions with data: `PROTOCOL_NAME`, `FIRMWARES`, `MODES`, the 17 `SENTENCE_IDS`, the
+  field specs (`SAMPLE_FIELDS` per id × firmware, built by composition — 1.0.1 is 1.0.2 **plus** the
+  `sent` field), `SAMPLE_SHAPES` (field count → candidate shapes), the `TOKENS` recognition table and
+  the error-string builders.
+  - **⚠️ 17 ids, not the 16 in the table shown to cru** — that table accidentally omitted `listening`
+    (`EX!`). Everything else in it stands.
+  - **Four recognition strategies cover all 17 sentences:** `literal` (`EX!`, `RR!`, `ack01\r`,
+    `LIVECM`), `delimited` (`$…\r`, `SN=…><>\r`, the help dump), `digits` (`FC=69`, `UT=…`, with
+    min/max because serials are 6 **or** 7), `version` (`FV=1.0.2`, and `FV=v1.0.1` because the 1.0.1
+    datasheet prints both forms).
+  - `TokenSpec.id` is **optional**, because a `$…\r` chunk cannot be named by its token alone — it is
+    `emitter` or `receiver`, decided later by field count. An earlier draft used `id: 'emitter'` as a
+    placeholder, which made every log look like a detection in the token table; that footgun is gone.
+- **`src/tokenizer.ts` — one scanner replacing the 16 `getBoundaries*` functions + ad-hoc
+  reconciliation.** `scanBuffer(buffer) → { segments, remainder }`, where a segment is either a
+  recognised sentence or a garbage run. Implements the three rules.
+  - **🆕 A design refinement that fell out of writing it: rules 2 and 3 are OPPOSITES and need an
+    explicit flag to tell apart.** "An enclosing sentence swallows its interior" (the `HE?` help dump,
+    which prints the whole API as prose and therefore literally contains `FC=69`, `EX!`, `LIVECM`, …)
+    and "a token inside another's extent is interference" (keep the inner, garbage the outer) are the
+    same syntactic situation with opposite handling. Resolved with **`TokenSpec.opaque`**, set on
+    `api` **only**. Without it the help dump would shred into ~10 bogus sentences.
+- **Verified by hand on the datasheets' own examples:** both detection shapes and both log shapes
+  segment; `SN=000745><>\r` resolves to `ping` while `SN=1000045` resolves to `serial_number`
+  (longest-match-wins); nine command echoes back-to-back with **no terminators at all**
+  (`FC=69LM=01LI=03UT=1589561768FV=1.0.2EX!RR!FS!UF!`) segment into nine correct sentences; the help
+  dump comes out as **one** `api` sentence; junk coalesces into a single report; blank space between
+  sentences is ignored; a truncated `$…` and a truncated `FC=6` are held as `remainder` with no error.
+  **The interference case behaves exactly as cru specified:**
+  `$1000042,1589557202,615,S64K,ack01\r1285,0,24,69,11\r` →
+  garbage `$1000042,1589557202,615,S64K,` + `Interrupted by clock_round`, then a real `clock_round`,
+  then garbage `1285,0,24,69,11\r`. Nothing recomposed, nothing dropped.
+- **Plumbing:** `@coremarine/protocol-core` added as a **devDependency** (`workspace:*`) and
+  `tsup.config.ts` given `noExternal` + `dts.resolve` + `platform: 'neutral'`, copying nmea-parser
+  exactly — the core is private and unpublished, so it must be inlined into `dist` and must not appear
+  in the packed manifest or the `.d.ts`.
+- **`src/sentences.ts` — segments → `DraftCMA`.** Local `parseValue` (empty → `null` with **no**
+  error, `NaN` → `null`, out-of-declared-type → `null`), `buildField`, `resolveSample` (field count,
+  with the case-insensitive `sensor` tie-break at 8), `unknownSample` (generic string fields, id
+  `unknown`), `buildResponse` (the single-element payload for every command/listening response) and
+  `buildGarbage`.
+- **`src/metadata.ts` — the aggregators.** Field-level metadata for `snr` (weak/regular/strong bands),
+  `temperature` (`(raw-50)/10` °C), `listening_mode` (the `LM` table), `log_interval` (the label) and
+  `time` (decoded date); plus the `metadata.payload` mirrors cru asked for. Aggregators read fields
+  **by index**, never by name. **No interpretation of `data` anywhere** — that is the consumer's.
+- **`src/parser.ts` — `TBLiveParser extends StringParser`.** `extractSentences` drives the tokenizer;
+  **`bufferLimit` is now actually enforced**; `firmware` is learned (`FV=` explicitly, `LIVECM`/`TBRC`
+  implicitly) with an optional constructor pin, and is `unknown` until proven rather than the old
+  hardcoded `'1.0.2'`.
+  - **🔑 NO `sentenceTimestamp` OVERRIDE — the device time is DATA, never a claim (cru, locked
+    2026-07-30).** An earlier draft promoted it to `metadata.timestamp.sentence` when
+    `seconds >= 1_000_000_000`; cru rejected the whole idea, threshold included: *"I don't trust on the
+    device time because it is not well defined if it is the current timestamp or the uptime and I
+    couldn't trust even in my teammates because they don't even record what are the devices with its
+    firmware."* `metadata.timestamp.sentence` **asserts** when a sentence happened, and this device
+    cannot support that claim — the datasheets disagree about the unset-clock behaviour and nothing on
+    the wire says which firmware is answering. Asserting it is exactly how the old parser reported
+    **1970-01-01** as a real date. So `metadata.timestamp` is `{ received, parsed }` only, and the
+    device's numbers are published as **`metadata.payload.time`** =
+    `{ seconds, milliseconds?, total_milliseconds }`. **No ISO date** — that is what made a meaningless
+    value look authoritative. `total_milliseconds` is pure arithmetic, offered because composing it is
+    easy to get wrong (the old parser CONCATENATED the digits). Deciding whether it is epoch or uptime
+    needs deployment knowledge and belongs to Tracker. **Same stance as norsub-emru**, whose `T1`/`T2`
+    are a wrapping counter and likewise never become a sentence timestamp.
+  - **Empty fields (cru, locked 2026-07-30): ALL empty fields are `null`, with NO error** — not just
+    `data`. And **an absent `milliseconds` composes as `000`** in `metadata.payload.time`. The
+    substitution stays visible: `payload[2].value` remains `null`, so a consumer can distinguish a
+    device that sent nothing from one that sent a genuine zero. Verified: empty ms →
+    `{ seconds: 1589557202, total_milliseconds: 1589557202000, milliseconds: 0 }` with
+    `payload[2].value === null`.
+- **✅ ALL SIX BUGS VERIFIED FIXED, measured on the datasheets' own examples:**
+  1. `bufferLimit` — `{ bufferLimit: 10 }` + 5000 chars → one garbage CMA with `Buffer limit
+     exceeded`, buffer reset to 0. (Was: buffer grew to 5000, silently.)
+  2. nothing dropped — `'hello world'` → a garbage CMA with `Unrecognised input`. (Was: `[]`, and it
+     sat on the buffer forever.)
+  3. timestamp — `,50,` → `sentence: 1589557202050`. (Was: `155457933050`, i.e. **1974**.)
+  4. **the serious one** — `data` empty on an `R64K` detection → **`value: null`, no angle metadata,
+     no error**. (Was: `value: 0` publishing `average: 0.0°` — a fabricated vertical mooring line.)
+  5. `Live Sensor` → **`id: 'receiver'`**, temperature 297 → 24.7 °C, noise 15/29, all fields aligned.
+     (Was: `id: 'emitter'` with peak noise 29 decoded as **an angle of 2.9°**.)
+  6. `NaN` — gone; a non-numeric numeric field is `null` **plus** an `Invalid <field>: <raw>` error.
+  - Plus: serial padding preserved (`'001129'` stays `'001129'`, was `1129`); firmware learning
+    `unknown → 1.0.1` on `LIVECM` → `1.0.2` on `FV=v1.0.2`; interference splits into
+    garbage/`clock_round`/garbage exactly as specified.
+- **`tsc --noEmit` + `eslint` clean on all five new files. The legacy suite still passes 134/134**,
+  because the old `TBLive` class is untouched and still the only thing `index.ts` exports.
+- **✅ STEP 5 DONE — THE LIBRARY REFACTOR IS COMPLETE (uncommitted, cru to review).**
+  - **`index.ts` now exports `TBLiveParser`.** The legacy implementation is **deleted**:
+    `parse.ts`, `sample.ts`, `command.ts`, `listening.ts`, `utils.ts`, the old `types.ts` and
+    `schemas.ts`, plus all 7 legacy test files. `constants.ts` was pruned to the two protocol
+    knowledge tables that survive (`PROTOCOLS` for `LM=`, `LOG_INTERVALS` for `LI=`); every other
+    literal now lives in the sentence table. **~2.2k lines of hand-written parsing replaced by ~800
+    lines of table + tokenizer + builders.**
+  - **Tests: 83 specs, `tests/index.test.ts`, all green.** Anchored to the **datasheets' own example
+    sentences**, not to whatever the implementation happens to do. Includes a **CMA conformance test
+    that validates every emitted sentence against core's `CMASchema`**, a check that every id emitted
+    is a declared id, and explicit coverage of each locked decision: the 8-field tie-break in five
+    variants, `data` never interpreted, `metadata.timestamp` never carrying `sentence`, the `000`
+    millisecond substitution, `id`/`mode` being deliberate opposites for `LIVECM`/`EX!`, firmware
+    learning from all three evidence sources, out-of-range `FC=99` accepted without error, and every
+    row of the feedback table.
+  - **Plumbing:** `2.0.0`, `engines.node >=22`, `build` gained the `format` prestep the other packages
+    have, `cma` keyword added. **`valibot` moved from `peerDependencies` to `dependencies`** — the
+    bundled core needs it at runtime, and nmea-parser already declares it that way; as a peer it would
+    have forced consumers to install it themselves.
+  - **🔍 CI/CD AUDITED against the proven `nmea-parser.yml` (cru asked, 2026-07-30) — two MORE gaps
+    found and closed.** Structurally the two workflows are now identical apart from nmea's extra
+    `scripts/**` trigger, which tblive correctly omits (it has no YAML generation step).
+    1. **🐛 Nothing triggered on `packages/core/**`.** tblive **bundles** the private
+       `@coremarine/protocol-core` into its dist (tsup `noExternal`), so a core change alters what this
+       package publishes and can break its tests — yet no tblive job would have run. Added to the path
+       filter; the version gate keeps the extra trigger harmless (tests run, publish no-ops unless the
+       version changed). **⚠️ `nmea-parser`, `norsub-emru` and both wrappers have the SAME gap** — folded
+       into the parked cross-parser work.
+    2. **🐛 The coverage thresholds were inert in CI.** They only apply when coverage is collected, and
+       the test job ran plain `vitest`. The job now runs `thelmabiotel-tblive:test:coverage`. **Proved it
+       actually gates rather than just printing:** with `branches` temporarily raised to 99 the run exits
+       **1** (`ERROR: Coverage for branches (96.16%) does not meet global threshold (99%)`), and **0** at
+       the real threshold.
+  - **Verified end to end from a clean state** (`packages/core/dist` and the package's own `dist`
+    deleted, `CI=true`): core build → **259/259 with coverage thresholds enforced** → build clean.
+    `vitest` without `--run` exits by itself under `CI=true` (exit 0), matching how every other package
+    in this repo is wired. **The version gate will fire:** npm has `1.0.3` as latest and no `2.0.0`.
+    **Packed tarball = 7 files / 34.4 kB:** LICENSE, README, `dist/{index.js,index.cjs,index.d.ts,index.d.cts}`,
+    `package.json` — and zero `protocol-core` references inside.
+  - **🐛 CI fresh-checkout bug found and fixed — the same one norsub had.** `.github/workflows/
+    thelmabiotel-tblive.yml` never built `protocol-core`, which tblive now depends on and which
+    resolves through its `dist/`. **Verified empirically**: with `packages/core/dist` deleted,
+    `thelmabiotel-tblive:test` fails. `pnpm run protocol-core:build` prepended to **both** the test and
+    publish jobs, then the exact CI order replayed from a deleted-dist state → core build → **83/83** →
+    build clean.
+  - **README rewritten from scratch** on the 2.0.0 API, with a real parsed CMA sample, the 17-sentence
+    table, the metadata levels, an explicit **"Things this parser deliberately does not do"** section
+    (no `data` decode, no plausibility judgement, no time claim), the feedback table, the interference
+    worked example, and an **"Upgrading from 1.x"** listing every breaking change — leading with the
+    two that can silently corrupt a consumer: **`null` must never be read as zero**, and **the
+    inclination decode is gone, so Tracker must implement the bit split**.
+  - **📈 COVERAGE PUSH (cru asked, 2026-07-30): 83 → 147 specs, branches 82.3% → 97.9%, statements /
+    lines / functions all 100%.** Every file is far past cru's "80% minimum, 90% ideal". Two new
+    files: `tests/edge-cases.test.ts` (the awkward inputs) and `tests/internals.test.ts` (guarantees
+    for whoever extends the sentence table). **Thresholds now enforced in `vitest.config.ts`**
+    (statements/lines/functions 95, branches 90) so it cannot quietly regress; `definitions.ts` and
+    `index.ts` joined `constants.ts` in the coverage excludes as pure data / re-exports.
+    - **🐛 A REAL DATA-LOSS BUG the coverage work found, in code written the same day.** A sentence
+      split **inside its own start flag** was emitted as garbage **and consumed**, destroying it:
+      `parseData('SN')` then `parseData('=1000045')` lost the response entirely. `matchLiteral`
+      returned `PENDING` for a truncated start, but `matchDelimited` / `matchDigits` / `matchVersion`
+      returned `NONE`. **This is not an edge case for this device** — `receiver-1.0.1.pdf` §8.2 states
+      a firm **one character per millisecond** limit in listening mode, so split start flags are the
+      normal case. Fixed with one shared `startsHere()` helper used by all four matchers. Regression
+      tests: four sentences split inside their flags, plus a full stream
+      (`$…\r` + `ack01\r` + `FC=69`) fed **one character at a time**, which now decodes to exactly
+      three clean sentences.
+    - **Dead code removed rather than tested:** `attach()` in `metadata.ts` re-checked
+      `field.value === null`, which every caller had already established — provably unreachable.
+    - New coverage came from real cases, not padding: empty receiver/emitter serials falling back to
+      `unknown`; missing temperature / noise / snr producing **no** metadata rather than a substitute;
+      **a value beyond its declared type** (`frequency` 999 in a `uint8`, `UT=9999999999` beyond
+      `uint32`) reported as `null` + an error — which is the executable proof that the declared type is
+      the range check; `LI=99` and `FV=9.9.9` not guessed and not poisoning the learned firmware;
+      unknown field counts of 1, 3 and 10; malformed-vs-pending tokens (`FC=6X` is junk, `SN=12` is
+      still arriving); **nested interference** (`$a$b$…` → the wreckage coalesced into ONE report, then
+      the good sentence); and 11 degenerate inputs asserted to never throw and to always emit valid CMA.
+  - **🆕 TWO NEW APIs (cru asked, 2026-07-30) — `getFakeSentence` + `getSentenceDefinition`, both
+    returning `Result`. 252 specs.** `src/fake.ts` and `src/introspect.ts`. The cross-parser fallout is
+    parked in §"PARKED — cross-parser API alignment".
+    - **`getFakeSentence(id, protocol, options?)` → `Result<string, string[]>`.** `protocol` is a
+      **mandatory positional** argument (cru's shape), because the firmware genuinely changes the
+      output; `options` is optional and **narrowed by id** through a mapped `FakeOptions` lookup, so
+      `getFakeSentence('frequency', …, { snr: 5 })` is a compile error as well as a runtime one.
+    - **🔑 DETERMINISTIC, no randomness (cru's idea, and it is better than nmea's).** A pure function of
+      its arguments, so a fixture cannot drift between runs — and the defaults are the **datasheets' own
+      example sentences**, so `getFakeSentence('emitter', '1.0.1')` returns
+      `$1000042,1589557202,615,S64K,1285,0,24,69,11\r`, checkable by eye against `receiver-1.0.1.pdf`
+      §8.2.1. nmea generates random values per field type; that difference joins the parked alignment.
+    - **The round trip is the acceptance test:** for **all 17 ids × both firmwares**, feeding the
+      generated string back through `parseData` yields exactly one CMA with the right `id`, the right
+      `protocol.version`, and **no `errors`**. That exercises the table, tokenizer, builders and
+      aggregators against each other in one assertion.
+    - **Generation is constrained by the parser's own rules**, which is easy to get wrong: the fake log
+      identifier must contain `sensor` or an 8-field log resolves as a *detection*; a fake ping serial
+      must be 6-7 digits or the token does not match; and the `LM=`/`LI=` defaults must exist in their
+      tables or the fixture carries no metadata. All three are asserted.
+    - **Errors name the actual mistake** — `Unknown sentence id`, `Unknown protocol`, `Unknown option
+      'x' for 'y'`, `Invalid option 'x'`, and `Option 'sent' applies to protocol 1.0.1 only` (that last
+      one because `sent` exists in 1.0.1 sentences only, so asking for it on 1.0.2 is reported rather
+      than ignored). Several mistakes are reported together.
+    - **`getSentenceDefinition(id, protocol?)` → `Result<SentenceDefinition[], string[]>`.**
+      **🔑 CMA-SHAPED, cru's call 2026-07-30: `{ id, protocol, payload, mode }` and nothing else.** The
+      same keys a parsed sentence has, minus the ones only a real parse can fill (`raw`, `timestamp`,
+      `metadata`, `errors`), with `payload` holding field DEFINITIONS
+      (`name`/`type`/`units?`/`description?`) instead of decoded values. `mode` sits at the top level
+      because a definition has no `metadata` to nest it in, and it is the one key nmea/norsub will not
+      need — they have a single API surface.
+      - **✅ This CONVERGES tblive with nmea for free, which shrinks the parked alignment work.**
+        nmea's `StoredSentence` is already `{ id, protocol: { name, standard?, version? }, payload:
+        ProtocolField[], description? }`, and its `ProtocolField` is
+        `{ name, type, units?, description? }` — **byte-identical to tblive's `FieldSpec`**. So the
+        nmea side needs **no shape change**: only the rename to `getSentenceDefinition` and the move to
+        `Result`.
+      - **Always an array**, even for one match, so callers need one code path; omitting `protocol`
+        returns every version (`emitter` → 1.0.1 with a 9-field payload, 1.0.2 with 8). `payload` is
+        **copied**, so a caller cannot corrupt the parser's tables — asserted. A test checks the
+        description against a **real parse**, because a definition is only worth having if it is true.
+      - **✅ RESOLVED — `description` at BOTH levels carries what the dropped `wire`/`firmwareSpecific`
+        objects did, as prose (cru, 2026-07-30).** An earlier draft returned structured `wire`
+        (`kind`/`start`/`end`/digit bounds) and `firmwareSpecific`; both were dropped to keep the shape
+        CMA-clean, which lost the single least-guessable fact about a **frameless** protocol. cru's fix:
+        an **optional `description` at sentence level** (CMA already allows it at both levels)
+        **wrapping that information as a string**. Generated as
+        `<authored prose> + <how it is recognised> + <what the other firmware does>`:
+        - `command @ 1.0.1` → *"…Recognised as the fixed literal `LIVECM`. Firmware 1.0.1 only; firmware
+          1.0.2 uses a different form for this sentence."* — so the two entries are no longer
+          indistinguishable.
+        - `frequency` → *"…Recognised by `FC=` followed by exactly 2 digits. Identical on both documented
+          firmwares."* — which also answers the "does the firmware matter here?" question that
+          `firmwareSpecific` used to.
+        - `emitter @ 1.0.2` → *"…Identified by its 8 fields: firmware 1.0.1 sends 9."*
+        - Control characters are **named** (`<CR>`, `<LF>`), never embedded raw — asserted.
+        - Descriptions now also carry the datasheets' operational warnings: `reset` **DELETES** all
+          stored detections, `upgrade` can **brick** the device, `milliseconds` is not always zero-padded.
+        - **Every sentence on every firmware, and every payload field, is asserted to have a
+          description** — the field-level assertion immediately caught `milliseconds` having none.
+        - Dead code removed rather than tested: `describe()` can never return `undefined` (the wire prose
+          alone is never empty), so the optional-assignment guards went.
+      - **✅ DECIDED — ONE ENTRY PER FIRMWARE, even when the definition is identical (cru: "keep",
+        2026-07-30).** 15 of the 17 ids do not vary by firmware, so omitting `protocol` returns two
+        entries differing only in `protocol.version`. The duplication is deliberate: every entry stays
+        self-describing, callers need one code path, and each description now ends with *"Identical on
+        both documented firmwares"* so the repetition explains itself. **A test asserts it for every
+        id — do not collapse it.**
+    - Also added `parser.sentenceIds`, and a test that every advertised id is both fakeable and
+      describable.
+  - **Verified, per package from its own directory:** `eslint .` clean · `tsc --noEmit` clean ·
+    **83/83** · `tsup` ESM+CJS+DTS clean. Repo-wide `pnpm lint` clean, `pnpm install
+    --frozen-lockfile` clean. **Packed tarball: 7 files, 19.5 kB, `2.0.0`, and ZERO `protocol-core`
+    references in `dist/index.js` or `dist/index.d.ts`** (grep count 0 in both) — the private core is
+    inlined, as required.
+- **❓ OPEN QUESTION FOR cru:** an empty field currently yields `null` with **no error** for *every*
+  field, but the docs only license `data` to be empty. An empty `milliseconds` is therefore silently
+  `null`. Should a non-`data` empty field carry an error? (It is arguably structural, not a
+  plausibility judgement — the transmit-protocol table says which protocols carry data.)
+- **NEXT:** (5) the test suite + README; wire `index.ts` to `TBLiveParser`; delete
+  `parse.ts`/`sample.ts`/`command.ts`/`listening.ts`/`utils.ts` + the legacy `types.ts`; bump to
+  `2.0.0`, `engines.node >=22`; drop the stray `tango.json` and the committed `coverage/`. Then the
+  wrapper (full rebuild from the `nmea-parser-nodered` template).
+
+## 🅿️ PARKED — cross-parser API alignment owed to nmea-parser + norsub-emru (+ both wrappers)
+
+**Decided with cru 2026-07-30 while designing tblive's fake-sentence API. Do this AFTER the tblive
+library and its wrapper are finished — but do NOT forget it.** Two APIs get renamed and both move to
+the `Result` pattern, so both are **breaking changes** for the libraries and their wrappers.
+
+**Why it matters (cru's reason, worth keeping):** these parsers get deployed on a **remote FPSO with
+restricted internet access and live there for decades**. A parser that can describe its own sentence
+definitions on demand is a diagnostic tool you cannot otherwise get out there. That is what makes the
+definition lookup worth keeping rather than dropping.
+
+| API | today | agreed target |
+| --- | --- | --- |
+| fake sentence | `getFakeSentenceByID(id)` → `NMEALike \| null` | **`getFakeSentence(...)` → `Result`** |
+| definition lookup | `getSentence(id)` → `Sentence \| null` | **`getSentenceDefinition(...)` → `Result`** |
+
+- **`getFakeSentence`** — nmea/norsub take **just the id**; tblive takes **`(id, protocol, options?)`**
+  (protocol mandatory and positional, options optional and per-id, so tblive's error can name a bad
+  *option* rather than only a bad id).
+- **`getSentenceDefinition`** — nmea/norsub take **just the id** and return an **array**, because
+  several sentences can share an id across protocol versions; tblive takes **`(id, protocol?)`** and
+  returns every protocol version of that sentence when the protocol is omitted.
+- **`null` is banned from both.** cru: *"I don't want exceptions… I would prefer at least a feedback if
+  the input is wrong."* A `null` cannot distinguish an unknown id from a malformed option, which is the
+  same silent-failure problem the CMA `errors[]` work removed. **Also audit nmea and norsub for any
+  OTHER `null` returns** — cru explicitly asked whether they exist elsewhere; `getSentence` and
+  `getFakeSentenceByID` are the two found so far.
+- **`getSentence` → `getSentenceDefinition` is a naming fix, not just a rename.** `getSentence` reads
+  like "give me a sentence", which is exactly what `getFakeSentence` does — two names one word apart
+  meaning opposite things. This is the footgun class that forced `msg.protocols` → `msg.sentences`.
+- **Wrapper fallout:** both `-nodered` wrappers expose the definition lookup as `getSentenceInfo`
+  (`lib.ts`), so they need the rename too, plus a major each.
+- **🐛 ALSO PARKED — a CI gap the tblive audit exposed in the other packages.** `nmea-parser`,
+  `norsub-emru` and both wrappers **bundle** the private `protocol-core` into their dists but do **not**
+  trigger on `packages/core/**`, so a core change can break them silently until someone touches those
+  packages. tblive's workflow now has the trigger; copy it across. Their coverage thresholds (where they
+  exist) are likely inert in CI too, for the same reason tblive's were: the test job runs plain `vitest`,
+  which does not collect coverage.
+- **cru's standing preference driving all of this: explicit names, always.**
+
+### The real internal problem, named
+
+**This protocol has no framing.** Only *some* listening sentences self-delimit (`…\r` for
+samples/logs, `><>\r` for the ping, `ack01\r`/`ack02\r`); **command-mode traffic has neither a start
+flag nor a terminator** — `FC=69`, `LM=01`, `EX!`, `LIVECM` are bare tokens. So segmentation can only
+be done by **matching every known token at every offset**, which is exactly why `parse.ts` is 16
+`getBoundaries*` scanners plus hand-written collision reconciliation. The code is not sloppy; the
+protocol is. Its ad-hoc rules are really three general ones:
+
+- **(a) longest match wins at the same offset** — `SN=` starts both a ping and a serial-number
+  response; special-cased today at `parse.ts:261-268`.
+- **(b) an enclosing sentence swallows its interior** — the `HE?` help text literally contains every
+  other token; special-cased today with a hardcoded list at `parse.ts:270-298`.
+- **(c) half-duplex interleaving** — cru's field observation: send a ping while the device is mid-
+  sample and the pong is **injected inside** the sample, corrupting it. Modelled today as
+  `interference`, and the corrupted sample is **silently discarded** (`getBoundariesSample` returns
+  `incomplete`). Under the 4.0.0 "nothing is dropped silently" rule this **must** instead be emitted
+  with the interference reported — which is also a safety win, because today a corrupted mooring-line
+  sample simply vanishes.
+
+**Firmware is guessable far better than it is guessed.** Real evidence exists: an explicit `FV=`
+sentence; `LIVECM` vs `TBRC` (a definitive 1.0.1/1.0.2 discriminator); and field counts 9/8 for
+detections, 8/7 for logs. Everything else has **no** evidence and is currently hardcoded `'1.0.2'`.
+A parser that **learns and remembers** the firmware (constructor override, `unknown` until proven)
+would be both more accurate and honest. cru's constraint stands: nobody on the team can guarantee
+which firmware production units actually run.
+
+**The wrapper `thelmabiotel-tblive-nodered@1.0.0` is the least-evolved of the five.** Plain
+`src/parser.js` (no TS, no build, ships `src/` not `dist/`), `main: index.js` which does not exist,
+`node-red.version >=3.0.0`, `engines.node >=18.0.0`, `test` = `mocha "tests/**/*.test.js"` with
+**zero `.test.js` files**, CI test job commented out, a docker mirror duplicating `src/` under
+`tests/nodered/components/`, and **committed node-red runtime state including
+`tests/nodered/data/flows_cred.json`** — the exact artefact class behind both packing leaks.
+Full rebuild from the `nmea-parser-nodered` template, same as norsub's.
 
 ## Where we are now
 

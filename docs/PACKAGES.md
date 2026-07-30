@@ -12,7 +12,7 @@ Shared base = the private `@coremarine/protocol-core` (`Parser`/`StringParser`/`
 | `@coremarine/norsub-emru` | **4.0.0** (npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | 1.0.1 | legacy `SBFResponse` | ❌ | `addData(buf)` + `parseData()` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ | `addData(buf)` + `getFrames()` |
-| `@coremarine/thelmabiotel-tblive` | 1.0.3 | **CMA-shaped** (not on the base class) | ❌ | `addData(str)` + `parseData()` |
+| `@coremarine/thelmabiotel-tblive` | **2.0.0** (unreleased) | **CMA** on `protocol-core` | ✅ | `addData(str)` + `parseData(): CMA[]` |
 
 All: `type: module`, dual ESM/CJS via tsup `exports`, MIT. `engines.node`: `>=22` on nmea-parser and
 norsub-emru (the two latest LTS are what we test); the other three still say `>= 18` — tighten each as it
@@ -49,9 +49,22 @@ is refactored.
   CMD/HIGH_FREQ/NMEA/THIRD_PARTY classes are placeholders. Issues: **no test specs at all** (only
   fixtures, CI test step commented out); `schemas` export commented out; API named `getFrames()`
   instead of `parseData()`; several `*.dev.md` scratch files; README is 135 bytes.
-- **thelmabiotel-tblive** — TB-Live hydrophone text protocol. CMA-shaped already (plus extra top-level
-  `mode`/`firmware` keys, which move into `metadata` when it adopts the base class). Build script lacks
-  the `format` prestep the others have.
+- **thelmabiotel-tblive** — TB Live hydrophone text protocol, **refactored onto CMA 2026-07-30
+  (`2.0.0`, not yet released)**. `TBLiveParser extends StringParser`. The protocol has **no framing**
+  (command traffic has neither start flag nor terminator, and every response echoes its request), so
+  `src/tokenizer.ts` matches every known token at every offset and reconciles overlaps with three
+  rules: longest-match-wins, an `opaque` sentence swallows its interior (the `HE?` help dump only), and
+  otherwise a token inside another's extent is **half-duplex interference** — the inner sentence is
+  kept and the wrecked outer one reported as garbage, never recomposed. `src/definitions.ts` holds the
+  17-sentence table as data. Firmware is **learned** (`FV=`, or `LIVECM` vs `TBRC`) and carried as
+  `protocol.version`; `mode` is in `metadata`. Serial numbers are **strings** so the firmware's
+  inconsistent padding survives. The emitter `data` field is emitted as an opaque `uint16` and
+  **deliberately not decoded** — that encoding is CoreMarine's, so it belongs to the consumer.
+  Six real bugs fixed on the way, incl. an empty `data` field being reported as a real 0.0°
+  inclination. Exposes **`getFakeSentence(id, protocol, options?)`** (deterministic — the defaults are
+  the datasheets' own example sentences) and **`getSentenceDefinition(id, protocol?)`** (self-description
+  for remote diagnosis), both returning `Result` rather than `null`. **259 tests, 100%
+  statements/lines/functions and 96% branches**, thresholds enforced in `vitest.config.ts`.
 
 ## Node-RED components
 
