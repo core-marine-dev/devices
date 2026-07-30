@@ -66,6 +66,9 @@ is refactored.
   for remote diagnosis), both returning `Result` rather than `null`. **259 tests, 100%
   statements/lines/functions and 96% branches**, thresholds enforced in `vitest.config.ts`.
 
+> **Flow-library listings are current** as of 2026-07-30: all three Node-RED components were
+> refreshed on the Node-RED flow library after their major bumps.
+
 ## Version policy
 
 **A library and its Node-RED wrapper share a MAJOR** (locked 2026-07-30): `<library>@N.x` is wrapped

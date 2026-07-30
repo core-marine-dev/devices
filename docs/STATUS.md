@@ -43,8 +43,9 @@ PR [#75](https://github.com/core-marine-dev/devices/pull/75) (merge `c6d7d5d`) p
 wrapper 5.0.0 → dep `^5.0.0` → library 5.0.0, and 2.0.0 → `^2.0.0` → 2.0.0. The version policy
 holds in production, not just in the monorepo.
 
-**➡️ cru's remaining manual step:** refresh the Node-RED flow-library entries for all three
-components (each went to a new major). After that these **three devices are DONE**.
+**✅ Node-RED flow-library entries refreshed for all three components (cru, 2026-07-30).** That was the
+last manual step, so **`nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` are DONE — three of five
+devices, library and wrapper each, published and listed.**
 
 **➡️ NEXT SESSION: `septentrio-sbf`, then `sbg-ecom` — the two binary parsers.** Use the paste-ready
 **"Prompt for the NEXT SESSION"** at the very END of this doc. **Nothing about septentrio has been
@@ -2713,8 +2714,6 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 >
 > ### ALSO OPEN
 >
-> - **cru's manual step, carried over:** refresh the Node-RED flow-library entries for **all three**
->   components — every one went to a new major on 2026-07-30.
 > - **NOT in this repo — Tracker must implement the TB Live inclination bit split** before the new
 >   tblive parser reaches production, or mooring-line inclination silently stops arriving. The notes
 >   were handed over in `TBLIVE-NOTES-FOR-TRACKER.md`, which is **deliberately untracked and
