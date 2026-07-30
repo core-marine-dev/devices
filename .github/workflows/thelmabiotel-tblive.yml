@@ -5,6 +5,10 @@ on:
   push:
     paths:
       - packages/thelmabiotel-tblive/**
+      # This package bundles the private @coremarine/protocol-core into its dist
+      # (tsup noExternal), so a core change alters what it publishes and can break
+      # its tests. The version gate keeps the extra trigger harmless.
+      - packages/core/**
 
 jobs:
   test:
@@ -31,8 +35,13 @@ jobs:
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: 🏗️ Build monorepo deps
+        run: "pnpm run protocol-core:build"
+
+      # Runs with coverage so the thresholds in vitest.config.ts are actually
+      # enforced — they are inert under a plain `vitest` run.
       - name: 🧑‍🔬 Tests
-        run: "pnpm run thelmabiotel-tblive:test"
+        run: "pnpm run thelmabiotel-tblive:test:coverage"
 
       - name: 🛠️ Build
         run: "pnpm run thelmabiotel-tblive:build"
@@ -78,6 +87,10 @@ jobs:
       - name: 📥 Install Dependencies
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build monorepo deps
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run protocol-core:build"
 
       - name: 🛠️ Build
         if: steps.check.outputs.publish == 'true'
