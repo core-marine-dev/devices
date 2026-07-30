@@ -15,6 +15,7 @@
   },
   "keywords": [
     "hydrophone",
+    "cma",
     "acoustic sensor",
     "acoustic detection",
     "tb-live",
@@ -40,10 +41,10 @@
     "dist"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "pnpm run format && tsup",
     "lint": "eslint",
     "format": "eslint --fix",
     "test": "vitest",
@@ -51,9 +52,10 @@
   },
   "dependencies": {
     "@schemasjs/valibot-numbers": "^1.1.1",
-    "@schemasjs/validator": "^2.0.5"
+    "@schemasjs/validator": "^2.0.5",
+    "valibot": "^1.4.2"
   },
-  "peerDependencies": {
-    "valibot": "1.4.2"
+  "devDependencies": {
+    "@coremarine/protocol-core": "workspace:*"
   }
 }
