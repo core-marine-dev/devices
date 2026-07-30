@@ -6,7 +6,7 @@ import { NMEAParser } from '@coremarine/nmea-parser'
 import type { Node, NodeAPI, NodeDef } from 'node-red'
 
 // coded
-import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from './lib'
+import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getDefinition, parsePayload } from './lib'
 
 interface ParserConfig extends NodeDef {
   memory: boolean
@@ -35,7 +35,7 @@ const init = (RED: NodeAPI): void => {
       try {
         msg.memory = applyMemory(parser, msg.memory as never)
         msg.sentences = applySentences(parser, msg.sentences as never, readFile)
-        msg.sentence = getSentenceInfo(parser, msg.sentence)
+        msg.definition = getDefinition(parser, msg.definition)
         msg.fake = getFakeSentence(parser, msg.fake)
         msg.payload = parsePayload(parser, msg.payload)
         cleanUndefined(msg)

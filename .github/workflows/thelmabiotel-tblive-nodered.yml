@@ -5,35 +5,55 @@ on:
   push:
     paths:
       - packages/thelmabiotel-tblive-nodered/**
+      # The wrapper's tests run against the REAL library, which bundles the private
+      # protocol-core — so a change to either can break this package with no job
+      # running. The version gate keeps the extra triggers harmless: tests run,
+      # publish no-ops unless the version changed.
+      - packages/thelmabiotel-tblive/**
+      - packages/core/**
 
 jobs:
-  # Test job stays disabled until the wrapper is refactored onto the new lib API
-  # (it still calls the removed addProtocols API). Re-enable during that refactor.
-  # test:
-  #   name: 🧪 Test
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [22.x, 24.x]
-  #   steps:
-  #     - name: 👍 Checkout
-  #       uses: actions/checkout@v7
-  #     - name: 📦 Setup pnpm
-  #       uses: pnpm/action-setup@v6
-  #     - name: ❇️ Setup node.js
-  #       uses: actions/setup-node@v6
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
-  #     - name: 📥 Install Dependencies
-  #       run: pnpm install --frozen-lockfile
-  #     - name: 🧑‍🔬 Tests
-  #       run: "pnpm run thelmabiotel-tblive:nodered:test"
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: 👍 Checkout
+        uses: actions/checkout@v7
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The wrapper's tests import the real @coremarine/thelmabiotel-tblive, which
+      # bundles the private protocol-core — both dists must exist first.
+      - name: 🛠️ Build monorepo deps
+        run: "pnpm run protocol-core:build && pnpm run thelmabiotel-tblive:build"
+
+      # node-red auto-loads the wrapper from its published entry (dist/parser.js), so the
+      # integration test needs the wrapper built (JS + copied html/icons) before it runs.
+      - name: 🛠️ Build wrapper
+        run: "pnpm run thelmabiotel-tblive:nodered:build"
+
+      - name: 🧑‍🔬 Tests
+        run: "pnpm run thelmabiotel-tblive:nodered:test"
 
   publish:
     name: 🚀 Publish
     runs-on: ubuntu-latest
-    # needs: test
+    needs: test
     if: github.ref == 'refs/heads/main'
 
     # OIDC trusted publishing to npm (no NPM_TOKEN); provenance is emitted automatically.
@@ -71,6 +91,13 @@ jobs:
       - name: 📥 Install Dependencies
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
+
+      # `files` ships dist/, so it must be built before packing. The library stays
+      # external in the bundle, so the dep chain is not needed here — only the tests
+      # import it.
+      - name: 🛠️ Build wrapper
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run thelmabiotel-tblive:nodered:build"
 
       - name: 🚀 Publish to npm
         if: steps.check.outputs.publish == 'true'

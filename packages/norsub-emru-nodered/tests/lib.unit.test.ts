@@ -6,7 +6,7 @@ import { describe, test } from 'node:test'
 import { NorsubParser } from '@coremarine/norsub-emru'
 
 // coded
-import { applyMemory, applyProtocol, applySentences, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from '../src/lib'
+import { applyMemory, applyProtocol, applySentences, cleanUndefined, getDefinition, getFakeSentence, parsePayload } from '../src/lib'
 
 // The OEM manual's example checksums are unreliable, so fixtures are checksummed here.
 const checksum = (body: string): string => {
@@ -114,7 +114,7 @@ describe('applySentences', () => {
   test('content takes precedence over file', () => {
     const parser = new NorsubParser()
     applySentences(parser, { command: 'set', content: YAML, file: '/ignored.yml' }, () => 'not: valid: yaml:')
-    assert.ok(parser.parser.getSentence('PCUST'))
+    assert.ok(parser.parser.getSentenceDefinition('PCUST').success)
   })
 
   test('set without content or file -> error string', () => {
@@ -137,29 +137,31 @@ describe('applySentences', () => {
   })
 })
 
-describe('getSentenceInfo / getFakeSentence', () => {
+describe('getDefinition / getFakeSentence', () => {
   test('absent -> undefined', () => {
-    assert.equal(getSentenceInfo(new NorsubParser(), undefined), undefined)
+    assert.equal(getDefinition(new NorsubParser(), undefined), undefined)
     assert.equal(getFakeSentence(new NorsubParser(), undefined), undefined)
   })
 
   test('non-string -> error string', () => {
-    assert.equal(getSentenceInfo(new NorsubParser(), 42), 'sentence must be a string')
+    assert.equal(getDefinition(new NorsubParser(), 42), 'definition must be a sentence id string')
     assert.equal(getFakeSentence(new NorsubParser(), 42), 'fake sentence id must be a string')
   })
 
   test('a NorSub id resolves through the exposed protocol parser', () => {
     const parser = new NorsubParser()
-    const info = getSentenceInfo(parser, 'PNORSUB8')
-    assert.ok(info !== null && typeof info === 'object', 'a definition, not an error string')
-    assert.equal(info.protocol.name, 'NORSUB8')
+    const definitions = getDefinition(parser, 'PNORSUB8') as { protocol: { name: string } }[]
+    assert.ok(Array.isArray(definitions), 'an array of definitions, not an error string')
+    assert.equal(definitions[0].protocol.name, 'NORSUB8')
     const fake = getFakeSentence(parser, 'PNORSUB8')
     assert.ok(typeof fake === 'string' && fake.startsWith('$PNORSUB8'))
   })
 
-  test('an unknown id -> null, not an error', () => {
-    assert.equal(getSentenceInfo(new NorsubParser(), 'NOPE'), null)
-    assert.equal(getFakeSentence(new NorsubParser(), 'NOPE'), null)
+  test('an unknown id is an error STRING, not null', () => {
+    // v5: the library returns a Result, so the user reads WHY instead of guessing
+    // what a bare `null` meant.
+    assert.match(String(getDefinition(new NorsubParser(), 'NOPE')), /unknown sentence id/)
+    assert.match(String(getFakeSentence(new NorsubParser(), 'NOPE')), /unknown sentence id/)
   })
 })
 

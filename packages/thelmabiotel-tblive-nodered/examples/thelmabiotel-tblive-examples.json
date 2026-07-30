@@ -1,308 +1,228 @@
 [
     {
-        "id": "271b26f860ccf008",
+        "id": "tblive-tab",
         "type": "tab",
-        "label": "TB-Live Parser",
+        "label": "TB Live parser",
         "disabled": false,
-        "info": "",
-        "env": []
+        "info": "# TB Live parser examples\n\nEvery inject on the left feeds the **TB Live** node. Its output is split three ways:\n\n- **CLEAN** — sentences with no `errors`\n- **FLAGGED** — sentences carrying `errors`, including *garbage* ones (`id: \"unknown\"`)\n- **RESPONSES** — answers to `memory` / `firmware` / `ids` / `definition` / `fake`\n\nSentence payloads are the datasheets' own examples (receiver-1.0.1.pdf).\n"
     },
     {
-        "id": "cc787ed4e6d170af",
+        "id": "grp-0",
         "type": "group",
-        "z": "271b26f860ccf008",
-        "name": "Regular Behaviour",
+        "z": "tblive-tab",
+        "name": "Listening data — detections and logs",
         "style": {
             "label": true,
-            "color": "#000000"
+            "fill": "#c0e6c0",
+            "fill-opacity": "0.25"
         },
         "nodes": [
-            "3e237620352f4422",
-            "34b2f0f95aa52b1f",
-            "a80ec7743cf0e8d4",
-            "e4d0482bbace07f3",
-            "8de7cc659e71f27c",
-            "dd466010c1c7d412",
-            "5a68b02986cf9c61",
-            "798cda4ffc0c75a0"
+            "inj-1",
+            "inj-2",
+            "inj-3",
+            "inj-4",
+            "bf477de6cf08fbc6"
         ],
         "x": 34,
-        "y": 259,
-        "w": 712,
+        "y": 119,
+        "w": 382,
         "h": 202
     },
     {
-        "id": "a2f77da62bf8029b",
+        "id": "grp-1",
         "type": "group",
-        "z": "271b26f860ccf008",
-        "name": "Modify Memory",
+        "z": "tblive-tab",
+        "name": "No measurement is not a zero",
         "style": {
             "label": true,
-            "color": "#000000"
+            "fill": "#ffcc80",
+            "fill-opacity": "0.25"
         },
         "nodes": [
-            "59ea8e50207dfa95",
-            "f007f906595860ab",
-            "e51d67dbb83cb850",
-            "66424f5bb10c5a7f",
-            "19304795b767a2fa",
-            "1a603a56b7dd5c81"
+            "inj-5",
+            "5766af7e15e634f2"
         ],
         "x": 34,
-        "y": 499,
-        "w": 702,
+        "y": 339,
+        "w": 422,
+        "h": 82
+    },
+    {
+        "id": "grp-2",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Failed and garbage sentences",
+        "style": {
+            "label": true,
+            "fill": "#ffaaaa",
+            "fill-opacity": "0.25"
+        },
+        "nodes": [
+            "inj-6",
+            "inj-7",
+            "inj-8",
+            "inj-9",
+            "inj-10",
+            "inj-11",
+            "inj-12",
+            "a802b03db9a6198c"
+        ],
+        "x": 514,
+        "y": 339,
+        "w": 422,
+        "h": 322
+    },
+    {
+        "id": "grp-3",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Memory — fire ON, then 1/2, then 2/2",
+        "style": {
+            "label": true,
+            "fill": "#c0deed",
+            "fill-opacity": "0.25"
+        },
+        "nodes": [
+            "inj-13",
+            "inj-14",
+            "inj-15",
+            "inj-16",
+            "inj-17",
+            "e5c2b3ef276c962e"
+        ],
+        "x": 34,
+        "y": 439,
+        "w": 302,
+        "h": 242
+    },
+    {
+        "id": "grp-4",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Firmware — learned, or pinned",
+        "style": {
+            "label": true,
+            "fill": "#d1c4e9",
+            "fill-opacity": "0.25"
+        },
+        "nodes": [
+            "inj-18",
+            "inj-19",
+            "inj-20",
+            "inj-21",
+            "inj-22",
+            "inj-23",
+            "949f30c3afc09c00"
+        ],
+        "x": 34,
+        "y": 699,
+        "w": 342,
+        "h": 282
+    },
+    {
+        "id": "grp-5",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Command mode responses",
+        "style": {
+            "label": true,
+            "fill": "#c0e6c0",
+            "fill-opacity": "0.25"
+        },
+        "nodes": [
+            "inj-24",
+            "inj-25",
+            "inj-26",
+            "inj-27",
+            "inj-28",
+            "inj-29",
+            "inj-30",
+            "ba279d6e1553312a"
+        ],
+        "x": 514,
+        "y": 699,
+        "w": 382,
+        "h": 322
+    },
+    {
+        "id": "grp-6",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Diagnostics — ask what it expects",
+        "style": {
+            "label": true,
+            "fill": "#ffe0b2",
+            "fill-opacity": "0.25"
+        },
+        "nodes": [
+            "inj-31",
+            "inj-32",
+            "inj-33",
+            "inj-34",
+            "6b4007fc3ffded60"
+        ],
+        "x": 514,
+        "y": 1039,
+        "w": 402,
+        "h": 202
+    },
+    {
+        "id": "grp-7",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Fake sentences — deterministic fixtures",
+        "style": {
+            "label": true,
+            "fill": "#e6e0f8",
+            "fill-opacity": "0.25"
+        },
+        "nodes": [
+            "inj-35",
+            "inj-36",
+            "inj-37",
+            "inj-38",
+            "inj-39",
+            "a2b9c0730c70eb59"
+        ],
+        "x": 34,
+        "y": 999,
+        "w": 382,
+        "h": 242
+    },
+    {
+        "id": "grp-out",
+        "type": "group",
+        "z": "tblive-tab",
+        "name": "Parser and output",
+        "style": {
+            "label": true,
+            "fill": "#d9d9d9",
+            "fill-opacity": "0.2"
+        },
+        "nodes": [
+            "tblive-parser",
+            "tblive-split",
+            "dbg-clean",
+            "dbg-flagged",
+            "dbg-resp",
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 514,
+        "y": 119,
+        "w": 752,
         "h": 162
     },
     {
-        "id": "3e237620352f4422",
+        "id": "inj-1",
         "type": "inject",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "One Sentence",
-        "props": [],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 150,
-        "y": 300,
-        "wires": [
-            [
-                "e4d0482bbace07f3"
-            ]
-        ]
-    },
-    {
-        "id": "34b2f0f95aa52b1f",
-        "type": "inject",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "Some Sentences",
-        "props": [],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 160,
-        "y": 340,
-        "wires": [
-            [
-                "8de7cc659e71f27c"
-            ]
-        ]
-    },
-    {
-        "id": "a80ec7743cf0e8d4",
-        "type": "inject",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "Invalid Sentence",
-        "props": [],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 160,
-        "y": 380,
-        "wires": [
-            [
-                "dd466010c1c7d412"
-            ]
-        ]
-    },
-    {
-        "id": "6a6ee5c5862b85e3",
-        "type": "catch",
-        "z": "271b26f860ccf008",
-        "name": "ERRORS",
-        "scope": null,
-        "uncaught": false,
-        "x": 100,
-        "y": 100,
-        "wires": [
-            [
-                "f98f2bfb06e22abf"
-            ]
-        ]
-    },
-    {
-        "id": "f98f2bfb06e22abf",
-        "type": "debug",
-        "z": "271b26f860ccf008",
-        "name": "ERRORS",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 260,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "a5a3b1284fd07605",
-        "type": "cma-thelmabiotel-tblive",
-        "z": "271b26f860ccf008",
-        "name": "",
-        "memory": true,
-        "x": 180,
-        "y": 200,
-        "wires": [
-            [
-                "9951ad612a732e70"
-            ]
-        ]
-    },
-    {
-        "id": "e4d0482bbace07f3",
-        "type": "function",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "One sentence",
-        "func": "const sentence = \"$1000185,0000070780,760,S64K,30075,3,22,67,2621\\r\\n\"\n\nreturn { payload: sentence }",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 380,
-        "y": 300,
-        "wires": [
-            [
-                "5a68b02986cf9c61"
-            ]
-        ]
-    },
-    {
-        "id": "9951ad612a732e70",
-        "type": "debug",
-        "z": "271b26f860ccf008",
-        "name": "TB-Live",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 340,
-        "y": 200,
-        "wires": []
-    },
-    {
-        "id": "8de7cc659e71f27c",
-        "type": "function",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "Some Sentences",
-        "func": "const sentence1 = \"$1000185,0000071080,758,S64K,30331,3,20,67,2634\\r\\n\"\nconst sentence2 = \"$1000185,0000071100,TBR Sensor,322,9,12,67,2635\\r\\n\"\nconst sentence3 = \"$1000185,0000071105,759,S64K,30331,3,22,67,2636\\r\\n\"\n\nconst sentences = sentence1 + sentence2 + sentence3\n\nreturn { payload: sentences }",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 370,
-        "y": 340,
-        "wires": [
-            [
-                "5a68b02986cf9c61"
-            ]
-        ]
-    },
-    {
-        "id": "dd466010c1c7d412",
-        "type": "function",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "Invalid Sentence",
-        "func": "const frame = \"this is an invalid frame\"\n\nreturn { payload: frame }",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 380,
-        "y": 380,
-        "wires": [
-            [
-                "5a68b02986cf9c61",
-                "798cda4ffc0c75a0"
-            ]
-        ]
-    },
-    {
-        "id": "c373d0b69dbffb2a",
-        "type": "link in",
-        "z": "271b26f860ccf008",
-        "name": "TBLive",
-        "links": [
-            "5a68b02986cf9c61",
-            "66424f5bb10c5a7f"
-        ],
-        "x": 75,
-        "y": 200,
-        "wires": [
-            [
-                "a5a3b1284fd07605"
-            ]
-        ]
-    },
-    {
-        "id": "5a68b02986cf9c61",
-        "type": "link out",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "Regular",
-        "mode": "link",
-        "links": [
-            "c373d0b69dbffb2a"
-        ],
-        "x": 705,
-        "y": 300,
-        "wires": []
-    },
-    {
-        "id": "798cda4ffc0c75a0",
-        "type": "function",
-        "z": "271b26f860ccf008",
-        "g": "cc787ed4e6d170af",
-        "name": "Invalid Input",
-        "func": "const sentence = { input: 'invalid' }\n\nreturn { payload: sentence }",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 570,
-        "y": 420,
-        "wires": [
-            [
-                "5a68b02986cf9c61"
-            ]
-        ]
-    },
-    {
-        "id": "59ea8e50207dfa95",
-        "type": "inject",
-        "z": "271b26f860ccf008",
-        "g": "a2f77da62bf8029b",
-        "name": "Memory OFF",
+        "z": "tblive-tab",
+        "g": "grp-0",
+        "name": "detection 1.0.1 (9 fields)",
         "props": [
             {
-                "p": "memory",
-                "v": "false",
-                "vt": "bool"
+                "p": "payload",
+                "v": "$1000042,1589557202,615,S64K,1285,0,24,69,11\r",
+                "vt": "str"
             }
         ],
         "repeat": "",
@@ -310,102 +230,337 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 150,
-        "y": 540,
+        "x": 220,
+        "y": 160,
         "wires": [
             [
-                "66424f5bb10c5a7f"
+                "bf477de6cf08fbc6"
             ]
         ]
     },
     {
-        "id": "f007f906595860ab",
+        "id": "inj-2",
         "type": "inject",
-        "z": "271b26f860ccf008",
-        "g": "a2f77da62bf8029b",
-        "name": "Send split sentence",
-        "props": [],
+        "z": "tblive-tab",
+        "g": "grp-0",
+        "name": "detection 1.0.2 (8 fields)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$001129,1551087409,421,OPs,15,2,37,69\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 200,
+        "wires": [
+            [
+                "bf477de6cf08fbc6"
+            ]
+        ]
+    },
+    {
+        "id": "inj-3",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-0",
+        "name": "receiver log 1.0.1",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1000042,1589557600,TBR Sensor,297,15,29,69,6\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 240,
+        "wires": [
+            [
+                "bf477de6cf08fbc6"
+            ]
+        ]
+    },
+    {
+        "id": "inj-4",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-0",
+        "name": "a stream of three sentences",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1000042,1589557600,TBR Sensor,297,15,29,69,6\r$1000042,1589557202,615,S64K,1285,0,24,69,11\r$1000042,1589557212,615,S64K,1285,0,18,69,12\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 280,
+        "wires": [
+            [
+                "bf477de6cf08fbc6"
+            ]
+        ]
+    },
+    {
+        "id": "inj-5",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-1",
+        "name": "R64K detection, data field EMPTY",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1000042,1589557202,897,R64K,1023,,24,69,9\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 380,
+        "wires": [
+            [
+                "5766af7e15e634f2"
+            ]
+        ]
+    },
+    {
+        "id": "inj-6",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "line noise",
+        "props": [
+            {
+                "p": "payload",
+                "v": "\u0001\u0002not a sentence",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 760,
+        "y": 380,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-7",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "noise then a good sentence",
+        "props": [
+            {
+                "p": "payload",
+                "v": "noise$001129,1551087409,421,OPs,15,2,37,69\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 700,
+        "y": 420,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-8",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "half-duplex: pong inside a sample",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1000042,1589557202,615,S64K,ack01\r1285,0,24,69,11\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 690,
+        "y": 460,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-9",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "unknown field count",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1,2,3\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 730,
+        "y": 500,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-10",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "bad value in a numeric field",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1000042,1589557202,615,S64K,1285,0,oops,69,11\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 710,
+        "y": 540,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-11",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "two SN= sentences back to back",
+        "props": [
+            {
+                "p": "payload",
+                "v": "SN=1000045SN=000745><>\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 690,
+        "y": 580,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-12",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "not a string at all",
+        "props": [
+            {
+                "p": "payload",
+                "v": "{\"input\": \"invalid\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 740,
+        "y": 620,
+        "wires": [
+            [
+                "a802b03db9a6198c"
+            ]
+        ]
+    },
+    {
+        "id": "inj-13",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-3",
+        "name": "memory: get",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\": \"get\"}",
+                "vt": "json"
+            }
+        ],
         "repeat": "",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "x": 170,
-        "y": 620,
+        "y": 480,
         "wires": [
             [
-                "e51d67dbb83cb850"
+                "e5c2b3ef276c962e"
             ]
         ]
     },
     {
-        "id": "e51d67dbb83cb850",
-        "type": "function",
-        "z": "271b26f860ccf008",
-        "g": "a2f77da62bf8029b",
-        "name": "1/2 Sentence",
-        "func": "const sentence = \"$1000185,0000070780,760,S64K,30075,3,22,67,2621\\r\\n\"\n\nreturn { payload: sentence.slice(0, sentence.length - 10) }",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 370,
-        "y": 620,
-        "wires": [
-            [
-                "66424f5bb10c5a7f",
-                "19304795b767a2fa"
-            ]
-        ]
-    },
-    {
-        "id": "66424f5bb10c5a7f",
-        "type": "link out",
-        "z": "271b26f860ccf008",
-        "g": "a2f77da62bf8029b",
-        "name": "Memory",
-        "mode": "link",
-        "links": [
-            "c373d0b69dbffb2a"
-        ],
-        "x": 695,
-        "y": 540,
-        "wires": []
-    },
-    {
-        "id": "19304795b767a2fa",
-        "type": "function",
-        "z": "271b26f860ccf008",
-        "g": "a2f77da62bf8029b",
-        "name": "2/2 Sentence",
-        "func": "const sentence = \"$1000185,0000070780,760,S64K,30075,3,22,67,2621\\r\\n\"\n\nreturn { payload: sentence.slice(sentence.length - 10) }",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 570,
-        "y": 620,
-        "wires": [
-            [
-                "66424f5bb10c5a7f"
-            ]
-        ]
-    },
-    {
-        "id": "1a603a56b7dd5c81",
+        "id": "inj-14",
         "type": "inject",
-        "z": "271b26f860ccf008",
-        "g": "a2f77da62bf8029b",
-        "name": "Memory ON",
+        "z": "tblive-tab",
+        "g": "grp-3",
+        "name": "memory: OFF",
         "props": [
             {
                 "p": "memory",
-                "v": "true",
-                "vt": "bool"
+                "v": "{\"command\": \"set\", \"payload\": false}",
+                "vt": "json"
             }
         ],
         "repeat": "",
@@ -413,12 +568,927 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 150,
-        "y": 580,
+        "x": 170,
+        "y": 520,
         "wires": [
             [
-                "66424f5bb10c5a7f"
+                "e5c2b3ef276c962e"
             ]
         ]
+    },
+    {
+        "id": "inj-15",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-3",
+        "name": "memory: ON",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\": \"set\", \"payload\": true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 170,
+        "y": 560,
+        "wires": [
+            [
+                "e5c2b3ef276c962e"
+            ]
+        ]
+    },
+    {
+        "id": "inj-16",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-3",
+        "name": "1/2 of a detection",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$1000042,1589557202,",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 600,
+        "wires": [
+            [
+                "e5c2b3ef276c962e"
+            ]
+        ]
+    },
+    {
+        "id": "inj-17",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-3",
+        "name": "2/2 of a detection",
+        "props": [
+            {
+                "p": "payload",
+                "v": "615,S64K,1285,0,24,69,11\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 640,
+        "wires": [
+            [
+                "e5c2b3ef276c962e"
+            ]
+        ]
+    },
+    {
+        "id": "inj-18",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "firmware: get",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\": \"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 740,
+        "wires": [
+            [
+                "949f30c3afc09c00"
+            ]
+        ]
+    },
+    {
+        "id": "inj-19",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "pin 1.0.1",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\": \"set\", \"payload\": \"1.0.1\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 780,
+        "wires": [
+            [
+                "949f30c3afc09c00"
+            ]
+        ]
+    },
+    {
+        "id": "inj-20",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "pin 1.0.2",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\": \"set\", \"payload\": \"1.0.2\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 220,
+        "y": 820,
+        "wires": [
+            [
+                "949f30c3afc09c00"
+            ]
+        ]
+    },
+    {
+        "id": "inj-21",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "LIVECM proves 1.0.1",
+        "props": [
+            {
+                "p": "payload",
+                "v": "LIVECM",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 180,
+        "y": 860,
+        "wires": [
+            [
+                "949f30c3afc09c00"
+            ]
+        ]
+    },
+    {
+        "id": "inj-22",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "TBRC proves 1.0.2",
+        "props": [
+            {
+                "p": "payload",
+                "v": "TBRC",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 900,
+        "wires": [
+            [
+                "949f30c3afc09c00"
+            ]
+        ]
+    },
+    {
+        "id": "inj-23",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "FV= states it outright",
+        "props": [
+            {
+                "p": "payload",
+                "v": "FV=1.0.2",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 190,
+        "y": 940,
+        "wires": [
+            [
+                "949f30c3afc09c00"
+            ]
+        ]
+    },
+    {
+        "id": "inj-24",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "frequency",
+        "props": [
+            {
+                "p": "payload",
+                "v": "FC=69",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 740,
+        "y": 740,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-25",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "listening mode (decoded)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "LM=01",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 690,
+        "y": 780,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-26",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "log interval (decoded)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "LI=03",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 700,
+        "y": 820,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-27",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "serial number (answer to SN?)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "SN=1000045",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 680,
+        "y": 860,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-28",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "ping (answer to ?)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "SN=000745><>\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 710,
+        "y": 900,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-29",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "clock acks",
+        "props": [
+            {
+                "p": "payload",
+                "v": "ack01\rack02\r",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 740,
+        "y": 940,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-30",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "every echo, no terminators",
+        "props": [
+            {
+                "p": "payload",
+                "v": "FC=69LM=01LI=03UT=1589561768EX!RR!",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 690,
+        "y": 980,
+        "wires": [
+            [
+                "ba279d6e1553312a"
+            ]
+        ]
+    },
+    {
+        "id": "inj-31",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-6",
+        "name": "ids: every sentence it knows",
+        "props": [
+            {
+                "p": "ids",
+                "v": "true",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 700,
+        "y": 1080,
+        "wires": [
+            [
+                "6b4007fc3ffded60"
+            ]
+        ]
+    },
+    {
+        "id": "inj-32",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-6",
+        "name": "definition: emitter, both firmwares",
+        "props": [
+            {
+                "p": "definition",
+                "v": "\"emitter\"",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 690,
+        "y": 1120,
+        "wires": [
+            [
+                "6b4007fc3ffded60"
+            ]
+        ]
+    },
+    {
+        "id": "inj-33",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-6",
+        "name": "definition: receiver on 1.0.2",
+        "props": [
+            {
+                "p": "definition",
+                "v": "{\"id\": \"receiver\", \"protocol\": \"1.0.2\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 710,
+        "y": 1160,
+        "wires": [
+            [
+                "6b4007fc3ffded60"
+            ]
+        ]
+    },
+    {
+        "id": "inj-34",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-6",
+        "name": "definition: unknown id -> error",
+        "props": [
+            {
+                "p": "definition",
+                "v": "\"nope\"",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 700,
+        "y": 1200,
+        "wires": [
+            [
+                "6b4007fc3ffded60"
+            ]
+        ]
+    },
+    {
+        "id": "inj-35",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-7",
+        "name": "fake: emitter 1.0.1 (datasheet)",
+        "props": [
+            {
+                "p": "fake",
+                "v": "{\"id\": \"emitter\", \"protocol\": \"1.0.1\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1040,
+        "wires": [
+            [
+                "a2b9c0730c70eb59"
+            ]
+        ]
+    },
+    {
+        "id": "inj-36",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-7",
+        "name": "fake: receiver 1.0.2",
+        "props": [
+            {
+                "p": "fake",
+                "v": "{\"id\": \"receiver\", \"protocol\": \"1.0.2\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 1080,
+        "wires": [
+            [
+                "a2b9c0730c70eb59"
+            ]
+        ]
+    },
+    {
+        "id": "inj-37",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-7",
+        "name": "fake: with options",
+        "props": [
+            {
+                "p": "fake",
+                "v": "{\"id\": \"emitter\", \"protocol\": \"1.0.2\", \"options\": {\"receiverID\": \"100345\", \"emitterID\": \"33280\", \"frequency\": 34}}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 1120,
+        "wires": [
+            [
+                "a2b9c0730c70eb59"
+            ]
+        ]
+    },
+    {
+        "id": "inj-38",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-7",
+        "name": "fake: empty data (ID-only)",
+        "props": [
+            {
+                "p": "fake",
+                "v": "{\"id\": \"emitter\", \"protocol\": \"1.0.2\", \"options\": {\"transmitProtocol\": \"R64K\", \"data\": null}}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 210,
+        "y": 1160,
+        "wires": [
+            [
+                "a2b9c0730c70eb59"
+            ]
+        ]
+    },
+    {
+        "id": "inj-39",
+        "type": "inject",
+        "z": "tblive-tab",
+        "g": "grp-7",
+        "name": "fake: missing protocol -> error",
+        "props": [
+            {
+                "p": "fake",
+                "v": "{\"id\": \"emitter\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 200,
+        "y": 1200,
+        "wires": [
+            [
+                "a2b9c0730c70eb59"
+            ]
+        ]
+    },
+    {
+        "id": "tblive-parser",
+        "type": "cma-thelmabiotel-tblive",
+        "z": "tblive-tab",
+        "g": "grp-out",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 680,
+        "y": 200,
+        "wires": [
+            [
+                "tblive-split"
+            ]
+        ]
+    },
+    {
+        "id": "tblive-split",
+        "type": "function",
+        "z": "tblive-tab",
+        "g": "grp-out",
+        "name": "clean / flagged / responses",
+        "func": "// A CMA carries `errors` only when something went wrong, and a garbage\n// sentence has id \"unknown\". Anything that is not a CMA[] is a response to\n// one of the memory / firmware / ids / definition / fake keys.\nif (!Array.isArray(msg.payload)) return [null, null, msg]\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\nreturn [\n  clean.length ? { ...msg, payload: clean } : null,\n  flagged.length ? { ...msg, payload: flagged } : null,\n  null,\n]\n",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 900,
+        "y": 200,
+        "wires": [
+            [
+                "dbg-clean"
+            ],
+            [
+                "dbg-flagged"
+            ],
+            [
+                "dbg-resp"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-clean",
+        "type": "debug",
+        "z": "tblive-tab",
+        "g": "grp-out",
+        "name": "CLEAN",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1120,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "dbg-flagged",
+        "type": "debug",
+        "z": "tblive-tab",
+        "g": "grp-out",
+        "name": "FLAGGED",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1130,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "dbg-resp",
+        "type": "debug",
+        "z": "tblive-tab",
+        "g": "grp-out",
+        "name": "RESPONSES",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1140,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "tblive-catch",
+        "type": "catch",
+        "z": "tblive-tab",
+        "name": "ERRORS",
+        "scope": null,
+        "uncaught": false,
+        "x": 100,
+        "y": 80,
+        "wires": [
+            [
+                "dbg-errors"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-errors",
+        "type": "debug",
+        "z": "tblive-tab",
+        "name": "FLOW ERRORS",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 290,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "bf477de6cf08fbc6",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-0",
+        "name": "link out 1",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 375,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "3929d4ed1ed9e27a",
+        "type": "link in",
+        "z": "tblive-tab",
+        "g": "grp-out",
+        "name": "link in 1",
+        "links": [
+            "bf477de6cf08fbc6",
+            "5766af7e15e634f2",
+            "a802b03db9a6198c",
+            "e5c2b3ef276c962e",
+            "949f30c3afc09c00",
+            "ba279d6e1553312a",
+            "a2b9c0730c70eb59",
+            "6b4007fc3ffded60"
+        ],
+        "x": 555,
+        "y": 200,
+        "wires": [
+            [
+                "tblive-parser"
+            ]
+        ]
+    },
+    {
+        "id": "5766af7e15e634f2",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-1",
+        "name": "link out 2",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 415,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "a802b03db9a6198c",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-2",
+        "name": "link out 3",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 895,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "e5c2b3ef276c962e",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-3",
+        "name": "link out 4",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 295,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "949f30c3afc09c00",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-4",
+        "name": "link out 5",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 335,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "ba279d6e1553312a",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-5",
+        "name": "link out 6",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 855,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "a2b9c0730c70eb59",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-7",
+        "name": "link out 7",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 375,
+        "y": 1120,
+        "wires": []
+    },
+    {
+        "id": "6b4007fc3ffded60",
+        "type": "link out",
+        "z": "tblive-tab",
+        "g": "grp-6",
+        "name": "link out 8",
+        "mode": "link",
+        "links": [
+            "3929d4ed1ed9e27a"
+        ],
+        "x": 875,
+        "y": 1140,
+        "wires": []
     }
 ]

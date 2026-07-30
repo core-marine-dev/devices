@@ -227,18 +227,18 @@ Field `type` is one of the CMA types (`char`, `string`, `boolean`, `int8`…`int
 | `addSentences` | `(yaml: string) => Result<void, NMEAError>` | Feed more known sentences from a YAML string. Never throws. |
 | `getSentences` | `() => StoredSentence[]` | All known sentence definitions. |
 | `getSentencesByProtocol` | `() => Record<string, StoredSentence[]>` | Known definitions grouped by protocol name. |
-| `getSentence` | `(id: string) => Sentence \| null` | Definition for an id (talker-aware), or `null` if unknown. |
-| `getFakeSentenceByID` | `(id: string) => string \| null` | A valid NMEA-like sentence with garbage fields, or `null` if unknown. |
+| `getSentenceDefinition` | `(id: string) => Result<Sentence[], NMEAError>` | Every stored definition for an id (talker-aware) — an ARRAY, one entry per NMEA version. |
+| `getFakeSentence` | `(id: string) => Result<string, NMEAError>` | A valid NMEA-like sentence with garbage fields. Built from the newest definition of the id. |
 | `memory` | `boolean` (get/set) | Carry a half-received sentence between calls. |
 | `bufferLimit` | `number` (get/set) | Max characters held in the carried-over remainder. |
 
 ```typescript
 // known sentences
 const known = parser.getSentencesByProtocol()
-const gga = parser.getSentence('GGA')            // Sentence | null
+const gga = parser.getSentenceDefinition('GGA')   // Result<Sentence[], NMEAError>
 
 // fake sentence (testing)
-const fake = parser.getFakeSentenceByID('AAM')   // string | null
+const fake = parser.getFakeSentence('AAM')       // Result<string, NMEAError>
 ```
 
 ## Extending: device parsers built on NMEA
@@ -335,3 +335,35 @@ const parse = (parser: DeviceParser<string>, chunk: string) => parser.parseData(
 ## Notes
 
 `bufferLimit` defaults to `1024` characters — far more than the NMEA max sentence length (82 characters, flags included) — so a single incomplete sentence always fits. Changing it is not recommended unless you understand the NMEA framing well.
+
+## Upgrading from 4.x
+
+Two methods were renamed and both now return a `Result` instead of `null`, because `null` could not
+say *why* a lookup failed — a malformed id and an unknown id are different mistakes.
+
+| 4.x | 5.0.0 |
+| --- | --- |
+| `getSentence(id): Sentence \| null` | `getSentenceDefinition(id): Result<Sentence[], NMEAError>` |
+| `getFakeSentenceByID(id): string \| null` | `getFakeSentence(id): Result<string, NMEAError>` |
+
+```typescript
+// 4.x
+const gga = parser.getSentence('GGA')
+if (gga !== null) { /* ... */ }
+
+// 5.0.0
+const result = parser.getSentenceDefinition('GGA')
+if (result.success) { /* result.value is Sentence[] */ } else { /* result.error.kind + .message */ }
+```
+
+`getSentenceDefinition` also returns **every** version of an id rather than only the newest. The
+knowledge base has always held one definition per version, but the old method silently discarded all
+but the latest, so an earlier revision could not be inspected at all.
+
+`NMEAError.kind` gained `'invalid-id'` and `'unknown-id'` alongside the existing
+`'invalid-yaml'` / `'invalid-schema'`.
+
+**Renaming rationale:** `getSentence` read like "give me a sentence" when it returns a *definition* —
+one word away from `getFakeSentence`, which does give you a sentence. The same names and shapes are
+now used by `norsub-emru` and `thelmabiotel-tblive`.
+

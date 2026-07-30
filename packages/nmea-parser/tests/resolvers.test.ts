@@ -139,8 +139,12 @@ describe('PSXN end to end', () => {
 
   test('both variants are in the knowledge base as ordinary definitions', () => {
     const parser = new NMEAParser()
-    expect(parser.getSentence('PSXN20')?.payload).toHaveLength(5)
-    expect(parser.getSentence('PSXN23')?.payload).toHaveLength(5)
+    const payloadOf = (id: string): unknown[] => {
+      const found = parser.getSentenceDefinition(id)
+      return found.success ? found.value[0].payload : []
+    }
+    expect(payloadOf('PSXN20')).toHaveLength(5)
+    expect(payloadOf('PSXN23')).toHaveLength(5)
     expect('KONGSBERG SEATEX' in parser.getSentencesByProtocol()).toBe(true)
   })
 })

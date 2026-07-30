@@ -6,7 +6,7 @@ import { describe, test } from 'node:test'
 import { NMEAParser } from '@coremarine/nmea-parser'
 
 // coded
-import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getSentenceInfo, parsePayload } from '../src/lib'
+import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getDefinition, parsePayload } from '../src/lib'
 
 const GGA = '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n'
 const noop = (): string => ''
@@ -56,18 +56,38 @@ describe('applySentences', () => {
   })
 })
 
-describe('getSentenceInfo / getFakeSentence', () => {
+describe('getDefinition / getFakeSentence', () => {
   test('absent -> undefined', () => {
-    assert.equal(getSentenceInfo(new NMEAParser(), undefined), undefined)
+    assert.equal(getDefinition(new NMEAParser(), undefined), undefined)
     assert.equal(getFakeSentence(new NMEAParser(), undefined), undefined)
   })
   test('non-string -> error string', () => {
-    assert.match(String(getSentenceInfo(new NMEAParser(), 42)), /must be a string/)
+    assert.match(String(getDefinition(new NMEAParser(), 42)), /must be a sentence id string/)
     assert.match(String(getFakeSentence(new NMEAParser(), 42)), /must be a string/)
   })
-  test('string id returns a defined result (object|string|null)', () => {
-    assert.doesNotThrow(() => getSentenceInfo(new NMEAParser(), 'GGA'))
-    assert.doesNotThrow(() => getFakeSentence(new NMEAParser(), 'GGA'))
+  test('a known id returns an ARRAY of definitions', () => {
+    const definitions = getDefinition(new NMEAParser(), 'GGA')
+    assert.ok(Array.isArray(definitions))
+    assert.equal(definitions[0].id, 'GGA')
+    assert.equal(definitions[0].protocol.name, 'NMEA')
+  })
+  test('a talker prefix resolves and is reported', () => {
+    const definitions = getDefinition(new NMEAParser(), 'GPGGA') as { talker?: { value: string } }[]
+    assert.equal(definitions[0].talker?.value, 'GP')
+  })
+  test('an unknown id is an error STRING, not null', () => {
+    // v5: the library returns a Result, so the user reads WHY instead of guessing
+    // what a bare `null` meant.
+    assert.match(String(getDefinition(new NMEAParser(), 'ZZZZ')), /unknown sentence id/)
+    assert.match(String(getFakeSentence(new NMEAParser(), 'ZZZZ')), /unknown sentence id/)
+    assert.match(String(getDefinition(new NMEAParser(), 'X')), /invalid sentence id/)
+  })
+  test('a known id gives a fake sentence that parses back', () => {
+    const fake = getFakeSentence(new NMEAParser(), 'GGA') as string
+    assert.match(fake, /^\$GGA,/)
+    const parsed = new NMEAParser().parseData(fake)
+    assert.equal(parsed.length, 1)
+    assert.equal(parsed[0].id, 'GGA')
   })
 })
 

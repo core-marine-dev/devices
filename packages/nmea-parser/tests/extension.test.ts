@@ -58,14 +58,17 @@ class DeviceParserImpl extends NMEAParser {
 describe('extension points for device parsers', () => {
   test('a subclass registers its own protocol definitions', () => {
     const parser = new DeviceParserImpl()
-    const sentence = parser.getSentence('PDEV')
+    const found = parser.getSentenceDefinition('PDEV')
+    expect(found.success).toBe(true)
+    const sentence = found.success ? found.value[0] : undefined
     expect(sentence?.protocol.name).toBe('DEVICE')
     expect(sentence?.payload).toHaveLength(2)
   })
 
   test('the standard NMEA built-ins are still loaded', () => {
     const parser = new DeviceParserImpl()
-    expect(parser.getSentence('GGA')?.protocol.name).toBe('NMEA')
+    const gga = parser.getSentenceDefinition('GGA')
+    expect(gga.success ? gga.value[0].protocol.name : '').toBe('NMEA')
     expect(Object.keys(parser.getSentencesByProtocol())).toContain('NMEA')
   })
 
@@ -86,7 +89,7 @@ describe('extension points for device parsers', () => {
 
   test('a base parser is unaffected by the subclass registry', () => {
     const base = new NMEAParser()
-    expect(base.getSentence('PDEV')).toBeNull()
+    expect(base.getSentenceDefinition('PDEV').success).toBe(false)
     const [unknown] = base.parseData('$PDEV,42,3*32\r\n')
     // Unknown to the base parser: generic decode, no aggregated metadata.
     expect(unknown.protocol.version).toBe('unknown')

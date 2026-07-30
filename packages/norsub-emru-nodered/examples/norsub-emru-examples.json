@@ -27,7 +27,7 @@
         "id": "g-parse",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Examples — parse to CMA[]",
+        "name": "Examples \u2014 parse to CMA[]",
         "style": {
             "label": true
         },
@@ -75,7 +75,7 @@
         "id": "g-protocol",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Protocol API — which protocol the device emits",
+        "name": "Protocol API \u2014 which protocol the device emits",
         "style": {
             "label": true
         },
@@ -95,7 +95,7 @@
         "id": "g-sentences",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Sentences API — hot-expand the parser",
+        "name": "Sentences API \u2014 hot-expand the parser",
         "style": {
             "label": true
         },
@@ -119,7 +119,7 @@
         "id": "g-sentence",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Sentence API — is this id known?",
+        "name": "Sentence API \u2014 is this id known?",
         "style": {
             "label": true
         },
@@ -140,7 +140,7 @@
         "id": "g-fake",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Fake API — a valid sample sentence",
+        "name": "Fake API \u2014 a valid sample sentence",
         "style": {
             "label": true
         },
@@ -160,7 +160,7 @@
         "id": "g-failed",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Failed & garbage sentences — nothing is dropped silently",
+        "name": "Failed & garbage sentences \u2014 nothing is dropped silently",
         "style": {
             "stroke": "#000000",
             "label": true,
@@ -999,10 +999,10 @@
         "type": "inject",
         "z": "norsub-examples-tab",
         "g": "g-sentence",
-        "name": "sentence GET PNORSUB8",
+        "name": "definition GET PNORSUB8",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "PNORSUB8",
                 "vt": "str"
             }
@@ -1025,10 +1025,10 @@
         "type": "inject",
         "z": "norsub-examples-tab",
         "g": "g-sentence",
-        "name": "sentence GET HEHDT",
+        "name": "definition GET HEHDT",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "HEHDT",
                 "vt": "str"
             }
@@ -1051,10 +1051,10 @@
         "type": "inject",
         "z": "norsub-examples-tab",
         "g": "g-sentence",
-        "name": "sentence GET GGA (inherited)",
+        "name": "definition GET GGA (inherited)",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "GGA",
                 "vt": "str"
             }
@@ -1077,10 +1077,10 @@
         "type": "inject",
         "z": "norsub-examples-tab",
         "g": "g-sentence",
-        "name": "sentence GET NOPE -> null",
+        "name": "definition GET NOPE -> error",
         "props": [
             {
-                "p": "sentence",
+                "p": "definition",
                 "v": "NOPE",
                 "vt": "str"
             }
@@ -1190,7 +1190,7 @@
         "type": "inject",
         "z": "norsub-examples-tab",
         "g": "g-fake",
-        "name": "fake NOPE -> null",
+        "name": "fake NOPE -> error",
         "props": [
             {
                 "p": "fake",
@@ -1312,7 +1312,7 @@
         "z": "norsub-examples-tab",
         "g": "g-failed",
         "name": "split clean / flagged",
-        "func": "// 4.0.0 — msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
+        "func": "// 4.0.0 \u2014 msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1353,7 +1353,7 @@
         "type": "debug",
         "z": "norsub-examples-tab",
         "g": "g-failed",
-        "name": "FLAGGED — see errors[]",
+        "name": "FLAGGED \u2014 see errors[]",
         "active": true,
         "tosidebar": true,
         "console": false,

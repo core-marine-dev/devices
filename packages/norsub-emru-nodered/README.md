@@ -222,6 +222,20 @@ pnpm run norsub-emru:nodered:examples    # local Node-RED editing the SHIPPED ex
 CoreMarine category. In this monorepo the sibling `@coremarine/*-nodered` nodes also appear, which
 is harmless and expected — an end user who installs only this package never sees them.
 
+## Upgrading from 3.x
+
+The library it wraps went to **5.0.0**, and wrapper/library majors are now locked together, so
+`@coremarine/norsub-emru-nodered@5.x` always wraps `@coremarine/norsub-emru@5.x`. That is why the version jumps
+from 3.x straight to 5.0.0.
+
+- **`msg.sentence` is now `msg.definition`.** It read like "give me a sentence" when it actually
+  returns a definition — one word away from `msg.fake`, which *does* give you a sentence.
+- **`msg.definition` responds with an ARRAY**, one entry per version of that id. The knowledge base
+  has always held a definition per version; the old call silently returned only the newest.
+- **An unknown id is an error STRING, not `null`.** `msg.definition` and `msg.fake` both say *why*
+  now — a malformed id and an unknown id are different mistakes that `null` could not distinguish.
+
+
 ## License
 
 MIT

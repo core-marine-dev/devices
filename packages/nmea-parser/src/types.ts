@@ -50,6 +50,6 @@ export type NMEASentenceMetadata = SentenceMetadata & {
 // ERRORS (Result pattern — see @coremarine/protocol-core `Result`). Returned,
 // never thrown, by the knowledge-feed functions.
 export interface NMEAError {
-  kind: 'invalid-yaml' | 'invalid-schema'
+  kind: 'invalid-yaml' | 'invalid-schema' | 'invalid-id' | 'unknown-id'
   message: string
 }

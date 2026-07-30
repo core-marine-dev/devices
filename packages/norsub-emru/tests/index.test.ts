@@ -102,8 +102,10 @@ describe('NorsubParser — device facade', () => {
   test('protocol-specific extras are reached through .parser, not delegated', () => {
     const parser = new NorsubParser()
     expect(parser.parser).toBeInstanceOf(NorsubNMEAParser)
-    expect(parser.parser.getSentence('PNORSUB8')?.protocol.name).toBe('NORSUB8')
-    expect(parser).not.toHaveProperty('getSentence')
+    const found = parser.parser.getSentenceDefinition('PNORSUB8')
+    expect(found.success).toBe(true)
+    expect(found.success ? found.value[0].protocol.name : '').toBe('NORSUB8')
+    expect(parser).not.toHaveProperty('getSentenceDefinition')
   })
 })
 
@@ -129,8 +131,9 @@ describe('knowledge base', () => {
     for (const [protocol, sentences] of Object.entries(registered)) {
       if (protocol === 'NMEA') continue
       for (const stored of sentences) {
-        const fake = parser.parser.getFakeSentenceByID(stored.id)
-        expect(fake).not.toBeNull()
+        const result = parser.parser.getFakeSentence(stored.id)
+        expect(result.success).toBe(true)
+        const fake = result.success ? result.value : null
         expect(parser.parseData(`${fake}\r\n`)).toHaveLength(1)
       }
     }
