@@ -10,8 +10,13 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-31 — **`septentrio-sbf` IS RELEASE-READY AND COMMITTED** (`dev` @ `e7a4f64`,
-> six commits, tree clean — see §"THE SESSION IS COMMITTED"). All 108 blocks of
+> **Last updated:** 2026-07-31 (end of session) — **`dev` @ `7557769`, tree clean, 13 commits this
+> session. `septentrio-sbf` IS DONE: all 108 SBF blocks + NMEA as a second protocol. ALL FOUR CMA PAIRS
+> ARE VERSION-BUMPED. NOTHING IS LEFT BUT THE RELEASE PR (`dev` → `main`), which publishes EIGHT
+> packages.** Start at §"⏭️ NEXT SESSION — START HERE" (immediately below this banner) — it has a
+> paste-ready prompt. Everything else in this file is the account of how we got here.
+>
+> **The older banner text below is still accurate for the SBF half of the work.** All 108 blocks of
 > Appendix B modelled (190/190 specs, 0 unmodelled frames left in cru's captures), README +
 > `package.json` + `docs/PACKAGES.md` done, and the **Node-RED wrapper rebuilt and aligned at 2.0.0**
 > (61/61). Three real faults found and fixed along the way: `ExtEventBaseVectGeod` numbered 4216
@@ -40,6 +45,123 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
+> # ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
+
+**State:** `dev` @ `7557769`, **tree clean**, 13 commits ahead of the published `main` (`ef4480b`).
+Everything is committed, every gate is green, and **the only thing left is the release PR.**
+
+| package | version in tree | on npm | note |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | **6.0.0** | 5.0.0 | breaking: `Result` errors are arrays, fakes idempotent |
+| `norsub-emru` + wrapper | **6.0.0** | 5.0.0 | breaking, same cause + delegated introspection |
+| `thelmabiotel-tblive` + wrapper | **3.0.0** | 2.0.0 | breaking: `string[]` → `ParserError[]` |
+| `septentrio-sbf` + wrapper | **2.0.0** | 1.0.1 | the CMA rewrite + NMEA protocol |
+| `sbg-ecom` + wrapper | 0.0.1 / 0.0.2 | — | UNTOUCHED, deliberately: not on `protocol-core` |
+
+**Gate as of this commit** (re-run it, do not trust it): core 43 · nmea **133** · norsub 48 ·
+septentrio **211** · tblive 260 · wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean ·
+`tsc --noEmit` clean in every package · `pnpm install --frozen-lockfile` clean.
+
+## THE job: the release PR
+
+`dev` → `main`. **Merging `main` publishes**; every publish job is gated on
+`github.ref == 'refs/heads/main'` and no-ops unless the version changed, so pushing `dev` is safe.
+**Eight packages publish**: the four libraries and their four wrappers.
+
+Do it in this order, and verify rather than assume:
+
+1. `git push origin dev` and watch the five workflows go green.
+2. Open the PR `dev` → `main`. The body should say what breaks for a consumer:
+   `.error.message` on a failed `Result` now reads `undefined` because the error side became an array;
+   tblive's `error.join('; ')` now yields `[object Object]`; `getFakeSentence` returns the same string
+   every call. All three compile and run at the call site, which is why the majors exist.
+3. After cru merges: verify **against npm, not the workspace** — in an empty temp dir, `npm i` each
+   wrapper and check its library resolved to the MATCHING major (that is the check that caught a real
+   packing leak twice before), and confirm no `_cred.json` / `.backup` in any published tarball.
+4. Then the flow-library entries: `septentrio-sbf-nodered@2.0.0` is NEW and needs one; the other three
+   need refreshing for the new majors. That is cru's manual step — remind him, do not attempt it.
+
+## Then, in cru's stated order
+
+1. **`sbg-ecom`** — the LAST device. Still on legacy `SBGFrameResponse`, not on `protocol-core`,
+   **zero specs**, `engines.node >= 18`, `getFrames()` instead of `parseData()`, `main: index.js` that
+   does not exist in its wrapper, mocha + `node-red-node-test-helper` (broken on node-red 5) so its CI
+   test job is disabled, and it is the only pair with no `version.unit.test.ts` guard. It extends
+   `BinaryParser` like septentrio, so the binary patterns just proven transfer directly: length-prefixed
+   framing, Base64 `raw`, a table-driven engine, the four output tiers. Its CRC-16 Kermit comes from the
+   same `crc` dependency, via the same pure `crc/calculators/*` subpath.
+2. **`nmea-parser`'s standard-sentence gap** (optional, additive): `GMP` and `GFA` are still missing —
+   no field table with a verified example could be found. `ALM` is skipped on purpose (raw hex dump).
+   Leica `GGQ` and `LLK` likewise, unless Tracker talks to Leica gear.
+3. **§QUEUED item 3** — making `nmea-parser` comply with the `$root.timestamp` rule for GGA. cru has
+   said he will carry GGA time across sentences in the **Tracker** layer instead, so confirm before doing it.
+
+## Open items that are NOT blockers, but are real
+
+- ⚠️ **`PSSNHRP` / `PSSNRBD` / `PSSNRBP` / `PSSNRBV` are unverified against hardware.** Appendix C gives
+  worked examples only for `SNC` and `TFM`, so those four rest on the datasheet tables alone — and a
+  wrong field ORDER still parses cleanly, so no test can catch it. **Ask cru for a capture with NMEA
+  output enabled** (`setNMEAOutput` including `HRP`) and check them against it.
+- **The example flow's injects are left-aligned at one x.** Node-RED computes node width from the label
+  at load time and the flow JSON carries no `w` for ordinary nodes, so right-edge alignment cannot be
+  computed offline. cru does that nudge in the editor, as he did for the other three flows.
+- **Nothing in this repo compares a version to npm.** The `version.unit.test.ts` guards compare a
+  wrapper to its sibling library in the workspace — verified by half-bumping one on purpose — but
+  publishing a breaking change at an unchanged version would simply succeed. If that is worth closing it
+  is a CI check against the registry, not a unit test.
+- **`misc/parsers/septentrio/samples/`** still holds 1.x-shaped `{ header, time, body }` baselines that
+  nothing reads. Regenerate or drop; do not trust them as fixtures.
+- **The tally comment in `firmware/4-10-1/index.ts`** calls `LBandTrackerStatus` Status's "14th" when
+  `Status/` already holds 14 without it. The totals sum to 108 correctly; the parenthetical needs
+  someone with the guide open.
+
+## Traps this session paid for — do not rediscover them
+
+- **The wrappers run their tests with `tsx`, which strips types WITHOUT checking them**, and
+  `<pkg>:nodered:lint` does not typecheck either. Three real breaks hid behind 62 passing tests this
+  session. **Run `npx tsc --noEmit -p tsconfig.json` inside a wrapper** whenever its library changes shape.
+- **A fake round trip cannot catch a wrong identifier** — it builds the frame from the same wrong number
+  and agrees with itself. Only an external authority (the datasheet) catches it. That is how
+  `ExtEventBaseVectGeod` sat at 4216 instead of 4217.
+- **Vendor examples are the only defence against a wrong field ORDER**, because a wrong order parses
+  cleanly. Where a vendor example exists, test with it verbatim.
+- **A datasheet example can be wrong**: Appendix C.1.5's own `SNC` prints checksum `68` where the
+  sentence computes `4C`.
+- **`git commit <path>` will not stage an untracked file**; and when splitting a lockfile change across
+  commits, regenerate it per commit with `pnpm install --lockfile-only` or `--frozen-lockfile` breaks at
+  the intermediate commit.
+- **`cd` persists between Bash tool calls.** Use absolute paths.
+
+## Paste-ready prompt for the next session
+
+```
+Read docs/STATUS.md first — start at §"NEXT SESSION — START HERE", which is right under the banner.
+Short version: dev @ 7557769, tree clean, everything committed and green. septentrio-sbf is DONE (all
+108 SBF blocks + NMEA as a second protocol with the six $PSSN sentences), and all four CMA pairs are
+version-bumped: nmea-parser 6.0.0, norsub-emru 6.0.0, thelmabiotel-tblive 3.0.0, septentrio-sbf 2.0.0,
+each with its wrapper at the same major. sbg-ecom is deliberately untouched.
+
+The job is the RELEASE PR, dev -> main, which publishes eight packages. Merging main is what publishes;
+pushing dev is safe (publish jobs are gated on refs/heads/main).
+
+Before anything else, re-run the gate rather than trusting the doc: the five vitest suites, the four
+node-red suites, repo-wide eslint, and tsc --noEmit in each package (that last one matters — the
+wrappers run tests with tsx, which strips types without checking them, and it hid three real breaks
+last session).
+
+Then propose the PR body: it must state the breaking changes in consumer terms — a failed Result's
+.error.message now reads undefined because the error side became an array, tblive's error.join('; ')
+now yields [object Object], and getFakeSentence returns the same string every call.
+
+Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
+Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
+turn as any meaningful change.
+
+One thing to ask cru early: a Septentrio capture with NMEA output enabled (setNMEAOutput including
+HRP). Four of the six $PSSN sentences rest on the datasheet tables alone, and a wrong field order
+parses cleanly, so only a real capture can confirm them.
+```
+
 > # 🎉 SHIPPED 2026-07-30 — SIX PACKAGES LIVE ON npm; nmea + norsub + thelmabiotel are DONE
 
 PR [#75](https://github.com/core-marine-dev/devices/pull/75) (merge `c6d7d5d`) published
@@ -319,10 +441,27 @@ sit at x=200/210/220/240/260 rather than one value. Ours are all at x=200 (left-
 his convention); dragging them to a common right edge is a minute in the editor and cannot be done
 faithfully from here.
 
-# ✅ THE SESSION IS COMMITTED — `dev` @ `e7a4f64`, tree clean (2026-07-31)
+# ✅ THE SESSION IS COMMITTED — `dev` @ `7557769`, tree clean (2026-07-31)
 
-The whole tranche described below is now on `dev` in **six commits**, split so that **every commit is
-green on its own** — which for this repo is not cosmetic: the workflows trigger on push to any branch
+**The full session ledger — 13 commits on `dev`, ahead of the published `main` (`ef4480b`):**
+
+| # | commit | what |
+| --- | --- | --- |
+| 1 | `6149cdc` | `feat(protocol-core)`: base64 + GPS-time + seeded-random helpers |
+| 2 | `da8c0db` | `feat(...)!`: introspection in the contract, errors as arrays (core + 3 libs + 3 wrappers) |
+| 3 | `dd24ebb` | `feat(septentrio-sbf)!`: the CMA rewrite, all 108 blocks, 2.0.0 |
+| 4 | `0202963` | `feat(septentrio-sbf-nodered)!`: the wrapper rebuild, 2.0.0 |
+| 5 | `e7a4f64` | `ci(septentrio-sbf-nodered)`: tests re-enabled, dep chain built, triggers widened |
+| 6 | `4f0f67d` | `docs`: the first six commits recorded |
+| 7 | `34ab0c9` | `chore(release)`: nmea + norsub 6.0.0, tblive 3.0.0, wrappers aligned |
+| 8 | `938220b` | `docs(packages)`: every claim re-verified, **nine were wrong** |
+| 9 | `17af24c` | `refactor(septentrio-sbf-nodered)`: one column of self-contained example groups |
+| 10 | `c5d04e8` | `feat(nmea-parser)`: ten more sentences (standard + Trimble + Leica), 16 → 26 built-ins |
+| 11 | `83c3fc1` | `docs`: those sentences, and the `$PSSN` analysis |
+| 12 | `a859621` | `feat(septentrio-sbf)`: NMEA as the second protocol, the six `$PSSN` sentences |
+| 13 | `7557769` | `docs`: NMEA is in, and how SNC ended up shaped |
+
+The first six were split so that **every commit is green on its own** — which for this repo is not cosmetic: the workflows trigger on push to any branch
 with no branch filter, so a red intermediate commit means a red CI run. Publish stays gated on
 `github.ref == 'refs/heads/main'`, so none of this published anything.
 
@@ -333,7 +472,7 @@ with no branch filter, so a red intermediate commit means a red CI run. Publish 
 | `dd24ebb` | `feat(septentrio-sbf)!`: the CMA rewrite, all 108 blocks, 2.0.0 | 147 files; the legacy wrapper's CI test job was still disabled here, so nothing goes red |
 | `0202963` | `feat(septentrio-sbf-nodered)!`: the wrapper rebuild, 2.0.0 | + the root `package.json` script rename |
 | `e7a4f64` | `ci(septentrio-sbf-nodered)`: tests re-enabled, dep chain built, triggers widened | last, so the re-enabled job first runs on a wrapper that passes |
-| *(this one)* | `docs:` STATUS + PACKAGES | — |
+| `4f0f67d` | `docs:` STATUS + PACKAGES | — |
 
 **The lockfile was split, not carried.** `pnpm-lock.yaml` had two independent deltas — the library
 dropping `gpstime`/gaining the `protocol-core` devDep, and the wrapper gaining `tsx` +
