@@ -21,7 +21,12 @@
 > (`undefined` / `[object Object]` error text) — **fixed, all four wrapper suites now green**; the
 > published packages were never affected. Note the Appendix B total is **108**, not the 107 quoted in
 > older sections.
-> **Next: the release PR, then §QUEUED.** · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
+> **✅ ALL FOUR CMA PAIRS ARE VERSION-BUMPED** (2026-07-31, cru's call): `nmea-parser` +
+> `norsub-emru` **6.0.0**, `thelmabiotel-tblive` **3.0.0**, `septentrio-sbf` **2.0.0**, each with its
+> wrapper at the same major; `sbg-ecom` untouched. The breaks were measured against the published
+> tarballs, not assumed — §"ALL FOUR CMA PAIRS ARE BUMPED".
+> **Next: the release PR (`dev` → `main`), which publishes eight packages, then §QUEUED item 2.** ·
+> **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
 >
@@ -136,10 +141,42 @@ since frozen-install compares the lock against the *manifests*. So the library c
 regenerated with `pnpm install --lockfile-only` against only its own manifest change, and the wrapper
 commit carries the final lock — verified byte-identical to the one the green test run used.
 
-**Not committed, because it is a release decision for cru:** `nmea-parser`, `norsub-emru` and
-`thelmabiotel-tblive` are still at their **published** versions (5.0.0 / 5.0.0 / 2.0.0) while
-`da8c0db` changed their error shape and made fake sentences idempotent — both breaking. They cannot
-be published as-is; the version bumps belong to the release commit, together with §QUEUED item 1.
+# 🔢 ALL FOUR CMA PAIRS ARE BUMPED — the tree is now release-shaped (cru, 2026-07-31)
+
+`da8c0db` broke the three PUBLISHED libraries, so they could not go to npm at their published
+versions. cru's call: major-bump every parser. Applied:
+
+| pair | npm | now | why a MAJOR |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | 5.0.0 | **6.0.0** | error side became an array, and fakes became idempotent |
+| `norsub-emru` + wrapper | 5.0.0 | **6.0.0** | same error change + the three delegated members; packed dep → `^6.0.0` |
+| `thelmabiotel-tblive` + wrapper | 2.0.0 | **3.0.0** | `Result<…, string[]>` → `Result<…, ParserError[]>` |
+| `septentrio-sbf` + wrapper | 1.0.1 | **2.0.0** | already set — the CMA rewrite |
+| `sbg-ecom` + wrapper | — | **unchanged** | untouched since `ef4480b`, and not on `protocol-core` at all (only `crc`) |
+
+**The breaks were MEASURED, not assumed.** Each published tarball was pulled from npm and its
+`dist/index.d.ts` diffed against a fresh build, then run side by side:
+
+| call | published | `dev` |
+| --- | --- | --- |
+| `getSentenceDefinition('NOPE').error` | `{ kind, message }` | `[{ kind, message }]` |
+| `.error.message` | the real message | **`undefined`** |
+| `getFakeSentence('GGA')` twice | two different strings | the same string twice |
+
+All three compile and run at the call site and just quietly do the wrong thing — which is the whole
+argument for the major.
+
+**It is NOT protocol-core that forces the majors,** even though core changed. Core is `private: true`,
+version `0.0.0`, never published, and bundled into each library by tsup `noExternal` — so a core-only
+change would mean *a* release, not a *major* one. What forces these majors is that each library's own
+public API changed. Worth keeping straight in the release notes. (`norsub-emru` does not even bundle
+core: it keeps `@coremarine/nmea-parser` external and inherits the change through it.)
+
+**The gap this leaves open:** the `version.unit.test.ts` guards compare a wrapper to its sibling
+library in the workspace — confirmed working on 2026-07-31 by half-bumping a wrapper on purpose, which
+fails the suite — but NOTHING in this repo compares either to npm. Publishing a breaking change at an
+unchanged version would just succeed. If that is worth closing, it is a CI check against the registry,
+not a unit test.
 
 # 📋 SESSION SUMMARY — 2026-07-31 (all of it now committed — see the section above)
 
@@ -1157,10 +1194,12 @@ single-frame fixtures extracted from cru's captures. The duplicate 91-file corpu
 
 ## ⏭️ QUEUED — only AFTER septentrio-sbf is finished (cru, 2026-07-31)
 
-1. **Republish `nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` (+ their wrappers)** because
-   **`protocol-core` gains new code in this refactor** (base64 + GPS-time helpers). Core is bundled
-   into every library by tsup, so all three ship a changed bundle even though their *behaviour* is
-   unchanged. Majors stay aligned per pair.
+1. ~~**Republish `nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` (+ their wrappers)**~~ —
+   **ABSORBED into the release PR** (2026-07-31), and its premise was WRONG. It assumed the three were
+   being republished only because `protocol-core` gains code that tsup bundles into them, with
+   *behaviour unchanged*. Behaviour did change: the `Result` error side became an array and fake
+   sentences became idempotent. So this is not a rebuild-republish at a patch or minor — all three are
+   **major** bumps (6.0.0 / 6.0.0 / 3.0.0), already applied. See §"ALL FOUR CMA PAIRS ARE BUMPED".
 2. **Add the NMEA protocol to the Septentrio facade.** Septentrio receivers emit NMEA alongside SBF;
    the facade is being built composition-ready from day one (norsub pattern) precisely so this is
    additive. Open when we get there: one-protocol-at-a-time vs a true interleaved multiplexer, and the

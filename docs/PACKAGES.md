@@ -15,11 +15,11 @@ error side is an **array** (`ParserError[]`): one call can be wrong for more tha
 
 | Package | Version | Output | On `protocol-core` | Parser API |
 | --- | --- | --- | --- | --- |
-| `@coremarine/nmea-parser` | **5.0.0** (npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/norsub-emru` | **5.0.0** (npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/nmea-parser` | **6.0.0** (unreleased; 5.0.0 on npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/norsub-emru` | **6.0.0** (unreleased; 5.0.0 on npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | **2.0.0** (unreleased) | **CMA** | ✅ | `new X({protocol?,firmware?,memory?,bufferLimit?})` + `addData(u8)` / `parseData(): CMA[]` |
 | `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ **NEXT** | `addData(buf)` + `getFrames()` |
-| `@coremarine/thelmabiotel-tblive` | **2.0.0** (npm) | **CMA** | ✅ | `addData(str)` + `parseData(): CMA[]` |
+| `@coremarine/thelmabiotel-tblive` | **3.0.0** (unreleased; 2.0.0 on npm) | **CMA** | ✅ | `addData(str)` + `parseData(): CMA[]` |
 
 All: `type: module`, dual ESM/CJS via tsup `exports`, MIT. `engines.node` is `>=22` everywhere except
 **`sbg-ecom`, which still says `>= 18`** — tighten it when it is refactored.
@@ -39,11 +39,16 @@ Test counts, measured 2026-07-31: `protocol-core` 43, `nmea-parser` 120, `norsub
   sentences* (`src/sentences.ts` `scanBuffer`), and `bufferLimit` is finally enforced; (b) **sentence
   resolvers** (`src/resolvers.ts`, third extension point `registerResolvers`) split one wire id into
   several definitions — built-in `$PSXN` → `PSXN20`/`PSXN23` (Kongsberg Seatex). Both in
-  [`CMA.md`](CMA.md). **New in 5.0.0:** the shared introspection contract — `sentenceIds`, plus
-  `getSentence`/`getFakeSentenceByID` renamed to `getSentenceDefinition`/`getFakeSentence` and both
-  returning `Result` with an **array** error side; `protocol` now selects WHICH definition of an id is
-  used; and `getFakeSentence` is **idempotent** (it used to call `Math.random()` per field, so a fixture
-  could not be committed). Remaining cruft: a committed `legacy/` folder + stray root files
+  [`CMA.md`](CMA.md). **In 5.0.0 (published):** `getSentence`/`getFakeSentenceByID` renamed to
+  `getSentenceDefinition`/`getFakeSentence`, both returning a `Result` with a SINGLE
+  `{ kind, message }` error. **New in 6.0.0 (unreleased):** the rest of the shared introspection
+  contract — `sentenceIds` — plus three breaking changes, all verified by diffing the published
+  tarball's `.d.ts` and running it side by side: every `Result` error side is now an **array**
+  (`addSentences`, `getSentenceDefinition`, `getFakeSentence` — so a consumer reading
+  `.error.message` gets `undefined`, which is exactly what broke the wrappers); `protocol` selects
+  WHICH definition of an id is used (new `unknown-protocol` error kind); and `getFakeSentence` is
+  **idempotent** (it used to call `Math.random()` per field, so a fixture could not be committed) with
+  `{ random: true }` as the opt-out. Remaining cruft: a committed `legacy/` folder + stray root files
   (`morenmea.tss`).
 - **norsub-emru** — refactored onto CMA. **4.0.0: inherits both nmea-parser 4.0.0 changes with no source change of its own.** `NorsubParser implements
   DeviceParser<string>` is a device facade that **composes** its protocol parser (one protocol active at a
@@ -147,13 +152,21 @@ Nothing caught it, because that wrapper was one of the two without a `version.un
 test job was disabled. **Resolved 2026-07-31**: the pair is aligned at `2.0.0`, the guard is in place,
 and CI runs it. `sbg-ecom` is now the only pair with no guard.
 
-**⚠️ Three pairs are now AHEAD of npm with an unreleased BREAKING change.** `nmea-parser`,
-`norsub-emru` and `thelmabiotel-tblive` (and their wrappers) still carry their published versions —
-`5.0.0` / `5.0.0` / `2.0.0` — but on `dev` their `Result` error side is an array and their fake
-sentences are idempotent. **They must not be published at those versions**; the bumps are part of the
-release that closes §QUEUED item 1, and each pair moves a major together. The `version.unit.test.ts`
-guards compare a wrapper to its *sibling library*, so they say nothing about npm — this is the one
-drift no test in the repo can catch.
+**Four pairs are AHEAD of npm, three of them with a BREAKING change — bumped 2026-07-31, not yet
+released.** `nmea-parser` and `norsub-emru` go **5.0.0 → 6.0.0**, `thelmabiotel-tblive` **2.0.0 →
+3.0.0**, each with its wrapper; `septentrio-sbf` was already at `2.0.0` from `1.0.1`. The majors are
+not a formality — the breaks were measured against the published tarballs, not assumed:
+`.error.message` on a failed `Result` now reads `undefined` because the error side became an array,
+`error.join('; ')` on tblive's now yields `[object Object]`, and `getFakeSentence` returns the same
+string every call. Each one compiles and runs at the call site, which is why the version has to say so.
+
+`sbg-ecom` is deliberately NOT bumped: it is untouched since `ef4480b` and does not depend on
+`protocol-core` at all (only `crc`), so nothing about it changed.
+
+**This is the one drift no test in this repo can catch.** The `version.unit.test.ts` guards compare a
+wrapper to its *sibling library in the workspace* — verified 2026-07-31 by half-bumping a wrapper on
+purpose, which does fail the suite — but nothing compares either of them to what is on npm. Publishing
+a breaking change at an unchanged version would simply succeed.
 
 ## Node-RED components
 
@@ -161,11 +174,11 @@ Node id is `cma-<device>` in all of them.
 
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
-| nmea-parser-nodered | **5.0.0** (npm) | `workspace:^` → `^5.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
-| norsub-emru-nodered | **5.0.0** (npm) | `workspace:^` → `^5.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
+| nmea-parser-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
+| norsub-emru-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | **2.0.0** (unreleased) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (61/61) | Rebuilt from the nmea/tblive template 2026-07-31. Node type kept as `cma-septentrio-parser` so deployed flows survive. **The first BINARY wrapper**: `payload` takes a Buffer (base64 string / byte array also accepted), and `fake` hands back a Buffer. Adds **protocol** (norsub's channel) + **firmware** (tblive's) selectors, plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis |
 | sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |
-| thelmabiotel-tblive-nodered | **2.0.0** (npm) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
+| thelmabiotel-tblive-nodered | **3.0.0** (unreleased; 2.0.0 on npm) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
 
 **`sbg-ecom-nodered` is the last un-refactored wrapper.** It still uses mocha +
 `node-red-node-test-helper` (which is **incompatible with node-red 5** — that is why its CI test job
