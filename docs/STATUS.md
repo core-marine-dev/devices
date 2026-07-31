@@ -118,6 +118,54 @@ directly. Its CRC-16 Kermit comes from the same `crc` dependency.
 > all in command mode**, which is why `parse.ts` looks the way it does. See §"What the datasheets
 > actually say" and §"The real internal problem, named".
 
+# 🎛️ THE SEPTENTRIO EXAMPLE FLOW IS RE-LAID ONTO THE HOUSE CONVENTION (2026-07-31)
+
+cru asked whether the septentrio example flow needed a refactor. It did — and the problem was
+**structural, not cosmetic**, which is why it looked wrong in the first place.
+
+| | before | after |
+| --- | --- | --- |
+| group x | **20, 500, 1000** (three columns) | **34** (one column, like nmea/norsub) |
+| parser nodes | **1**, shared by all 21 injects | **7**, one per group |
+| longest wire span | **1010 px** across the canvas | **260 px**, all local |
+| injects | 21 | 23 (two clones, see below) |
+
+**Why one column was impossible before.** nmea (6 parsers) and norsub (7) give every group its OWN
+parser, which is what makes each group self-contained and lets them stack in a single column at x=34.
+Septentrio funnelled everything into one parser node parked at x=1000, so the groups HAD to spread
+sideways. Moving coordinates alone would not have fixed it — the wires would just have got longer.
+This is also what cru's "if there are too many wires, put a link node in the middle" rule is for; with
+per-group parsers the longest wire is 260 px and **no link node is needed**.
+
+**Per-group parsers are a correctness fix, not just tidiness.** Each node instance owns its own
+buffer, so the split-frame demo can no longer be polluted by an unrelated inject firing into a shared
+parser — which the old flow allowed.
+
+**The two cloned injects exist for a reason — one of them is load-bearing.** A parser per group means
+an order-dependent demo only works if both halves live in the SAME group:
+
+- `ReceiverTime 5914` is cloned into the **firmware** group, because it teaches the parser the GPS-UTC
+  offset in-band and `firmware: get` then reports `leapSeconds: 18`. Split across groups, that demo
+  silently reports the fallback instead. Its label now says "fire this FIRST".
+- `AttEuler 5938` is cloned into the **"a missing measurement is null, never a zero"** group, which
+  previously held a comment and nothing else. That frame's `Roll`/`RollDot` ARE at Do-Not-Use, so the
+  group now demonstrates its own claim instead of pointing at another group's inject.
+
+**Verified by DRIVING the shipped file, not by loading it.** A real headless node-red booted against
+`examples/septentrio-sbf-examples.json` with every debug node swapped for a capture sink, and all
+**23 injects fired one at a time in flow order** (order matters twice, above). All 26 output messages
+behave as their labels claim: `leapSeconds: 18` after ReceiverTime · 1/2 → `[]` then 2/2 → AttEuler ·
+`Roll: null` + `metadata.doNotUse` · bad CRC decodes **with** errors and junk becomes one garbage
+sentence · `ids` = 108 · `definition: 4007` = 3 entries (one per revision) and `1234` refused with a
+message · `fake` returns Buffers of 44/96/44 bytes. 61/61 wrapper tests, lint and repo-wide lint clean.
+
+**⏭️ Left for cru, deliberately:** the final visual nudge. Node-RED's `x` is a node's CENTRE and the
+flow JSON carries no `w` for ordinary nodes — the editor computes width from the label at load time —
+so **right-edge alignment of injects cannot be computed offline**. That is exactly why norsub's injects
+sit at x=200/210/220/240/260 rather than one value. Ours are all at x=200 (left-aligned, tidy but not
+his convention); dragging them to a common right edge is a minute in the editor and cannot be done
+faithfully from here.
+
 # ✅ THE SESSION IS COMMITTED — `dev` @ `e7a4f64`, tree clean (2026-07-31)
 
 The whole tranche described below is now on `dev` in **six commits**, split so that **every commit is
