@@ -1,12 +1,11 @@
+// coded
 import { receiverTime } from './ReceiverTime'
-import { xppsOffset } from './xPPSOffset'
+import { xPPSOffset } from './xPPSOffset'
 
-import type { SBFBodyDataMap } from '../../../types'
+import type { BlockDefinition } from '../../../types'
 
-const blocks: SBFBodyDataMap = new Map()
-// 5914 - ReceiverTime
-blocks.set(5914, receiverTime)
-// 5911 - xPPSOffset
-blocks.set(5911, xppsOffset)
-
-export { blocks }
+// §4.2.11 Receiver Time Blocks — complete for firmware 4.10.1.
+export const blocks: readonly BlockDefinition[] = [
+  receiverTime,
+  xPPSOffset,
+]

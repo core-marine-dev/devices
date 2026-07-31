@@ -1,8 +1,8 @@
 {
   "name": "@coremarine/septentrio-sbf",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "author": "CoreMarine",
-  "description": "It is a library to parse SBF data. SBF is a private binary protocol of Septentrio trademark which uses in its GNSS devices",
+  "description": "Library to parse SBF (Septentrio Binary Format) data from Septentrio GNSS receivers, with every documented block decoded",
   "license": "MIT",
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/septentrio-sbf",
   "repository": {
@@ -18,8 +18,10 @@
     "core-marine",
     "septentrio",
     "sbf",
+    "asterx",
     "gnss",
     "gps",
+    "rtk",
     "binary",
     "protocol"
   ],
@@ -43,7 +45,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "pnpm run format && tsup",
@@ -53,7 +55,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "crc": "^4.3.2",
-    "gpstime": "^1.0.3"
+    "crc": "^4.3.2"
+  },
+  "devDependencies": {
+    "@coremarine/protocol-core": "workspace:*"
   }
 }

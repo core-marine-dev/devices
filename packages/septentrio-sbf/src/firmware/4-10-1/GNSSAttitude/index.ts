@@ -1,17 +1,15 @@
+// coded
 import { attCovEuler } from './AttCovEuler'
 import { attEuler } from './AttEuler'
 import { auxAntPositions } from './AuxAntPositions'
 import { endOfAtt } from './EndOfAtt'
 
-import type { SBFBodyDataMap } from '../../../types'
+import type { BlockDefinition } from '../../../types'
 
-const blocks: SBFBodyDataMap = new Map()
-// 5938 - AttEuler
-blocks.set(5938, attEuler)
-// 5939 - AttCovEuler
-blocks.set(5939, attCovEuler)
-// 5942 - AuxAntPositions
-blocks.set(5942, auxAntPositions)
-// 5943- EndOfAtt
-blocks.set(5943, endOfAtt)
-export { blocks }
+// §4.2.10 GNSS Attitude Blocks — complete for firmware 4.10.1.
+export const blocks: readonly BlockDefinition[] = [
+  attEuler,
+  attCovEuler,
+  auxAntPositions,
+  endOfAtt,
+]

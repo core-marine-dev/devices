@@ -1,245 +1,80 @@
-import { wnTowToGpsTimestamp } from 'gpstime'
+// installed
+import type { CMA, DeviceParser, Result } from '@coremarine/protocol-core'
 
-import {
-  BODY_INDEX,
-  CRC_INDEX,
-  CRC_LENGTH,
-  DO_NOT_USE_TOW,
-  DO_NOT_USE_WNC,
-  HEADER_LENGTH,
-  ID_INDEX,
-  LENGTH_INDEX,
-  LENGTH_LENGTH,
-  MINIMAL_FRAME_LENGTH,
-  SYNC_FLAG_BUFFER, TIME_LENGTH, TOW_INDEX, TOW_LENGTH, TWO_BYTES_MAX, WNC_INDEX, WNC_LENGTH,
-  SBF_PARSING_STATUS,
-} from './constants'
-import { getFirmareParser, getFirmwares, isAvailableFirmware, throwFirmwareError } from './firmware'
-import type { Firmware, SBFBodyData, SBFBodyDataParser, SBFHeader, SBFID, SBFResponse, SBFTime, SeptentrioParser, SBFParsingStatus } from './types'
-import { computedCRC } from './utils'
+// coded
+import { SBFParser } from './protocol-sbf'
+import { SEPTENTRIO_PROTOCOLS } from './types'
+import type { FakeOptions, SBFError, SBFSentenceDefinition, SeptentrioParserOptions, SeptentrioProtocol } from './types'
 
-export class Parser implements SeptentrioParser {
-  // Internal Buffer
-  protected _buffer: Buffer = Buffer.from([])
-  get bufferLength(): typeof this._buffer.byteLength { return this._buffer.byteLength }
+// The DEVICE parser. A Septentrio receiver can be configured to emit SBF, NMEA
+// or RTCM on the same port, so the device is not the same thing as the protocol:
+// this facade COMPOSES a protocol parser rather than being one (the pattern
+// norsub-emru settled on). Today there is exactly one protocol, `sbf`; adding
+// NMEA later is a new entry in the registry below plus a bytes-to-string shim,
+// with no change to this class's public surface.
+type ProtocolFactory = (options: SeptentrioParserOptions) => SBFParser
 
-  protected _bufferLimit: number = TWO_BYTES_MAX
-  get bufferLimit(): typeof this._bufferLimit { return this._bufferLimit }
-  set bufferLimit(limit: number) {
-    if (isNaN(limit)) throw new Error('limit has to be a number')
-    if (!Number.isInteger(limit)) throw new Error('limit has to be a number')
-    if (limit < 0) throw new Error('limit has to be a positive integer')
-    if (limit < 1) throw new Error('limit has to be a positive integer greater than zero')
-    this._bufferLimit = Math.trunc(limit)
-    this.setBuffer()
+const factories: Readonly<Record<SeptentrioProtocol, ProtocolFactory>> = {
+  sbf: (options) => new SBFParser(options),
+}
+
+export class SeptentrioParser implements DeviceParser<Uint8Array> {
+  protected _protocol: SeptentrioProtocol = 'sbf'
+  protected _parser: SBFParser
+
+  constructor(options: SeptentrioParserOptions = {}) {
+    const { protocol, ...rest } = options
+    // Never throws: an unknown protocol falls back to the default.
+    if (protocol !== undefined && SEPTENTRIO_PROTOCOLS.includes(protocol)) this._protocol = protocol
+    this._parser = factories[this._protocol](rest)
   }
 
-  // Internal Parsed Frames
-  protected _frames: SBFResponse[] = []
-  // Firmware
-  protected _firmware: Firmware = '4.10.1'
-  protected _parser: SBFBodyDataParser = getFirmareParser(this._firmware) as SBFBodyDataParser
-  get firmware(): typeof this._firmware { return this._firmware }
-  set firmware(fw: Firmware) {
-    if (typeof fw !== 'string') throw new Error('firmware has to be a string')
-    if (!isAvailableFirmware(fw)) throwFirmwareError(fw)
-    this._firmware = fw
-    const parser = getFirmareParser(fw)
-    if (parser === undefined) {
-      throwFirmwareError(`Invalid firmware ${fw}`)
-    } else {
-      this._parser = parser
-    }
+  // The active protocol parser, for everything protocol-specific (firmware,
+  // block definitions). Exposed as one getter instead of delegating method by
+  // method, so a new protocol does not force this class to grow.
+  get parser(): SBFParser { return this._parser }
+
+  get protocol(): SeptentrioProtocol { return this._protocol }
+  // Switching protocol DISCARDS the buffer and any undrained sentences: the
+  // bytes were being interpreted under different framing rules, so keeping them
+  // would be worse than dropping them. An invalid value is ignored.
+  set protocol(protocol: SeptentrioProtocol) {
+    if (!SEPTENTRIO_PROTOCOLS.includes(protocol)) return
+    // Resolved before the equality check below: with a single-member union TS
+    // narrows `protocol` to `never` after it, and this reads better than a cast.
+    const factory = factories[protocol]
+    if (protocol === this._protocol) return
+    const { firmware, memory, bufferLimit } = this._parser
+    this._protocol = protocol
+    this._parser = factory({ memory, bufferLimit, firmware })
   }
 
-  // Memory
-  protected _memory: boolean = false
-  get memory(): typeof this._memory { return this._memory }
-  set memory(mem: boolean) {
-    if (typeof mem !== 'boolean') throw new Error('memory has to be boolean')
-    this._memory = mem
+  get protocols(): readonly SeptentrioProtocol[] { return SEPTENTRIO_PROTOCOLS }
+
+  get firmware(): string { return this._parser.firmware }
+  set firmware(firmware: string) { this._parser.firmware = firmware }
+
+  get memory(): boolean { return this._parser.memory }
+  set memory(memory: boolean) { this._parser.memory = memory }
+
+  get bufferLimit(): number { return this._parser.bufferLimit }
+  set bufferLimit(bufferLimit: number) { this._parser.bufferLimit = bufferLimit }
+
+  get buffer(): Uint8Array { return this._parser.buffer }
+
+  addData(data: Uint8Array): void { this._parser.addData(data) }
+
+  parseData(data?: Uint8Array): CMA[] { return this._parser.parseData(data) }
+
+  // The introspection surface every CoreMarine parser exposes, delegated to the
+  // active protocol parser.
+  get sentenceIds(): string[] { return this._parser.sentenceIds }
+
+  getSentenceDefinition(id: number | string, protocol?: string): Result<SBFSentenceDefinition[], SBFError[]> {
+    return this._parser.getSentenceDefinition(id, protocol)
   }
 
-  constructor(firmware: Firmware = '4.10.1', memory: boolean = false) {
-    this.firmware = firmware
-    this.memory = memory
-  }
-
-  getAvailableFirmwares(): Firmware[] {
-    return getFirmwares()
-  }
-
-  addData(data: Buffer): void {
-    // Check input data is Buffer
-    if (!Buffer.isBuffer(data)) {
-      throw new Error('data has to be a Buffer')
-    }
-    // Add data
-    this._buffer = (this._memory) ? Buffer.concat([this._buffer, data]) : data
-    // Parse data
-    this._parseData()
-  }
-
-  parseData(): SBFResponse[] {
-    const frames = structuredClone(this._frames)
-    this._frames = []
-    return frames
-  }
-
-  protected _parseData(): void {
-    const frames = [] as SBFResponse[]
-    let pivot = 0
-    // Get last Index
-    const lastIndex = this._buffer.lastIndexOf(SYNC_FLAG_BUFFER)
-    do {
-      // Get start of next frame
-      const index = this._buffer.indexOf(SYNC_FLAG_BUFFER, pivot)
-      if (index === -1) {
-        this._buffer = Buffer.from([])
-        break
-      }
-      // Refactor buffer
-      const buffer = this._buffer.subarray(index)
-      // Check buffer has the minimun length
-      if (buffer.length < MINIMAL_FRAME_LENGTH) {
-        console.debug('parseData: Not enough data get a frame')
-        this._buffer = this._buffer.subarray(lastIndex)
-        break
-      }
-      // Get frame
-      const { status, frame: sbfFrame } = this.getSBFFrame(buffer)
-      // Correct frame
-      if (status === SBF_PARSING_STATUS.OK) {
-        frames.push(sbfFrame)
-        pivot = index + sbfFrame.buffer.length
-        continue
-      }
-      // Incomplete frame and last incomplete frame
-      if (status === SBF_PARSING_STATUS.MISSING_BYTES && index === lastIndex) {
-        this._buffer = this._buffer.subarray(lastIndex)
-        break
-      }
-      // pivot = index + SYNC_LENTGH
-      pivot = index + 1
-    } while (true)
-    // Update frames
-    this.updateFrames(frames)
-    // Limit buffer
-    this.setBuffer()
-  }
-
-  protected getSBFFrame(buffer: Buffer): { status: SBFParsingStatus, frame: SBFResponse } {
-    let status: SBFParsingStatus = SBF_PARSING_STATUS.OK
-    // @ts-expect-error will be completed in the next lines
-    const sbfFrame: SBFResponse = {}
-    // HEADER
-    const header = this.getHeader(buffer)
-    // @ts-expect-error will be completed in the next lines
-    sbfFrame.frame = { header }
-    // Check length
-    const frameLength = header.length
-    if (buffer.length < frameLength) {
-      console.debug('getSBFFrame: SBF Frame is incomplete')
-      status = SBF_PARSING_STATUS.MISSING_BYTES
-      return { status, frame: sbfFrame }
-    }
-    if ((frameLength % 4) !== 0) {
-      console.debug('getSBFFrame: SBF Frame length is wrong')
-      status = SBF_PARSING_STATUS.ERROR_LENGTH
-      return { status, frame: sbfFrame }
-    }
-    const bodyLength = frameLength - (HEADER_LENGTH + TIME_LENGTH)
-    const frameBuffer = buffer.subarray(0, frameLength)
-    sbfFrame.buffer = frameBuffer
-    // Check CRC
-    const crc = this.getCalculatecCRC(frameBuffer, bodyLength)
-    if (crc !== header.crc) {
-      console.debug(`getSBFFrame: Invalid CRC - should be ${header.crc} -> get it ${crc}`)
-      status = SBF_PARSING_STATUS.ERROR_CRC
-      return { status, frame: sbfFrame }
-    }
-    // TIME
-    const time = this.getTime(frameBuffer)
-    sbfFrame.frame.time = time
-    // BODY
-    sbfFrame.number = header.id.blockNumber
-    sbfFrame.version = header.id.blockRevision
-    const bodyBuffer = frameBuffer.subarray(BODY_INDEX, BODY_INDEX + bodyLength)
-    const { name, body } = this.getBodyData(header.id.blockNumber, header.id.blockRevision, bodyBuffer)
-    sbfFrame.name = name
-    sbfFrame.frame.body = body
-    return { status, frame: sbfFrame }
-  }
-
-  protected getNumberVersion(id: Buffer): SBFID {
-    // ID = 16 bits = 2 bytes
-    // 00-12 bits -> block number
-    // 13-15 bits -> block version
-    const number0 = id[0]
-    const number1 = id[1] & 0b00011111
-    const number = Buffer.from([number0, number1]).readUInt16LE()
-    const revisionByte = (id[1] & 0b11100000) >>> 5
-    const revision = Buffer.from([revisionByte]).readUIntLE(0, 1)
-    return {
-      blockNumber: number,
-      blockRevision: revision,
-    }
-  }
-
-  protected getCalculatecCRC(frame: Buffer, bodyLength: number): number {
-    const start = ID_INDEX
-    const end = BODY_INDEX + bodyLength
-    const rawData = frame.subarray(start, end)
-    return computedCRC(rawData)
-  }
-
-  protected getHeader(data: Buffer): SBFHeader {
-    // 00-01 bytes -> Sync    char
-    // 02-03 bytes -> CRC     uint16 LE
-    // 04-05 bytes -> ID      uint16 LE
-    // 06-07 bytes -> Length  uint16 LE
-    // 08-.. bytes -> Rest    bytes
-    const sync = data.toString('ascii', 0, CRC_INDEX)
-    const crc = data.readUIntLE(CRC_INDEX, CRC_LENGTH)
-    const idBuffer = data.subarray(ID_INDEX, LENGTH_INDEX)
-    const id = this.getNumberVersion(idBuffer)
-    const length = data.readUIntLE(LENGTH_INDEX, LENGTH_LENGTH)
-    return { sync, crc, id, length }
-  }
-
-  protected getTime(data: Buffer): SBFTime {
-    // 08-11 bytes -> TOW     uint32 LE | Do-Not-Use = 4294967295
-    // 12-13 bytes -> WNc     uint16 LE | Do-Not-Use = 65535
-    // 14-.. bytes -> Body
-    const tow = data.readUIntLE(TOW_INDEX, TOW_LENGTH)
-    const wnc = data.readUIntLE(WNC_INDEX, WNC_LENGTH)
-    const time: SBFTime = {
-      tow: (tow !== DO_NOT_USE_TOW) ? tow : null,
-      wnc: (wnc !== DO_NOT_USE_WNC) ? wnc : null,
-      timestamp: null,
-      date: null,
-    }
-    if (time.tow !== null && time.wnc !== null) {
-      const date = wnTowToGpsTimestamp(wnc, tow)
-      time.timestamp = date.getTime()
-      time.date = date.toISOString()
-    }
-    return time
-  }
-
-  protected getBodyData(blockNumber: number, blockRevision: number, payload: Buffer): SBFBodyData {
-    return this._parser(blockNumber, blockRevision, payload)
-  }
-
-  protected updateFrames(frames: SBFResponse[]): void {
-    if (frames.length > 0) {
-      this._frames = (this._memory) ? this._frames.concat(frames) : frames
-    }
-  }
-
-  protected setBuffer(): void {
-    if (this._buffer.length > this._bufferLimit) {
-      this._buffer = this._buffer.subarray(-this._bufferLimit)
-    }
+  getFakeSentence(id: number | string, protocol?: string, options?: FakeOptions): Result<Uint8Array, SBFError[]> {
+    return this._parser.getFakeSentence(id, protocol, options)
   }
 }

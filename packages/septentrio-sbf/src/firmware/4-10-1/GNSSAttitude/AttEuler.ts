@@ -1,20 +1,24 @@
-import { BYTES_LENGTH } from '../../../constants'
-import type { Padding, SBFBodyData } from '../../../types'
-import { bitState, getPadding } from '../../../utils'
+// coded
+import { attitudeError } from './error'
+
+import { DO_NOT_USE_FLOAT } from '../../../constants'
+import type { BlockDefinition, Decoder, FieldDefinition } from '../../../types'
+import { label } from '../../../utils'
+
 /* AttEuler -> Number: 5938 => "OnChange" interval: default PVT output rate
   The AttEuler block contains the Euler angles (pitch, roll and heading)
-  at the time speciﬁed in the TOW and WNc ﬁelds (in the receiver time frame).
+  at the time specified in the TOW and WNc fields (in the receiver time frame).
 
   AttEuler -------------------------------------------------------------
   Block fields           Type    Units Do-Not-Use  Description
   NrSV                  uint8                 255  The average over all antennas of the number of satellites currently included in the attitude calculations.
-  Error                 uint8                      Bit ﬁeld providing error information. For each antenna baseline, two bits are used to provide error information:
+  Error                 uint8                      Bit field providing error information. For each antenna baseline, two bits are used to provide error information:
                                                      Bits 0-1: Error code for Main-Aux1 baseline:
                                                        0: No error
                                                        1: Not enough measurements
                                                        2: Reserved
                                                        3: Reserved
-                                                     Bits 2-3: Error code for Main-Aux2 baseline, same deﬁnition as bit 0-1:
+                                                     Bits 2-3: Error code for Main-Aux2 baseline, same definition as bit 0-1:
                                                        0: No error
                                                        1: Not enough measurements
                                                        2: Reserved
@@ -23,10 +27,10 @@ import { bitState, getPadding } from '../../../utils'
                                                      Bit    7: Set when GNSS-based attitude not requested by user. In that case, the other bits are all zero.
   Mode                 uint16                      Attitude mode code:
                                                      0: No attitude
-                                                     1: Heading, pitch (roll = 0), aux antenna positions obtained with ﬂoat ambiguities
-                                                     2: Heading, pitch (roll = 0), aux antenna positions obtained with ﬁxed ambiguities
-                                                     3: Heading, pitch, roll, aux antenna positions obtained with ﬂoat ambiguities
-                                                     4: Heading, pitch, roll, aux antenna positions obtained with ﬁxed ambiguities
+                                                     1: Heading, pitch (roll = 0), aux antenna positions obtained with float ambiguities
+                                                     2: Heading, pitch (roll = 0), aux antenna positions obtained with fixed ambiguities
+                                                     3: Heading, pitch, roll, aux antenna positions obtained with float ambiguities
+                                                     4: Heading, pitch, roll, aux antenna positions obtained with fixed ambiguities
   Reserved             uint16                      Reserved for future use, to be ignored by decoding software
   Heading               float      deg  -2 * 10¹⁰  Heading
   Pitch                 float      deg  -2 * 10¹⁰  Pitch
@@ -35,149 +39,50 @@ import { bitState, getPadding } from '../../../utils'
   RollDot               float  deg/sec  -2 * 10¹⁰  Rate of change of the roll angle
   HeadingDot            float  deg/sec  -2 * 10¹⁰  Rate of change of the heading angle
   Padding                uint                      Padding bytes
+
+  ⚠️ THE ORDER OF THE LAST THREE FIELDS IS PitchDot, RollDot, HeadingDot.
+  The 1.x parser laid them out HeadingDot, PitchDot, RollDot, so all three rates
+  came back on the wrong axis — and its unit test built its buffer in the same
+  wrong order, so the suite agreed with the bug. On a real captured frame it
+  reported a roll rate of 0.313 deg/s for a frame whose roll was Do-Not-Use.
+  This table IS the layout now: there is no second list to disagree with it.
 */
-const NRSV_INDEX = 0
-const NRSV_LENGTH = BYTES_LENGTH.UINT8
+const FIELDS: readonly FieldDefinition[] = [
+  { name: 'NrSV', type: 'uint8', doNotUse: 255, description: 'The average over all antennas of the number of satellites currently included in the attitude calculations' },
+  { name: 'Error', type: 'uint8', description: 'Bit field: bits 0-1 Main-Aux1 baseline error code, bits 2-3 Main-Aux2, bit 7 set when GNSS-based attitude was not requested' },
+  { name: 'Mode', type: 'uint16', description: 'Attitude mode code: 0 no attitude, 1-2 heading and pitch (roll = 0) with float/fixed ambiguities, 3-4 heading, pitch and roll with float/fixed ambiguities' },
+  { name: 'Reserved', type: 'uint16', reserved: true, description: 'Reserved for future use, to be ignored by decoding software' },
+  { name: 'Heading', type: 'float32', units: 'deg', doNotUse: DO_NOT_USE_FLOAT, description: 'Heading' },
+  { name: 'Pitch', type: 'float32', units: 'deg', doNotUse: DO_NOT_USE_FLOAT, description: 'Pitch' },
+  { name: 'Roll', type: 'float32', units: 'deg', doNotUse: DO_NOT_USE_FLOAT, description: 'Roll' },
+  { name: 'PitchDot', type: 'float32', units: 'deg/s', doNotUse: DO_NOT_USE_FLOAT, description: 'Rate of change of the pitch angle' },
+  { name: 'RollDot', type: 'float32', units: 'deg/s', doNotUse: DO_NOT_USE_FLOAT, description: 'Rate of change of the roll angle' },
+  { name: 'HeadingDot', type: 'float32', units: 'deg/s', doNotUse: DO_NOT_USE_FLOAT, description: 'Rate of change of the heading angle' },
+]
 
-const ERROR_INDEX = NRSV_INDEX + NRSV_LENGTH
-const ERROR_LENGTH = BYTES_LENGTH.UINT8
-
-const MODE_INDEX = ERROR_INDEX + ERROR_LENGTH
-const MODE_LENGTH = BYTES_LENGTH.UINT16
-
-const RESERVED_INDEX = MODE_INDEX + MODE_LENGTH
-const RESERVED_LENGTH = BYTES_LENGTH.UINT16
-
-const HEADING_INDEX = RESERVED_INDEX + RESERVED_LENGTH
-const HEADING_LENGTH = BYTES_LENGTH.FLOAT
-
-const PITCH_INDEX = HEADING_INDEX + HEADING_LENGTH
-const PITCH_LENGTH = BYTES_LENGTH.FLOAT
-
-const ROLL_INDEX = PITCH_INDEX + PITCH_LENGTH
-const ROLL_LENGTH = BYTES_LENGTH.FLOAT
-
-const HEADING_DOT_INDEX = ROLL_INDEX + ROLL_LENGTH
-const HEADING_DOT_LENGTH = BYTES_LENGTH.FLOAT
-
-const PITCH_DOT_INDEX = HEADING_DOT_INDEX + HEADING_DOT_LENGTH
-const PITCH_DOT_LENGTH = BYTES_LENGTH.FLOAT
-
-const ROLL_DOT_INDEX = PITCH_DOT_INDEX + PITCH_DOT_LENGTH
-const ROLL_DOT_LENGTH = BYTES_LENGTH.FLOAT
-
-const PADDING_INDEX = ROLL_DOT_INDEX + ROLL_DOT_LENGTH
-
-export const ERROR_CODE = {
-  NO: 'NO_ERROR',
-  MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
-  RESERVED: 'RESERVED',
-  UNKNOWN: 'UNKNOWN',
-} as const
-export type ErrorCode = typeof ERROR_CODE[keyof typeof ERROR_CODE]
-
-const getErrorCode = (error: number): ErrorCode => {
-  switch (error) {
-    case 0: return ERROR_CODE.NO
-    case 1: return ERROR_CODE.MEASUREMENTS
-    case 2:
-    case 3: return ERROR_CODE.RESERVED
-  }
-  return ERROR_CODE.UNKNOWN
+export const ATTITUDE_MODE: Readonly<Record<number, string>> = {
+  0: 'NO_ATTITUDE',
+  1: 'HEADING_PITCH_FLOAT',
+  2: 'HEADING_PITCH_FIXED',
+  3: 'HEADING_PITCH_ROLL_FLOAT',
+  4: 'HEADING_PITCH_ROLL_FIXED',
 }
 
-export interface Error {
-  mainAux1Baseline: ErrorCode
-  mainAux2Baseline: ErrorCode
-  reserved: number
-  notRequestedAttitude: boolean
+const decoders: Readonly<Record<string, Decoder>> = {
+  Error: attitudeError,
+  Mode: (value) => label(ATTITUDE_MODE, value),
 }
 
-const getError = (error: number): Error => {
-  const main1 = (error & 0b00000011)
-  const main2 = (error & 0b00001100) >>> 2
-  const reserved = (error & 0b01110000) >>> 4
-  const notRequestedAttitude = bitState(error, 7)
-  return {
-    mainAux1Baseline: getErrorCode(main1),
-    mainAux2Baseline: getErrorCode(main2),
-    reserved,
-    notRequestedAttitude,
-  }
-}
-
-export const MODE = {
-  NO: 'NO_ATTITUDE',
-  HEADING_PICH_FLOAT: 'HEADING_PICH_FLOAT',
-  HEADING_PICH_FIXED: 'HEADING_PICH_FIXED',
-  HEADING_PICH_ROLL_FLOAT: 'HEADING_PICH_ROLL_FLOAT',
-  HEADING_PICH_ROLL_FIXED: 'HEADING_PICH_ROLL_FIXED',
-  UNKNOWN: 'UNKNOWN',
-} as const
-export type Mode = typeof MODE[keyof typeof MODE]
-
-const getMode = (mode: number): Mode => {
-  switch (mode) {
-    case 0: return MODE.NO
-    case 1: return MODE.HEADING_PICH_FLOAT
-    case 2: return MODE.HEADING_PICH_FIXED
-    case 3: return MODE.HEADING_PICH_ROLL_FLOAT
-    case 4: return MODE.HEADING_PICH_ROLL_FIXED
-  }
-  return MODE.UNKNOWN
-}
-
-const DO_NOT_USE_SATELLITES = 255
-const getSatellites = (satellites: number): number | null => (satellites !== DO_NOT_USE_SATELLITES) ? satellites : null
-
-const DO_NOT_USE_DATA = -2 * Math.pow(10, 10)
-const getData = (data: number): number | null => (data !== DO_NOT_USE_DATA) ? data : null
-
-export interface AttEulerMetadata {
-  error: Error
-  mode: Mode
-}
-
-export interface AttEuler {
-  nrSV: number | null
-  error: number
-  mode: number
-  reserved: number
-  roll: number | null
-  pitch: number | null
-  heading: number | null
-  pitchDot: number | null
-  rollDot: number | null
-  headingDot: number | null
-  padding: Padding
-  metadata: AttEulerMetadata
-}
-
-interface Response extends SBFBodyData {
-  body: AttEuler
-}
-
-export const attEuler = (blockRevision: number, data: Buffer): Response => {
-  const name = 'AttEuler'
-  const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
-  const error = data.readUIntLE(ERROR_INDEX, ERROR_LENGTH)
-  const mode = data.readUIntLE(MODE_INDEX, MODE_LENGTH)
-  const body: AttEuler = {
-    nrSV: getSatellites(data.readUIntLE(NRSV_INDEX, NRSV_LENGTH)),
-    error,
-    mode,
-    reserved: data.readUIntLE(RESERVED_INDEX, RESERVED_LENGTH),
-    heading: getData(data.readFloatLE(HEADING_INDEX)),
-    pitch: getData(data.readFloatLE(PITCH_INDEX)),
-    roll: getData(data.readFloatLE(ROLL_INDEX)),
-    pitchDot: getData(data.readFloatLE(PITCH_DOT_INDEX)),
-    rollDot: getData(data.readFloatLE(ROLL_DOT_INDEX)),
-    headingDot: getData(data.readFloatLE(HEADING_DOT_INDEX)),
-    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-    metadata: {
-      error: getError(error),
-      mode: getMode(mode),
-    },
-  }
-  return { name, body }
+export const attEuler: BlockDefinition = {
+  name: 'AttEuler',
+  number: 5938,
+  description: 'GNSS attitude expressed as Euler angles at the time given by TOW and WNc, in the receiver time frame',
+  timestamp: 'receiver',
+  revisions: [FIELDS],
+  decoders,
+  // Attitude is only meaningful as a triple, and Tracker reads it as one thing.
+  payloadMetadata: ({ Heading, Pitch, Roll }) => {
+    if (typeof Heading !== 'number' && typeof Pitch !== 'number') return {}
+    return { attitude: { heading: Heading, pitch: Pitch, roll: Roll, units: 'deg' } }
+  },
 }

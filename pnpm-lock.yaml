@@ -173,9 +173,10 @@ importers:
       crc:
         specifier: ^4.3.2
         version: 4.3.2(buffer@6.0.3)
-      gpstime:
-        specifier: ^1.0.3
-        version: 1.0.3
+    devDependencies:
+      '@coremarine/protocol-core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/septentrio-sbf-nodered:
     dependencies:
@@ -1654,10 +1655,6 @@ packages:
   got@14.6.6:
     resolution: {integrity: sha512-QLV1qeYSo5l13mQzWgP/y0LbMr5Plr5fJilgAIwgnwseproEbtNym8xpLsDzeZ6MWXgNE6kdWGBjdh3zT/Qerg==}
     engines: {node: '>=20'}
-
-  gpstime@1.0.3:
-    resolution: {integrity: sha512-3JTf7THOFn5MMstEFA3X8MyCb2MJJMVp+SWONTqJCii6c8Iknr+Myefact+4BZ2gH27MK0zCQeViIjdDHrQU0g==}
-    hasBin: true
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
@@ -4453,8 +4450,6 @@ snapshots:
       p-cancelable: 4.0.1
       responselike: 4.0.2
       type-fest: 4.41.0
-
-  gpstime@1.0.3: {}
 
   graceful-fs@4.2.11: {}
 
