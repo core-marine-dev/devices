@@ -118,6 +118,93 @@ directly. Its CRC-16 Kermit comes from the same `crc` dependency.
 > all in command mode**, which is why `parse.ts` looks the way it does. See §"What the datasheets
 > actually say" and §"The real internal problem, named".
 
+# ❓ THE `$PSSN` QUESTION — five are easy, one is not (2026-07-31, needs cru)
+
+cru's instruction: the Septentrio-proprietary `$PSSN` family lives in **`septentrio-sbf`**, not in
+nmea-parser, and **CMA is never violated**. Analysis done, nothing coded.
+
+**All six are `$PSSN,<SUB>,…`** — the `$PSXN`/`$PTNL` shape, type in field 0 — so they need resolvers
+keyed by id + field count. Measured from Appendix C's own tables:
+
+| sentence | payload fields | resolver key | shape |
+| --- | --- | --- | --- |
+| `TFM` | 6 | `PSSN:6` | ordinary |
+| `RBD` | 11 | `PSSN:11` | ordinary |
+| `RBP` | 12 | `PSSN:12` | ordinary |
+| `RBV` | 12 | `PSSN:12` | ordinary — same length as RBP, told apart by field 0 |
+| `HRP` | 13 | `PSSN:13` | ordinary |
+| `SNC` | **variable** | — | **nested brackets, see below** |
+
+**Five of the six need no new machinery at all.** They are plain comma-delimited NMEA, so they are
+ordinary YAML definitions plus resolver entries, registered by a `SeptentrioNMEAParser extends
+NMEAParser` — the norsub pattern, byte for byte. No nmea-parser change, no CMA change. `HRP` is the one
+worth having: heading/roll/pitch with a standard deviation per axis.
+
+**`SNC` genuinely cannot be modelled by the data-driven pipeline.** Its own example from the guide:
+
+```
+$PSSN,SNC,[0,379359000,1840,[1,2,0,0]]*68
+```
+
+Split on commas — which is what the parser does before any definition applies — the fields come out as
+`[0` · `379359000` · `1840` · `[1` · `2` · `0` · `0]]`. The brackets are glued to the values, and the
+inner `[…]` block REPEATS once per NTRIP connection, so the field COUNT changes with how many
+connections exist. Definitions are matched by exact field count, so no YAML can describe it. This is
+SBF's sub-block problem wearing an NMEA suit.
+
+**Recommendation: do the five, leave `SNC` decoding generically, and say so in the README.** Two facts
+make that cheap rather than lazy: the same data is already fully modelled on the SBF side as
+`NTRIPClientStatus` (4053, one of the 108), and a generic `SNC` still emits `raw` plus every field —
+nothing is lost or silently dropped, it is just unnamed. If Tracker ever needs NTRIP status over NMEA
+specifically, the honest fix is a decoder in the septentrio package that flattens the sub-messages into
+`payload` in wire order with a positional `metadata` mirror — exactly what the SBF side already does for
+sub-blocks — NOT bending the CMA field model.
+
+**One provenance caveat cru should know:** unlike the Trimble/Leica sentences, Appendix C gives examples
+only for `SNC` and `TFM`. For `HRP` `RBD` `RBP` `RBV` the field order comes from the datasheet table
+alone. That is Septentrio's own format documented by Septentrio, so it is authoritative — but there is
+no vendor example to catch a transcription slip, so the first real capture from cru's receiver is worth
+checking against them.
+
+# 📡 nmea-parser KNOWS TEN MORE SENTENCES — 16 → 26 built-ins (2026-07-31, `c5d04e8`)
+
+Groundwork for putting NMEA into the Septentrio facade. Appendix C of the 4.10.1 guide lists **30 NMEA
+formatters** the receiver can emit; **9** were already known. cru's call: add the standard ones to
+**nmea-parser** (they are standard, so every device gains them), add the third-party ones too if they
+are simple, and keep the Septentrio-proprietary `$PSSN` family in `septentrio-sbf`.
+
+**Added:** standard `GBS` `GLL` `GNS` `GRS` `RMC` `ROT` `TXT` — `RMC` was missing entirely, which is hard
+to justify for a GNSS parser — plus third-party Trimble `PTNLAVR` / `PTNLGGK` and Leica `LLQ`.
+
+**Five sentences exist in more than one LENGTH,** and [sentences.ts](../packages/nmea-parser/src/sentences.ts)
+matches a definition by EXACT field count, so each length is its own definition: `RMC` 11/12/13, `GLL`
+6/7, `GNS` 12/13, `GBS` 8/10, `GRS` 14/16. The longer forms went into a new **`NMEA 4.11`** protocol
+block, which makes the version informative: a 13-field RMC means the device speaks 4.1+.
+
+**`$PTNL` is the `$PSXN` trap again** — same id, same field count, real type in field 0 — resolved by a
+new `PTNL:12` entry in `BUILTIN_SENTENCE_RESOLVERS`. The resolver mechanism proved reusable, which is
+why it exists.
+
+**The three third-party sentences are tested with their VENDOR EXAMPLES VERBATIM.** That matters more
+than it sounds: a wrong field ORDER still parses cleanly and would pass any hand-made fixture, so only
+the vendor's own string can catch it.
+
+**Deliberately NOT added, and why:** `GMP` `GFA` `GGQ` `LLK` — no field table with a verified example
+could be found, and inventing one from prose is worse than decoding generically. `ALM` — a raw hex
+almanac dump, so naming its fields adds nothing. `PTNLAVR` fields 7-8 are `reserved_1`/`reserved_2`:
+both Trimble sources skip them and leave them empty in their own examples, so they pass through rather
+than being guessed at as roll.
+
+`version: '1'` on the Trimble and Leica blocks is THIS knowledge base's revision — neither vendor
+publishes a protocol version for those sentences and **CMA requires a version string**.
+
+No version bump: `nmea-parser` is already at an unreleased **6.0.0**, so this ships with it. 133 tests
+(13 new), and the whole repo re-verified green afterwards (core 43 · nmea 133 · norsub 48 · septentrio
+190 · tblive 260 · wrappers 28/37/61/45 · lint clean).
+
+**⏭️ NEXT, and it needs cru:** the six `$PSSN` sentences, in `septentrio-sbf`. See §"THE `$PSSN`
+QUESTION".
+
 # 🎛️ THE SEPTENTRIO EXAMPLE FLOW IS RE-LAID ONTO THE HOUSE CONVENTION (2026-07-31)
 
 cru asked whether the septentrio example flow needed a refactor. It did — and the problem was

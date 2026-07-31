@@ -26,8 +26,16 @@ refactored libraries; **`sbg-ecom` still says `>= 18`** (tighten it when it is r
 **`protocol-core`** — harmless, since it is private and never published, but it is the only floor a
 consumer never sees.
 
-Test counts, measured 2026-07-31: `protocol-core` 43, `nmea-parser` 120, `norsub-emru` 48,
+Test counts, measured 2026-07-31: `protocol-core` 43, `nmea-parser` **133**, `norsub-emru` 48,
 `septentrio-sbf` 190, `thelmabiotel-tblive` 260, `sbg-ecom` **0**.
+
+**nmea-parser's built-in knowledge base is 26 sentences** (was 16), across six protocol blocks:
+NMEA `3.1` (`AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS`
+`VTG` `ZDA`) · NMEA `4.11` (`GBS` `GNS` `GRS` `RMC` `TXT` — the longer forms) · Miros `3.1` (`PMIRWM`
+`PMIRCV` `PMIRLD`) · Kongsberg Seatex `15` (`PSXN20` `PSXN23`) · Trimble `1` (`PTNLAVR` `PTNLGGK`) ·
+Leica `1` (`LLQ`). Five ids appear twice because a definition is matched by EXACT field count and those
+sentences gained fields between NMEA versions, so `protocol.version` in the output now tells a consumer
+which generation of the standard the device speaks.
 
 ### Per-library notes / known issues
 
