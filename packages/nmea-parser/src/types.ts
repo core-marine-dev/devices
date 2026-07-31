@@ -2,7 +2,9 @@
 // `DeviceParser` is the shared parser API contract — type parsers by it rather
 // than by any concrete class, so a device parser that composes protocol parsers
 // is interchangeable with one that extends them.
-export type { CMA, DeviceParser, DraftCMA, Field, Metadata, Value } from '@coremarine/protocol-core'
+// `@coremarine/protocol-core` is private and unpublished, so anything a consumer
+// (or a device parser built on top of this one) needs from it is re-exported here.
+export type { CMA, DeviceParser, DraftCMA, Field, FieldSpec, Metadata, ParserError, Result, SentenceDefinition, Value } from '@coremarine/protocol-core'
 import type { SentenceMetadata } from '@coremarine/protocol-core'
 
 // coded
@@ -47,9 +49,20 @@ export type NMEASentenceMetadata = SentenceMetadata & {
   talker?: Talker
 }
 
+// FAKE SENTENCES — what `getFakeSentence(id, protocol?, options?)` accepts.
+// Deliberately small: with NO options the output is idempotent, which is what
+// makes it usable as a committed fixture. Per-field overrides are the obvious
+// next addition, but the option object has to be defined per id first (the same
+// job tblive's FakeOptions does), so it is deliberately not guessed at here.
+export interface FakeSentenceOptions {
+  // Fill the fields with genuinely random values instead of the reproducible
+  // ones. For hammering a decoder with varied input.
+  random?: boolean
+}
+
 // ERRORS (Result pattern — see @coremarine/protocol-core `Result`). Returned,
 // never thrown, by the knowledge-feed functions.
 export interface NMEAError {
-  kind: 'invalid-yaml' | 'invalid-schema' | 'invalid-id' | 'unknown-id'
+  kind: 'invalid-yaml' | 'invalid-schema' | 'invalid-id' | 'unknown-id' | 'unknown-protocol'
   message: string
 }

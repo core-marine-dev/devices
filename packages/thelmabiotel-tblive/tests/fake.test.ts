@@ -171,37 +171,48 @@ describe('it reports which mistake was made, rather than returning null', () => 
   test('an unknown id', () => {
     const result = parser().getFakeSentence('nope' as SentenceId, '1.0.2')
     expect(result.success).toBe(false)
-    expect(result.success ? [] : result.error).toEqual(['Unknown sentence id: "nope"'])
+    expect(result.success ? [] : result.error.map((entry) => entry.message)).toEqual(['Unknown sentence id: "nope"'])
   })
 
   test('an unknown protocol', () => {
     const result = parser().getFakeSentence('emitter', '9.9.9' as Firmware)
     expect(result.success).toBe(false)
-    expect(result.success ? '' : result.error[0]).toContain('Unknown protocol')
+    expect(result.success ? '' : result.error[0].message).toContain('Unknown protocol')
   })
 
+  // The protocol version is MANDATORY here and deliberately so: an `emitter`
+  // sentence differs between 1.0.1 and 1.0.2, so a fixture cannot be produced
+  // without being told which one. `unknown` is not a shape, so it is refused
+  // rather than silently resolved to one.
   test('`unknown` is not a usable protocol for generation', () => {
-    // The parser may not know the firmware yet, but a fixture has to pick a shape.
     expect(parser().getFakeSentence('emitter', UNKNOWN).success).toBe(false)
+  })
+
+  test('the two firmwares really do produce different sentences', () => {
+    const older = parser().getFakeSentence('emitter', '1.0.1')
+    const newer = parser().getFakeSentence('emitter', '1.0.2')
+    expect(older.success && newer.success).toBe(true)
+    if (!older.success || !newer.success) return
+    expect(older.value).not.toBe(newer.value)
   })
 
   test('an option that does not belong to the id', () => {
     const result = parser().getFakeSentence('frequency', '1.0.2', { snr: 5 } as never)
     expect(result.success).toBe(false)
-    expect(result.success ? [] : result.error).toEqual(['Unknown option \'snr\' for \'frequency\''])
+    expect(result.success ? [] : result.error.map((entry) => entry.message)).toEqual(['Unknown option \'snr\' for \'frequency\''])
   })
 
   test('an option with the wrong shape', () => {
     const result = parser().getFakeSentence('emitter', '1.0.2', { frequency: 'abc' as never })
     expect(result.success).toBe(false)
-    expect(result.success ? [] : result.error).toEqual(['Invalid option \'frequency\': "abc"'])
+    expect(result.success ? [] : result.error.map((entry) => entry.message)).toEqual(['Invalid option \'frequency\': "abc"'])
   })
 
   test('an option that belongs to the other firmware', () => {
     // `sent` exists only in 1.0.1 sentences.
     const result = parser().getFakeSentence('emitter', '1.0.2', { sent: 11 })
     expect(result.success).toBe(false)
-    expect(result.success ? [] : result.error).toEqual(['Option \'sent\' applies to protocol 1.0.1 only'])
+    expect(result.success ? [] : result.error.map((entry) => entry.message)).toEqual(['Option \'sent\' applies to protocol 1.0.1 only'])
     expect(parser().getFakeSentence('emitter', '1.0.1', { sent: 11 }).success).toBe(true)
   })
 
@@ -379,9 +390,9 @@ describe('descriptions — prose carrying what a structured `wire` object would'
 
   test('it reports an unknown id and an unknown protocol', () => {
     const badId = parser().getSentenceDefinition('nope' as SentenceId)
-    expect(badId.success ? [] : badId.error).toEqual(['Unknown sentence id: "nope"'])
+    expect(badId.success ? [] : badId.error.map((entry) => entry.message)).toEqual(['Unknown sentence id: "nope"'])
     const badProtocol = parser().getSentenceDefinition('emitter', '9.9.9' as Firmware)
-    expect(badProtocol.success ? '' : badProtocol.error[0]).toContain('Unknown protocol')
+    expect(badProtocol.success ? '' : badProtocol.error[0].message).toContain('Unknown protocol')
   })
 
   test('the returned fields are a copy, so a caller cannot corrupt the parser', () => {

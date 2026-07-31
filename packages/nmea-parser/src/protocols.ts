@@ -9,16 +9,16 @@ import type { MapStoredSentences, NMEAError, Protocol, ProtocolsFileContent, Sto
 // Parse a protocols YAML string into the validated knowledge model. Web-safe:
 // callers pass the file's text (read it yourself on the server; `await file.text()` on the web).
 // Never throws — malformed YAML or an invalid schema come back as a Result error.
-export const parseProtocols = (content: string): Result<ProtocolsFileContent, NMEAError> => {
+export const parseProtocols = (content: string): Result<ProtocolsFileContent, NMEAError[]> => {
   let data: unknown
   try {
     data = yaml.load(content)
   } catch (error) {
-    return { success: false, error: { kind: 'invalid-yaml', message: (error as Error).message } }
+    return { success: false, error: [{ kind: 'invalid-yaml', message: (error as Error).message }] }
   }
   const parsed = ProtocolsFileContentSchema.safeParse(data)
   if (!parsed.success) {
-    return { success: false, error: { kind: 'invalid-schema', message: parsed.errors?.toString() ?? 'invalid protocols schema' } }
+    return { success: false, error: [{ kind: 'invalid-schema', message: parsed.errors?.toString() ?? 'invalid protocols schema' }] }
   }
   return { success: true, value: parsed.value }
 }

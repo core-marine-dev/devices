@@ -12,7 +12,7 @@ import { BUILTIN_SENTENCE_RESOLVERS } from './resolvers'
 import type { SentenceResolvers } from './resolvers'
 import { ProtocolsFileContentSchema, StringSchema } from './schemas'
 import { createFakeSentence, garbageSentence, getTalker, newestDefinition, parseSentence, scanBuffer } from './sentences'
-import type { MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence, Talker } from './types'
+import type { FakeSentenceOptions, MapStoredSentences, NMEAError, NMEALike, ProtocolOutput, ProtocolsFileContent, Sentence, StoredSentence, Talker } from './types'
 
 // NMEA 0183 parser. Extends the shared StringParser (which owns the
 // memory/buffer/drain machinery and the addData/parseData contract) and
@@ -65,9 +65,9 @@ export class NMEAParser extends StringParser {
   // Single knowledge-feed input: a protocols YAML string. On the web use
   // `await file.text()`; on node read the file yourself, then pass the text.
   // Never throws — a non-string input or invalid YAML/schema is a Result error.
-  addSentences(yaml: string): Result<void, NMEAError> {
+  addSentences(yaml: string): Result<void, NMEAError[]> {
     if (!StringSchema.is(yaml)) {
-      return { success: false, error: { kind: 'invalid-yaml', message: 'addSentences expects a YAML string' } }
+      return { success: false, error: [{ kind: 'invalid-yaml', message: 'addSentences expects a YAML string' }] }
     }
     const parsed = parseProtocols(yaml)
     if (!parsed.success) return parsed
@@ -99,6 +99,15 @@ export class NMEAParser extends StringParser {
     return undefined
   }
 
+  // Introspection ----------------------------------------------------------------------------------------------------
+  // Part of the shared `DeviceParser` contract (see @coremarine/protocol-core):
+  // every parser can list what it knows, describe it and fabricate it. The ids
+  // here are the knowledge base's own keys — the un-prefixed sentence ids, since
+  // a talker is stripped before lookup.
+  get sentenceIds(): string[] {
+    return Array.from(this._definitions.keys())
+  }
+
   // Nice to have -----------------------------------------------------------------------------------------------------
   getSentences(): StoredSentence[] {
     return Array.from(this._definitions.values()).flat()
@@ -116,18 +125,40 @@ export class NMEAParser extends StringParser {
   // Resolve an id to its stored definitions, either directly or by stripping a
   // talker prefix. Returns the definitions AND the talker that was consumed, so
   // callers can attach it or rebuild the full id.
-  private lookup(id: string): Result<{ definitions: StoredSentence[], talker?: Talker }, NMEAError> {
+  private lookup(id: string, protocol?: string): Result<{ definitions: StoredSentence[], talker?: Talker }, NMEAError[]> {
     if (!StringSchema.is(id) || id.length < NMEA_ID_LENGTH) {
-      return { success: false, error: { kind: 'invalid-id', message: `invalid sentence id: ${JSON.stringify(id)}` } }
+      return { success: false, error: [{ kind: 'invalid-id', message: `invalid sentence id: ${JSON.stringify(id)}` }] }
     }
     const direct = this._definitions.get(id)
-    if (direct !== undefined) return { success: true, value: { definitions: direct } }
+    if (direct !== undefined) return this.filterByProtocol(id, direct, protocol)
     const talker = getTalker(id)
     const stored = (talker === null) ? undefined : this._definitions.get(id.slice(talker.value.length))
     if (talker === null || stored === undefined) {
-      return { success: false, error: { kind: 'unknown-id', message: `unknown sentence id: ${JSON.stringify(id)}` } }
+      return { success: false, error: [{ kind: 'unknown-id', message: `unknown sentence id: ${JSON.stringify(id)}` }] }
     }
-    return { success: true, value: { definitions: stored, talker } }
+    return this.filterByProtocol(id, stored, protocol, talker)
+  }
+
+  // The same id can be defined by several protocols/versions (NMEA 3.1 vs a
+  // proprietary one). `protocol` picks which — by protocol NAME or by its
+  // version — and omitting it means "all of them, newest last", the behaviour
+  // this parser has always had.
+  private filterByProtocol(
+    id: string,
+    definitions: StoredSentence[],
+    protocol?: string,
+    talker?: Talker,
+  ): Result<{ definitions: StoredSentence[], talker?: Talker }, NMEAError[]> {
+    if (protocol === undefined) {
+      return { success: true, value: (talker === undefined) ? { definitions } : { definitions, talker } }
+    }
+    const matching = definitions.filter((definition) =>
+      definition.protocol.name === protocol || definition.protocol.version === protocol)
+    if (matching.length === 0) {
+      const known = definitions.map((definition) => `${definition.protocol.name} ${definition.protocol.version ?? ''}`.trim())
+      return { success: false, error: [{ kind: 'unknown-protocol', message: `sentence ${id} is not defined by protocol ${JSON.stringify(protocol)}; it is defined by ${known.join(', ')}` }] }
+    }
+    return { success: true, value: (talker === undefined) ? { definitions: matching } : { definitions: matching, talker } }
   }
 
   // What this parser knows about a sentence: an ARRAY, because the same id can
@@ -136,8 +167,8 @@ export class NMEAParser extends StringParser {
   //
   // A `Result`, not `null`: an id that is malformed and an id that is simply
   // unknown are different mistakes, and `null` could not tell them apart.
-  getSentenceDefinition(id: string): Result<Sentence[], NMEAError> {
-    const found = this.lookup(id)
+  getSentenceDefinition(id: string, protocol?: string): Result<Sentence[], NMEAError[]> {
+    const found = this.lookup(id, protocol)
     if (!found.success) return found
     const { definitions, talker } = found.value
     const sentences = definitions.map((definition) =>
@@ -146,11 +177,16 @@ export class NMEAParser extends StringParser {
   }
 
   // A syntactically valid sample sentence for testing: correct structure and
-  // checksum, garbage field values. Built from the NEWEST definition of the id.
-  getFakeSentence(id: string): Result<NMEALike, NMEAError> {
-    const found = this.lookup(id)
+  // checksum, arbitrary-looking field values. Built from the NEWEST definition of
+  // the id — or from the one belonging to `protocol`, if given.
+  //
+  // IDEMPOTENT with no options: the same call returns the same string, because a
+  // fake sentence is meant to be committed into a spec or an example flow. Pass
+  // `{ random: true }` for varied values instead.
+  getFakeSentence(id: string, protocol?: string, options?: FakeSentenceOptions): Result<NMEALike, NMEAError[]> {
+    const found = this.lookup(id, protocol)
     if (!found.success) return found
     const { definitions, talker } = found.value
-    return { success: true, value: createFakeSentence(newestDefinition(definitions), talker?.value) }
+    return { success: true, value: createFakeSentence(newestDefinition(definitions), talker?.value, options) }
   }
 }

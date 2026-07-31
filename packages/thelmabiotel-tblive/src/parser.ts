@@ -1,6 +1,6 @@
 // installed
 import { StringParser, UNKNOWN } from '@coremarine/protocol-core'
-import type { DraftCMA, ExtractedSentences, ParserOptions, Result, Timestamp } from '@coremarine/protocol-core'
+import type { DraftCMA, ExtractedSentences, ParserError, ParserOptions, Result, Timestamp } from '@coremarine/protocol-core'
 
 // coded
 import { ERROR_BUFFER_LIMIT, FIRMWARES } from './definitions'
@@ -28,6 +28,15 @@ import { scanBuffer } from './tokenizer'
 const isFirmware = (value: unknown): value is Firmware =>
   value === UNKNOWN || FIRMWARES.includes(value as typeof FIRMWARES[number])
 
+// This parser validates a request in one pass and can therefore have several
+// reasons to refuse it (three bad options, say). The shared error channel in
+// @coremarine/protocol-core is an ARRAY of `{ kind, message }` for exactly that
+// reason: every reason survives, each keeping its own kind.
+const asParserErrors = <T>(result: Result<T, string[]>, kind: string): Result<T, ParserError[]> => {
+  if (result.success) return result
+  return { success: false, error: result.error.map((message) => ({ kind, message })) }
+}
+
 export interface TBLiveOptions extends ParserOptions {
   // Pin the firmware when the deployment knows it. Otherwise the parser starts at
   // `unknown` and learns from the first sentence that proves one.
@@ -53,19 +62,28 @@ export class TBLiveParser extends StringParser {
 
   get firmwares(): readonly string[] { return FIRMWARES }
 
-  // Fabricate a wire sentence — deterministic, so a fixture never drifts. `protocol`
-  // is a mandatory positional argument because the firmware changes the output for
-  // real (field counts, and `LIVECM` vs `TBRC`); `options` overrides individual
-  // fields and is narrowed to the ones this `id` actually has.
+  // Fabricate a wire sentence — deterministic, so a fixture never drifts.
   //
-  // A `Result` rather than `null`, so the caller learns WHICH mistake was made: an
-  // unknown id, an unknown protocol and a malformed option are three different things.
+  // `protocol` is MANDATORY and stays mandatory (cru, 2026-07-31): an `emitter`
+  // sentence is genuinely different on 1.0.1 and 1.0.2 — different field counts,
+  // `LIVECM` vs `TBRC` — so a fixture cannot be built without knowing which is
+  // wanted, and picking one on the caller's behalf would quietly hand them the
+  // wrong shape. `options` overrides individual fields and is narrowed to the ones
+  // this `id` actually has. This `(id, protocol, options?)` shape is the one the
+  // shared contract adopted for every parser.
+  //
+  // A `Result` rather than `null`, so the caller learns WHICH mistakes were made:
+  // an unknown id, an unknown protocol and a malformed option are different
+  // things, and one call can hit several — hence an array.
   getFakeSentence<K extends SentenceId>(
     id: K,
     protocol: Firmware,
     options?: FakeOptions[K],
-  ): Result<string, string[]> {
-    return createFakeSentence(id, protocol, (options ?? {}) as Record<string, unknown>)
+  ): Result<string, ParserError[]> {
+    return asParserErrors(
+      createFakeSentence(id, protocol, (options ?? {}) as Record<string, unknown>),
+      'invalid-fake-request',
+    )
   }
 
   // What this parser believes a sentence looks like: fields, types, units, which API
@@ -75,8 +93,8 @@ export class TBLiveParser extends StringParser {
   // This is a diagnostic tool. These parsers run on remote installations with
   // restricted internet access for years, so being able to ask the deployed binary
   // what it expects settles questions that would otherwise need the datasheets.
-  getSentenceDefinition(id: SentenceId, protocol?: Firmware): Result<SentenceDefinition[], string[]> {
-    return describeSentence(id, protocol)
+  getSentenceDefinition(id: SentenceId, protocol?: Firmware): Result<SentenceDefinition[], ParserError[]> {
+    return asParserErrors(describeSentence(id, protocol), 'invalid-definition-request')
   }
 
   // Every sentence id this parser can fabricate or describe.

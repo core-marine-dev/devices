@@ -6,7 +6,7 @@ import { NMEAParser } from '@coremarine/nmea-parser'
 import type { Node, NodeAPI, NodeDef } from 'node-red'
 
 // coded
-import { applyMemory, applySentences, cleanUndefined, getFakeSentence, getDefinition, parsePayload } from './lib'
+import { applyMemory, applySentences, cleanUndefined, getDefinition, getFakeSentence, messages, parsePayload } from './lib'
 
 interface ParserConfig extends NodeDef {
   memory: boolean
@@ -26,7 +26,7 @@ const init = (RED: NodeAPI): void => {
     if (config.file) {
       try {
         const result = parser.addSentences(readFile(config.file))
-        if (!result.success) node.error(`problem loading sentences file: ${result.error.message}`)
+        if (!result.success) node.error(`problem loading sentences file: ${messages(result.error)}`)
       } catch (err) {
         node.error(err as Error, {})
       }

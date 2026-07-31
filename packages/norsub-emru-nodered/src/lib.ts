@@ -49,6 +49,12 @@ const isString = (value: unknown): value is string => typeof value === 'string'
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean'
 const isNil = (value: unknown): value is null | undefined => value === null || value === undefined
 
+// `Result.error` is an ARRAY of `{ kind, message }` — one call can be wrong for more than
+// one reason. Reading `.message` off the array yields `undefined`, which is what a user
+// saw instead of the actual problem.
+export const messages = (errors: readonly { message: string }[]): string =>
+  errors.map((entry) => entry.message).join('; ')
+
 const memoryReport = (parser: NorsubParser): MemoryReport => ({
   memory: parser.memory,
   characters: parser.bufferLimit,
@@ -110,7 +116,7 @@ export const applySentences = (
     const yaml = readYaml(content, file, readFile)
     if (!isString(yaml)) return yaml.error
     const result = parser.parser.addSentences(yaml)
-    if (!result.success) return `sentences: ${result.error.message}`
+    if (!result.success) return `sentences: ${messages(result.error)}`
     return parser.parser.getSentencesByProtocol()
   }
   return GET_OR_SET('sentences')
@@ -136,7 +142,7 @@ export const getDefinition = (parser: NorsubParser, definition: unknown): unknow
   if (isNil(definition)) return undefined
   if (!isString(definition)) return 'definition must be a sentence id string'
   const result = parser.parser.getSentenceDefinition(definition)
-  return result.success ? result.value : result.error.message
+  return result.success ? result.value : messages(result.error)
 }
 
 // fake: string id -> a fake NMEA-like sentence
@@ -146,7 +152,7 @@ export const getFakeSentence = (parser: NorsubParser, fake: unknown): string | u
   if (isNil(fake)) return undefined
   if (!isString(fake)) return 'fake sentence id must be a string'
   const result = parser.parser.getFakeSentence(fake)
-  return result.success ? result.value : result.error.message
+  return result.success ? result.value : messages(result.error)
 }
 
 // payload: ASCII NorSub/NMEA string -> CMA[]

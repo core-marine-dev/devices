@@ -51,6 +51,12 @@ const isNil = (value: unknown): value is null | undefined => value === null || v
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
+// `Result.error` is an ARRAY of `{ kind, message }` — one call can be wrong for more than
+// one reason. It used to be `string[]`, so a plain `join` worked; on the object array it
+// produces "[object Object]", which is what a user saw instead of the actual problem.
+const messages = (errors: readonly { message: string }[]): string =>
+  errors.map((entry) => entry.message).join('; ')
+
 const memoryReport = (parser: TBLiveParser): MemoryReport => ({
   memory: parser.memory,
   characters: parser.bufferLimit,
@@ -122,7 +128,7 @@ export const getDefinition = (parser: TBLiveParser, definition: unknown): Senten
   if (!isString(id)) return 'definition must be a sentence id string, or { id, protocol? }'
   if (!isNil(protocol) && !isString(protocol)) return 'definition.protocol must be a string'
   const result = parser.getSentenceDefinition(id as SentenceId, protocol as Firmware | undefined)
-  return result.success ? result.value : result.error.join('; ')
+  return result.success ? result.value : messages(result.error)
 }
 
 // fake: { id, protocol, options? } -> a wire sentence
@@ -139,7 +145,7 @@ export const getFakeSentence = (parser: TBLiveParser, fake: unknown): string | u
   if (!isString(protocol)) return `fake.protocol is required and should be one of: ${parser.firmwares.join(', ')}`
   if (!isNil(options) && !isRecord(options)) return 'fake.options must be an object'
   const result = parser.getFakeSentence(id as SentenceId, protocol as Firmware, options as never)
-  return result.success ? result.value : result.error.join('; ')
+  return result.success ? result.value : messages(result.error)
 }
 
 // payload: ASCII TB Live string -> CMA[]

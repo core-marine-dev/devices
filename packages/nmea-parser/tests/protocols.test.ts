@@ -69,9 +69,9 @@ describe('parseProtocols', () => {
     // malformed YAML -> invalid-yaml; valid YAML but wrong shape -> invalid-schema
     const malformed = parseProtocols('foo: [')
     expect(malformed.success).toBe(false)
-    if (!malformed.success) expect(malformed.error.kind).toBe('invalid-yaml')
+    if (!malformed.success) expect(malformed.error[0].kind).toBe('invalid-yaml')
     const wrongShape = parseProtocols('foo: bar')
-    if (!wrongShape.success) expect(wrongShape.error.kind).toBe('invalid-schema')
+    if (!wrongShape.success) expect(wrongShape.error[0].kind).toBe('invalid-schema')
   })
 })
 

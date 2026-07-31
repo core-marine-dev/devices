@@ -4,6 +4,7 @@ export type { Float32, Float64, Int16, Int32, Int8, Uint16, Uint32, Uint8 } from
 // coded
 import type { CMASchema, ErrorsSchema, FieldSchema, MetadataSchema, ProtocolSchema, SentenceMetadataSchema, TimestampMetadataSchema, TimestampSchema, TypeSchema, ValueSchema } from './cma'
 import type { UNKNOWN } from './constants'
+import type { Result } from './result'
 
 // Note: `char` values and 64-bit integers (int64/uint64) are all typed as
 // plain `string` — see CharSchema / Int64Schema / Uint64Schema in schemas.ts
@@ -44,6 +45,44 @@ export type GarbageSentence = DraftCMA & {
   errors: Errors
 }
 
+// INTROSPECTION — the part of the API that is not about parsing data.
+//
+// Every CoreMarine parser can be asked what it knows (`getSentenceDefinition`)
+// and can fabricate a wire sentence (`getFakeSentence`). Both exist for
+// DIAGNOSIS: these libraries run on remote installations with restricted
+// internet access for years, so being able to ask the deployed binary what it
+// expects — and to feed it a sentence it made itself — settles questions that
+// would otherwise need the datasheets.
+
+// Structured error, returned and never thrown (see `Result`). `kind` is a
+// per-parser union of literals; the shared contract only needs it to be a
+// string, so a consumer can switch on it without knowing every protocol.
+export interface ParserError {
+  kind: string
+  message: string
+}
+
+// A field as a DEFINITION: what a `Field` looks like before any data arrives —
+// no `raw`, no `value`, no `errors`. Protocols add their own keys (a sub-block's
+// nested fields, a Do-Not-Use sentinel), which structural typing allows.
+export interface FieldSpec {
+  name: string
+  type?: Type
+  units?: string
+  description?: string
+}
+
+// What a parser believes a sentence looks like. CMA-shaped on purpose: the same
+// keys a parsed sentence has, minus the ones only a real parse can fill.
+// `protocol.version` is optional here (unlike in a CMA) because a knowledge base
+// may describe a sentence without pinning it to a version.
+export interface SentenceDefinition {
+  id: string
+  protocol: { name: string, version?: string }
+  payload: FieldSpec[]
+  description?: string
+}
+
 // PARSER
 export type Input = string | Uint8Array
 
@@ -73,4 +112,25 @@ export interface DeviceParser<B extends Input> {
   readonly buffer: B
   addData: (data: B) => void
   parseData: (data?: B) => CMA[]
+  // Every sentence this parser can describe or fabricate.
+  readonly sentenceIds: string[]
+  // THE SHAPE IS `(id, protocol, options?)` — the one tblive settled on, now the
+  // rule. `protocol` is the protocol/firmware VERSION, and it matters: a TB Live
+  // `emitter` sentence is genuinely different on 1.0.1 and 1.0.2, and a
+  // Septentrio block's fields come from its firmware's knowledge base. A parser
+  // whose output depends on it may REQUIRE it (tblive does); one that can pick a
+  // sensible default leaves it optional.
+  //
+  // Declared with METHOD syntax, deliberately: TypeScript checks method
+  // parameters bivariantly, so a parser may narrow `id` to its own union of
+  // literals (tblive), widen it (septentrio accepts a block number too), or make
+  // `protocol` mandatory — and still satisfy this contract.
+  //
+  // The error side is an ARRAY: one call can fail for several reasons at once
+  // (three malformed options), and each reason keeps its own `kind` rather than
+  // being flattened into prose. Same plurality as a CMA's `errors`.
+  getSentenceDefinition(id: string, protocol?: string): Result<SentenceDefinition[], ParserError[]>
+  // Returns something that can be fed straight back into `addData`: a string for
+  // the text protocols, bytes for the binary ones.
+  getFakeSentence(id: string, protocol?: string, options?: unknown): Result<B, ParserError[]>
 }

@@ -1,5 +1,5 @@
 // installed
-import type { CMA, DeviceParser } from '@coremarine/nmea-parser'
+import type { CMA, DeviceParser, ParserError, Result, SentenceDefinition } from '@coremarine/nmea-parser'
 
 // coded
 import { NorsubNMEAParser } from './protocol-nmea'
@@ -46,10 +46,14 @@ export class NorsubParser implements DeviceParser<string> {
   }
 
   // The active protocol parser, exposed so protocol-specific extras are reachable —
-  // `norsub.parser.getFakeSentence('PNORSUB8')`, `.addSentences(yaml)`,
-  // `.getSentenceDefinition(id)`, `.getSentencesByProtocol()`. Deliberately NOT delegated
-  // method by method: the facade's API would balloon as protocols are added, and
-  // most of those methods are meaningless for whichever protocol is active.
+  // `norsub.parser.addSentences(yaml)`, `.getSentencesByProtocol()`. Deliberately NOT
+  // delegated method by method: the facade's API would balloon as protocols are added,
+  // and most of those methods are meaningless for whichever protocol is active.
+  //
+  // The THREE introspection members below are the exception, because they are part of
+  // the shared `DeviceParser` contract (see @coremarine/protocol-core): every parser,
+  // device-level or protocol-level, can list what it knows, describe it and fabricate
+  // it. Those are delegated.
   get parser(): ProtocolParser { return this._parser }
 
   // Every protocol this parser can be switched to.
@@ -82,5 +86,44 @@ export class NorsubParser implements DeviceParser<string> {
 
   parseData(data?: string): CMA[] {
     return this._parser.parseData(data)
+  }
+
+  // Introspection — the shared contract, delegated to the ACTIVE protocol parser.
+  //
+  // A facade can only answer for the protocol currently selected, and that is the
+  // whole subtlety: `norsub.getSentenceDefinition('X')` failing does NOT mean the
+  // device cannot speak X, only that the active protocol does not. So a failure
+  // carries a second error naming the active protocol and pointing at `.parser`,
+  // which is where protocol-specific lookups belong (`addSentences`,
+  // `getSentencesByProtocol`, and anything a future protocol adds).
+  //
+  // NOTE on the word "protocol": the second argument means what it means for
+  // every parser — the protocol/version a DEFINITION belongs to (`'NORSUB8'`,
+  // `'GYROCOMPAS1'`), passed straight through. The DEVICE protocol is selected
+  // with the `protocol` property, not here.
+  get sentenceIds(): string[] { return this._parser.sentenceIds }
+
+  getSentenceDefinition(id: string, protocol?: string): Result<SentenceDefinition[], ParserError[]> {
+    return this.withActiveProtocol(this._parser.getSentenceDefinition(id, protocol))
+  }
+
+  getFakeSentence(id: string, protocol?: string): Result<string, ParserError[]> {
+    return this.withActiveProtocol(this._parser.getFakeSentence(id, protocol))
+  }
+
+  private withActiveProtocol<T>(result: Result<T, ParserError[]>): Result<T, ParserError[]> {
+    if (result.success) return result
+    const others = this.protocols.filter((protocol) => protocol !== this._protocol)
+    const alternatives = (others.length === 0) ? 'no other protocol is implemented yet' : `this device also speaks: ${others.join(', ')}`
+    return {
+      success: false,
+      error: [
+        ...result.error,
+        {
+          kind: 'inactive-protocol',
+          message: `asked of the active device protocol '${this._protocol}' (${alternatives}); use .parser for protocol-specific lookups`,
+        },
+      ],
+    }
   }
 }
