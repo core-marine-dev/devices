@@ -83,6 +83,46 @@ protocols:
               W72 - WGS-72\n
               S85 - SGS85\n
               P90 - PE90"
+      - id: GBS
+        description: "GNSS Satellite Fault Detection — the RAIM residual test. Reports which satellite is most likely faulty and the expected 1-sigma position error. The NMEA 4.11 form adds System ID and Signal ID; see the NMEA 4.11 protocol block."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time of the GGA or GNS fix this sentence belongs to"
+          # 2
+          - name: latitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in latitude"
+          # 3
+          - name: longitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in longitude"
+          # 4
+          - name: altitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in altitude"
+          # 5
+          - name: failed_satellite_id
+            type: uint8
+            description: "ID of the most likely failed satellite. Null when no failure is suspected."
+          # 6
+          - name: probability_of_missed_detection
+            type: float64
+            description: "Probability of missed detection for the most likely failed satellite"
+          # 7
+          - name: bias_estimate
+            type: float64
+            units: m
+            description: "Estimate of the bias on the most likely failed satellite"
+          # 8
+          - name: bias_standard_deviation
+            type: float64
+            units: m
+            description: "Standard deviation of the bias estimate"
       - id: GGA
         description: Global Positioning System Fix Data
         payload:
@@ -181,6 +221,199 @@ protocols:
               1020 HP/G2 (GPS)\n
 
               1021 HP/G2 (GPS/GLONASS)"
+      # GLL exists in two lengths: the mode indicator was added in NMEA 2.3. Both
+      # are defined because a definition is matched by EXACT field count.
+      - id: GLL
+        description: "Geographic Position - Latitude/Longitude. Six-field form, without the NMEA 2.3 mode indicator."
+        payload:
+          # 1
+          - name: latitude
+            type: string
+            units: deg
+          # 2
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 3
+          - name: longitude
+            type: string
+            units: deg
+          # 4
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 5
+          - name: utc_time
+            type: string
+          # 6
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+      - id: GLL
+        description: "Geographic Position - Latitude/Longitude. Seven-field form, with the mode indicator added in NMEA 2.3."
+        payload:
+          # 1
+          - name: latitude
+            type: string
+            units: deg
+          # 2
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 3
+          - name: longitude
+            type: string
+            units: deg
+          # 4
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 5
+          - name: utc_time
+            type: string
+          # 6
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+          # 7
+          - name: mode_indicator
+            type: string
+            description: "Mode indicator (NMEA 2.3+)\n
+              A = Autonomous\n
+              D = Differential\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              N = Data not valid"
+      - id: GNS
+        description: "GNSS Fix Data — the multi-constellation counterpart of GGA. Unlike GGA it carries one mode-indicator character PER constellation. Twelve-field form; the NMEA 4.1 form adds a navigational status field, see the NMEA 4.11 protocol block."
+        payload:
+          # 1
+          - name: utc_position
+            type: string
+            units: ms
+          # 2
+          - name: latitude
+            type: string
+            units: deg
+          # 3
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 4
+          - name: longitude
+            type: string
+            units: deg
+          # 5
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 6
+          - name: mode_indicator
+            type: string
+            description: "ONE CHARACTER PER CONSTELLATION, in the order GPS, GLONASS, Galileo, BeiDou, ... — so the field length tells you how many constellations the receiver reports.\n
+              N = No fix\n
+              A = Autonomous\n
+              D = Differential\n
+              P = Precise (no degradation, e.g. no SA)\n
+              R = RTK integer (fixed) ambiguities\n
+              F = RTK float ambiguities\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              S = Simulator"
+          # 7
+          - name: satellites
+            type: uint8
+            description: "Total number of satellites in use, 00 to 99"
+          # 8
+          - name: hdop
+            type: float64
+          # 9
+          - name: altitude
+            type: float64
+            units: m
+            description: "Antenna altitude above/below mean-sea-level (geoid)"
+          # 10
+          - name: geoid_separation
+            type: float64
+            units: m
+            description: "Difference between the WGS-84 ellipsoid surface and the mean-sea-level (geoid) surface"
+          # 11
+          - name: age_of_differential_data
+            type: uint32
+            units: sec
+            description: "Age of the differential corrections; null when differential is not used"
+          # 12
+          - name: reference_station_id
+            type: uint16
+            description: "Reference station ID; null when no corrections are received"
+      - id: GRS
+        description: "GNSS Range Residuals — one residual per satellite, in the SAME ORDER as the satellites listed in the matching GSA sentence. Fourteen-field form; the NMEA 4.11 form adds System ID and Signal ID, see the NMEA 4.11 protocol block."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time of the GGA or GNS fix this sentence belongs to"
+          # 2
+          - name: residuals_mode
+            type: uint8
+            description: "0 = residuals were used to calculate the position given in the matching GGA/GNS\n
+              1 = residuals were recomputed after the position was computed"
+          # 3
+          - name: residual_1
+            type: float64
+            units: m
+          # 4
+          - name: residual_2
+            type: float64
+            units: m
+          # 5
+          - name: residual_3
+            type: float64
+            units: m
+          # 6
+          - name: residual_4
+            type: float64
+            units: m
+          # 7
+          - name: residual_5
+            type: float64
+            units: m
+          # 8
+          - name: residual_6
+            type: float64
+            units: m
+          # 9
+          - name: residual_7
+            type: float64
+            units: m
+          # 10
+          - name: residual_8
+            type: float64
+            units: m
+          # 11
+          - name: residual_9
+            type: float64
+            units: m
+          # 12
+          - name: residual_10
+            type: float64
+            units: m
+          # 13
+          - name: residual_11
+            type: float64
+            units: m
+          # 14
+          - name: residual_12
+            type: float64
+            units: m
       - id: GSA
         description: "GPS DOP and active satellites"
         payload:
@@ -491,6 +724,136 @@ protocols:
           - name: status
             type: string
             description: "Data validity: A = Valid, V = Invalid"
+      # RMC exists in three lengths: NMEA 2.3 added the mode indicator and NMEA 4.1
+      # the navigational status. The 13-field form lives in the NMEA 4.11 block.
+      - id: RMC
+        description: "Recommended Minimum Specific GNSS Data. Eleven-field form, without the NMEA 2.3 mode indicator. Carries date and speed, which GGA does not, but no fix quality or altitude."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+          # 2
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = navigation receiver warning"
+          # 3
+          - name: latitude
+            type: string
+            units: deg
+          # 4
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 5
+          - name: longitude
+            type: string
+            units: deg
+          # 6
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 7
+          - name: speed_knots
+            type: float64
+            units: knots
+            description: "Speed over ground"
+          # 8
+          - name: track_degrees_true
+            type: float64
+            units: deg
+            description: "Track made good, degrees True"
+          # 9
+          - name: date
+            type: string
+            description: "Date as ddmmyy. Kept as a string: the two-digit year and the ddmmyy order make a numeric type misleading."
+          # 10
+          - name: magnetic_variation
+            type: float64
+            units: deg
+            description: "Magnitude of the magnetic variation; the direction is the next field"
+          # 11
+          - name: magnetic_variation_direction
+            type: string
+            description: "E = East\n
+              W = West"
+      - id: RMC
+        description: "Recommended Minimum Specific GNSS Data. Twelve-field form, with the mode indicator added in NMEA 2.3."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+          # 2
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = navigation receiver warning"
+          # 3
+          - name: latitude
+            type: string
+            units: deg
+          # 4
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 5
+          - name: longitude
+            type: string
+            units: deg
+          # 6
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 7
+          - name: speed_knots
+            type: float64
+            units: knots
+            description: "Speed over ground"
+          # 8
+          - name: track_degrees_true
+            type: float64
+            units: deg
+            description: "Track made good, degrees True"
+          # 9
+          - name: date
+            type: string
+            description: "Date as ddmmyy. Kept as a string: the two-digit year and the ddmmyy order make a numeric type misleading."
+          # 10
+          - name: magnetic_variation
+            type: float64
+            units: deg
+            description: "Magnitude of the magnetic variation; the direction is the next field"
+          # 11
+          - name: magnetic_variation_direction
+            type: string
+            description: "E = East\n
+              W = West"
+          # 12
+          - name: mode_indicator
+            type: string
+            description: "Mode indicator (NMEA 2.3+)\n
+              A = Autonomous\n
+              D = Differential\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              N = Data not valid"
+      - id: ROT
+        description: "Rate of Turn"
+        payload:
+          # 1
+          - name: rate_of_turn
+            type: float64
+            units: deg/min
+            description: "Rate of turn. NEGATIVE means the bow turns to port."
+          # 2
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
       - id: THS
         description: "True Heading and Status"
         payload:
@@ -583,6 +946,300 @@ protocols:
           - name: local_zone_minutes
             type: int8
             description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
+  # =================================================================
+  # NMEA 0183 4.11 — Standard sentences that GAINED fields after 3.1
+  # -----------------------------------------------------------------
+  # A definition is matched by EXACT field count, so a sentence that grew needs
+  # one definition per length. Keeping the longer forms in their own version block
+  # means the CMA output's `protocol.version` tells a consumer WHICH generation of
+  # the standard the device is speaking — a 13-field RMC is a 4.1+ device.
+  # =================================================================
+  - protocol: NMEA
+    version: '4.11'
+    standard: true
+    sentences:
+      - id: GBS
+        description: "GNSS Satellite Fault Detection, ten-field form: NMEA 4.11 appended System ID and Signal ID so the failed satellite can be attributed to a constellation and a signal."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time of the GGA or GNS fix this sentence belongs to"
+          # 2
+          - name: latitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in latitude"
+          # 3
+          - name: longitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in longitude"
+          # 4
+          - name: altitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in altitude"
+          # 5
+          - name: failed_satellite_id
+            type: uint8
+            description: "ID of the most likely failed satellite. Null when no failure is suspected."
+          # 6
+          - name: probability_of_missed_detection
+            type: float64
+            description: "Probability of missed detection for the most likely failed satellite"
+          # 7
+          - name: bias_estimate
+            type: float64
+            units: m
+            description: "Estimate of the bias on the most likely failed satellite"
+          # 8
+          - name: bias_standard_deviation
+            type: float64
+            units: m
+            description: "Standard deviation of the bias estimate"
+          # 9
+          - name: system_id
+            type: uint8
+            description: "GNSS System ID (NMEA 4.11). 1 = GPS, 2 = GLONASS, 3 = Galileo, 4 = BeiDou; see the NMEA 4.11 System ID table for the rest."
+          # 10
+          - name: signal_id
+            type: uint8
+            description: "GNSS Signal ID (NMEA 4.11) — which signal of that constellation. The meaning is per-constellation; see the NMEA 4.11 Signal ID table."
+      - id: GNS
+        description: "GNSS Fix Data, thirteen-field form: NMEA 4.1 appended a navigational status field for safety-of-life use."
+        payload:
+          # 1
+          - name: utc_position
+            type: string
+            units: ms
+          # 2
+          - name: latitude
+            type: string
+            units: deg
+          # 3
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 4
+          - name: longitude
+            type: string
+            units: deg
+          # 5
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 6
+          - name: mode_indicator
+            type: string
+            description: "ONE CHARACTER PER CONSTELLATION, in the order GPS, GLONASS, Galileo, BeiDou, ...\n
+              N = No fix\n
+              A = Autonomous\n
+              D = Differential\n
+              P = Precise\n
+              R = RTK integer (fixed) ambiguities\n
+              F = RTK float ambiguities\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              S = Simulator"
+          # 7
+          - name: satellites
+            type: uint8
+            description: "Total number of satellites in use, 00 to 99"
+          # 8
+          - name: hdop
+            type: float64
+          # 9
+          - name: altitude
+            type: float64
+            units: m
+            description: "Antenna altitude above/below mean-sea-level (geoid)"
+          # 10
+          - name: geoid_separation
+            type: float64
+            units: m
+            description: "Difference between the WGS-84 ellipsoid surface and the mean-sea-level (geoid) surface"
+          # 11
+          - name: age_of_differential_data
+            type: uint32
+            units: sec
+            description: "Age of the differential corrections; null when differential is not used"
+          # 12
+          - name: reference_station_id
+            type: uint16
+            description: "Reference station ID; null when no corrections are received"
+          # 13
+          - name: navigational_status
+            type: string
+            description: "Navigational status (NMEA 4.1+)\n
+              S = Safe\n
+              C = Caution\n
+              U = Unsafe\n
+              V = Navigational status not valid"
+      - id: GRS
+        description: "GNSS Range Residuals, sixteen-field form: NMEA 4.11 appended System ID and Signal ID, so the residuals can be attributed to a constellation and signal."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time of the GGA or GNS fix this sentence belongs to"
+          # 2
+          - name: residuals_mode
+            type: uint8
+            description: "0 = residuals were used to calculate the position given in the matching GGA/GNS\n
+              1 = residuals were recomputed after the position was computed"
+          # 3
+          - name: residual_1
+            type: float64
+            units: m
+          # 4
+          - name: residual_2
+            type: float64
+            units: m
+          # 5
+          - name: residual_3
+            type: float64
+            units: m
+          # 6
+          - name: residual_4
+            type: float64
+            units: m
+          # 7
+          - name: residual_5
+            type: float64
+            units: m
+          # 8
+          - name: residual_6
+            type: float64
+            units: m
+          # 9
+          - name: residual_7
+            type: float64
+            units: m
+          # 10
+          - name: residual_8
+            type: float64
+            units: m
+          # 11
+          - name: residual_9
+            type: float64
+            units: m
+          # 12
+          - name: residual_10
+            type: float64
+            units: m
+          # 13
+          - name: residual_11
+            type: float64
+            units: m
+          # 14
+          - name: residual_12
+            type: float64
+            units: m
+          # 15
+          - name: system_id
+            type: uint8
+            description: "GNSS System ID (NMEA 4.11). 1 = GPS, 2 = GLONASS, 3 = Galileo, 4 = BeiDou; see the NMEA 4.11 System ID table for the rest."
+          # 16
+          - name: signal_id
+            type: uint8
+            description: "GNSS Signal ID (NMEA 4.11) — which signal of that constellation."
+      - id: RMC
+        description: "Recommended Minimum Specific GNSS Data, thirteen-field form: NMEA 4.1 appended a navigational status field."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+          # 2
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = navigation receiver warning"
+          # 3
+          - name: latitude
+            type: string
+            units: deg
+          # 4
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 5
+          - name: longitude
+            type: string
+            units: deg
+          # 6
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 7
+          - name: speed_knots
+            type: float64
+            units: knots
+            description: "Speed over ground"
+          # 8
+          - name: track_degrees_true
+            type: float64
+            units: deg
+            description: "Track made good, degrees True"
+          # 9
+          - name: date
+            type: string
+            description: "Date as ddmmyy. Kept as a string: the two-digit year and the ddmmyy order make a numeric type misleading."
+          # 10
+          - name: magnetic_variation
+            type: float64
+            units: deg
+            description: "Magnitude of the magnetic variation; the direction is the next field"
+          # 11
+          - name: magnetic_variation_direction
+            type: string
+            description: "E = East\n
+              W = West"
+          # 12
+          - name: mode_indicator
+            type: string
+            description: "Mode indicator (NMEA 2.3+)\n
+              A = Autonomous\n
+              D = Differential\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              N = Data not valid"
+          # 13
+          - name: navigational_status
+            type: string
+            description: "Navigational status (NMEA 4.1+)\n
+              S = Safe\n
+              C = Caution\n
+              U = Unsafe\n
+              V = Navigational status not valid"
+      - id: TXT
+        description: "Text Transmission — free-form text from the device, used for status and error reporting. Septentrio emits it as TXTbase to relay text from a base station in RTCM message 1029, with the text identifier set to 1 and the text formatted \"nnnn:<base txt>\" where nnnn is the base station ID."
+        payload:
+          # 1
+          - name: total_messages
+            type: uint8
+            description: "Total number of messages in this transmission, 01 to 99"
+          # 2
+          - name: message_number
+            type: uint8
+            description: "Number of this message within the transmission, 01 to 99"
+          # 3
+          - name: text_identifier
+            type: uint8
+            description: "Text identifier — what kind of message this is\n
+              00 = Error\n
+              01 = Warning\n
+              02 = Notice\n
+              07 = User"
+          # 4
+          - name: text
+            type: string
+            description: "The message text itself. ASCII only, and commas cannot appear in it — they would be read as field separators."
+
   # =================================================================
   # NMEA 0183 — Proprietary sentences: Miros SM-050 Wave and Current Radar
   # =================================================================
@@ -1240,3 +1897,218 @@ protocols:
             type: float64
             units: m
             description: "Heave. Positive down."
+
+  # =================================================================
+  # NMEA 0183 — Proprietary sentences: TRIMBLE ($PTNL)
+  # -----------------------------------------------------------------
+  # Trimble-defined formats that OTHER receivers emit for compatibility —
+  # Septentrio lists both in Appendix C of the AsteRx SB3 Pro+ 4.10.1 reference
+  # guide. Both arrive as `$PTNL,<TYPE>,...` with the type in the FIRST FIELD and
+  # the same field count, exactly like Kongsberg's $PSXN, so they are resolved by
+  # `PTNL:12` in src/resolvers.ts before the knowledge base is consulted.
+  #
+  # `version: '1'` is OUR knowledge-base revision, not a Trimble one: Trimble
+  # publishes no protocol version for these sentences, and CMA requires a version
+  # string. Source: Trimble Alloy GNSS receiver NMEA-0183 documentation
+  # (receiverhelp.trimble.com), cross-checked against help.fieldsystems.trimble.com.
+  # =================================================================
+  - protocol: TRIMBLE
+    version: '1'
+    standard: false
+    sentences:
+      - id: PTNLAVR
+        description: "Trimble proprietary $PTNL,AVR — yaw, tilt and the antenna baseline, computed from the moving-baseline vector. Requires a two-antenna system."
+        payload:
+          # 1
+          - name: message_id
+            type: string
+            description: "Message type: AVR"
+          # 2
+          - name: utc_time
+            type: string
+            description: "UTC of the vector fix (hhmmss.ss)"
+          # 3
+          - name: yaw
+            type: float64
+            units: deg
+          # 4
+          - name: yaw_indicator
+            type: string
+            description: "Constant text: Yaw"
+          # 5
+          - name: tilt
+            type: float64
+            units: deg
+          # 6
+          - name: tilt_indicator
+            type: string
+            description: "Constant text: Tilt"
+          # 7
+          - name: reserved_1
+            type: string
+            description: "NOT DOCUMENTED by Trimble. Both of Trimble's own field tables skip fields 7 and 8, and both are empty in Trimble's own example sentence. Left as an unnamed passthrough rather than guessed at — the raw value is still here if a device turns out to fill it."
+          # 8
+          - name: reserved_2
+            type: string
+            description: "NOT DOCUMENTED by Trimble — see reserved_1."
+          # 9
+          - name: range
+            type: float64
+            units: m
+            description: "Distance between the two antennas"
+          # 10
+          - name: gps_quality
+            type: int8
+            description: "0 = Invalid\n
+              1 = Autonomous\n
+              2 = RTK Float\n
+              3 = RTK Fixed\n
+              4 = DGPS"
+          # 11
+          - name: pdop
+            type: float64
+          # 12
+          - name: satellites
+            type: uint8
+            description: "Number of satellites used in the solution"
+      - id: PTNLGGK
+        description: "Trimble proprietary $PTNL,GGK — position fix with an ELLIPSOIDAL height, unlike GGA's mean-sea-level altitude. Longer than the NMEA 0183 80-character limit."
+        payload:
+          # 1
+          - name: message_id
+            type: string
+            description: "Message type: GGK"
+          # 2
+          - name: utc_time
+            type: string
+            description: "UTC of the position fix (hhmmss.ss)"
+          # 3
+          - name: utc_date
+            type: string
+            description: "Date as mmddyy — MONTH FIRST, unlike RMC's ddmmyy. Kept as a string for that reason."
+          # 4
+          - name: latitude
+            type: string
+            units: deg
+            description: "Degrees and decimal minutes (ddmm.mmmmmmm)"
+          # 5
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 6
+          - name: longitude
+            type: string
+            units: deg
+            description: "Degrees and decimal minutes (dddmm.mmmmmmm)"
+          # 7
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 8
+          - name: gps_quality
+            type: int8
+            description: "0 = Invalid\n
+              1 = Autonomous\n
+              2 = RTK Float\n
+              3 = RTK Fixed\n
+              4 = DGPS\n
+              5 = SBAS\n
+              6 = RTK 3D Float\n
+              7 = RTK 3D Fixed\n
+              8 = RTK 2D Float\n
+              9 = RTK 2D Fixed\n
+              10 = OmniSTAR HP/XP\n
+              11 = OmniSTAR VBS\n
+              12 = Location RTK\n
+              13 = Beacon DGPS\n
+              14 = CenterPoint RTX\n
+              15 = xFill"
+          # 9
+          - name: satellites
+            type: uint8
+            description: "Number of satellites used in the solution"
+          # 10
+          - name: dop
+            type: float64
+            description: "Dilution of precision of the fix"
+          # 11
+          - name: ellipsoidal_height
+            type: string
+            units: m
+            description: "Ellipsoidal height — antenna height above the ellipsoid, NOT above mean sea level. A STRING because the value carries an EHT prefix on the wire (e.g. EHT150.790), so it does not parse as a number."
+          # 12
+          - name: height_units
+            type: string
+            description: "M = meters"
+
+  # =================================================================
+  # NMEA 0183 — Proprietary sentences: LEICA
+  # -----------------------------------------------------------------
+  # Leica-defined format, emitted by other receivers for compatibility (Septentrio
+  # Appendix C lists LLQ, GGQ and LLK). Only LLQ is defined here: a verified field
+  # table with a vendor example was available for it, and inventing the other two
+  # from prose would be worse than leaving them generic.
+  #
+  # Arrives as `$GPLLQ,...` — a normal talker + formatter, so no resolver is needed.
+  # `version: '1'` is OUR knowledge-base revision; Leica publishes no protocol
+  # version for it, and CMA requires a version string. Field table transcribed from
+  # Trimble's NMEA-0183 LLQ documentation (receiverhelp.trimble.com), which
+  # documents the Leica format, example `$GPLLQ,034137.00,210712,,M,,M,3,15,0.011,,M*15`.
+  # =================================================================
+  - protocol: LEICA
+    version: '1'
+    standard: false
+    sentences:
+      - id: LLQ
+        description: "Leica local position and quality — position as GRID coordinates (easting/northing in metres in a local projection), not latitude/longitude."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC of the position (hhmmss.ss)"
+          # 2
+          - name: utc_date
+            type: string
+            description: "Date as ddmmyy"
+          # 3
+          - name: grid_easting
+            type: float64
+            units: m
+          # 4
+          - name: easting_units
+            type: string
+            description: "M = meters"
+          # 5
+          - name: grid_northing
+            type: float64
+            units: m
+          # 6
+          - name: northing_units
+            type: string
+            description: "M = meters"
+          # 7
+          - name: gps_quality
+            type: int8
+            description: "0 = Position not valid\n
+              1 = GPS navigation fix\n
+              2 = DGPS fix\n
+              3 = RTK fix"
+          # 8
+          - name: satellites
+            type: uint8
+            description: "Number of satellites used in the computation"
+          # 9
+          - name: position_quality
+            type: float64
+            units: m
+            description: "Coordinate quality of the position"
+          # 10
+          - name: height
+            type: float64
+            units: m
+          # 11
+          - name: height_units
+            type: string
+            description: "M = meters"

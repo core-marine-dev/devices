@@ -10,7 +10,7 @@ This library parses **ALL** NMEA-like sentences — an ASCII string starting wit
 
 **Real devices break those rules, so breaking them is reported, never silently ignored.** A sentence that violates the standard is still decoded and comes back with an `errors` list saying what is wrong (a one-character checksum, a missing `\r\n`, …), and input that cannot be decoded at all comes back as a *garbage sentence* rather than disappearing — see [Failed and garbage sentences](#failed-and-garbage-sentences).
 
-If the parser knows the sentence it emits richer, typed metadata. Built-in known sentences are `AAM`, `GGA`, `HDT`, `ZDA` (NMEA 3.1) plus the proprietary Kongsberg Seatex `PSXN20`/`PSXN23` — feed the parser more with [`addSentences`](#feed-the-parser-add-known-sentences).
+If the parser knows the sentence it emits richer, typed metadata — see [Built-in sentences](#built-in-sentences) for the 26 it ships with, and feed it more with [`addSentences`](#feed-the-parser-add-known-sentences).
 
 > The parser output is the unified **CMA** format shared by every CoreMarine device parser — see [`docs/CMA.md`](../../docs/CMA.md).
 
@@ -177,6 +177,48 @@ parser.parseData('\x00\x01binary protocol data\x02')
 | unterminated trailing `$…` | **pending** on the buffer — never an error, it may still be completed |
 | pending chunk exceeds `bufferLimit` | **garbage** + `Buffer limit exceeded`, buffer reset |
 
+## Built-in sentences
+
+Shipped in the knowledge base, no setup needed. Anything not listed here still parses — generically,
+with `name: 'unknown'` fields — and you can add definitions for it with
+[`addSentences`](#feed-the-parser-add-known-sentences).
+
+| protocol | version | sentences |
+| --- | --- | --- |
+| NMEA 0183 standard | `3.1` | `AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS` `VTG` `ZDA` |
+| NMEA 0183 standard | `4.11` | `GBS` `GNS` `GRS` `RMC` `TXT` |
+| Miros SM-050 Wave and Current Radar | `3.1` | `PMIRWM` `PMIRCV` `PMIRLD` |
+| Kongsberg Seatex | `15` | `PSXN20` `PSXN23` |
+| Trimble | `1` | `PTNLAVR` `PTNLGGK` |
+| Leica | `1` | `LLQ` |
+
+**Why some ids appear twice.** A definition is matched by **exact field count**, and several standard
+sentences gained fields between NMEA versions — `RMC` exists with 11, 12 and 13 fields, `GLL` with 6 and
+7, `GNS` with 12 and 13, `GBS` with 8 and 10, `GRS` with 14 and 16. Each length is its own definition, so
+the `protocol.version` in the output tells you **which generation of the standard your device speaks**: a
+13-field `RMC` is an NMEA 4.1+ device. `getSentenceDefinition('RMC')` returns all three.
+
+```typescript
+parser.parseData('$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W,A,V*7D\r\n')
+// -> id 'RMC', protocol { name: 'NMEA', version: '4.11' }, 13 named fields
+```
+
+A few field types are deliberate and worth knowing:
+
+- **`latitude`/`longitude` are strings**, not numbers — the wire form is `ddmm.mmmm` (degrees *and*
+  minutes concatenated), so parsing it as a float silently produces a wrong coordinate.
+- **Dates are strings.** `RMC.date` is `ddmmyy`; `PTNLGGK.utc_date` is `mmddyy` — **month first**. A
+  numeric type would hide that difference.
+- **`PTNLGGK.ellipsoidal_height` is a string**, because Trimble puts an `EHT` prefix in the value
+  itself (`EHT150.790`).
+- **`GNS.mode_indicator` is one character per constellation** (`DAA` = 3 constellations), so its length
+  is data, not noise.
+- **A null field stays `null`**, never `0` — "no correction received" and "correction of zero" are not
+  the same thing.
+
+**Versions marked `1`** (Trimble, Leica) are *this knowledge base's* revision, not the vendor's: neither
+publishes a protocol version for those sentences, and the CMA format requires a version string.
+
 ## Feed the parser (add known sentences)
 
 Expand the parser with more NMEA-like sentences — standard or proprietary. The single input is a **YAML string**:
@@ -290,13 +332,15 @@ pass through untouched.
 
 ### Sentence resolvers: one id, several sentences
 
-Some proprietary formats carry the real sentence type **in a field** instead of in the id. The built-in
-case is Kongsberg Seatex: the MGC COMPASS sends **both** of these as `$PSXN` with the **same field
-count**, and only the first field says which is which —
+Some proprietary formats carry the real sentence type **in a field** instead of in the id. There are two
+built-in cases, and both send variants with the **same field count**, so only the first field says which
+is which:
 
 ```
-$PSXN,20,x,x,x,x*hh              -> PSXN20   quality indicators
-$PSXN,23,x.x,x.x,x.x,x.x*hh      -> PSXN23   attitude + heave
+$PSXN,20,x,x,x,x*hh              -> PSXN20    Kongsberg Seatex, quality indicators
+$PSXN,23,x.x,x.x,x.x,x.x*hh      -> PSXN23    Kongsberg Seatex, attitude + heave
+$PTNL,AVR,...                    -> PTNLAVR   Trimble, yaw/tilt from the baseline vector
+$PTNL,GGK,...                    -> PTNLGGK   Trimble, fix with an ellipsoidal height
 ```
 
 Definitions are keyed by **id + field count**, so these two cannot be told apart by YAML alone. A

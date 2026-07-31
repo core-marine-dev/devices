@@ -38,6 +38,23 @@ const PSXN_MESSAGE_IDS: Record<string, string> = {
 // number leaves the id alone rather than inventing a definition.
 const resolvePSXN: SentenceResolver = (sentence) => PSXN_MESSAGE_IDS[sentence.payload[0].raw.trim()] ?? null
 
+// PTNL (Trimble) ------------------------------------------------------------------------------------------------------
+// `$PTNL,AVR,...` -> PTNLAVR (yaw/tilt from the moving-baseline vector)
+// `$PTNL,GGK,...` -> PTNLGGK (position fix with an ellipsoidal height)
+// Both are 12 fields with id `PTNL`, and field 0 is the message type — the same
+// trap as $PSXN, which is why this mechanism is reusable rather than one-off.
+// These are Trimble formats that OTHER receivers emit for compatibility; Septentrio
+// lists both in Appendix C of the AsteRx SB3 Pro+ 4.10.1 reference guide.
+const PTNL_MESSAGE_IDS: Record<string, string> = {
+  AVR: 'PTNLAVR',
+  GGK: 'PTNLGGK',
+}
+
+// Read from `raw` for the same reason as PSXN: at this point every field is still
+// an unparsed string. Upper-cased because the type is a text mnemonic here, not a
+// number — an unknown one leaves the id alone.
+const resolvePTNL: SentenceResolver = (sentence) => PTNL_MESSAGE_IDS[sentence.payload[0].raw.trim().toUpperCase()] ?? null
+
 // REGISTRY -----------------------------------------------------------------------------------------------------------
 // The built-ins every parser starts with. A parser copies these into its OWN
 // registry (see `NMEAParser._resolvers`), so a subclass — or anyone feeding
@@ -45,6 +62,7 @@ const resolvePSXN: SentenceResolver = (sentence) => PSXN_MESSAGE_IDS[sentence.pa
 // `registerResolvers` without touching this module.
 export const BUILTIN_SENTENCE_RESOLVERS: SentenceResolvers = {
   'PSXN:5': resolvePSXN,
+  'PTNL:12': resolvePTNL,
 }
 
 // Resolution is deliberately independent of the checksum: the message number is
