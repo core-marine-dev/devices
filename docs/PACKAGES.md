@@ -27,7 +27,7 @@ refactored libraries; **`sbg-ecom` still says `>= 18`** (tighten it when it is r
 consumer never sees.
 
 Test counts, measured 2026-07-31: `protocol-core` 43, `nmea-parser` **133**, `norsub-emru` 48,
-`septentrio-sbf` 190, `thelmabiotel-tblive` 260, `sbg-ecom` **0**.
+`septentrio-sbf` **211**, `thelmabiotel-tblive` 260, `sbg-ecom` **0**.
 
 **nmea-parser's built-in knowledge base is 26 sentences** (was 16), across six protocol blocks:
 NMEA `3.1` (`AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS`
@@ -81,8 +81,20 @@ which generation of the standard the device speaks.
 - **septentrio-sbf** — SBF binary (GNSS), **rewritten onto CMA 2026-07-31 (`2.0.0`, not yet
   released)**. `SeptentrioParser implements DeviceParser<Uint8Array>` is a device facade that
   **composes** its protocol parser (norsub's pattern — a Septentrio box can emit SBF, NMEA or RTCM on
-  one port, so device ≠ protocol; `protocol: 'sbf'` today), and `SBFParser extends BinaryParser` is the
-  protocol layer. Framing is length-prefixed with a CRC (§4.1.1), so there is no terminator: find the
+  one port, so device ≠ protocol), and `SBFParser extends BinaryParser` is the protocol layer.
+  **TWO protocols since 2026-07-31: `protocol: 'sbf' | 'nmea'`** — the first parser in the repo where
+  the protocol switch is actually usable. The NMEA layer wraps `@coremarine/nmea-parser` (a new runtime
+  dep, external in the bundle) and adds the six proprietary `$PSSN` sentences from Appendix C.1: five as
+  plain YAML (`protocols/septentrio.yml`, resolved by `PSSN:<length>` — RBP and RBV share a length and
+  are told apart by the subtype field) and **`PSSNSNC` in code**, because its payload is bracket-nested
+  with one sub-group per NTRIP connection, so its comma-split field count changes per message while
+  definitions are matched by EXACT field count. SNC's payload is therefore ALWAYS TWO FIELDS — the
+  subtype and the whole bracket group — with the decoded tree in that field's
+  `metadata.fields` / `metadata.submessages` (`Field[][]`, the SBF `metadata.subBlocks` idiom). The
+  structure is parsed by bracket DEPTH from `raw`, so the datasheet's undocumented sub-group separator
+  does not matter, and an unbalanced group is refused rather than half-decoded. The facade's
+  `getSentenceDefinition` now returns the SHARED `SentenceDefinition` shape, since it fronts two
+  protocols; SBF's `name`/`revision`/`timestamp`/`opaque` come from `.parser`. Framing is length-prefixed with a CRC (§4.1.1), so there is no terminator: find the
   sync, trust `Length`, verify the CRC.
   - **Blocks are DESCRIBED, not hand-decoded.** Each block file declares its body as a table of field
     definitions in datasheet order and **one engine** (`src/engine.ts`) derives every byte offset,

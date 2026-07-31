@@ -118,7 +118,73 @@ directly. Its CRC-16 Kermit comes from the same `crc` dependency.
 > all in command mode**, which is why `parse.ts` looks the way it does. See §"What the datasheets
 > actually say" and §"The real internal problem, named".
 
-# ❓ THE `$PSSN` QUESTION — five are easy, one is not (2026-07-31, needs cru)
+# ✅ NMEA IS IN — `septentrio-sbf` NOW SPEAKS TWO PROTOCOLS (2026-07-31, `a859621`)
+
+`protocol: 'sbf' | 'nmea'` on the facade, norsub semantics (one at a time, composed, switching discards
+the buffer). Both protocol parsers take BYTES so the facade stays uniform; the NMEA one wraps
+nmea-parser internally, converting byte-per-character because NMEA 0183 is ASCII — no
+TextEncoder/TextDecoder, so the package stays runtime-agnostic.
+
+**Five of the six `$PSSN` sentences are plain YAML** in `protocols/septentrio.yml` (HRP 13 fields, RBD
+11, RBP 12, RBV 12, TFM 6), resolved by `PSSN:<length>` entries. RBP and RBV share a length and are told
+apart by the subtype field.
+
+## `SNC` — built exactly as cru designed it, and his design was the better one
+
+**The payload is ALWAYS TWO FIELDS**: `submessage_id`, and the whole bracket group as one field whose
+`metadata` carries the decoded tree. That constant shape is the property that actually solves the
+problem — my own first proposal kept the field count varying in the payload and merely relocated the
+mess. The variable part now lives in metadata, where nothing is keyed by field count.
+
+```jsonc
+payload[1]: {
+  raw: '[0,379359000,1840,[1,2,0,0]]',   // sliced from the sentence's own raw — byte-faithful,
+  value: '[0,379359000,1840,[1,2,0,0]]', // so the checksum still verifies against it
+  type: 'string',
+  metadata: {
+    fields: [ /* message_revision, time_of_week (+units ms), week_number — honest numeric types */ ],
+    submessages: [ /* Field[] per NTRIP connection — the SBF metadata.subBlocks idiom */ ],
+  },
+}
+```
+
+**CMA is not violated, and that is asserted rather than assumed:** `tests/nmea.test.ts` validates every
+sentence this layer emits against `CMASchema`. One deviation from cru's literal sketch: `metadata` is
+`{ fields, submessages }` rather than a bare array, because the runtime schema accepts an array but
+**TypeScript refuses** it — `Field[]` is not assignable to `Record<string, unknown>` ("index signature
+for type 'string' is missing"), so a bare array would need a cast at every site.
+
+**The undocumented separator turned out not to matter** — cru's instinct, proven: the decoder parses
+bracket DEPTH from `raw`, not the comma split, so `],[`, `][` and a mix of both give identical results
+(a test). An unbalanced group is REFUSED: the sentence stays a generic `PSSN`, complete but unnamed,
+rather than confidently wrong.
+
+**Two bugs the tests caught in my first draft,** both the same mistake: SNC was in the resolver map, so
+its id was renamed before the decoder could recognise it, and a 2-connection SNC (12 comma-split fields)
+collided with the RBP/RBV resolver key. SNC is now absent from that map and the decoder matches on the
+subtype field, not the id.
+
+## Consequences worth knowing
+
+- **The facade's introspection narrowed to the shared contract.** `getSentenceDefinition` returns
+  `SentenceDefinition[]`/`ParserError[]`, because a facade can only promise what every protocol it
+  fronts can deliver. SBF's `name`/`revision`/`timestamp`/`opaque` come from `.parser` — the rule this
+  facade already applied to every other protocol-specific extra.
+- **`septentrio-sbf` gained a runtime dependency** on `@coremarine/nmea-parser` (external in the bundle,
+  never inlined — only `protocol-core` is inlined). It is now coupled to nmea's major.
+- **The "switching protocol discards the buffer" branch is tested for the first time** — with one
+  protocol there was nothing to switch to.
+- **Three wrapper breaks were found by `tsc --noEmit`, not by its 62 passing tests** (`reportedFirmware`
+  and `leapSeconds` do not exist under NMEA; `msg.definition`'s type). Exactly the failure mode STATUS
+  already warns about: the wrappers run on `tsx`, which strips types without checking them.
+
+⚠️ **Unverified against hardware:** Appendix C gives worked examples only for SNC and TFM, so
+HRP/RBD/RBP/RBV rest on the datasheet tables alone. A wrong field order still parses cleanly, so the
+first real capture with NMEA output enabled is worth checking against them. Noted in the YAML header too.
+
+septentrio **211** tests (18 new) · wrapper **62** · repo-wide lint, tsc and build clean.
+
+# ❓ THE `$PSSN` QUESTION — five are easy, one is not (2026-07-31, ANSWERED — see the section above)
 
 cru's instruction: the Septentrio-proprietary `$PSSN` family lives in **`septentrio-sbf`**, not in
 nmea-parser, and **CMA is never violated**. Analysis done, nothing coded.
