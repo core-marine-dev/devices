@@ -7,7 +7,9 @@ import { attEulerFrame, capture } from './fixtures'
 
 import { firmwares, isFirmware } from '../src/firmware'
 import { SeptentrioParser } from '../src/parser'
+import { SeptentrioNMEAParser } from '../src/protocol-nmea'
 import { SBFParser } from '../src/protocol-sbf'
+import type { SBFSentenceDefinition } from '../src/types'
 
 // The device facade. A Septentrio receiver can emit SBF, NMEA or RTCM on the
 // same port, so the device is not the protocol: this composes a protocol parser
@@ -33,15 +35,22 @@ describe('DeviceParser conformance', () => {
 })
 
 describe('protocol selection', () => {
-  test('sbf is the default and the only protocol so far', () => {
+  test('sbf is the default, and nmea is the second protocol', () => {
     const parser = new SeptentrioParser()
     expect(parser.protocol).toBe('sbf')
-    expect([...parser.protocols]).toStrictEqual(['sbf'])
+    expect([...parser.protocols]).toStrictEqual(['sbf', 'nmea'])
     expect(parser.parser).toBeInstanceOf(SBFParser)
   })
 
+  test('nmea can be selected at construction', () => {
+    const parser = new SeptentrioParser({ protocol: 'nmea' })
+    expect(parser.protocol).toBe('nmea')
+    expect(parser.parser).toBeInstanceOf(SeptentrioNMEAParser)
+  })
+
   test('an unknown protocol is ignored, never thrown', () => {
-    const parser = new SeptentrioParser({ protocol: 'nmea' as 'sbf' })
+    // @ts-expect-error — deliberately invalid, as a wrapper passing user input might
+    const parser = new SeptentrioParser({ protocol: 'rtcm' })
     expect(parser.protocol).toBe('sbf')
     // @ts-expect-error — deliberately invalid at runtime, as a wrapper might pass
     parser.protocol = 'rtcm'
@@ -49,15 +58,32 @@ describe('protocol selection', () => {
     expect(parser.parseData(attEulerFrame())).toHaveLength(1)
   })
 
-  // The "switching protocol discards the buffer" branch cannot be exercised
-  // while SeptentrioProtocol has a single member — there is nothing to switch
-  // to. It gets its test when NMEA is added (see docs/STATUS.md §QUEUED).
   test('assigning the SAME protocol keeps the buffer intact', () => {
     const parser = new SeptentrioParser()
     parser.addData(attEulerFrame().subarray(0, 12))
     expect(parser.buffer.byteLength).toBe(12)
     parser.protocol = 'sbf'
     expect(parser.buffer.byteLength).toBe(12)
+  })
+
+  // Now testable for the first time: with two protocols there is something to
+  // switch TO. Half an SBF frame cannot mean anything under NMEA framing, so the
+  // buffer is dropped rather than reinterpreted.
+  test('switching protocol DISCARDS the pending buffer', () => {
+    const parser = new SeptentrioParser()
+    parser.addData(attEulerFrame().subarray(0, 12))
+    expect(parser.buffer.byteLength).toBe(12)
+    parser.protocol = 'nmea'
+    expect(parser.protocol).toBe('nmea')
+    expect(parser.buffer.byteLength).toBe(0)
+  })
+
+  test('memory, bufferLimit and firmware survive a protocol switch', () => {
+    const parser = new SeptentrioParser({ memory: false, bufferLimit: 4096 })
+    parser.protocol = 'nmea'
+    expect(parser.memory).toBe(false)
+    expect(parser.bufferLimit).toBe(4096)
+    expect(parser.firmware).toBe('4.10.1')
   })
 })
 
@@ -111,16 +137,25 @@ describe('options and setters never throw', () => {
 // can fabricate it, all Result-returning.
 describe('getSentenceDefinition', () => {
   test('describes a known block, one entry per revision', () => {
-    const result = new SeptentrioParser().getSentenceDefinition(5938)
+    const parser = new SeptentrioParser()
+    const result = parser.getSentenceDefinition(5938)
     expect(result.success).toBe(true)
     if (!result.success) return
     expect(result.value).toHaveLength(1)
     const [definition] = result.value
-    expect(definition.name).toBe('AttEuler')
     expect(definition.id).toBe('5938')
-    expect(definition.revision).toBe(0)
-    expect(definition.timestamp).toBe('receiver')
     expect(definition.protocol).toStrictEqual({ name: 'SBF', version: '4.10.1' })
+    // The FACADE promises only the shared contract, because it fronts more than one
+    // protocol now. SBF's extra keys — name, revision, timestamp — are protocol
+    // specific, so they come through `.parser`, the rule this facade already applies
+    // to every other protocol-specific extra.
+    const detailed = (parser.parser as SBFParser).getSentenceDefinition(5938)
+    expect(detailed.success).toBe(true)
+    if (!detailed.success) return
+    const [rich]: SBFSentenceDefinition[] = detailed.value
+    expect(rich.name).toBe('AttEuler')
+    expect(rich.revision).toBe(0)
+    expect(rich.timestamp).toBe('receiver')
     // Field DEFINITIONS, not values: no raw, no value.
     expect(definition.payload[0]).toStrictEqual({
       name: 'NrSV',
@@ -131,10 +166,12 @@ describe('getSentenceDefinition', () => {
   })
 
   test('a block with revisions describes each of them, newest last', () => {
-    const result = new SeptentrioParser().getSentenceDefinition('4007')
+    const parser = new SeptentrioParser()
+    const result = parser.getSentenceDefinition('4007')
     expect(result.success).toBe(true)
     if (!result.success) return
-    expect(result.value.map((definition) => definition.revision)).toStrictEqual([0, 1, 2])
+    const rich = (parser.parser as SBFParser).getSentenceDefinition('4007')
+    expect(rich.success ? rich.value.map((definition) => definition.revision) : []).toStrictEqual([0, 1, 2])
     // §4.1.6: each revision is a superset of the previous one.
     expect(result.value[0].payload).toHaveLength(20)
     expect(result.value[1].payload).toHaveLength(22)

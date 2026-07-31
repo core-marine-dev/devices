@@ -172,15 +172,25 @@ describe('applyFirmware', () => {
 
 describe('applyProtocol', () => {
   test('get reports the active protocol and every one the device can speak', () => {
-    assert.deepEqual(applyProtocol(parser(), { command: 'get' }), { protocol: 'sbf', protocols: ['sbf'] })
+    assert.deepEqual(applyProtocol(parser(), { command: 'get' }), { protocol: 'sbf', protocols: ['sbf', 'nmea'] })
   })
 
-  test('set accepts the one that exists', () => {
-    assert.deepEqual(applyProtocol(parser(), { command: 'set', payload: 'sbf' }), { protocol: 'sbf', protocols: ['sbf'] })
+  test('set accepts sbf', () => {
+    assert.deepEqual(applyProtocol(parser(), { command: 'set', payload: 'sbf' }), { protocol: 'sbf', protocols: ['sbf', 'nmea'] })
+  })
+
+  // A Septentrio box can be configured for NMEA output instead of SBF, so the
+  // selector really switches the framing rules the node applies to its input.
+  test('set accepts nmea, and the node then parses NMEA', () => {
+    const node = parser()
+    assert.deepEqual(applyProtocol(node, { command: 'set', payload: 'nmea' }), { protocol: 'nmea', protocols: ['sbf', 'nmea'] })
+    const sentences = node.parseData(Buffer.from('$PSSN,TFM,104751.00,2,1021,1023,1025*5F\r\n', 'ascii'))
+    assert.equal(sentences.length, 1)
+    assert.equal(sentences[0].id, 'PSSNTFM')
   })
 
   test('set refuses anything else and lists what is available', () => {
-    assert.equal(applyProtocol(parser(), { command: 'set', payload: 'nmea' }), 'protocol.payload should be one of: sbf')
+    assert.equal(applyProtocol(parser(), { command: 'set', payload: 'rtcm' }), 'protocol.payload should be one of: sbf, nmea')
   })
 })
 
@@ -202,7 +212,7 @@ describe('getIds', () => {
 
 describe('getDefinition', () => {
   test('a NUMBER is accepted, because an SBF id is a number on the wire', () => {
-    const definition = getDefinition(parser(), 5938) as { id: string, name: string }[]
+    const definition = getDefinition(parser(), 5938) as unknown as { id: string, name: string }[]
     assert.equal(definition.length, 1)
     assert.equal(definition[0].id, '5938')
     assert.equal(definition[0].name, 'AttEuler')
@@ -217,7 +227,7 @@ describe('getDefinition', () => {
   // The per-revision split is the point: a receiver generation only sends the fields its
   // revision defines, so PVTGeodetic's three revisions are three different field lists.
   test('a multi-revision block returns ONE ENTRY PER REVISION', () => {
-    const definition = getDefinition(parser(), 4007) as { revision: number, payload: unknown[] }[]
+    const definition = getDefinition(parser(), 4007) as unknown as { revision: number, payload: unknown[] }[]
     assert.equal(definition.length, 3, 'PVTGeodetic has revisions 0, 1 and 2')
     assert.deepEqual(definition.map((entry) => entry.revision), [0, 1, 2])
     // Each revision ADDS fields (§4.1.6), so the lists grow.

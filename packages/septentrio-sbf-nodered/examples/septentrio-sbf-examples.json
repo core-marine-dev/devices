@@ -18,44 +18,10 @@
             "catch-all",
             "dbg-err"
         ],
-        "x": 34,
+        "x": 54,
         "y": 39,
-        "w": 546,
-        "h": 100
-    },
-    {
-        "id": "catch-all",
-        "type": "catch",
-        "z": "sbf-tab",
-        "name": "",
-        "scope": null,
-        "uncaught": false,
-        "x": 200,
-        "y": 79,
-        "wires": [
-            [
-                "dbg-err"
-            ]
-        ],
-        "g": "g-errors"
-    },
-    {
-        "id": "dbg-err",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "errors",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "error",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 460,
-        "y": 79,
-        "wires": [],
-        "g": "g-errors"
+        "w": 442,
+        "h": 82
     },
     {
         "id": "g-decoded",
@@ -75,173 +41,10 @@
             "fn-summary",
             "dbg-summary"
         ],
-        "x": 34,
-        "y": 157,
-        "w": 876,
-        "h": 220
-    },
-    {
-        "id": "c1",
-        "type": "comment",
-        "z": "sbf-tab",
-        "name": "SBF is BINARY — these inject base64",
-        "info": "A real serial or TCP node hands the parser a Buffer and needs no conversion.\nAn inject node cannot hold a Buffer, so these examples use the base64 form the node also accepts — the same form every CMA reports in `raw`.",
-        "x": 170,
-        "y": 197,
-        "wires": [],
-        "g": "g-decoded"
-    },
-    {
-        "id": "i-att",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "AttEuler 5938 (attitude)",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
-        "payloadType": "str",
-        "x": 200,
-        "y": 237,
-        "wires": [
-            [
-                "p-decoded"
-            ]
-        ],
-        "g": "g-decoded"
-    },
-    {
-        "id": "i-pvt",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "PVTGeodetic 4007 rev 2 (a real fix)",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEDd4qdPYABwiNcb2wgBABlkEU+VkuY/9P+8dnKjsL/GmLYyVBCFQOy6TkLlh5y7pKxQOGOnjrv5ApXQuE7IEp37xb8H9RG+ABMGAPYDZAAJCQAAAQEAAEsALAOuB2AA",
-        "payloadType": "str",
-        "x": 200,
-        "y": 277,
-        "wires": [
-            [
-                "p-decoded"
-            ]
-        ],
-        "g": "g-decoded"
-    },
-    {
-        "id": "i-time",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "ReceiverTime 5914 (teaches leap seconds)",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEA+4xoXGACwbM0GyggXAhQHKTASBwAA",
-        "payloadType": "str",
-        "x": 200,
-        "y": 317,
-        "wires": [
-            [
-                "p-decoded"
-            ]
-        ],
-        "g": "g-decoded"
-    },
-    {
-        "id": "p-decoded",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 460,
-        "y": 277,
-        "wires": [
-            [
-                "dbg-decoded",
-                "fn-summary"
-            ]
-        ],
-        "g": "g-decoded"
-    },
-    {
-        "id": "dbg-decoded",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 620,
-        "y": 277,
-        "wires": [],
-        "g": "g-decoded"
-    },
-    {
-        "id": "fn-summary",
-        "type": "function",
-        "z": "sbf-tab",
-        "name": "one line per block",
-        "func": "// A readable summary of whatever came back, so the debug pane is legible.\nconst blocks = Array.isArray(msg.payload) ? msg.payload : null\nif (blocks === null) { return null }\nmsg.payload = blocks.map((cma) => ({\n  id: cma.id,\n  name: cma.metadata.name,\n  revision: cma.metadata.revision,\n  time: new Date(cma.timestamp).toISOString(),\n  fields: cma.payload.length,\n  errors: cma.errors,\n}))\nreturn msg",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 620,
-        "y": 317,
-        "wires": [
-            [
-                "dbg-summary"
-            ]
-        ],
-        "g": "g-decoded"
-    },
-    {
-        "id": "dbg-summary",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "blocks",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 790,
-        "y": 317,
-        "wires": [],
-        "g": "g-decoded"
+        "x": 54,
+        "y": 139,
+        "w": 972,
+        "h": 202
     },
     {
         "id": "g-dnu",
@@ -257,81 +60,10 @@
             "p-dnu",
             "dbg-dnu"
         ],
-        "x": 34,
-        "y": 395,
-        "w": 706,
-        "h": 140
-    },
-    {
-        "id": "c2",
-        "type": "comment",
-        "z": "sbf-tab",
-        "name": "null is NOT zero",
-        "info": "The AttEuler frame above is in attitude mode 1 — heading and pitch only — so Roll and RollDot come back `value: null` with `metadata.doNotUse: true` and the sentinel that matched.\n\nA Do-Not-Use course-over-ground is not a heading of north. Check for null before using a reading.",
-        "x": 170,
-        "y": 435,
-        "wires": [],
-        "g": "g-dnu"
-    },
-    {
-        "id": "i-att-dnu",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "AttEuler 5938 — Roll and RollDot are Do-Not-Use",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
-        "payloadType": "str",
-        "x": 200,
-        "y": 475,
-        "wires": [
-            [
-                "p-dnu"
-            ]
-        ],
-        "g": "g-dnu"
-    },
-    {
-        "id": "p-dnu",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 460,
-        "y": 475,
-        "wires": [
-            [
-                "dbg-dnu"
-            ]
-        ],
-        "g": "g-dnu"
-    },
-    {
-        "id": "dbg-dnu",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 620,
-        "y": 475,
-        "wires": [],
-        "g": "g-dnu"
+        "x": 54,
+        "y": 359,
+        "w": 812,
+        "h": 122
     },
     {
         "id": "g-garbage",
@@ -348,107 +80,10 @@
             "p-garbage",
             "dbg-garbage"
         ],
-        "x": 34,
-        "y": 553,
-        "w": 706,
-        "h": 180
-    },
-    {
-        "id": "c3",
-        "type": "comment",
-        "z": "sbf-tab",
-        "name": "Nothing is dropped silently",
-        "info": "Bad CRC: every field still decodes, and `errors` says what is wrong. Flagged data beats none.\nJunk: a CMA with id \"unknown\", empty payload, the bytes kept in `raw`. Adjacent junk is coalesced into ONE report.",
-        "x": 170,
-        "y": 593,
-        "wires": [],
-        "g": "g-garbage"
-    },
-    {
-        "id": "i-crc",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "Bad CRC — decoded anyway, plus errors",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEA0EjIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
-        "payloadType": "str",
-        "x": 200,
-        "y": 633,
-        "wires": [
-            [
-                "p-garbage"
-            ]
-        ],
-        "g": "g-garbage"
-    },
-    {
-        "id": "i-junk",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "Junk bytes — one garbage sentence",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "AQID//4=",
-        "payloadType": "str",
-        "x": 200,
-        "y": 673,
-        "wires": [
-            [
-                "p-garbage"
-            ]
-        ],
-        "g": "g-garbage"
-    },
-    {
-        "id": "p-garbage",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 460,
-        "y": 633,
-        "wires": [
-            [
-                "dbg-garbage"
-            ]
-        ],
-        "g": "g-garbage"
-    },
-    {
-        "id": "dbg-garbage",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 620,
-        "y": 633,
-        "wires": [],
-        "g": "g-garbage"
+        "x": 54,
+        "y": 499,
+        "w": 772,
+        "h": 162
     },
     {
         "id": "g-memory",
@@ -468,191 +103,10 @@
             "p-memory",
             "dbg-memory"
         ],
-        "x": 34,
-        "y": 751,
-        "w": 706,
-        "h": 300
-    },
-    {
-        "id": "c4",
-        "type": "comment",
-        "z": "sbf-tab",
-        "name": "Fire 1/2 then 2/2",
-        "info": "SBF framing is length-prefixed, so a block only decodes once its LAST byte arrives. With memory ON (the default) the head waits on the buffer.\n\nTurn memory off with the node below and the same pair produces garbage instead — the head is discarded when the tail arrives.",
-        "x": 170,
-        "y": 791,
-        "wires": [],
-        "g": "g-memory"
-    },
-    {
-        "id": "i-half1",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "Split frame 1/2 — nothing out yet",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEC0kzIXLADQkPEW2AgHAAEAAAA=",
-        "payloadType": "str",
-        "x": 200,
-        "y": 831,
-        "wires": [
-            [
-                "p-memory"
-            ]
-        ],
-        "g": "g-memory"
-    },
-    {
-        "id": "i-half2",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "Split frame 2/2 — now it decodes",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "z7EuQz1QEMH5ApXQ75RGvvkCldAMQaA+",
-        "payloadType": "str",
-        "x": 200,
-        "y": 871,
-        "wires": [
-            [
-                "p-memory"
-            ]
-        ],
-        "g": "g-memory"
-    },
-    {
-        "id": "i-mem-off",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "memory: set false",
-        "props": [
-            {
-                "p": "memory",
-                "v": "{\"command\":\"set\",\"payload\":false}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 911,
-        "wires": [
-            [
-                "p-memory"
-            ]
-        ],
-        "g": "g-memory"
-    },
-    {
-        "id": "i-mem-on",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "memory: set true",
-        "props": [
-            {
-                "p": "memory",
-                "v": "{\"command\":\"set\",\"payload\":true}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 951,
-        "wires": [
-            [
-                "p-memory"
-            ]
-        ],
-        "g": "g-memory"
-    },
-    {
-        "id": "i-mem-get",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "memory: get",
-        "props": [
-            {
-                "p": "memory",
-                "v": "{\"command\":\"get\"}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 991,
-        "wires": [
-            [
-                "p-memory"
-            ]
-        ],
-        "g": "g-memory"
-    },
-    {
-        "id": "p-memory",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 460,
-        "y": 911,
-        "wires": [
-            [
-                "dbg-memory"
-            ]
-        ],
-        "g": "g-memory"
-    },
-    {
-        "id": "dbg-memory",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 620,
-        "y": 911,
-        "wires": [],
-        "g": "g-memory"
+        "x": 54,
+        "y": 679,
+        "w": 712,
+        "h": 282
     },
     {
         "id": "g-firmware",
@@ -672,193 +126,10 @@
             "p-firmware",
             "dbg-firmware"
         ],
-        "x": 34,
-        "y": 1069,
-        "w": 706,
-        "h": 300
-    },
-    {
-        "id": "c5",
-        "type": "comment",
-        "z": "sbf-tab",
-        "name": "The receiver is the authority",
-        "info": "ReceiverSetup (5902) reports the real firmware and the parser adopts it, so you rarely pin it. An unmodelled version is REPORTED (`reported` in the answer, plus an error on that block), never substituted.\n\nAfter a ReceiverTime block, `leapSeconds` shows the GPS-UTC offset learned from the device itself.",
-        "x": 170,
-        "y": 1109,
-        "wires": [],
-        "g": "g-firmware"
-    },
-    {
-        "id": "i-time-fw",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "ReceiverTime 5914 — fire this FIRST",
-        "props": [
-            {
-                "p": "payload"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "JEA+4xoXGACwbM0GyggXAhQHKTASBwAA",
-        "payloadType": "str",
-        "x": 200,
-        "y": 1149,
-        "wires": [
-            [
-                "p-firmware"
-            ]
-        ],
-        "g": "g-firmware"
-    },
-    {
-        "id": "i-fw-get",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "firmware: get",
-        "props": [
-            {
-                "p": "firmware",
-                "v": "{\"command\":\"get\"}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1189,
-        "wires": [
-            [
-                "p-firmware"
-            ]
-        ],
-        "g": "g-firmware"
-    },
-    {
-        "id": "i-fw-set",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "firmware: pin 4.10.1",
-        "props": [
-            {
-                "p": "firmware",
-                "v": "{\"command\":\"set\",\"payload\":\"4.10.1\"}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1229,
-        "wires": [
-            [
-                "p-firmware"
-            ]
-        ],
-        "g": "g-firmware"
-    },
-    {
-        "id": "i-fw-bad",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "firmware: an unmodelled one is refused",
-        "props": [
-            {
-                "p": "firmware",
-                "v": "{\"command\":\"set\",\"payload\":\"9.9.9\"}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1269,
-        "wires": [
-            [
-                "p-firmware"
-            ]
-        ],
-        "g": "g-firmware"
-    },
-    {
-        "id": "i-proto",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "protocol: get",
-        "props": [
-            {
-                "p": "protocol",
-                "v": "{\"command\":\"get\"}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1309,
-        "wires": [
-            [
-                "p-firmware"
-            ]
-        ],
-        "g": "g-firmware"
-    },
-    {
-        "id": "p-firmware",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 460,
-        "y": 1229,
-        "wires": [
-            [
-                "dbg-firmware"
-            ]
-        ],
-        "g": "g-firmware"
-    },
-    {
-        "id": "dbg-firmware",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 620,
-        "y": 1229,
-        "wires": [],
-        "g": "g-firmware"
+        "x": 54,
+        "y": 979,
+        "w": 752,
+        "h": 282
     },
     {
         "id": "g-diagnostics",
@@ -877,167 +148,10 @@
             "p-diagnostics",
             "dbg-diagnostics"
         ],
-        "x": 34,
-        "y": 1387,
-        "w": 706,
-        "h": 260
-    },
-    {
-        "id": "c6",
-        "type": "comment",
-        "z": "sbf-tab",
-        "name": "Ask the running node what it expects",
-        "info": "A receiver on a remote install stays there for years. `definition` returns the field table the parser will actually apply — types, units, Do-Not-Use values — one entry per revision, because a receiver generation only sends the fields its revision defines.",
-        "x": 170,
-        "y": 1427,
-        "wires": [],
-        "g": "g-diagnostics"
-    },
-    {
-        "id": "i-ids",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "ids: every block number (108)",
-        "props": [
-            {
-                "p": "ids",
-                "v": "true",
-                "vt": "bool"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1467,
-        "wires": [
-            [
-                "p-diagnostics"
-            ]
-        ],
-        "g": "g-diagnostics"
-    },
-    {
-        "id": "i-def",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "definition: 4007 — one entry PER REVISION",
-        "props": [
-            {
-                "p": "definition",
-                "v": "4007",
-                "vt": "num"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1507,
-        "wires": [
-            [
-                "p-diagnostics"
-            ]
-        ],
-        "g": "g-diagnostics"
-    },
-    {
-        "id": "i-def-att",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "definition: 5938",
-        "props": [
-            {
-                "p": "definition",
-                "v": "5938",
-                "vt": "num"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1547,
-        "wires": [
-            [
-                "p-diagnostics"
-            ]
-        ],
-        "g": "g-diagnostics"
-    },
-    {
-        "id": "i-def-bad",
-        "type": "inject",
-        "z": "sbf-tab",
-        "name": "definition: 1234 — not modelled",
-        "props": [
-            {
-                "p": "definition",
-                "v": "1234",
-                "vt": "num"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 200,
-        "y": 1587,
-        "wires": [
-            [
-                "p-diagnostics"
-            ]
-        ],
-        "g": "g-diagnostics"
-    },
-    {
-        "id": "p-diagnostics",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 460,
-        "y": 1507,
-        "wires": [
-            [
-                "dbg-diagnostics"
-            ]
-        ],
-        "g": "g-diagnostics"
-    },
-    {
-        "id": "dbg-diagnostics",
-        "type": "debug",
-        "z": "sbf-tab",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 620,
-        "y": 1507,
-        "wires": [],
-        "g": "g-diagnostics"
+        "x": 54,
+        "y": 1279,
+        "w": 792,
+        "h": 242
     },
     {
         "id": "g-fake",
@@ -1055,26 +169,913 @@
             "p-fake",
             "dbg-fake"
         ],
-        "x": 34,
-        "y": 1665,
-        "w": 706,
-        "h": 220
+        "x": 54,
+        "y": 1539,
+        "w": 752,
+        "h": 202
+    },
+    {
+        "id": "catch-all",
+        "type": "catch",
+        "z": "sbf-tab",
+        "g": "g-errors",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 140,
+        "y": 80,
+        "wires": [
+            [
+                "dbg-err"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-err",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-errors",
+        "name": "errors",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "error",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 400,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "c1",
+        "type": "comment",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "SBF is BINARY — these inject base64",
+        "info": "A real serial or TCP node hands the parser a Buffer and needs no conversion.\nAn inject node cannot hold a Buffer, so these examples use the base64 form the node also accepts — the same form every CMA reports in `raw`.",
+        "x": 230,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "i-att",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "AttEuler 5938 (attitude)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
+        "payloadType": "str",
+        "x": 320,
+        "y": 220,
+        "wires": [
+            [
+                "p-decoded"
+            ]
+        ]
+    },
+    {
+        "id": "i-pvt",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "PVTGeodetic 4007 rev 2 (a real fix)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEDd4qdPYABwiNcb2wgBABlkEU+VkuY/9P+8dnKjsL/GmLYyVBCFQOy6TkLlh5y7pKxQOGOnjrv5ApXQuE7IEp37xb8H9RG+ABMGAPYDZAAJCQAAAQEAAEsALAOuB2AA",
+        "payloadType": "str",
+        "x": 280,
+        "y": 260,
+        "wires": [
+            [
+                "p-decoded"
+            ]
+        ]
+    },
+    {
+        "id": "i-time",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "ReceiverTime 5914 (teaches leap seconds)",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEA+4xoXGACwbM0GyggXAhQHKTASBwAA",
+        "payloadType": "str",
+        "x": 260,
+        "y": 300,
+        "wires": [
+            [
+                "p-decoded"
+            ]
+        ]
+    },
+    {
+        "id": "p-decoded",
+        "type": "cma-septentrio-parser",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 540,
+        "y": 260,
+        "wires": [
+            [
+                "dbg-decoded",
+                "fn-summary"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-decoded",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "fn-summary",
+        "type": "function",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "one line per block",
+        "func": "// A readable summary of whatever came back, so the debug pane is legible.\nconst blocks = Array.isArray(msg.payload) ? msg.payload : null\nif (blocks === null) { return null }\nmsg.payload = blocks.map((cma) => ({\n  id: cma.id,\n  name: cma.metadata.name,\n  revision: cma.metadata.revision,\n  time: new Date(cma.timestamp).toISOString(),\n  fields: cma.payload.length,\n  errors: cma.errors,\n}))\nreturn msg",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 750,
+        "y": 260,
+        "wires": [
+            [
+                "dbg-summary"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-summary",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-decoded",
+        "name": "blocks",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "c2",
+        "type": "comment",
+        "z": "sbf-tab",
+        "g": "g-dnu",
+        "name": "null is NOT zero",
+        "info": "The AttEuler frame above is in attitude mode 1 — heading and pitch only — so Roll and RollDot come back `value: null` with `metadata.doNotUse: true` and the sentinel that matched.\n\nA Do-Not-Use course-over-ground is not a heading of north. Check for null before using a reading.",
+        "x": 160,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "i-att-dnu",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-dnu",
+        "name": "AttEuler 5938 — Roll and RollDot are Do-Not-Use",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
+        "payloadType": "str",
+        "x": 280,
+        "y": 440,
+        "wires": [
+            [
+                "p-dnu"
+            ]
+        ]
+    },
+    {
+        "id": "p-dnu",
+        "type": "cma-septentrio-parser",
+        "z": "sbf-tab",
+        "g": "g-dnu",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 580,
+        "y": 440,
+        "wires": [
+            [
+                "dbg-dnu"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-dnu",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-dnu",
+        "name": "payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "c3",
+        "type": "comment",
+        "z": "sbf-tab",
+        "g": "g-garbage",
+        "name": "Nothing is dropped silently",
+        "info": "Bad CRC: every field still decodes, and `errors` says what is wrong. Flagged data beats none.\nJunk: a CMA with id \"unknown\", empty payload, the bytes kept in `raw`. Adjacent junk is coalesced into ONE report.",
+        "x": 190,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "i-crc",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-garbage",
+        "name": "Bad CRC — decoded anyway, plus errors",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEA0EjIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
+        "payloadType": "str",
+        "x": 260,
+        "y": 580,
+        "wires": [
+            [
+                "p-garbage"
+            ]
+        ]
+    },
+    {
+        "id": "i-junk",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-garbage",
+        "name": "Junk bytes — one garbage sentence",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "AQID//4=",
+        "payloadType": "str",
+        "x": 280,
+        "y": 620,
+        "wires": [
+            [
+                "p-garbage"
+            ]
+        ]
+    },
+    {
+        "id": "p-garbage",
+        "type": "cma-septentrio-parser",
+        "z": "sbf-tab",
+        "g": "g-garbage",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 540,
+        "y": 580,
+        "wires": [
+            [
+                "dbg-garbage"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-garbage",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-garbage",
+        "name": "payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "c4",
+        "type": "comment",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "Fire 1/2 then 2/2",
+        "info": "SBF framing is length-prefixed, so a block only decodes once its LAST byte arrives. With memory ON (the default) the head waits on the buffer.\n\nTurn memory off with the node below and the same pair produces garbage instead — the head is discarded when the tail arrives.",
+        "x": 160,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "i-half1",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "Split frame 1/2 — nothing out yet",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEC0kzIXLADQkPEW2AgHAAEAAAA=",
+        "payloadType": "str",
+        "x": 230,
+        "y": 760,
+        "wires": [
+            [
+                "p-memory"
+            ]
+        ]
+    },
+    {
+        "id": "i-half2",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "Split frame 2/2 — now it decodes",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "z7EuQz1QEMH5ApXQ75RGvvkCldAMQaA+",
+        "payloadType": "str",
+        "x": 230,
+        "y": 800,
+        "wires": [
+            [
+                "p-memory"
+            ]
+        ]
+    },
+    {
+        "id": "i-mem-off",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "memory: set false",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":false}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 280,
+        "y": 840,
+        "wires": [
+            [
+                "p-memory"
+            ]
+        ]
+    },
+    {
+        "id": "i-mem-on",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "memory: set true",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"set\",\"payload\":true}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 280,
+        "y": 880,
+        "wires": [
+            [
+                "p-memory"
+            ]
+        ]
+    },
+    {
+        "id": "i-mem-get",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "memory: get",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 290,
+        "y": 920,
+        "wires": [
+            [
+                "p-memory"
+            ]
+        ]
+    },
+    {
+        "id": "p-memory",
+        "type": "cma-septentrio-parser",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 480,
+        "y": 840,
+        "wires": [
+            [
+                "dbg-memory"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-memory",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "c5",
+        "type": "comment",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "The receiver is the authority",
+        "info": "ReceiverSetup (5902) reports the real firmware and the parser adopts it, so you rarely pin it. An unmodelled version is REPORTED (`reported` in the answer, plus an error on that block), never substituted.\n\nAfter a ReceiverTime block, `leapSeconds` shows the GPS-UTC offset learned from the device itself.",
+        "x": 200,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "i-time-fw",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "ReceiverTime 5914 — fire this FIRST",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "JEA+4xoXGACwbM0GyggXAhQHKTASBwAA",
+        "payloadType": "str",
+        "x": 250,
+        "y": 1060,
+        "wires": [
+            [
+                "p-firmware"
+            ]
+        ]
+    },
+    {
+        "id": "i-fw-get",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "firmware: get",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 330,
+        "y": 1100,
+        "wires": [
+            [
+                "p-firmware"
+            ]
+        ]
+    },
+    {
+        "id": "i-fw-set",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "firmware: pin 4.10.1",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"set\",\"payload\":\"4.10.1\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 1140,
+        "wires": [
+            [
+                "p-firmware"
+            ]
+        ]
+    },
+    {
+        "id": "i-fw-bad",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "firmware: an unmodelled one is refused",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"set\",\"payload\":\"9.9.9\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 250,
+        "y": 1180,
+        "wires": [
+            [
+                "p-firmware"
+            ]
+        ]
+    },
+    {
+        "id": "i-proto",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "protocol: get",
+        "props": [
+            {
+                "p": "protocol",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 330,
+        "y": 1220,
+        "wires": [
+            [
+                "p-firmware"
+            ]
+        ]
+    },
+    {
+        "id": "p-firmware",
+        "type": "cma-septentrio-parser",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 520,
+        "y": 1140,
+        "wires": [
+            [
+                "dbg-firmware"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-firmware",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 700,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "c6",
+        "type": "comment",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "Ask the running node what it expects",
+        "info": "A receiver on a remote install stays there for years. `definition` returns the field table the parser will actually apply — types, units, Do-Not-Use values — one entry per revision, because a receiver generation only sends the fields its revision defines.",
+        "x": 220,
+        "y": 1320,
+        "wires": []
+    },
+    {
+        "id": "i-ids",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "ids: every block number (108)",
+        "props": [
+            {
+                "p": "ids",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 320,
+        "y": 1360,
+        "wires": [
+            [
+                "p-diagnostics"
+            ]
+        ]
+    },
+    {
+        "id": "i-def",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "definition: 4007 — one entry PER REVISION",
+        "props": [
+            {
+                "p": "definition",
+                "v": "4007",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 270,
+        "y": 1400,
+        "wires": [
+            [
+                "p-diagnostics"
+            ]
+        ]
+    },
+    {
+        "id": "i-def-att",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "definition: 5938",
+        "props": [
+            {
+                "p": "definition",
+                "v": "5938",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 360,
+        "y": 1440,
+        "wires": [
+            [
+                "p-diagnostics"
+            ]
+        ]
+    },
+    {
+        "id": "i-def-bad",
+        "type": "inject",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "definition: 1234 — not modelled",
+        "props": [
+            {
+                "p": "definition",
+                "v": "1234",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 310,
+        "y": 1480,
+        "wires": [
+            [
+                "p-diagnostics"
+            ]
+        ]
+    },
+    {
+        "id": "p-diagnostics",
+        "type": "cma-septentrio-parser",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 560,
+        "y": 1400,
+        "wires": [
+            [
+                "dbg-diagnostics"
+            ]
+        ]
+    },
+    {
+        "id": "dbg-diagnostics",
+        "type": "debug",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "payload",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 740,
+        "y": 1400,
+        "wires": []
     },
     {
         "id": "c7",
         "type": "comment",
         "z": "sbf-tab",
+        "g": "g-fake",
         "name": "Deterministic by design",
         "info": "A fake frame carries a real CRC and a real Length, so it parses straight back — wire `fake` into another parser node to see it.\n\nThe same request returns the same bytes forever, which is what makes it committable into a flow like this one. `random: true` varies the filler and is still reproducible.",
-        "x": 170,
-        "y": 1705,
-        "wires": [],
-        "g": "g-fake"
+        "x": 180,
+        "y": 1580,
+        "wires": []
     },
     {
         "id": "i-fake",
         "type": "inject",
         "z": "sbf-tab",
+        "g": "g-fake",
         "name": "fake: 5938 — a real frame, as a Buffer",
         "props": [
             {
@@ -1090,19 +1091,19 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 200,
-        "y": 1745,
+        "x": 250,
+        "y": 1620,
         "wires": [
             [
                 "p-fake"
             ]
-        ],
-        "g": "g-fake"
+        ]
     },
     {
         "id": "i-fake-rev",
         "type": "inject",
         "z": "sbf-tab",
+        "g": "g-fake",
         "name": "fake: 4007 rev 2, NrSV forced to 12",
         "props": [
             {
@@ -1118,19 +1119,19 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 200,
-        "y": 1785,
+        "x": 260,
+        "y": 1660,
         "wires": [
             [
                 "p-fake"
             ]
-        ],
-        "g": "g-fake"
+        ]
     },
     {
         "id": "i-fake-rand",
         "type": "inject",
         "z": "sbf-tab",
+        "g": "g-fake",
         "name": "fake: 5938 with random filler",
         "props": [
             {
@@ -1146,35 +1147,35 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 200,
-        "y": 1825,
+        "x": 280,
+        "y": 1700,
         "wires": [
             [
                 "p-fake"
             ]
-        ],
-        "g": "g-fake"
+        ]
     },
     {
         "id": "p-fake",
         "type": "cma-septentrio-parser",
         "z": "sbf-tab",
+        "g": "g-fake",
         "name": "",
         "firmware": "",
         "memory": true,
-        "x": 460,
-        "y": 1785,
+        "x": 520,
+        "y": 1660,
         "wires": [
             [
                 "dbg-fake"
             ]
-        ],
-        "g": "g-fake"
+        ]
     },
     {
         "id": "dbg-fake",
         "type": "debug",
         "z": "sbf-tab",
+        "g": "g-fake",
         "name": "payload",
         "active": true,
         "tosidebar": true,
@@ -1184,9 +1185,8 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 620,
-        "y": 1785,
-        "wires": [],
-        "g": "g-fake"
+        "x": 700,
+        "y": 1660,
+        "wires": []
     }
 ]

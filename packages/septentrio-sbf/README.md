@@ -390,21 +390,126 @@ one:
 
 ```typescript
 parser.protocol        // 'sbf' — the active protocol
-parser.protocols       // ['sbf'] — everything this device can speak
-parser.parser          // the SBFParser itself, for anything protocol-specific
+parser.protocols       // ['sbf', 'nmea'] — everything this device can speak
+parser.parser          // the active protocol parser, for anything protocol-specific
 ```
 
 Everything protocol-specific lives on `.parser`, exposed as one getter rather than delegated method by
-method, so adding a protocol later does not change this class's surface:
+method, so adding a protocol does not change this class's surface. Narrow it with `instanceof`:
 
 ```typescript
-parser.parser.firmware            // '4.10.1' — the knowledge base in use
-parser.parser.reportedFirmware    // what the RECEIVER says it runs (see below)
-parser.parser.leapSeconds         // the GPS-UTC offset learned from the device
+import { SBFParser } from '@coremarine/septentrio-sbf'
+
+if (parser.parser instanceof SBFParser) {
+  parser.parser.firmware            // '4.10.1' — the knowledge base in use
+  parser.parser.reportedFirmware    // what the RECEIVER says it runs (see below)
+  parser.parser.leapSeconds         // the GPS-UTC offset learned from the device
+}
 ```
+
+The facade's `getSentenceDefinition` returns the **shared** `SentenceDefinition` shape, because it
+fronts more than one protocol. SBF's extra keys (`name`, `revision`, `timestamp`, `opaque`) come from
+`.parser` for the same reason everything else protocol-specific does.
 
 Switching protocol **discards the buffer and any undrained sentences** — the bytes were being read
 under different framing rules, so keeping them would be worse than dropping them.
+
+### NMEA — the second protocol
+
+A Septentrio box can be configured to emit NMEA 0183 instead of SBF. Select it and feed the same
+**bytes**; the conversion is internal, so both protocols look identical from the outside:
+
+```typescript
+const parser = new SeptentrioParser({ protocol: 'nmea' })
+parser.parseData(chunk)   // -> CMA[], same shape as SBF
+```
+
+You get every sentence `@coremarine/nmea-parser` knows (`GGA`, `RMC`, `GNS`, `GSA`, `GST`, `GSV`, `HDT`,
+`VTG`, `ZDA`, `GBS`, `GRS`, `GLL`, `ROT`, `TXT`, …) plus the **six proprietary `$PSSN` sentences** from
+Appendix C.1 of the reference guide:
+
+| id | sentence | what it carries |
+| --- | --- | --- |
+| `PSSNHRP` | Heading, Roll, Pitch | attitude with a standard deviation per axis |
+| `PSSNRBD` | Rover-Base Direction | azimuth/elevation of the base from the rover |
+| `PSSNRBP` | Rover-Base Position | baseline as north/east/up |
+| `PSSNRBV` | Rover-Base Velocity | rate of change of that baseline |
+| `PSSNTFM` | Coordinate Transformation | which RTCM transformation messages were used |
+| `PSSNSNC` | NTRIP Client Status | per-connection status — see below |
+
+All six arrive as `$PSSN,<SUBTYPE>,…`, with the subtype in the FIRST FIELD rather than the id, so the id
+is resolved to `PSSN<SUBTYPE>` before decoding. `submessage_id` stays in the payload because it is a
+real wire field.
+
+Two traps worth knowing:
+
+- **`PSSNHRP` modes 1, 2 and 5 carry NO roll.** The field arrives empty and stays `null` — never `0`,
+  which would read as "perfectly level" instead of "not measured".
+- **`PSSNTFM`'s values ARE RTCM message numbers** (`1021`, `1023`, `1025`, …), and `null` means *none of
+  that group was used*, not zero.
+
+The NMEA parser itself is reachable through `.parser` for its own extras — `addSentences(yaml)` to teach
+it your own sentences, `getSentencesByProtocol()`, and so on.
+
+#### `PSSNSNC` — the one sentence whose payload is nested
+
+`SNC` does not look like NMEA. Its payload is a bracket group holding three scalars followed by **one
+sub-group per NTRIP connection**, so the number of comma-separated fields changes from message to
+message:
+
+```
+$PSSN,SNC,[0,379359000,1840,[1,2,0,0]]*68
+```
+
+Since a field list of varying length cannot be described as a fixed definition, this sentence is decoded
+in code and shaped deliberately: **the payload is always TWO fields**, whatever the connection count.
+
+```jsonc
+{
+  "id": "PSSNSNC",
+  "payload": [
+    { "raw": "SNC", "name": "submessage_id", "type": "string", "value": "SNC" },
+    {
+      "raw": "[0,379359000,1840,[1,2,0,0]]",
+      "name": "ntrip_client_status",
+      "type": "string",
+      "value": "[0,379359000,1840,[1,2,0,0]]",
+      "metadata": {
+        "fields": [
+          { "raw": "0", "name": "message_revision", "type": "uint8", "value": 0 },
+          { "raw": "379359000", "name": "time_of_week", "type": "uint32", "value": 379359000, "units": "ms" },
+          { "raw": "1840", "name": "week_number", "type": "uint16", "value": 1840 }
+        ],
+        "submessages": [
+          [
+            { "raw": "1", "name": "cd_index", "type": "uint8", "value": 1 },
+            { "raw": "2", "name": "status", "type": "uint8", "value": 2 },
+            { "raw": "0", "name": "error_code", "type": "uint8", "value": 0 },
+            { "raw": "0", "name": "info", "type": "uint8", "value": 0 }
+          ]
+        ]
+      }
+    }
+  ]
+}
+```
+
+**So read `metadata`, not `value`, for this sentence.** `payload[1].value` is the bracket text exactly as
+it arrived — kept byte-faithful so the checksum still verifies against it — while the decoded, typed
+values live in `metadata.fields` (the outer scalars) and `metadata.submessages` (one `Field[]` per NTRIP
+connection, so `submessages[i]` is connection *i*). That is the same shape SBF uses for repeated groups
+in `metadata.subBlocks`.
+
+Two limitations, stated plainly:
+
+- **The reference guide never says whether consecutive sub-groups are comma-separated.** The decoder
+  parses bracket depth rather than the comma split, so `],[` and `][` give identical results and the
+  question does not arise — but it means the behaviour is inferred, not documented.
+- **An unbalanced group is refused, not guessed.** A truncated `SNC` stays a generic `PSSN` sentence with
+  its fields unnamed. Nothing is dropped: `raw` and every field are still emitted.
+
+The same data is also available on the SBF side as the `NTRIPClientStatus` block (4053), fully modelled,
+if you would rather not deal with the nesting at all.
 
 If you only ever speak SBF, `SBFParser` is a `DeviceParser<Uint8Array>` too and can be used directly.
 Type against the interface rather than a concrete class:
@@ -443,11 +548,11 @@ The same block also identifies the box, at `metadata.payload.receiver`:
 | `parseData` | `(data?: Uint8Array) => CMA[]` | Optionally add `data`, then return and clear the queued blocks. |
 | `addData` | `(data: Uint8Array) => void` | Parse immediately and queue the results. |
 | `sentenceIds` | `string[]` | Every block number this parser can decode, describe or fabricate. |
-| `getSentenceDefinition` | `(id: number \| string, firmware?: string) => Result<SBFSentenceDefinition[], SBFError[]>` | What a block contains — one entry **per revision**. |
-| `getFakeSentence` | `(id: number \| string, firmware?: string, options?: FakeOptions) => Result<Uint8Array, SBFError[]>` | A real wire frame with a real CRC. Idempotent unless `{ random: true }`. |
-| `protocol` | `'sbf'` (get/set) | The active protocol. Switching discards the buffer. |
-| `protocols` | `readonly ['sbf']` | Every protocol this device can speak. |
-| `parser` | `SBFParser` | The active protocol parser (`firmware`, `leapSeconds`, `reportedFirmware`). |
+| `getSentenceDefinition` | `(id: number \| string, firmware?: string) => Result<SentenceDefinition[], ParserError[]>` | What a sentence contains — for SBF, one entry **per revision**. Ask `.parser` for SBF's richer shape. |
+| `getFakeSentence` | `(id: number \| string, firmware?: string, options?: FakeOptions) => Result<Uint8Array, ParserError[]>` | A real wire frame with a real CRC. Idempotent unless `{ random: true }`. `options` is SBF-only. |
+| `protocol` | `'sbf' \| 'nmea'` (get/set) | The active protocol. Switching discards the buffer. |
+| `protocols` | `readonly ['sbf', 'nmea']` | Every protocol this device can speak. |
+| `parser` | `SBFParser \| SeptentrioNMEAParser` | The active protocol parser. Narrow with `instanceof` for SBF's `leapSeconds` / `reportedFirmware`. |
 | `firmware` | `string` (get/set) | The knowledge base in use. An unsupported value is ignored. |
 | `memory` | `boolean` (get/set) | Carry a half-received block between calls. |
 | `bufferLimit` | `number` (get/set) | Max pending bytes before the buffer is reset with a garbage report. |
@@ -462,12 +567,12 @@ from the wrong table.
 
 | Export | Description |
 | --- | --- |
-| `SeptentrioParser`, `SBFParser` | the device facade and the SBF protocol parser |
+| `SeptentrioParser`, `SBFParser`, `SeptentrioNMEAParser` | the device facade and the two protocol parsers |
 | `firmwares()`, `isFirmware(x)`, `blocksFor(fw)` | the supported firmwares and their block registries |
 | `decodeBody`, `createFakeFrame` | the table-driven engine and frame writer, for building on |
 | `toBase64`, `fromBase64` | cross-runtime Base64 over `Uint8Array` — every `raw` is Base64 |
 | `DEFAULT_FIRMWARE`, `PROTOCOL_NAME`, `SEPTENTRIO_PROTOCOLS` | the constants |
-| types | `CMA`, `Field`, `Result`, `DeviceParser`, `Metadata`, `Timestamp`, `Value`, `Type`, `BlockDefinition`, `FieldDefinition`, `SBFError`, `SBFSentenceDefinition`, `FakeOptions`, `TimestampKind`, … |
+| types | `CMA`, `Field`, `Result`, `DeviceParser`, `Metadata`, `Timestamp`, `Value`, `Type`, `SentenceDefinition`, `ParserError`, `BlockDefinition`, `FieldDefinition`, `SBFError`, `SBFSentenceDefinition`, `FakeOptions`, `TimestampKind`, … |
 
 ## Notes
 
@@ -535,5 +640,6 @@ real frame:
   and `xPPSOffset` overwrote `syncAge` with 0, inventing data the receiver had provided.
 
 `engines.node` is now `>=22`, and the `gpstime` dependency is gone — GPS-epoch and leap-second logic
-is internal, and works in the browser. `crc` remains the only runtime dependency, imported by its
-`crc/calculators/crc16xmodem` subpath so no `Buffer` polyfill is pulled in.
+is internal, and works in the browser. Two runtime dependencies: `crc`, imported by its
+`crc/calculators/crc16xmodem` subpath so no `Buffer` polyfill is pulled in, and
+`@coremarine/nmea-parser`, which the `nmea` protocol composes. Neither is bundled; both stay external.

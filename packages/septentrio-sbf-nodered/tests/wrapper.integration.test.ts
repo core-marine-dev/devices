@@ -199,7 +199,7 @@ test('junk bytes arrive as a garbage sentence rather than vanishing', () => {
 test('every diagnostic channel answers through a real flow', () => {
   const msg = captured.at(-1)!
   assert.deepEqual(msg.memory, { memory: true, bytes: 65535 })
-  assert.deepEqual(msg.protocol, { protocol: 'sbf', protocols: ['sbf'] })
+  assert.deepEqual(msg.protocol, { protocol: 'sbf', protocols: ['sbf', 'nmea'] })
   assert.deepEqual(msg.firmware, { firmware: '4.10.1', firmwares: ['4.10.1'] })
   const ids = msg.ids as string[]
   assert.equal(ids.length, 108, 'all 108 blocks of Appendix B')

@@ -3,8 +3,8 @@
    undefined when that input key is absent. The union is the contract, not an accident. */
 
 // installed
-import { firmwares, fromBase64 } from '@coremarine/septentrio-sbf'
-import type { SBFSentenceDefinition, SeptentrioParser, SeptentrioProtocol } from '@coremarine/septentrio-sbf'
+import { firmwares, fromBase64, SBFParser } from '@coremarine/septentrio-sbf'
+import type { ParserError, Result, SentenceDefinition, SeptentrioParser, SeptentrioProtocol } from '@coremarine/septentrio-sbf'
 
 // Pure wrapper logic — NO node-red dependency, so it is unit-testable with a real
 // SeptentrioParser and node:test. The thin RED adapter (parser.ts) wires msg -> these.
@@ -125,10 +125,16 @@ const firmwareReport = (parser: SeptentrioParser): FirmwareReport => {
     // BUILD (which knowledge bases are compiled in), not of an instance.
     firmwares: firmwares(),
   }
-  const reported = parser.parser.reportedFirmware
-  if (reported !== undefined) report.reported = reported
-  const leapSeconds = parser.parser.leapSeconds
-  if (leapSeconds !== undefined) report.leapSeconds = leapSeconds
+  // `reportedFirmware` and `leapSeconds` are learned from SBF blocks
+  // (ReceiverSetup.RxVersion, ReceiverTime.DeltaLS), so they only exist while the
+  // SBF protocol is active — the facade fronts NMEA too now.
+  const active = parser.parser
+  if (active instanceof SBFParser) {
+    const reported = active.reportedFirmware
+    if (reported !== undefined) report.reported = reported
+    const leapSeconds = active.leapSeconds
+    if (leapSeconds !== undefined) report.leapSeconds = leapSeconds
+  }
   return report
 }
 
@@ -214,7 +220,22 @@ export const getIds = (parser: SeptentrioParser, ids: unknown): string[] | undef
   return parser.sentenceIds
 }
 
-/* definition: 4007 | '4007' | { id: 4007, protocol?: '4.10.1' } -> SBFSentenceDefinition[]
+// Asked of the SBF parser DIRECTLY when SBF is active, so the answer keeps SBF's extra
+// keys (`name`, `revision`, `timestamp`, `opaque`): the device facade can only promise
+// the shared contract now that it fronts NMEA too, but a flow debugging a Septentrio
+// box wants the block name.
+const describe = (
+  parser: SeptentrioParser,
+  id: number | string,
+  protocol?: string,
+): Result<SentenceDefinition[], ParserError[]> => {
+  const active = parser.parser
+  return (active instanceof SBFParser)
+    ? active.getSentenceDefinition(id, protocol)
+    : parser.getSentenceDefinition(String(id), protocol)
+}
+
+/* definition: 4007 | '4007' | { id: 4007, protocol?: '4.10.1' } -> SentenceDefinition[]
 
   What the parser believes a block looks like: its field definitions with types, units,
   Do-Not-Use values and descriptions, ONE ENTRY PER REVISION. The per-revision split is
@@ -224,14 +245,14 @@ export const getIds = (parser: SeptentrioParser, ids: unknown): string[] | undef
   A NUMBER is accepted as well as a string because an SBF id IS a number on the wire, and
   an inject node typing 4007 should not have to quote it.
 */
-export const getDefinition = (parser: SeptentrioParser, definition: unknown): SBFSentenceDefinition[] | string | undefined => {
+export const getDefinition = (parser: SeptentrioParser, definition: unknown): SentenceDefinition[] | string | undefined => {
   if (isNil(definition)) return undefined
   const { id, protocol } = (isString(definition) || typeof definition === 'number')
     ? { id: definition, protocol: undefined }
     : definition as DefinitionInput
   if (!isString(id) && typeof id !== 'number') return 'definition must be a block number, or { id, protocol? }'
   if (!isNil(protocol) && !isString(protocol)) return 'definition.protocol must be a firmware string'
-  const result = parser.getSentenceDefinition(id, protocol ?? undefined)
+  const result = describe(parser, id, protocol ?? undefined)
   return result.success ? result.value : result.error.map((entry) => entry.message).join('; ')
 }
 

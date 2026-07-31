@@ -170,6 +170,9 @@ importers:
 
   packages/septentrio-sbf:
     dependencies:
+      '@coremarine/nmea-parser':
+        specifier: workspace:^
+        version: link:../nmea-parser
       crc:
         specifier: ^4.3.2
         version: 4.3.2(buffer@6.0.3)

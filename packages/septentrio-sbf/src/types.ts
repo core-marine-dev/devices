@@ -120,10 +120,12 @@ export type BlockRegistry = ReadonlyMap<number, BlockDefinition>
 
 // PARSER
 
-// The protocols a Septentrio receiver can speak. Only SBF is implemented; the
-// facade exists so NMEA can be added by composition, exactly as norsub-emru
-// does, without changing the device-level API.
-export const SEPTENTRIO_PROTOCOLS = ['sbf'] as const
+// The protocols a Septentrio receiver can speak, ONE AT A TIME — the norsub-emru
+// semantics (cru, 2026-07-31): the device is configured for one output format, and
+// switching discards the buffer because the bytes were being framed under different
+// rules. A port emitting both would report the unselected one as garbage; that is
+// the deliberate trade, and `protocol` is how a deployment picks.
+export const SEPTENTRIO_PROTOCOLS = ['sbf', 'nmea'] as const
 export type SeptentrioProtocol = typeof SEPTENTRIO_PROTOCOLS[number]
 
 export interface SBFParserOptions extends ParserOptions {
