@@ -6,58 +6,34 @@
     // UI
     color: "#ccc4b0",
     icon: "cma-logo-blue.png",
-    label: function() {
-      const { name, firmware } = this;
-      return (firmware) ? `SBF ${firmware}`: name;
+    label: function () {
+      const { name } = this;
+      return name || "Septentrio SBF";
     },
-    paletteLabel: 'SBF parser',
-    labelStyle: function() { return (this.name) ? "node_label_italic" : "" },
-    align: 'left', // 'right'
-    // button: {
-    //   // toggle: "buttonState",
-    //   enabled: function() {
-    //     return !this.changed
-    //   },
-    //   visible: function() {
-    //     return this.hasButton
-    //   },
-    //   onclick: function() {}
-    // },
+    paletteLabel: "Septentrio SBF parser",
+    labelStyle: function () { return this.name ? "node_label_italic" : "" },
+    align: "left",
     // Input - Outputs
     inputs: 1,
     outputs: 1,
-    inputLabels: 'SBF data',
-    outputLabels: 'Parsed data',
+    inputLabels: "SBF bytes",
+    outputLabels: "Parsed CMA data",
     // Logic
     defaults: {
       name: { value: "" },
+      // Which knowledge base decodes the blocks. Leave empty to use the library default
+      // and let ReceiverSetup (5902) correct it from the stream — the receiver is
+      // normally the authority on its own firmware.
       firmware: {
-        value: "4.10.1",
-        required: true,
+        value: "",
+        required: false,
       },
       memory: {
         value: true,
-        required: true
+        required: true,
       }
     },
-    // credentials: {},
-    oneditprepare: function() {
-      $("#node-input-firmware").typedInput({
-        types: [
-          {
-            value: "4.10.1",
-            options: ["4.10.1"]
-          }
-        ]
-      })
-    },
-    // oneditsave: function() {},
-    // oneditcancel: function() {},
-    // oneditdelete: function() {},
-    // oneditresize: function() {},
-    // onpaletteadd: function() {},
-    // onpaletteremove: function() {},
-  })
+  });
 </script>
 
 <!-- Edit dialog -->
@@ -65,84 +41,263 @@
   <!-- Name -->
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="4.10.1">
+    <input type="text" id="node-input-name" placeholder="Septentrio SBF parser" />
   </div>
   <!-- Firmware -->
   <div class="form-row">
-    <label for="node-input-firmware"><i class="fa fa-tag"></i> Firmware</label>
-    <input type="text" id="node-input-firmware" placeholder="4.10.1">
+    <label for="node-input-firmware"><i class="fa fa-microchip"></i> Firmware</label>
+    <select id="node-input-firmware">
+      <option value="">Default, corrected by the receiver</option>
+      <option value="4.10.1">4.10.1</option>
+    </select>
+  </div>
+  <div class="form-tips">
+    The firmware selects which knowledge base describes each block. You rarely need to pin
+    it: <code>ReceiverSetup</code> (5902) reports the receiver's real version and the
+    parser adopts it. A version this build does not model is <i>reported</i>, never
+    substituted.
   </div>
   <!-- Memory -->
   <div class="form-row">
-    <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
-    <input type="checkbox" id="node-input-memory">
+    <label for="node-input-memory"><i class="fa fa-database"></i> Memory</label>
+    <input type="checkbox" id="node-input-memory" checked/>
+  </div>
+  <div class="form-tips">
+    Keep this on for a live stream. SBF framing is length-prefixed, so a block only decodes
+    once its <b>last</b> byte has arrived — with memory off, any block split across two
+    messages is lost.
   </div>
 </script>
 
 <!-- Help text -->
 <script type="text/markdown" data-help-name="cma-septentrio-parser">
-Parser for Septentrio SBF protocol
+Parser for **Septentrio** GNSS receivers speaking **SBF** (Septentrio Binary Format),
+emitting the unified **CMA** format. Wrapper of
+[@coremarine/septentrio-sbf](https://www.npmjs.com/package/@coremarine/septentrio-sbf).
+
+**All 108 blocks** of the AsteRx SB3 Pro+ firmware 4.10.1 reference guide are decoded.
 
 ### Input
 
-: command (addData | getData | setFirmware | getFirmware | setMemory | getMemory) : It should be one of these string to tell the parser what action to do
+: payload (buffer) : Raw SBF bytes. A **Buffer** is the normal case — that is what the
+  serial, TCP and file nodes give you. A base64 **string** or an array of byte numbers is
+  also accepted (details below).
 
-: payload (buffer | string | boolean) : It depends on what `command` you put, it has a type or another
+: *memory* (object) : Check or enable / disable the parser's memory (details below).
+
+: *protocol* (object) : Get or set the device protocol (details below).
+
+: *firmware* (object) : Get or pin the knowledge base, and read what the receiver reports.
+
+: *ids* (any) : Any truthy value, to list every block number this parser knows.
+
+: *definition* (number | string | object) : A block number, or `{ id, protocol? }`, to read
+  its field definitions per revision.
+
+: *fake* (number | object) : A block number, or `{ id, protocol?, options? }`, to generate a
+  real wire frame for testing.
 
 ### Output
 
-: payload (object[] | string | boolean) : It depends of the `command` input.
+: payload (array) : An array of **CMA** objects, one per parsed block.
 
-: *firmware* (string) : If `command` = `getData` it gives the firmware too.
+: *memory* (object) : Response to the *memory* input.
+
+: *protocol* (object) : Response to the *protocol* input.
+
+: *firmware* (object) : Response to the *firmware* input.
+
+: *ids* (array) : Response to the *ids* input.
+
+: *definition* (array | string) : Response to the *definition* input.
+
+: *fake* (buffer | string) : Response to the *fake* input.
+
+Any input key you do not send is absent from the output too. On a bad request the
+corresponding output key holds an error **string** instead of a result.
 
 ### Details
 
-Septentrio parser translate SBF binary data into a JavaScript objects (one for each
-Septentrio frame).
+#### `id` is the block NUMBER
 
-It has an API based on getters/setters where get/set three things:
+Each CMA's `id` is the SBF block number as a string — `"5938"`, not `"AttEuler"`. The
+human name is in `metadata.name`. The number is what the wire carries and what
+Septentrio's own documentation indexes by.
 
-1. Septentrio data
-2. Parser Firmware
-3. Parser Memory
+#### Values are the datasheet's, unscaled
 
-> Setters don't produce any output.
+A field documented in units of `0.01 m` keeps `value: 812` with `units: "0.01 m"`, and the
+engineering value is in that field's `metadata` as `{ value: 8.12, units: "m" }`. Angles in
+radians or semi-circles work the same way, with the degrees in `metadata`. The datasheet
+stays the single source of truth and nothing guesses what scale you wanted.
 
-If you set something, input should have:
+Bitfields, masks and enums keep their integer `value`; the decoded meaning is in that
+field's `metadata`.
 
-- `command` -> Tell what do you want to set
-- `payload` -> Value
+#### The timestamp is the RECEIVER's clock
 
-If you get something, input shoul have:
+`msg.payload[i].timestamp` is the block's own GNSS time, not this machine's — every SBF
+block carries a GPS time stamp and a GNSS receiver's clock is disciplined to atomic time.
+Leap seconds are learned from the device itself (`ReceiverTime.DeltaLS`).
 
-- `command` -> Tell what do you want to set
+Two exceptions: the raw navigation pages and decoded navigation messages are stamped with
+when the **satellite transmitted** the bits, which can be far in the past, so those keep
+the parse time; and a block whose GPS time is Do-Not-Use (normal for a few seconds after
+start-up) has no device time to promote.
 
-#### Septentrio data
+`metadata.timestamp` always carries `received` and `parsed` if you need the host-side
+timings.
 
-| Input                                             | Output                                          |
-| :-----------------------------------------------: | :---------------------------------------------: |
-| { `command`: `"addData"`, `payload`: **buffer** } |                                                 |
-| { `command`: `"getData"` }                        | { payload: **object[]**, firmware: **string** } |
+#### Nothing is dropped silently
 
-#### Parser Firmware
+Every byte either decodes, comes out reported, or waits on the buffer as the
+still-incomplete tail. The signal is the optional **`errors`** array on each CMA:
 
-Parser could have different firmware versions to enable.
+- A **bad CRC or a truncated body** does not stop the decode — the fields come back
+  anyway, plus `errors` saying what is wrong. Flagged data is more useful than none.
+- Bytes that cannot start a block come back as a **garbage sentence**: a valid CMA whose
+  `id` and `protocol` are `"unknown"` with an empty `payload`, keeping `raw` so you can
+  see what was discarded. Adjacent junk is coalesced into one report, so a noisy line does
+  not flood the flow.
+- A block number this build does **not** know still produces a sentence — real `id`, real
+  timestamp, body in `metadata.body`, empty `payload`, `metadata.name: "unknown"` — and
+  **no `errors`**, because nothing is wrong. That is what keeps a newer firmware's blocks
+  from vanishing.
 
-| Input                                                  | Output                                          |
-| :----------------------------------------------------: | :---------------------------------------------: |
-| { `command`: `"setFirmware"`, `payload`: **string** }  |                                                 |
-| { `command`: `"getFirmware"` }                         | { payload: **string** }                         |
+⚠️ **Two things a flow must handle:**
 
-#### Parser Memory
+- A field value can be **`null`**, meaning the receiver marked it Do-Not-Use. Its
+  `metadata` then says `{ doNotUse: true, value: <the sentinel> }`. **`null` means "not
+  available" and must never be read as zero** — a Do-Not-Use course-over-ground is not a
+  heading of north.
+- Check `errors` and `id === "unknown"` before trusting a reading.
 
-It is enabled by default:
+#### Sub-blocks
 
-- memory enabled: Every time you inject data, it's attached to the internal data.
-- memory disabled: Every time you inject data, it clears internal data and add new one.
+Many blocks repeat a nested record N times (per antenna, per channel, per satellite). Those
+fields are flattened into `payload` in wire order, and mirrored grouped-by-occurrence at
+`metadata.subBlocks`, so you can read occurrence *i* without offset arithmetic.
 
-| Input                                                | Output                                          |
-| :--------------------------------------------------: | :---------------------------------------------: |
-| { `command`: `"setMemory"`, `payload`: **boolean** } |                                                 |
-| { `command`: `"getMemory"` }                         | { payload: **boolean** }                        |
+#### Memory
+
+Enabled by default, and you want it on for a live stream:
+
+- memory enabled: each message is appended to whatever is still buffered.
+- memory disabled: each message replaces the buffer.
+
+`bytes` in the report is the buffer limit and `pending` is how much is currently held. The
+limit defaults to **65535** — the largest a single SBF block can be — because a block only
+decodes once its last byte arrives. Real blocks run past 1000 bytes, so a smaller limit
+would discard good data.
+
+|                          Input                           |                                     Output                                      |
+| :------------------------------------------------------: | :-----------------------------------------------------------------------------: |
+| `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `bytes`: **number**, `pending`: **number** } |
+|             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `bytes`: **number**, `pending`: **number** } |
+
+#### Protocol
+
+The **device** protocol. A Septentrio receiver can be configured to emit SBF, NMEA or RTCM
+on the same port, so the device is not the same thing as the protocol. Only `sbf` exists
+today; the channel is here because NMEA is a planned addition, so a flow written against
+it keeps working.
+
+Switching **discards the buffer** and any undrained sentences: the pending bytes were being
+read under different framing rules.
+
+|                           Input                           |                              Output                               |
+| :-------------------------------------------------------: | :---------------------------------------------------------------: |
+| `protocol`: { `command`: `"set"`, `payload`: **string** } | `protocol`: { `protocol`: **string**, `protocols`: **string[]** } |
+|            `protocol`: { `command`: `"get"` }             | `protocol`: { `protocol`: **string**, `protocols`: **string[]** } |
+
+#### Firmware
+
+Which knowledge base describes each block. The receiver is normally the authority on
+itself: `ReceiverSetup` (5902) reports its real version and the parser adopts it. A version
+this build does not model is **reported, never substituted** — the report's `reported` key
+is what the box said, and that block carries an `errors` entry saying which table was used
+instead.
+
+`leapSeconds` in the report is the GPS-UTC offset learned from `ReceiverTime.DeltaLS`;
+absent until such a block arrives, in which case a built-in table is used.
+
+|                           Input                           |                                Output                                 |
+| :-------------------------------------------------------: | :-------------------------------------------------------------------: |
+| `firmware`: { `command`: `"set"`, `payload`: **string** } | `firmware`: { `firmware`, `firmwares`, `reported`?, `leapSeconds`? } |
+|            `firmware`: { `command`: `"get"` }             | `firmware`: { `firmware`, `firmwares`, `reported`?, `leapSeconds`? } |
+
+#### Ids
+
+Send any truthy value to list every block number this parser knows — 108 of them for
+firmware 4.10.1. The discovery counterpart to *definition*.
+
+|      Input      |       Output        |
+| :-------------: | :-----------------: |
+| `ids`: **true** | `ids`: **string[]** |
+
+#### Definition
+
+What the parser believes a block looks like: its field definitions with types, units,
+Do-Not-Use values and descriptions — **one entry per revision**. The per-revision split is
+the point: a receiver generation only sends the fields its revision defines, so seeing them
+side by side tells you what a given box will actually give you.
+
+Seven blocks are `opaque` — the five `Meas3*` and the two `PVTSupport*` — because
+Septentrio publishes no field layout for them at all. Their bodies are emitted as bytes
+rather than invented into fields.
+
+This is a **diagnostic** tool. A receiver on a remote installation with restricted internet
+stays there for years, and being able to ask the running node what it expects settles a
+question that would otherwise need the datasheets.
+
+|                             Input                             |                Output                 |
+| :-----------------------------------------------------------: | :-----------------------------------: |
+|                   `definition`: **number**                    | `definition`: **array** \| **string** |
+| `definition`: { `id`: **number**, `protocol`: **string** } | `definition`: **array** \| **string** |
+
+#### Fake
+
+Generate a real wire frame for testing — built from the same field table the parser reads,
+with a real CRC and a real `Length`, so wiring `fake` straight back into `payload`
+round-trips. It comes back as a **Buffer**.
+
+**Deterministic**: the same request returns the same bytes forever, which is what makes it
+usable in a committed flow. `options` takes `{ revision?, tow?, wnc?, fields?, random? }` —
+`fields` overrides individual fields by name, and `random: true` fills the rest with
+varied (still reproducible) values instead of zeros.
+
+|                                  Input                                   |       Output       |
+| :----------------------------------------------------------------------: | :----------------: |
+|                          `fake`: **number**                              | `fake`: **buffer** |
+| `fake`: { `id`: **number**, `options`: { `revision`, `fields`, … } } | `fake`: **buffer** |
+
+#### Binary input
+
+SBF is binary, so `payload` is normally a **Buffer** and needs no conversion from the
+serial, TCP or file nodes.
+
+Two other forms are accepted. An array of byte numbers, for a JSON-only path. And a
+**base64 string** — every `raw` in the CMA output is base64, so it is this package's own
+vocabulary for bytes, and it closes the diagnostic loop: copy a `raw` out of a debug node,
+inject it back, and you are re-parsing the exact frame that misbehaved. Base64 is validated
+strictly, so an ASCII string is rejected with a message rather than parsed as garbage.
+
+### Upgrading from 1.x
+
+The output is now **CMA** rather than `SBFResponse`, and the msg API is entirely different.
+1.x drove the node with a single `msg.command` string; there is now one msg key per
+channel, so a message can reconfigure and feed data at once.
+
+| 1.x | 2.0.0 |
+| --- | --- |
+| `command: "addData"` + `payload` buffer, then `command: "getData"` | just send `payload` — the parsed CMA array comes back on `payload` |
+| `command: "getFirmware"` / `"setFirmware"` | `firmware`: { `command`: `"get"` \| `"set"`, `payload`? } |
+| `command: "getMemory"` / `"setMemory"` | `memory`: { `command`: `"get"` \| `"set"`, `payload`? } |
+| — | `protocol`, `ids`, `definition`, `fake` are new |
+| output `SBFResponse` with `frame.header` / `frame.time` / `frame.body` | **CMA**: `payload` is the SBF body, header and time in `metadata` |
+| a bad CRC, wrong length or unknown block was **dropped silently** | every one of them is reported — see *Nothing is dropped silently* |
+
+The node type is unchanged (`cma-septentrio-parser`), so deployed flows keep their node —
+but the messages in and out of it must be rewritten.
 
 </script>
