@@ -38,6 +38,30 @@ export const PROTOCOLS: ProtocolsFileContent = {
           ],
         },
         {
+          id: 'DPT',
+          description: 'Depth of Water',
+          payload: [
+            {
+              name: 'water_depth',
+              type: 'float64',
+              units: 'm',
+              description: 'Water depth relative to the TRANSDUCER, not to the surface — add `offset` for a surface-referenced depth.',
+            },
+            {
+              name: 'offset',
+              type: 'float64',
+              units: 'm',
+              description: 'Offset from the transducer. POSITIVE means the distance from the transducer to the water line; NEGATIVE means the distance from the transducer to the keel. Devices that do not know it leave it empty.',
+            },
+            {
+              name: 'maximum_range_scale',
+              type: 'float64',
+              units: 'm',
+              description: 'Maximum range scale in use. Added in NMEA 3.00, which is why a 2-field DPT is a pre-3.00 device.',
+            },
+          ],
+        },
+        {
           id: 'DTM',
           description: 'The DTM message identifies the local geodetic datum and datum offsets from a reference datum. This sentence is used to define the datum to which a position location, and geographic locations in subsequent sentences, is referenced.',
           payload: [
@@ -872,6 +896,68 @@ export const PROTOCOLS: ProtocolsFileContent = {
           ],
         },
         {
+          id: 'VBW',
+          description: 'Dual Ground/Water Speed',
+          payload: [
+            {
+              name: 'longitudinal_water_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Longitudinal water speed. POSITIVE means forward.',
+            },
+            {
+              name: 'transverse_water_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Transverse water speed. POSITIVE means to starboard.',
+            },
+            {
+              name: 'water_speed_status',
+              type: 'string',
+              description: 'A = data valid\n V = data invalid',
+            },
+            {
+              name: 'longitudinal_ground_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Longitudinal ground speed. POSITIVE means forward.',
+            },
+            {
+              name: 'transverse_ground_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Transverse ground speed. POSITIVE means to starboard.',
+            },
+            {
+              name: 'ground_speed_status',
+              type: 'string',
+              description: 'A = data valid\n V = data invalid',
+            },
+            {
+              name: 'stern_transverse_water_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Stern transverse water speed. Added in NMEA 3.00 — a 6-field VBW is a pre-3.00 form and is defined separately under version 2.30.',
+            },
+            {
+              name: 'stern_water_speed_status',
+              type: 'string',
+              description: 'A = data valid\n V = data invalid',
+            },
+            {
+              name: 'stern_transverse_ground_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Stern transverse ground speed. Added in NMEA 3.00.',
+            },
+            {
+              name: 'stern_ground_speed_status',
+              type: 'string',
+              description: 'A = data valid\n V = data invalid',
+            },
+          ],
+        },
+        {
           id: 'VTG',
           description: 'Track Made Good and Ground Speed',
           payload: [
@@ -1433,6 +1519,53 @@ export const PROTOCOLS: ProtocolsFileContent = {
               name: 'mode_indicator',
               type: 'string',
               description: 'Mode indicator (NMEA 2.3+)\n A = Autonomous\n D = Differential\n E = Estimated (dead reckoning)\n M = Manual input\n N = Data not valid',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      protocol: 'NMEA',
+      version: '2.30',
+      standard: true,
+      sentences: [
+        {
+          id: 'VBW',
+          description: 'Dual Ground/Water Speed — the pre-3.00 form, without the stern speeds',
+          payload: [
+            {
+              name: 'longitudinal_water_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Longitudinal water speed. POSITIVE means forward.',
+            },
+            {
+              name: 'transverse_water_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Transverse water speed. POSITIVE means to starboard.',
+            },
+            {
+              name: 'water_speed_status',
+              type: 'string',
+              description: 'A = data valid\n V = data invalid',
+            },
+            {
+              name: 'longitudinal_ground_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Longitudinal ground speed. POSITIVE means forward.',
+            },
+            {
+              name: 'transverse_ground_speed',
+              type: 'float64',
+              units: 'kn',
+              description: 'Transverse ground speed. POSITIVE means to starboard.',
+            },
+            {
+              name: 'ground_speed_status',
+              type: 'string',
+              description: 'A = data valid\n V = data invalid',
             },
           ],
         },

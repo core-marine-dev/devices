@@ -60,6 +60,28 @@ protocols:
           # 5
           - name: waypoint_id
             type: string
+      - id: DPT
+        description: "Depth of Water"
+        payload:
+          # 1
+          - name: water_depth
+            type: float64
+            units: m
+            description: "Water depth relative to the TRANSDUCER, not to the surface — add `offset` for
+              a surface-referenced depth."
+          # 2
+          - name: offset
+            type: float64
+            units: m
+            description: "Offset from the transducer. POSITIVE means the distance from the transducer to
+              the water line; NEGATIVE means the distance from the transducer to the keel. Devices that
+              do not know it leave it empty."
+          # 3
+          - name: maximum_range_scale
+            type: float64
+            units: m
+            description: "Maximum range scale in use. Added in NMEA 3.00, which is why a 2-field DPT is a
+              pre-3.00 device."
       - id: DTM
         description: "The DTM message identifies the local geodetic datum and datum offsets from a reference datum. This sentence is used to define the datum to which a position location, and geographic locations in subsequent sentences, is referenced."
         payload:
@@ -870,6 +892,60 @@ protocols:
             type: string
             description: "The message text itself. ASCII only, and commas cannot appear in it — they would be read as field separators."
 
+      - id: VBW
+        description: "Dual Ground/Water Speed"
+        payload:
+          # 1
+          - name: longitudinal_water_speed
+            type: float64
+            units: kn
+            description: "Longitudinal water speed. POSITIVE means forward."
+          # 2
+          - name: transverse_water_speed
+            type: float64
+            units: kn
+            description: "Transverse water speed. POSITIVE means to starboard."
+          # 3
+          - name: water_speed_status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+          # 4
+          - name: longitudinal_ground_speed
+            type: float64
+            units: kn
+            description: "Longitudinal ground speed. POSITIVE means forward."
+          # 5
+          - name: transverse_ground_speed
+            type: float64
+            units: kn
+            description: "Transverse ground speed. POSITIVE means to starboard."
+          # 6
+          - name: ground_speed_status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+          # 7
+          - name: stern_transverse_water_speed
+            type: float64
+            units: kn
+            description: "Stern transverse water speed. Added in NMEA 3.00 — a 6-field VBW is a pre-3.00
+              form and is defined separately under version 2.30."
+          # 8
+          - name: stern_water_speed_status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+          # 9
+          - name: stern_transverse_ground_speed
+            type: float64
+            units: kn
+            description: "Stern transverse ground speed. Added in NMEA 3.00."
+          # 10
+          - name: stern_ground_speed_status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
       - id: VTG
         description: Track Made Good and Ground Speed
         payload:
@@ -1398,6 +1474,53 @@ protocols:
               N = Data not valid"
   # =================================================================
   # NMEA 0183 2.20 — forms superseded by the 2.30 FAA mode indicator
+  # =================================================================
+  # NMEA 0183 2.30 — the form superseded by the 3.00 stern-speed extension
+  # -----------------------------------------------------------------
+  # 3.00 appended four fields to VBW (stern transverse water and ground speed,
+  # each with its own status). A device emitting SIX fields is therefore speaking
+  # the pre-3.00 form, and 2.30 is the newest revision where that WAS current.
+  #
+  # This is not hypothetical: an SBG ELLIPSE emits exactly six
+  # (SBGFWM.2.3 §3.2.11), which is what made this definition necessary.
+  # =================================================================
+  - protocol: NMEA
+    version: '2.30'
+    standard: true
+    sentences:
+      - id: VBW
+        description: "Dual Ground/Water Speed — the pre-3.00 form, without the stern speeds"
+        payload:
+          # 1
+          - name: longitudinal_water_speed
+            type: float64
+            units: kn
+            description: "Longitudinal water speed. POSITIVE means forward."
+          # 2
+          - name: transverse_water_speed
+            type: float64
+            units: kn
+            description: "Transverse water speed. POSITIVE means to starboard."
+          # 3
+          - name: water_speed_status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+          # 4
+          - name: longitudinal_ground_speed
+            type: float64
+            units: kn
+            description: "Longitudinal ground speed. POSITIVE means forward."
+          # 5
+          - name: transverse_ground_speed
+            type: float64
+            units: kn
+            description: "Transverse ground speed. POSITIVE means to starboard."
+          # 6
+          - name: ground_speed_status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
   # =================================================================
   - protocol: NMEA
     version: '2.20'
