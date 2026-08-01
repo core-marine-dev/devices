@@ -1,0 +1,1065 @@
+[
+    {
+        "id": "sbg-tab",
+        "type": "tab",
+        "label": "SBG sbgECom",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "g-2",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Flow errors",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "catch-1",
+            "dbg-err"
+        ],
+        "x": 54,
+        "y": 39,
+        "w": 372,
+        "h": 82
+    },
+    {
+        "id": "g-11",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Decoded logs — real frames from a CoreMarine ELLIPSE",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-3",
+            "i-6",
+            "i-7",
+            "i-8",
+            "i-9",
+            "i-10",
+            "p-4",
+            "dbg-decoded"
+        ],
+        "x": 54,
+        "y": 139,
+        "w": 972,
+        "h": 262
+    },
+    {
+        "id": "g-18",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "The mixed stream — binary and NMEA together",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-12",
+            "i-15",
+            "i-16",
+            "i-17",
+            "p-13",
+            "dbg-mixed"
+        ],
+        "x": 54,
+        "y": 419,
+        "w": 972,
+        "h": 222
+    },
+    {
+        "id": "g-24",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Timestamps — the device tells us the time, or nothing does",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-19",
+            "i-22",
+            "i-23",
+            "p-20",
+            "dbg-clock"
+        ],
+        "x": 54,
+        "y": 659,
+        "w": 972,
+        "h": 182
+    },
+    {
+        "id": "g-30",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Failed and garbage frames",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-25",
+            "i-28",
+            "i-29",
+            "p-26",
+            "dbg-bad"
+        ],
+        "x": 54,
+        "y": 859,
+        "w": 972,
+        "h": 182
+    },
+    {
+        "id": "g-37",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Memory — a frame split across two reads",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-31",
+            "i-34",
+            "i-35",
+            "i-36",
+            "p-32",
+            "dbg-mem"
+        ],
+        "x": 54,
+        "y": 1059,
+        "w": 972,
+        "h": 222
+    },
+    {
+        "id": "g-45",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Diagnostics — self-description",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-38",
+            "i-41",
+            "i-42",
+            "i-43",
+            "i-44",
+            "p-39",
+            "dbg-diag"
+        ],
+        "x": 54,
+        "y": 1299,
+        "w": 972,
+        "h": 262
+    },
+    {
+        "id": "g-52",
+        "type": "group",
+        "z": "sbg-tab",
+        "name": "Fake frames — deterministic fixtures that parse back",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "c-46",
+            "i-50",
+            "i-51",
+            "p-47",
+            "fn-fake",
+            "p-fake2",
+            "dbg-fake"
+        ],
+        "x": 54,
+        "y": 1579,
+        "w": 1132,
+        "h": 202
+    },
+    {
+        "id": "catch-1",
+        "type": "catch",
+        "z": "sbg-tab",
+        "name": "flow errors",
+        "scope": null,
+        "uncaught": false,
+        "x": 150,
+        "y": 80,
+        "wires": [
+            [
+                "dbg-err"
+            ]
+        ],
+        "g": "g-2"
+    },
+    {
+        "id": "dbg-err",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 330,
+        "y": 80,
+        "wires": [],
+        "g": "g-2"
+    },
+    {
+        "id": "c-3",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "id is \"<class>:<message>\" — the name is in metadata.name",
+        "info": "Identity in sbgECom is a PAIR: the manual (§2.1.1) gives MSG and CLASS as two independent\nheader bytes, and there is no revision concept. MSG 6 is EKF_EULER in class 0x00 and\nsomething else entirely in class 0x02, so the class is part of the identity.\n\nThat is why the id reads \"0:6\" and not \"6\". The log name — SBG_ECOM_LOG_EKF_EULER — is at\nmetadata.name.\n\nThese injects carry base64 because an inject node cannot hold a Buffer. A real serial, TCP\nor file node hands the parser a Buffer and needs no conversion at all.",
+        "x": 170,
+        "y": 160,
+        "wires": [],
+        "g": "g-11"
+    },
+    {
+        "id": "i-6",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "EKF_EULER (0:6)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oGACAAmGQpnj9gx7t2hfi7KhW4v68bIzu6ASM7galSPdQIAAARRTM=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 200,
+        "y": 200,
+        "wires": [
+            [
+                "p-4"
+            ]
+        ],
+        "g": "g-11"
+    },
+    {
+        "id": "i-7",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "SHIP_MOTION (0:9)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oJAC4A+N0nnukDoEAAAAAAAAAAALDRjjoAAAAAAAAAACOCOjoAAAAAAAAAAKR647kLAAgKMw==",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 200,
+        "y": 240,
+        "wires": [
+            [
+                "p-4"
+            ]
+        ],
+        "g": "g-11"
+    },
+    {
+        "id": "i-8",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "GPS1_POS (0:14)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oOADkA+N0nnoCwlQA4Tl4M6dRvCBA1REBmlgwZ8swNwEhy+e8B3YJAkPNIQnVxqz91cas/qmDEPxP/////jUkz",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 200,
+        "y": 280,
+        "wires": [
+            [
+                "p-4"
+            ]
+        ],
+        "g": "g-11"
+    },
+    {
+        "id": "i-9",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "GPS1_HDT (0:15)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oPAB4A+KgbngEAGEteDAAAAAAAADRDAAAAAAAAtEIAAAAA/0wz",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 200,
+        "y": 320,
+        "wires": [
+            [
+                "p-4"
+            ]
+        ],
+        "g": "g-11"
+    },
+    {
+        "id": "i-10",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "STATUS (0:1)",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oBABoAOCA3nn8ApwDzYQAADyEAANQIAAALAD31AAAtYDM=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 200,
+        "y": 360,
+        "wires": [
+            [
+                "p-4"
+            ]
+        ],
+        "g": "g-11"
+    },
+    {
+        "id": "p-4",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 640,
+        "y": 240,
+        "wires": [
+            [
+                "dbg-decoded"
+            ]
+        ],
+        "g": "g-11"
+    },
+    {
+        "id": "dbg-decoded",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "decoded",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 240,
+        "wires": [],
+        "g": "g-11"
+    },
+    {
+        "id": "c-12",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "⭐ ONE node reads BOTH protocols — nothing to configure",
+        "info": "An SBG device does not wrap its NMEA output in an eCom frame. The manual is explicit\n(§2.1.4): the NMEA classes are \"only used for identification purpose and does not contain\nany sbgECom message\" — the sentences go out as raw ASCII ALONGSIDE the binary frames, on\nthe same wire. §2.1.1 Note 4 warns the integrator directly.\n\nSo this node has NO protocol setting. Fire the three injects in any order, or all of them:\nthe binary frames come out with protocol.name \"SBG ECOM\" and ids like \"0:6\", the sentence\ncomes out as \"GGA\" with protocol.name \"NMEA\", and both are CMA.\n\nThe payload rule: a string starting with $ IS the sentence. Anything else must be base64.\nA Buffer works for both, which is what a serial node gives you.",
+        "x": 170,
+        "y": 440,
+        "wires": [],
+        "g": "g-18"
+    },
+    {
+        "id": "i-15",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "binary: EKF_EULER",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oGACAAmGQpnj9gx7t2hfi7KhW4v68bIzu6ASM7galSPdQIAAARRTM=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 210,
+        "y": 480,
+        "wires": [
+            [
+                "p-13"
+            ]
+        ],
+        "g": "g-18"
+    },
+    {
+        "id": "i-16",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "text: $GPGGA",
+        "props": [
+            {
+                "p": "payload",
+                "v": "$GPGGA,093809.00,4024.87353533,N,00343.50462837,W,1,20,2.6,603.685,M,50.238,M,,*71\r\n",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 210,
+        "y": 520,
+        "wires": [
+            [
+                "p-13"
+            ]
+        ],
+        "g": "g-18"
+    },
+    {
+        "id": "i-17",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "binary: GPS1_POS",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oOADkA+N0nnoCwlQA4Tl4M6dRvCBA1REBmlgwZ8swNwEhy+e8B3YJAkPNIQnVxqz91cas/qmDEPxP/////jUkz",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 210,
+        "y": 560,
+        "wires": [
+            [
+                "p-13"
+            ]
+        ],
+        "g": "g-18"
+    },
+    {
+        "id": "p-13",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 640,
+        "y": 520,
+        "wires": [
+            [
+                "dbg-mixed"
+            ]
+        ],
+        "g": "g-18"
+    },
+    {
+        "id": "dbg-mixed",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "mixed stream",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 520,
+        "wires": [],
+        "g": "g-18"
+    },
+    {
+        "id": "c-19",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "Uptime is NOT a timestamp — fire 1/2, then 2/2",
+        "info": "Almost every log starts with TIME_STAMP, and the manual calls it \"time since sensor is\npowered up\". You cannot say WHEN a sample was taken from an uptime counter, so this parser\nnever presents one as a clock.\n\nFire 1/2 first: the EKF_EULER comes out with NO metadata.timestamp.sentence, and\ncma.timestamp is just the parse time.\n\nThen fire 2/2 — a real UTC_TIME log, which publishes the counter AND the matching UTC\n(§2.3.3.2: \"you thus have to use this frame if you would like to time stamp all data to an\nabsolute UTC or GPS time reference\"). Now fire 1/2 again: the SAME frame comes out with an\nabsolute metadata.timestamp.sentence, promoted over cma.timestamp.\n\nAnything short of SBG_ECOM_UTC_VALID is refused: a guessed clock is worse than none.",
+        "x": 170,
+        "y": 680,
+        "wires": [],
+        "g": "g-24"
+    },
+    {
+        "id": "i-22",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "1/2 — a log, before any clock",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oGACAAmGQpnj9gx7t2hfi7KhW4v68bIzu6ASM7galSPdQIAAARRTM=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 740,
+        "wires": [
+            [
+                "p-20"
+            ]
+        ],
+        "g": "g-24"
+    },
+    {
+        "id": "i-23",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "2/2 — UTC_TIME teaches the clock",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oCABUAOCA3nqcA5wcDHAkmCgAAAAAgUl4MpZIz",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 780,
+        "wires": [
+            [
+                "p-20"
+            ]
+        ],
+        "g": "g-24"
+    },
+    {
+        "id": "p-20",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 640,
+        "y": 760,
+        "wires": [
+            [
+                "dbg-clock"
+            ]
+        ],
+        "g": "g-24"
+    },
+    {
+        "id": "dbg-clock",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "timestamps",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 760,
+        "wires": [],
+        "g": "g-24"
+    },
+    {
+        "id": "c-25",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "Nothing vanishes — the signal is `errors`",
+        "info": "A bad CRC, a wrong end flag, or bytes that are not sbgECom at all: each comes back as a\nsentence saying so, never as an empty array.\n\n\"corrupted CRC\" is the EKF_EULER frame with one CRC byte flipped — note it still decodes\nevery field, because the payload is usually fine and a silent drop is what this parser\nexists to remove.\n\n\"junk\" cannot start a frame at all: id \"unknown\", the bytes kept in raw, and one coalesced\nreport rather than a flood.\n\nAn UNMODELLED log is deliberately NOT an error — it arrives with its real id and its bytes\nat metadata.body. §2.4 lets SBG add fields to a log, so a newer device is normal.",
+        "x": 170,
+        "y": 880,
+        "wires": [],
+        "g": "g-30"
+    },
+    {
+        "id": "i-28",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "corrupted CRC",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oGACAAmGQpnj9gx7t2hfi7KhW4v68bIzu6ASM7galSPdQIAADuRTM=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 230,
+        "y": 940,
+        "wires": [
+            [
+                "p-26"
+            ]
+        ],
+        "g": "g-30"
+    },
+    {
+        "id": "i-29",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "junk bytes",
+        "props": [
+            {
+                "p": "payload",
+                "v": "AQID//4=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 230,
+        "y": 980,
+        "wires": [
+            [
+                "p-26"
+            ]
+        ],
+        "g": "g-30"
+    },
+    {
+        "id": "p-26",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 640,
+        "y": 960,
+        "wires": [
+            [
+                "dbg-bad"
+            ]
+        ],
+        "g": "g-30"
+    },
+    {
+        "id": "dbg-bad",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "failed + garbage",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 960,
+        "wires": [],
+        "g": "g-30"
+    },
+    {
+        "id": "c-31",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "Memory — fire 1/2, then 2/2",
+        "info": "A frame split across two serial reads only decodes if the buffer is kept. Fire 1/2: the\nfirst 20 bytes of an EKF_EULER frame produce an EMPTY array — nothing is wrong, the frame\nis simply incomplete. Then fire 2/2 with the rest and it decodes.\n\nThe memory channel reports { memory, bytes } — BYTES, because this is a binary protocol\nand a whole frame has to fit or it is flushed before its last byte arrives. The default\n4095 is exactly the largest frame the protocol allows (6 + 4086 + 3).",
+        "x": 170,
+        "y": 1080,
+        "wires": [],
+        "g": "g-37"
+    },
+    {
+        "id": "i-34",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "1/2 — first 20 bytes",
+        "props": [
+            {
+                "p": "payload",
+                "v": "/1oGACAAmGQpnj9gx7t2hfi7KhU=",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1140,
+        "wires": [
+            [
+                "p-32"
+            ]
+        ],
+        "g": "g-37"
+    },
+    {
+        "id": "i-35",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "2/2 — the rest",
+        "props": [
+            {
+                "p": "payload",
+                "v": "uL+vGyM7ugEjO4GpUj3UCAAAEUUz",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1180,
+        "wires": [
+            [
+                "p-32"
+            ]
+        ],
+        "g": "g-37"
+    },
+    {
+        "id": "i-36",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "memory: get",
+        "props": [
+            {
+                "p": "memory",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1220,
+        "wires": [
+            [
+                "p-32"
+            ]
+        ],
+        "g": "g-37"
+    },
+    {
+        "id": "p-32",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 640,
+        "y": 1180,
+        "wires": [
+            [
+                "dbg-mem"
+            ]
+        ],
+        "g": "g-37"
+    },
+    {
+        "id": "dbg-mem",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "memory",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 1180,
+        "wires": [],
+        "g": "g-37"
+    },
+    {
+        "id": "c-38",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "Ask the running node what it expects",
+        "info": "These libraries run on remote installations with restricted internet access for years, so\nthe deployed binary can describe itself.\n\nids      — every sentence this build knows: the 34 eCom logs as \"<class>:<message>\" PLUS\n           every NMEA sentence id, from the one node.\ndefinition — the field table for one id, with types, units and descriptions. An eCom id\n           gets the richer answer including the log name.\nfirmware — which knowledge base is decoding, which ones exist, and `clock` once the device\n           has published a valid time. That last one answers \"why has my data no\n           timestamp?\" without guesswork.\nfake     — a real wire frame with a real CRC, as a Buffer. Deterministic, so it can live in\n           a committed flow. Wire it into another node's payload and it round-trips.",
+        "x": 170,
+        "y": 1320,
+        "wires": [],
+        "g": "g-45"
+    },
+    {
+        "id": "i-41",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "ids",
+        "props": [
+            {
+                "p": "ids",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1380,
+        "wires": [
+            [
+                "p-39"
+            ]
+        ],
+        "g": "g-45"
+    },
+    {
+        "id": "i-42",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "definition: 0:6",
+        "props": [
+            {
+                "p": "definition",
+                "v": "0:6",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1420,
+        "wires": [
+            [
+                "p-39"
+            ]
+        ],
+        "g": "g-45"
+    },
+    {
+        "id": "i-43",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "definition: GGA",
+        "props": [
+            {
+                "p": "definition",
+                "v": "GGA",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1460,
+        "wires": [
+            [
+                "p-39"
+            ]
+        ],
+        "g": "g-45"
+    },
+    {
+        "id": "i-44",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "firmware: get",
+        "props": [
+            {
+                "p": "firmware",
+                "v": "{\"command\":\"get\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1500,
+        "wires": [
+            [
+                "p-39"
+            ]
+        ],
+        "g": "g-45"
+    },
+    {
+        "id": "p-39",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "",
+        "firmware": "",
+        "memory": true,
+        "x": 640,
+        "y": 1420,
+        "wires": [
+            [
+                "dbg-diag"
+            ]
+        ],
+        "g": "g-45"
+    },
+    {
+        "id": "dbg-diag",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "diagnostics",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 860,
+        "y": 1420,
+        "wires": [],
+        "g": "g-45"
+    },
+    {
+        "id": "c-46",
+        "type": "comment",
+        "z": "sbg-tab",
+        "name": "A fake frame, fed straight back in",
+        "info": "The \"fake\" channel returns a real wire frame as a Buffer: real CRC, real length. The\nfunction node moves it onto payload, and the second parser decodes it — proving the frame\nis indistinguishable from wire input.\n\nUseful for building a flow before the hardware arrives, and for a bug report: a fake is\nDETERMINISTIC, so the same request yields the same bytes forever.\n\nA fake round trip proves the FRAMING, not the field table — it is built from the same table\nit is decoded with. What catches a wrong table is the datasheet and a real capture.",
+        "x": 170,
+        "y": 1600,
+        "wires": [],
+        "g": "g-52"
+    },
+    {
+        "id": "i-50",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "fake: 0:6",
+        "props": [
+            {
+                "p": "fake",
+                "v": "0:6",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1680,
+        "wires": [
+            [
+                "p-47"
+            ]
+        ],
+        "g": "g-52"
+    },
+    {
+        "id": "i-51",
+        "type": "inject",
+        "z": "sbg-tab",
+        "name": "fake: 0:14 with fields",
+        "props": [
+            {
+                "p": "fake",
+                "v": "{\"id\":\"0:14\",\"options\":{\"fields\":{\"NUM_SV_USED\":12}}}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "once": false,
+        "topic": "",
+        "x": 250,
+        "y": 1720,
+        "wires": [
+            [
+                "p-47"
+            ]
+        ],
+        "g": "g-52"
+    },
+    {
+        "id": "p-47",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "build a frame",
+        "firmware": "",
+        "memory": true,
+        "x": 470,
+        "y": 1700,
+        "wires": [
+            [
+                "fn-fake"
+            ]
+        ],
+        "g": "g-52"
+    },
+    {
+        "id": "fn-fake",
+        "type": "function",
+        "z": "sbg-tab",
+        "name": "fake -> payload",
+        "func": "// The fake frame arrives on msg.fake as a Buffer. Move it to payload so the next\n// node parses it as if it had come off the wire.\nmsg.payload = msg.fake\ndelete msg.fake\nreturn msg\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 1700,
+        "wires": [
+            [
+                "p-fake2"
+            ]
+        ],
+        "g": "g-52"
+    },
+    {
+        "id": "p-fake2",
+        "type": "cma-sbg-ecom",
+        "z": "sbg-tab",
+        "name": "re-parse it",
+        "firmware": "",
+        "memory": true,
+        "x": 850,
+        "y": 1700,
+        "wires": [
+            [
+                "dbg-fake"
+            ]
+        ],
+        "g": "g-52"
+    },
+    {
+        "id": "dbg-fake",
+        "type": "debug",
+        "z": "sbg-tab",
+        "name": "round trip",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1030,
+        "y": 1700,
+        "wires": [],
+        "g": "g-52"
+    }
+]
