@@ -267,3 +267,88 @@ describe('the NMEA protocol through the device facade', () => {
     expect(cma.id).toBe('PSSNTFM')
   })
 })
+
+// THE ONLY EVIDENCE THAT CAN CATCH A WRONG FIELD ORDER.
+//
+// A definition transcribed from a datasheet table parses a real sentence CLEANLY
+// even when the order is wrong — right field count, right checksum, values simply
+// landing under the wrong names. A fake round trip cannot catch it either, because
+// it builds the frame from the same table it is checking. Only output from a real
+// receiver can, so these fixtures are copied VERBATIM (checksum included, which is
+// why `sentence()` is not used here — a fixture that had been retyped would not
+// verify) from public captures found 2026-08-01:
+//
+//   * semuconsulting/pynmeagps  tests/septentriox5_nmea.log     — a Septentrio X5
+//   * dup06087/autonomous_ship_controller  GNSS_processing/*    — a vessel, mode 2
+//   * Jailander/localisation-1  mel_amcl/gps_logs/norway/*      — no attitude fix
+//   * Team-Abhiyaan/mosaic_gnss_driver  test/data/nmea/*        — a mosaic
+//
+// Their checksums verifying against OUR computation is itself the cross-check:
+// four unrelated receivers, one field order.
+describe('real receiver output — captures, not datasheet tables', () => {
+  const real = (raw: string): CMA => {
+    const parser = new SeptentrioNMEAParser()
+    const [cma] = parser.parseData(bytes(`${raw}\r\n`))
+    expect(cma.errors, `${raw} decodes without error`).toBeUndefined()
+    expectValidCMA(cma)
+    return cma
+  }
+
+  test('HRP with every axis populated (Septentrio X5)', () => {
+    const hrp = real('$PSSN,HRP,104751.00,230324,23.455,1.954,0.0125,0.123,0.0234,0.03765,11,0,4.56453,W*20')
+    expect(hrp.id).toBe('PSSNHRP')
+    expect(field(hrp, 'heading').value as number).toBeCloseTo(23.455)
+    expect(field(hrp, 'roll').value as number).toBeCloseTo(1.954)
+    expect(field(hrp, 'pitch').value as number).toBeCloseTo(0.0125)
+    expect(field(hrp, 'heading_standard_deviation').value as number).toBeCloseTo(0.123)
+    expect(field(hrp, 'roll_standard_deviation').value as number).toBeCloseTo(0.0234)
+    expect(field(hrp, 'pitch_standard_deviation').value as number).toBeCloseTo(0.03765)
+    expect(field(hrp, 'satellites').value).toBe(11)
+    expect(field(hrp, 'magnetic_variation').value as number).toBeCloseTo(4.56453)
+    expect(field(hrp, 'magnetic_variation_direction').value).toBe('W')
+  })
+
+  // The one that proves the ORDER rather than just the count: this receiver was in
+  // mode 2, and it is the ROLL and the ROLL standard deviation that are empty —
+  // fields 5 and 8. Had roll and pitch been swapped in the table, the gap would sit
+  // on the wrong pair here.
+  test('HRP in mode 2 leaves roll — and only roll — empty (vessel capture)', () => {
+    const hrp = real('$PSSN,HRP,060851.00,110324,189.972,,0.135,0.495,,0.561,23,2,8.835,W*14')
+    expect(field(hrp, 'mode_indicator').value).toBe(2)
+    expect(field(hrp, 'roll').value).toBeNull()
+    expect(field(hrp, 'roll_standard_deviation').value).toBeNull()
+    expect(field(hrp, 'heading').value as number).toBeCloseTo(189.972)
+    expect(field(hrp, 'pitch').value as number).toBeCloseTo(0.135)
+    expect(field(hrp, 'pitch_standard_deviation').value as number).toBeCloseTo(0.561)
+  })
+
+  test('HRP with no attitude solution is all-null, never zeroes (Norway log)', () => {
+    const hrp = real('$PSSN,HRP,151647.00,270519,,,,,,,00,0,,E*2B')
+    for (const name of ['heading', 'roll', 'pitch', 'magnetic_variation']) {
+      expect(field(hrp, name).value, `${name} is null`).toBeNull()
+    }
+    // Reported as 0 satellites on the wire — a real zero, unlike the nulls above.
+    expect(field(hrp, 'satellites').value).toBe(0)
+  })
+
+  test('TFM, populated and empty (X5 and mosaic captures)', () => {
+    const tfm = real('$PSSN,TFM,104751.00,2,1021,1023,1025*5F')
+    expect(tfm.id).toBe('PSSNTFM')
+    expect(field(tfm, 'height_indicator').value).toBe(2)
+    expect(field(tfm, 'message_1021_1022').value).toBe(1021)
+    expect(field(tfm, 'message_1025_1026_1027').value).toBe(1025)
+    // No transformation in use: null per group, NOT message number zero.
+    const none = real('$PSSN,TFM,123138.00,,,,*65')
+    expect(field(none, 'message_1021_1022').value).toBeNull()
+  })
+
+  // Appendix C.1.5 prints checksum 68 for its own SNC example where the sentence
+  // computes 4C. This capture ends *4C — the datasheet has the typo, not us.
+  test('SNC with one and two NTRIP connections (X5 capture)', () => {
+    const one = real('$PSSN,SNC,[0,379359000,1840,[1,2,0,0]]*4C')
+    expect(one.id).toBe('PSSNSNC')
+    expect(one.payload[1].metadata?.submessages as unknown[]).toHaveLength(1)
+    const two = real('$PSSN,SNC,[0,379359123,1841,[1,2,0,0],[2,3,0,0]]*4A')
+    expect(two.payload[1].metadata?.submessages as unknown[]).toHaveLength(2)
+  })
+})

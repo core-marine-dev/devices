@@ -452,10 +452,24 @@ real wire field.
 So `protocol.name.startsWith('SEPTENTRIO')` means "proprietary to this device, either wire format",
 and the standard sentences stay labelled exactly as the NMEA parser labels them everywhere else.
 
+**How far each one is verified.** A definition transcribed from a datasheet table parses a real
+sentence cleanly even when the field order is wrong — right count, right checksum, values just landing
+under the wrong names — so this distinction matters:
+
+| sentence | evidence |
+| --- | --- |
+| `PSSNHRP` | **real receiver output** — captures from four unrelated receivers (a Septentrio X5, a vessel in mode 2, a no-fix log, a mosaic), all parsing with verifying checksums |
+| `PSSNTFM` | **real receiver output**, plus the worked example in Appendix C |
+| `PSSNSNC` | **real receiver output**, plus Appendix C — whose printed checksum `68` is a typo; the capture and this parser both compute `4C` |
+| `PSSNRBD` `PSSNRBP` `PSSNRBV` | **datasheet tables only.** No public capture was found. An independent implementation ([`dtc-pronto/dgps-ros`](https://github.com/dtc-pronto/dgps-ros)) transcribed the same guide and agrees field for field, which rules out a transcription slip here — but not an error in the guide itself. |
+
+The verified ones are pinned as fixtures in `tests/nmea.test.ts`, copied verbatim with their checksums.
+
 Two traps worth knowing:
 
 - **`PSSNHRP` modes 1, 2 and 5 carry NO roll.** The field arrives empty and stays `null` — never `0`,
-  which would read as "perfectly level" instead of "not measured".
+  which would read as "perfectly level" instead of "not measured". A real mode-2 capture confirms it:
+  fields 5 and 8 — roll and its standard deviation — are the empty ones, and nothing else is.
 - **`PSSNTFM`'s values ARE RTCM message numbers** (`1021`, `1023`, `1025`, …), and `null` means *none of
   that group was used*, not zero.
 

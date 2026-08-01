@@ -234,10 +234,23 @@ Do it in this order, and verify rather than assume:
 
 ## Open items that are NOT blockers, but are real
 
-- ⚠️ **`PSSNHRP` / `PSSNRBD` / `PSSNRBP` / `PSSNRBV` are unverified against hardware.** Appendix C gives
-  worked examples only for `SNC` and `TFM`, so those four rest on the datasheet tables alone — and a
-  wrong field ORDER still parses cleanly, so no test can catch it. **Ask cru for a capture with NMEA
-  output enabled** (`setNMEAOutput` including `HRP`) and check them against it.
+- ✅ **`PSSNHRP` IS NOW VERIFIED — against public captures, not a capture of cru's** (2026-08-01). cru
+  has no receiver output to hand, so the search went to GitHub code search instead, and four unrelated
+  repos carry real Septentrio NMEA logs: `semuconsulting/pynmeagps` (`tests/septentriox5_nmea.log`, a
+  Septentrio X5), `dup06087/autonomous_ship_controller` (a vessel), `Jailander/localisation-1` (Norway
+  field logs), `Team-Abhiyaan/mosaic_gnss_driver` (a mosaic). All parse with **no errors**, so their
+  checksums verify against our own computation — four receivers agreeing on one field order.
+  The mode-2 capture is the one that proves ORDER rather than count: fields 5 and 8 (roll and its
+  standard deviation) are the empty pair, exactly as the datasheet's mode note predicts. `TFM` and
+  `SNC` are confirmed too, and the real `SNC` ends `*4C` — **the Appendix C.1.5 checksum `68` is a
+  datasheet typo, as suspected.** All five are pinned verbatim in `tests/nmea.test.ts`
+  (§"real receiver output"), which is why septentrio is now **216**, not 211.
+- ⚠️ **`PSSNRBD` / `PSSNRBP` / `PSSNRBV` still rest on the datasheet tables.** No public capture of any
+  of the three was found — they only appear in rover-base setups, which are rarer than attitude. The
+  independent implementation `dtc-pronto/dgps-ros` transcribed the same Appendix C.1.2/3/4 and agrees
+  field for field, which rules out a transcription slip HERE but not an error in the guide. Its test
+  strings are synthetic (`*00` placeholder checksums), so they are NOT usable as fixtures. Documented
+  as datasheet-only in the septentrio README rather than left implicit.
 - **The example flow's injects are left-aligned at one x.** Node-RED computes node width from the label
   at load time and the flow JSON carries no `w` for ordinary nodes, so right-edge alignment cannot be
   computed offline. cru does that nudge in the editor, as he did for the other three flows.
