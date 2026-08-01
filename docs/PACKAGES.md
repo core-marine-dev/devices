@@ -29,13 +29,23 @@ consumer never sees.
 Test counts, measured 2026-07-31: `protocol-core` 43, `nmea-parser` **133**, `norsub-emru` 48,
 `septentrio-sbf` **211**, `thelmabiotel-tblive` 260, `sbg-ecom` **0**.
 
-**nmea-parser's built-in knowledge base is 26 sentences** (was 16), across six protocol blocks:
-NMEA `3.1` (`AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS`
-`VTG` `ZDA`) · NMEA `4.11` (`GBS` `GNS` `GRS` `RMC` `TXT` — the longer forms) · Miros `3.1` (`PMIRWM`
-`PMIRCV` `PMIRLD`) · Kongsberg Seatex `15` (`PSXN20` `PSXN23`) · Trimble `1` (`PTNLAVR` `PTNLGGK`) ·
-Leica `1` (`LLQ`). Five ids appear twice because a definition is matched by EXACT field count and those
-sentences gained fields between NMEA versions, so `protocol.version` in the output now tells a consumer
-which generation of the standard the device speaks.
+**nmea-parser's built-in knowledge base is 26 sentence ids / 34 definitions** (was 16 ids), across
+seven protocol blocks, NMEA first and newest-first:
+NMEA `4.11` (`AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS`
+`TXT` `VTG` `ZDA`) · NMEA `4.00` (`GBS` `GNS` `GRS` `GSA` `GSV` `RMC` — the forms superseded by the 4.10
+GNSS update) · NMEA `2.20` (`GLL` `RMC` — the forms superseded by the 2.30 mode indicator) ·
+Miros `1` (`PMIRWM` `PMIRCV` `PMIRLD`) · Kongsberg Seatex `15` (`PSXN20` `PSXN23`) ·
+Trimble `1` (`PTNLAVR` `PTNLGGK`) · Leica `1` (`LLQ`).
+
+**`version` is the newest published NMEA 0183 revision whose table matches those exact fields** (set
+2026-08-01, cru's call). Seven ids appear more than once because a definition is matched by EXACT field
+count and those sentences gained fields between revisions, so `protocol.version` tells a consumer which
+generation of the standard the device speaks. The old labels were **fictitious — there has never been an
+NMEA 0183 "3.1"**; and Miros is a vendor, so its three `$PMIR*` sentences moved out of the `NMEA` block
+into their own `MIROS` one, matching how Kongsberg/Trimble/Leica were already handled. `GSA` with 18
+fields and `GSV` with 20 (the 4.10 System ID / Signal ID forms) were sitting **commented out** in the
+YAML and are now real definitions — before, a multi-constellation receiver emitting them matched nothing
+and fell through as a generic sentence.
 
 ### Per-library notes / known issues
 

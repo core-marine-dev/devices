@@ -48,11 +48,14 @@ describe('Parser', () => {
     const parser = new Parser()
     const before = parser.getSentenceDefinition('AAM')
     expect(before.success ? before.value.length : 0).toBe(1)
-    // A second revision of an id the built-in already knows.
+    // A second revision of an id the built-in already knows. The version has to
+    // beat the built-in's 4.11 for the "newest wins" half of this test to mean
+    // anything — the built-ins now carry REAL NMEA revisions, so a user-supplied
+    // definition only takes precedence if it claims a higher one.
     const result = parser.addSentences([
       'protocols:',
       '  - protocol: NMEA',
-      '    version: \'4.0\'',
+      '    version: \'5.0\'',
       '    standard: true',
       '    sentences:',
       '      - id: AAM',
@@ -66,8 +69,8 @@ describe('Parser', () => {
     expect(after.success).toBe(true)
     const versions = after.success ? after.value.map((d) => d.protocol.version) : []
     expect(versions).toHaveLength(2)
-    expect(versions).toContain('3.1')
-    expect(versions).toContain('4.0')
+    expect(versions).toContain('4.11')
+    expect(versions).toContain('5.0')
     // The fake sentence still uses the NEWEST definition, which now has one field.
     const fake = parser.getFakeSentence('AAM')
     expect(fake.success).toBe(true)
@@ -216,7 +219,7 @@ test('GGA sentence -> CMA', () => {
   expect(output).toHaveLength(1)
   const gga = output[0]
   expect(gga.id).toBe('GGA')
-  expect(gga.protocol).toEqual({ name: 'NMEA', version: '3.1' })
+  expect(gga.protocol).toEqual({ name: 'NMEA', version: '4.11' })
   expect(gga.metadata?.standard).toBe(true)
   expect((gga.metadata?.talker as Talker).value).toBe('IN')
   expect(gga.payload).toHaveLength(14)
@@ -245,7 +248,7 @@ describe('Failed and garbage sentences', () => {
   test('1-character checksum — fully parsed, format error reported', () => {
     const [cma] = new Parser().parseData(GGA.replace('*61', '*6'))
     expect(cma.id).toBe('GGA')
-    expect(cma.protocol).toEqual({ name: 'NMEA', version: '3.1' })
+    expect(cma.protocol).toEqual({ name: 'NMEA', version: '4.11' })
     // Still fully decoded: the checksum problem does not stop the decode.
     expect(cma.payload.find((f) => f.name === 'satellites')?.value).toBe(12)
     expect(cma.errors).toHaveLength(2)
@@ -367,7 +370,7 @@ describe('the protocol argument selects which definition of an id is used', () =
 
   test('a version works as well as a name', () => {
     const byName = parser().getSentenceDefinition('GGA', 'NMEA')
-    const byVersion = parser().getSentenceDefinition('GGA', '3.1')
+    const byVersion = parser().getSentenceDefinition('GGA', '4.11')
     expect(byName.success && byVersion.success).toBe(true)
     if (!byName.success || !byVersion.success) return
     expect(byVersion.value).toStrictEqual(byName.value)

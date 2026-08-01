@@ -14,7 +14,8 @@ Protocols it knows out of the box: `NORSUB`, `NORSUB2`, `NORSUB6`, `NORSUB7`, `N
 — plus all of NMEA 0183.
 
 All NorSub-family definitions report `protocol.version: '1.2.0'`, the *NORSUB OEM Series — OEM MRU User
-Manual* revision they were transcribed from. Inherited NMEA sentences keep their own `3.1`.
+Manual* revision they were transcribed from. Inherited NMEA sentences keep their own revision — `4.11`
+for the current form of a sentence, an older one where the device speaks a superseded form.
 
 ## Install
 

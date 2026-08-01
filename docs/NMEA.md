@@ -99,6 +99,15 @@ const parser = new NMEAParser({ memory: true })
 The knowledge base is `this._definitions: Map<id, StoredSentence[]>` — **an array per id**, because
 the same id can have several definitions (different field counts across NMEA versions).
 
+**What `protocol.version` means** (locked 2026-08-01): the **newest published NMEA 0183 revision whose
+table for that sentence matches exactly those fields**. An unchanged sentence reads `4.11`; a superseded
+form carries the last revision where it was current (`4.00` before the 4.10 GNSS update added the
+System/Signal IDs and the navigational status, `2.20` before 2.30 added the FAA mode indicator). Every
+value is a real revision — the definitions used to claim `3.1`, which **has never existed**. The version
+is NOT used to select a definition: matching is by id + EXACT field count, and the version only breaks a
+tie between two definitions of the same id AND length (there are none in the built-ins). It IS a public
+lookup key, though — `getSentenceDefinition(id, protocol)` accepts a protocol name *or* a version.
+
 ### Step 2 — Feed the knowledge (YAML string)
 
 ```ts
@@ -272,7 +281,7 @@ sequenceDiagram
   "raw": "$INGGA,132247.95,7118.690092,N,...,1006*56\r\n",
   "timestamp": 1720600000000,          // Date.now() at parse time (epoch ms)
   "id": "GGA",                         // matched id (talker removed)
-  "protocol": { "name": "NMEA", "version": "3.1" },
+  "protocol": { "name": "NMEA", "version": "4.11" },
   "payload": [
     { "raw": "132247.95", "name": "utc_position", "type": "string", "value": "132247.95", "units": "ms" },
     { "raw": "7118.690092", "name": "latitude", "type": "string", "value": "7118.690092", "units": "deg" },

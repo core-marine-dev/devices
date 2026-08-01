@@ -37,37 +37,40 @@ const expectFullyNamed = (sentence: CMA, id: string, version: string, fields: nu
 }
 
 describe('standard NMEA sentences added for Septentrio Appendix C', () => {
-  // RMC/GLL/GNS/GBS/GRS grew fields across NMEA versions, and a definition is
-  // matched by EXACT field count — so each length needs its own definition, and
+  // RMC/GLL/GNS/GBS/GRS/GSA/GSV grew fields across NMEA versions, and a definition
+  // is matched by EXACT field count — so each length needs its own definition, and
   // `protocol.version` then tells a consumer which generation the device speaks.
+  // The version is the NEWEST revision defining that exact form: a superseded form
+  // reports the last revision where it was current (2.30 added the mode indicator,
+  // 4.10 added the system/signal IDs and the navigational status).
   test('RMC decodes in all THREE lengths, and the version reports which', () => {
     const classic = parse('$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A')
-    expectFullyNamed(classic, 'RMC', '3.1', 11)
+    expectFullyNamed(classic, 'RMC', '2.20', 11)
     expect(field(classic, 'speed_knots').value as number).toBeCloseTo(22.4)
     expect(field(classic, 'magnetic_variation_direction').value).toBe('W')
     // The date stays a STRING: ddmmyy with a 2-digit year is not a number.
     expect(field(classic, 'date').value).toBe('230394')
 
     const withMode = parse('$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W,A*07')
-    expectFullyNamed(withMode, 'RMC', '3.1', 12)
+    expectFullyNamed(withMode, 'RMC', '4.00', 12)
     expect(field(withMode, 'mode_indicator').value).toBe('A')
 
-    // 13 fields ⇒ the device speaks NMEA 4.1+, and the version says so.
+    // 13 fields ⇒ the device speaks NMEA 4.10+, and the version says so.
     const withStatus = parse('$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W,A,V*7D')
     expectFullyNamed(withStatus, 'RMC', '4.11', 13)
     expect(field(withStatus, 'navigational_status').value).toBe('V')
   })
 
   test('GLL decodes with and without the NMEA 2.3 mode indicator', () => {
-    expectFullyNamed(parse('$GPGLL,4916.45,N,12311.12,W,225444,A*31'), 'GLL', '3.1', 6)
+    expectFullyNamed(parse('$GPGLL,4916.45,N,12311.12,W,225444,A*31'), 'GLL', '2.20', 6)
     const withMode = parse('$GPGLL,4916.45,N,12311.12,W,225444,A,A*5C')
-    expectFullyNamed(withMode, 'GLL', '3.1', 7)
+    expectFullyNamed(withMode, 'GLL', '4.11', 7)
     expect(field(withMode, 'mode_indicator').value).toBe('A')
   })
 
   test('GNS keeps its per-constellation mode string intact', () => {
     const gns = parse('$GNGNS,122310.2,3722.425671,N,12258.856215,W,DAA,14,0.9,1005.543,6.5,,*30')
-    expectFullyNamed(gns, 'GNS', '3.1', 12)
+    expectFullyNamed(gns, 'GNS', '4.00', 12)
     // ONE CHARACTER PER CONSTELLATION — it must stay a string, not be coerced.
     expect(field(gns, 'mode_indicator').value).toBe('DAA')
     expect(field(gns, 'satellites').value).toBe(14)
@@ -79,9 +82,9 @@ describe('standard NMEA sentences added for Septentrio Appendix C', () => {
     expect(field(navStatus, 'navigational_status').value).toBe('V')
   })
 
-  test('GBS reports the failed satellite, and 4.11 adds system + signal', () => {
+  test('GBS reports the failed satellite, and 4.10 adds system + signal', () => {
     const gbs = parse('$GPGBS,015509.00,-0.031,-0.186,0.219,,,,*4E')
-    expectFullyNamed(gbs, 'GBS', '3.1', 8)
+    expectFullyNamed(gbs, 'GBS', '4.00', 8)
     expect(field(gbs, 'latitude_error').value as number).toBeCloseTo(-0.031)
     // No failure suspected ⇒ null, which must not read as satellite 0.
     expect(field(gbs, 'failed_satellite_id').value).toBeNull()
@@ -91,9 +94,9 @@ describe('standard NMEA sentences added for Septentrio Appendix C', () => {
     expect(field(gbs411, 'system_id').value).toBe(1)
   })
 
-  test('GRS gives one residual per satellite, and 4.11 adds system + signal', () => {
+  test('GRS gives one residual per satellite, and 4.10 adds system + signal', () => {
     const grs = parse('$GNGRS,104148.00,1,2.6,2.2,-1.6,-1.1,-1.7,-1.5,5.8,1.7,,,,*52')
-    expectFullyNamed(grs, 'GRS', '3.1', 14)
+    expectFullyNamed(grs, 'GRS', '4.00', 14)
     expect(field(grs, 'residuals_mode').value).toBe(1)
     expect(field(grs, 'residual_1').value as number).toBeCloseTo(2.6)
     expect(field(grs, 'residual_12').value).toBeNull()
@@ -101,6 +104,31 @@ describe('standard NMEA sentences added for Septentrio Appendix C', () => {
     const grs411 = parse('$GNGRS,104148.00,1,2.6,2.2,-1.6,-1.1,-1.7,-1.5,5.8,1.7,,,,,1,1*52')
     expectFullyNamed(grs411, 'GRS', '4.11', 16)
     expect(field(grs411, 'signal_id').value).toBe(1)
+  })
+
+  // The 4.10 forms of these two were sitting in the YAML COMMENTED OUT, so a
+  // multi-constellation receiver emitting System ID or Signal ID matched nothing
+  // and fell through as a generic sentence with unnamed fields.
+  test('GSA decodes with and without the 4.10 System ID', () => {
+    const gsa = parse('$GPGSA,A,3,01,02,03,04,05,06,07,08,09,10,11,12,1.0,1.0,1.0*30')
+    expectFullyNamed(gsa, 'GSA', '4.00', 17)
+    expect(field(gsa, 'fix').value).toBe(3)
+    expect(field(gsa, 'pdop').value as number).toBeCloseTo(1.0)
+
+    const gsa410 = parse('$GPGSA,A,3,01,02,03,04,05,06,07,08,09,10,11,12,1.0,1.0,1.0,1*2D')
+    expectFullyNamed(gsa410, 'GSA', '4.11', 18)
+    expect(field(gsa410, 'system_id').value).toBe(1)
+  })
+
+  test('GSV decodes with and without the 4.10 Signal ID', () => {
+    const gsv = parse('$GPGSV,2,1,08,01,40,083,46,02,17,308,41,12,07,344,39,14,22,228,45*75')
+    expectFullyNamed(gsv, 'GSV', '4.00', 19)
+    expect(field(gsv, 'satellites_in_view').value).toBe(8)
+    expect(field(gsv, 'snr_4').value).toBe(45)
+
+    const gsv410 = parse('$GPGSV,2,1,08,01,40,083,46,02,17,308,41,12,07,344,39,14,22,228,45,1*68')
+    expectFullyNamed(gsv410, 'GSV', '4.11', 20)
+    expect(field(gsv410, 'signal_id').value).toBe(1)
   })
 
   test('ROT keeps the sign that says which way the bow is turning', () => {

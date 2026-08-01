@@ -100,7 +100,7 @@ For an **unknown** sentence: `protocol` is `{ name: 'NMEA', version: 'unknown' }
   "raw": "$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
   "timestamp": 1784888779942,
   "id": "GGA",
-  "protocol": { "name": "NMEA", "version": "3.1" },
+  "protocol": { "name": "NMEA", "version": "4.11" },
   "payload": [
     { "raw": "123519", "name": "utc_position", "type": "string", "value": "123519", "units": "ms", "metadata": { "timestamp": 1784896519000 } },
     { "raw": "1", "name": "gps_quality", "type": "int8", "value": 1, "metadata": { "label": "GPS fix" } },
@@ -185,18 +185,30 @@ with `name: 'unknown'` fields — and you can add definitions for it with
 
 | protocol | version | sentences |
 | --- | --- | --- |
-| NMEA 0183 standard | `3.1` | `AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS` `VTG` `ZDA` |
-| NMEA 0183 standard | `4.11` | `GBS` `GNS` `GRS` `RMC` `TXT` |
-| Miros SM-050 Wave and Current Radar | `3.1` | `PMIRWM` `PMIRCV` `PMIRLD` |
+| NMEA 0183 standard | `4.11` | `AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS` `TXT` `VTG` `ZDA` |
+| NMEA 0183 standard | `4.00` | `GBS` `GNS` `GRS` `GSA` `GSV` `RMC` |
+| NMEA 0183 standard | `2.20` | `GLL` `RMC` |
+| Miros SM-050 Wave and Current Radar | `1` | `PMIRWM` `PMIRCV` `PMIRLD` |
 | Kongsberg Seatex | `15` | `PSXN20` `PSXN23` |
 | Trimble | `1` | `PTNLAVR` `PTNLGGK` |
 | Leica | `1` | `LLQ` |
 
-**Why some ids appear twice.** A definition is matched by **exact field count**, and several standard
-sentences gained fields between NMEA versions — `RMC` exists with 11, 12 and 13 fields, `GLL` with 6 and
-7, `GNS` with 12 and 13, `GBS` with 8 and 10, `GRS` with 14 and 16. Each length is its own definition, so
-the `protocol.version` in the output tells you **which generation of the standard your device speaks**: a
-13-field `RMC` is an NMEA 4.1+ device. `getSentenceDefinition('RMC')` returns all three.
+**What `version` means here.** It is the **newest published NMEA 0183 revision whose table for that
+sentence matches exactly those fields**. A sentence that never changed reads `4.11`; a superseded form
+carries the last revision where it *was* current. Every value is a real revision — there has never been
+an NMEA 0183 "3.1", which is what these definitions claimed before `6.0.0`.
+
+**Why some ids appear more than once.** A definition is matched by **exact field count**, and several
+standard sentences gained fields between NMEA versions — `RMC` exists with 11, 12 and 13 fields, `GLL`
+with 6 and 7, `GNS` with 12 and 13, `GBS` with 8 and 10, `GRS` with 14 and 16, `GSA` with 17 and 18,
+`GSV` with 19 and 20. Each length is its own definition, so the `protocol.version` in the output tells
+you **which generation of the standard your device speaks**: a 13-field `RMC` is an NMEA 4.10+ device, an
+11-field one predates 2.30. `getSentenceDefinition('RMC')` returns all three.
+
+The two deltas behind the table: **2.30** added the FAA mode indicator as a new last field to `GLL`,
+`RMC` and `VTG`; **4.10** extended the GNSS suite for Galileo — System ID on `GSA`, Signal ID on `GSV`,
+both on `GBS` and `GRS`, and navigational status on `RMC` and `GNS`. `4.11` replaces `4.10` and is
+backward-compatible to `2.00`.
 
 ```typescript
 parser.parseData('$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W,A,V*7D\r\n')
@@ -244,7 +256,7 @@ if (!result.success) {
 ```yaml
 protocols:
   - protocol: NMEA          # protocol name
-    version: '3.1'          # semantic version
+    version: '4.11'         # protocol revision
     standard: true          # standard (true) or proprietary (false)
     sentences:
       - id: AAM

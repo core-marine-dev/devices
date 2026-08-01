@@ -1,9 +1,34 @@
 protocols:
   # =================================================================
-  # NMEA 0183 — Standard sentences
+  # HOW `version` IS ASSIGNED HERE
+  # -----------------------------------------------------------------
+  # `version` is the NEWEST published NMEA 0183 revision whose table for that
+  # sentence matches EXACTLY these fields. So a sentence that never changed reads
+  # `4.11`, and a superseded form carries the last revision where it WAS current.
+  # Every value is a real revision (2.00, 2.01, 2.10, 2.20, 2.30, 3.00, 3.01,
+  # 4.00, 4.10, 4.11) — there has never been an NMEA 0183 "3.1", which is what
+  # these definitions used to claim.
+  #
+  # This matters because a definition is matched by EXACT field count, so a
+  # sentence that grew needs one definition per length, and the version is then
+  # the only thing in the CMA output telling a consumer WHICH generation of the
+  # standard the device is speaking: a 13-field RMC is a 4.10+ device, an
+  # 11-field one predates 2.30.
+  #
+  # The standard itself is not public. The two deltas below are established from
+  # gpsd's NMEA Revealed (https://gpsd.gitlab.io/gpsd/NMEA.html), a v4 vendor
+  # field dictionary, and the trade coverage of the 4.10/4.11 releases:
+  #   2.30 (Mar 1998) — added the FAA mode indicator as a new last field to
+  #                     GLL, RMC and VTG (among others).
+  #   4.10            — extended the GNSS suite for Galileo: System ID on GSA,
+  #                     Signal ID on GSV, System ID + Signal ID on GBS and GRS,
+  #                     navigational status on RMC and GNS.
+  # 4.11 replaces 4.10 and is backward-compatible to 2.00.
+  # =================================================================
+  # NMEA 0183 4.11 — the CURRENT form of each standard sentence
   # =================================================================
   - protocol: NMEA
-    version: '3.1'
+    version: '4.11'
     standard: true
     sentences:
       - id: AAM
@@ -84,7 +109,7 @@ protocols:
               S85 - SGS85\n
               P90 - PE90"
       - id: GBS
-        description: "GNSS Satellite Fault Detection — the RAIM residual test. Reports which satellite is most likely faulty and the expected 1-sigma position error. The NMEA 4.11 form adds System ID and Signal ID; see the NMEA 4.11 protocol block."
+        description: "GNSS Satellite Fault Detection, ten-field form: NMEA 4.11 appended System ID and Signal ID so the failed satellite can be attributed to a constellation and a signal."
         payload:
           # 1
           - name: utc_time
@@ -123,6 +148,14 @@ protocols:
             type: float64
             units: m
             description: "Standard deviation of the bias estimate"
+          # 9
+          - name: system_id
+            type: uint8
+            description: "GNSS System ID (NMEA 4.11). 1 = GPS, 2 = GLONASS, 3 = Galileo, 4 = BeiDou; see the NMEA 4.11 System ID table for the rest."
+          # 10
+          - name: signal_id
+            type: uint8
+            description: "GNSS Signal ID (NMEA 4.11) — which signal of that constellation. The meaning is per-constellation; see the NMEA 4.11 Signal ID table."
       - id: GGA
         description: Global Positioning System Fix Data
         payload:
@@ -224,35 +257,6 @@ protocols:
       # GLL exists in two lengths: the mode indicator was added in NMEA 2.3. Both
       # are defined because a definition is matched by EXACT field count.
       - id: GLL
-        description: "Geographic Position - Latitude/Longitude. Six-field form, without the NMEA 2.3 mode indicator."
-        payload:
-          # 1
-          - name: latitude
-            type: string
-            units: deg
-          # 2
-          - name: latitude_direction
-            type: string
-            description: "N: North\n
-              S: South"
-          # 3
-          - name: longitude
-            type: string
-            units: deg
-          # 4
-          - name: longitude_direction
-            type: string
-            description: "E: East\n
-              W: West"
-          # 5
-          - name: utc_time
-            type: string
-          # 6
-          - name: status
-            type: string
-            description: "A = data valid\n
-              V = data invalid"
-      - id: GLL
         description: "Geographic Position - Latitude/Longitude. Seven-field form, with the mode indicator added in NMEA 2.3."
         payload:
           # 1
@@ -290,6 +294,707 @@ protocols:
               E = Estimated (dead reckoning)\n
               M = Manual input\n
               N = Data not valid"
+      - id: GNS
+        description: "GNSS Fix Data, thirteen-field form: NMEA 4.1 appended a navigational status field for safety-of-life use."
+        payload:
+          # 1
+          - name: utc_position
+            type: string
+            units: ms
+          # 2
+          - name: latitude
+            type: string
+            units: deg
+          # 3
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 4
+          - name: longitude
+            type: string
+            units: deg
+          # 5
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 6
+          - name: mode_indicator
+            type: string
+            description: "ONE CHARACTER PER CONSTELLATION, in the order GPS, GLONASS, Galileo, BeiDou, ...\n
+              N = No fix\n
+              A = Autonomous\n
+              D = Differential\n
+              P = Precise\n
+              R = RTK integer (fixed) ambiguities\n
+              F = RTK float ambiguities\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              S = Simulator"
+          # 7
+          - name: satellites
+            type: uint8
+            description: "Total number of satellites in use, 00 to 99"
+          # 8
+          - name: hdop
+            type: float64
+          # 9
+          - name: altitude
+            type: float64
+            units: m
+            description: "Antenna altitude above/below mean-sea-level (geoid)"
+          # 10
+          - name: geoid_separation
+            type: float64
+            units: m
+            description: "Difference between the WGS-84 ellipsoid surface and the mean-sea-level (geoid) surface"
+          # 11
+          - name: age_of_differential_data
+            type: uint32
+            units: sec
+            description: "Age of the differential corrections; null when differential is not used"
+          # 12
+          - name: reference_station_id
+            type: uint16
+            description: "Reference station ID; null when no corrections are received"
+          # 13
+          - name: navigational_status
+            type: string
+            description: "Navigational status (NMEA 4.1+)\n
+              S = Safe\n
+              C = Caution\n
+              U = Unsafe\n
+              V = Navigational status not valid"
+      - id: GRS
+        description: "GNSS Range Residuals, sixteen-field form: NMEA 4.11 appended System ID and Signal ID, so the residuals can be attributed to a constellation and signal."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time of the GGA or GNS fix this sentence belongs to"
+          # 2
+          - name: residuals_mode
+            type: uint8
+            description: "0 = residuals were used to calculate the position given in the matching GGA/GNS\n
+              1 = residuals were recomputed after the position was computed"
+          # 3
+          - name: residual_1
+            type: float64
+            units: m
+          # 4
+          - name: residual_2
+            type: float64
+            units: m
+          # 5
+          - name: residual_3
+            type: float64
+            units: m
+          # 6
+          - name: residual_4
+            type: float64
+            units: m
+          # 7
+          - name: residual_5
+            type: float64
+            units: m
+          # 8
+          - name: residual_6
+            type: float64
+            units: m
+          # 9
+          - name: residual_7
+            type: float64
+            units: m
+          # 10
+          - name: residual_8
+            type: float64
+            units: m
+          # 11
+          - name: residual_9
+            type: float64
+            units: m
+          # 12
+          - name: residual_10
+            type: float64
+            units: m
+          # 13
+          - name: residual_11
+            type: float64
+            units: m
+          # 14
+          - name: residual_12
+            type: float64
+            units: m
+          # 15
+          - name: system_id
+            type: uint8
+            description: "GNSS System ID (NMEA 4.11). 1 = GPS, 2 = GLONASS, 3 = Galileo, 4 = BeiDou; see the NMEA 4.11 System ID table for the rest."
+          # 16
+          - name: signal_id
+            type: uint8
+            description: "GNSS Signal ID (NMEA 4.11) — which signal of that constellation."
+      - id: GSA
+        description: "GPS DOP and active satellites"
+        payload:
+          # 1
+          - name: mode
+            type: string
+            description: "Mode 1:\n
+              M = Manual\n
+              A = Automatic"
+          # 2
+          - name: fix
+            type: uint8
+            description: "Mode 2: Fix type:\n
+              1 = not available\n
+              2 = 2D\n
+              3 = 3D"
+          # 3
+          - name: satellite_id_1
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 4
+          - name: satellite_id_2
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 5
+          - name: satellite_id_3
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 6
+          - name: satellite_id_4
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 7
+          - name: satellite_id_5
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 8
+          - name: satellite_id_6
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 9
+          - name: satellite_id_7
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 10
+          - name: satellite_id_8
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 11
+          - name: satellite_id_9
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 12
+          - name: satellite_id_10
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 13
+          - name: satellite_id_11
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 14
+          - name: satellite_id_12
+            type: uint8
+            description: "PRN number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS\n
+              64+ for GLONASS"
+          # 15
+          - name: pdop
+            type: float64
+            description: "PDOP: 0.5 to 99.9"
+          # 16
+          - name: hdop
+            type: float64
+            description: "HDOP: 0.5 to 99.9"
+          # 17
+          - name: vdop
+            type: float64
+            description: "VDOP: 0.5 to 99.9"
+          # 18
+          - name: system_id
+            type: uint8
+            description: "System ID based on:\n
+              1 GPS\n
+              2 GLONASS\n
+              3 Galileo\n
+              4 BeiDou\n
+              0 QZSS"
+      - id: GST
+        description: "Position error statistics"
+        payload:
+          # 1
+          - name: utc_position_fix
+            type: string
+            units: "hhmmss.ss"
+            description: "UTC time of associated GGA fix"
+          # 2
+          - name: total_rms
+            type: float64
+            description: "RMS value of the pseudorange residuals; includes carrier phase residuals during periods of RTK (float) and RTK (fixed) processing"
+          # 3
+          - name: semi_major_standard_deviation
+            type: float64
+            units: meters
+            description: "Standard deviation (meters) of semi-major axis of error ellipse"
+          # 4
+          - name: semi_minor_standard_deviation
+            type: float64
+            units: meters
+            description: "Standard deviation (meters) of semi-minor axis of error ellipse"
+          # 5
+          - name: ellipse_orientation
+            type: float64
+            units: true north degrees
+            description: "Orientation of semi-major axis of error ellipse (true north degrees)"
+          # 6
+          - name: latitude_standard_deviation
+            type: float64
+            units: meters
+            description: "Standard deviation (meters) of latitude error"
+          # 7
+          - name: longitude_standard_deviation
+            type: float64
+            units: meters
+            description: "Standard deviation (meters) of longitude error"
+          # 8
+          - name: altitude_standard_deviation
+            type: float64
+            units: meters
+            description: "Standard deviation (meters) of altitude error"
+      - id: GSV
+        description: "GNSS Satellites in View"
+        payload:
+          # 1
+          - name: total_messages
+            type: uint8
+            description: "Total number of GSV messages in this cycle (1 to 9)"
+          # 2
+          - name: message_number
+            type: uint8
+            description: "Current message number (1 to 9)"
+          # 3
+          - name: satellites_in_view
+            type: uint16
+            description: "Total number of satellites in view"
+          # 4 — Satellite block 1
+          - name: satellite_id_1
+            type: uint8
+            description: "Satellite PRN/ID number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS (add 87 to get actual SBAS PRN)\n
+              65 to 96 for GLONASS (subtract 64 to get GLONASS slot number)"
+          # 5
+          - name: elevation_1
+            type: int8
+            units: deg
+            description: "Satellite elevation, -90 to 90 degrees"
+          # 6
+          - name: azimuth_1
+            type: uint16
+            units: deg
+            description: "Satellite azimuth from true north, 000 to 359 degrees"
+          # 7
+          - name: snr_1
+            type: uint8
+            units: dB-Hz
+            description: "Signal-to-noise ratio (C/No), 00 to 99 dB-Hz (null when not tracking)"
+          # 8 — Satellite block 2
+          - name: satellite_id_2
+            type: uint8
+            description: "Satellite PRN/ID number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS (add 87 to get actual SBAS PRN)\n
+              65 to 96 for GLONASS (subtract 64 to get GLONASS slot number)"
+          # 9
+          - name: elevation_2
+            type: int8
+            units: deg
+            description: "Satellite elevation, -90 to 90 degrees"
+          # 10
+          - name: azimuth_2
+            type: uint16
+            units: deg
+            description: "Satellite azimuth from true north, 000 to 359 degrees"
+          # 11
+          - name: snr_2
+            type: uint8
+            units: dB-Hz
+            description: "Signal-to-noise ratio (C/No), 00 to 99 dB-Hz (null when not tracking)"
+          # 12 — Satellite block 3
+          - name: satellite_id_3
+            type: uint8
+            description: "Satellite PRN/ID number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS (add 87 to get actual SBAS PRN)\n
+              65 to 96 for GLONASS (subtract 64 to get GLONASS slot number)"
+          # 13
+          - name: elevation_3
+            type: int8
+            units: deg
+            description: "Satellite elevation, -90 to 90 degrees"
+          # 14
+          - name: azimuth_3
+            type: uint16
+            units: deg
+            description: "Satellite azimuth from true north, 000 to 359 degrees"
+          # 15
+          - name: snr_3
+            type: uint8
+            units: dB-Hz
+            description: "Signal-to-noise ratio (C/No), 00 to 99 dB-Hz (null when not tracking)"
+          # 16 — Satellite block 4
+          - name: satellite_id_4
+            type: uint8
+            description: "Satellite PRN/ID number:\n
+              01 to 32 for GPS\n
+              33 to 64 for SBAS (add 87 to get actual SBAS PRN)\n
+              65 to 96 for GLONASS (subtract 64 to get GLONASS slot number)"
+          # 17
+          - name: elevation_4
+            type: int8
+            units: deg
+            description: "Satellite elevation, -90 to 90 degrees"
+          # 18
+          - name: azimuth_4
+            type: uint16
+            units: deg
+            description: "Satellite azimuth from true north, 000 to 359 degrees"
+          # 19
+          - name: snr_4
+            type: uint8
+            units: dB-Hz
+            description: "Signal-to-noise ratio (C/No), 00 to 99 dB-Hz (null when not tracking)"
+          # 20 (NMEA 4.10+)
+          - name: signal_id
+            type: uint8
+            description: "NMEA 4.10+ Signal ID (hex). Values depend on talker ID / constellation:\n
+              0 = All signals (any constellation)\n
+              GP (GPS/SBAS): 1 = L1C/A, 6 = L2C-L\n
+              GA (Galileo): 7 = L1-BC, 2 = E5b\n
+              GB (BeiDou): B = B2I\n
+              GL (GLONASS): 3 = G2 C/A"
+      - id: HDT
+        description: Heading - True
+        payload:
+          # 1
+          - name: heading
+            type: float64
+            description: "Heading, degrees True"
+          # 2
+          - name: "true"
+            type: string
+            description: "T = True"
+      - id: MWV
+        description: Wind Speed and Angle
+        payload:
+          # 1
+          - name: wind_angle
+            type: float64
+            units: deg
+            description: "Wind angle, 0.0 to 359.9 degrees relative to the vessel's bow/centerline"
+          # 2
+          - name: reference
+            type: string
+            description: "Reference: R = Relative, T = True"
+          # 3
+          - name: wind_speed
+            type: float64
+            description: "Wind speed to the nearest tenth of a unit"
+          # 4
+          - name: wind_speed_units
+            type: string
+            description: "Wind speed units: K = km/h, M = m/s, N = knots, S = statute miles/h"
+          # 5
+          - name: status
+            type: string
+            description: "Data validity: A = Valid, V = Invalid"
+      # RMC exists in three lengths: NMEA 2.3 added the mode indicator and NMEA 4.1
+      # the navigational status. The 13-field form lives in the NMEA 4.11 block.
+      - id: RMC
+        description: "Recommended Minimum Specific GNSS Data, thirteen-field form: NMEA 4.1 appended a navigational status field."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+          # 2
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = navigation receiver warning"
+          # 3
+          - name: latitude
+            type: string
+            units: deg
+          # 4
+          - name: latitude_direction
+            type: string
+            description: "N: North\n
+              S: South"
+          # 5
+          - name: longitude
+            type: string
+            units: deg
+          # 6
+          - name: longitude_direction
+            type: string
+            description: "E: East\n
+              W: West"
+          # 7
+          - name: speed_knots
+            type: float64
+            units: knots
+            description: "Speed over ground"
+          # 8
+          - name: track_degrees_true
+            type: float64
+            units: deg
+            description: "Track made good, degrees True"
+          # 9
+          - name: date
+            type: string
+            description: "Date as ddmmyy. Kept as a string: the two-digit year and the ddmmyy order make a numeric type misleading."
+          # 10
+          - name: magnetic_variation
+            type: float64
+            units: deg
+            description: "Magnitude of the magnetic variation; the direction is the next field"
+          # 11
+          - name: magnetic_variation_direction
+            type: string
+            description: "E = East\n
+              W = West"
+          # 12
+          - name: mode_indicator
+            type: string
+            description: "Mode indicator (NMEA 2.3+)\n
+              A = Autonomous\n
+              D = Differential\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              N = Data not valid"
+          # 13
+          - name: navigational_status
+            type: string
+            description: "Navigational status (NMEA 4.1+)\n
+              S = Safe\n
+              C = Caution\n
+              U = Unsafe\n
+              V = Navigational status not valid"
+      - id: ROT
+        description: "Rate of Turn"
+        payload:
+          # 1
+          - name: rate_of_turn
+            type: float64
+            units: deg/min
+            description: "Rate of turn. NEGATIVE means the bow turns to port."
+          # 2
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
+      - id: THS
+        description: "True Heading and Status"
+        payload:
+          # 1
+          - name: heading
+            type: float64
+            units: deg
+            description: "Heading in degrees True, 0.00 to 359.99"
+          # 2
+          - name: mode
+            type: string
+            description: "Mode indicator:\n
+              A = Autonomous\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              S = Simulator\n
+              V = Data not valid"
+      - id: TXT
+        description: "Text Transmission — free-form text from the device, used for status and error reporting. Septentrio emits it as TXTbase to relay text from a base station in RTCM message 1029, with the text identifier set to 1 and the text formatted \"nnnn:<base txt>\" where nnnn is the base station ID."
+        payload:
+          # 1
+          - name: total_messages
+            type: uint8
+            description: "Total number of messages in this transmission, 01 to 99"
+          # 2
+          - name: message_number
+            type: uint8
+            description: "Number of this message within the transmission, 01 to 99"
+          # 3
+          - name: text_identifier
+            type: uint8
+            description: "Text identifier — what kind of message this is\n
+              00 = Error\n
+              01 = Warning\n
+              02 = Notice\n
+              07 = User"
+          # 4
+          - name: text
+            type: string
+            description: "The message text itself. ASCII only, and commas cannot appear in it — they would be read as field separators."
+
+      - id: VTG
+        description: Track Made Good and Ground Speed
+        payload:
+          # 1
+          - name: track_degrees_true
+            type: float64
+            units: deg
+            description: "Track angle in degrees True"
+          # 2
+          - name: true_indicator
+            type: string
+            description: "T = True"
+          # 3
+          - name: track_degrees_magnetic
+            type: float64
+            units: deg
+            description: "Track angle in degrees Magnetic"
+          # 4
+          - name: magnetic_indicator
+            type: string
+            description: "M = Magnetic"
+          # 5
+          - name: speed_knots
+            type: float64
+            units: knots
+            description: "Speed over ground in knots"
+          # 6
+          - name: knots_indicator
+            type: string
+            description: "N = Knots"
+          # 7
+          - name: speed_kilometers_per_hour
+            type: float64
+            units: km/h
+            description: "Speed over ground in kilometers per hour"
+          # 8
+          - name: kmh_indicator
+            type: string
+            description: "K = Kilometers per hour"
+          # 9 (NMEA 2.3+)
+          - name: mode_indicator
+            type: string
+            description: "Mode indicator (NMEA 2.3+)\n
+              A = Autonomous\n
+              D = Differential\n
+              E = Estimated (dead reckoning)\n
+              M = Manual input\n
+              N = Data not valid"
+      - id: ZDA
+        description: Time & Date - UTC, day, month, year and local time zone
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
+          # 2
+          - name: day
+            type: int8
+            description: "Day, 01 to 31"
+          # 3
+          - name: month
+            type: int8
+            description: "Month, 01 to 12"
+          # 4
+          - name: year
+            type: int16
+            description: "Year (4 digits)"
+          # 5
+          - name: local_zone_hours
+            type: int8
+            description: "Local zone description, 00 to +- 13 hours"
+          # 6
+          - name: local_zone_minutes
+            type: int8
+            description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
+  # =================================================================
+  # NMEA 0183 4.00 — forms SUPERSEDED by the 4.10 GNSS update
+  # -----------------------------------------------------------------
+  # Still emitted by plenty of receivers, so they stay in the knowledge base.
+  # Seeing one of these in the output means the device is pre-4.10.
+  # =================================================================
+  - protocol: NMEA
+    version: '4.00'
+    standard: true
+    sentences:
+      - id: GBS
+        description: "GNSS Satellite Fault Detection — the RAIM residual test. Reports which satellite is most likely faulty and the expected 1-sigma position error. The NMEA 4.11 form adds System ID and Signal ID; see the NMEA 4.11 protocol block."
+        payload:
+          # 1
+          - name: utc_time
+            type: string
+            description: "UTC time of the GGA or GNS fix this sentence belongs to"
+          # 2
+          - name: latitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in latitude"
+          # 3
+          - name: longitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in longitude"
+          # 4
+          - name: altitude_error
+            type: float64
+            units: m
+            description: "Expected 1-sigma error in altitude"
+          # 5
+          - name: failed_satellite_id
+            type: uint8
+            description: "ID of the most likely failed satellite. Null when no failure is suspected."
+          # 6
+          - name: probability_of_missed_detection
+            type: float64
+            description: "Probability of missed detection for the most likely failed satellite"
+          # 7
+          - name: bias_estimate
+            type: float64
+            units: m
+            description: "Estimate of the bias on the most likely failed satellite"
+          # 8
+          - name: bias_standard_deviation
+            type: float64
+            units: m
+            description: "Standard deviation of the bias estimate"
       - id: GNS
         description: "GNSS Fix Data — the multi-constellation counterpart of GGA. Unlike GGA it carries one mode-indicator character PER constellation. Twelve-field form; the NMEA 4.1 form adds a navigational status field, see the NMEA 4.11 protocol block."
         payload:
@@ -526,57 +1231,6 @@ protocols:
           - name: vdop
             type: float64
             description: "VDOP: 0.5 to 99.9"
-          # 18
-          # - name: system_id
-          #   type: uint8
-          #   description: "System ID based on:\n
-          #     1 GPS\n
-          #     2 GLONASS\n
-          #     3 Galileo\n
-          #     4 BeiDou\n
-          #     0 QZSS"
-      - id: GST
-        description: "Position error statistics"
-        payload:
-          # 1
-          - name: utc_position_fix
-            type: string
-            units: "hhmmss.ss"
-            description: "UTC time of associated GGA fix"
-          # 2
-          - name: total_rms
-            type: float64
-            description: "RMS value of the pseudorange residuals; includes carrier phase residuals during periods of RTK (float) and RTK (fixed) processing"
-          # 3
-          - name: semi_major_standard_deviation
-            type: float64
-            units: meters
-            description: "Standard deviation (meters) of semi-major axis of error ellipse"
-          # 4
-          - name: semi_minor_standard_deviation
-            type: float64
-            units: meters
-            description: "Standard deviation (meters) of semi-minor axis of error ellipse"
-          # 5
-          - name: ellipse_orientation
-            type: float64
-            units: true north degrees
-            description: "Orientation of semi-major axis of error ellipse (true north degrees)"
-          # 6
-          - name: latitude_standard_deviation
-            type: float64
-            units: meters
-            description: "Standard deviation (meters) of latitude error"
-          # 7
-          - name: longitude_standard_deviation
-            type: float64
-            units: meters
-            description: "Standard deviation (meters) of longitude error"
-          # 8
-          - name: altitude_standard_deviation
-            type: float64
-            units: meters
-            description: "Standard deviation (meters) of altitude error"
       - id: GSV
         description: "GNSS Satellites in View"
         payload:
@@ -680,105 +1334,6 @@ protocols:
             type: uint8
             units: dB-Hz
             description: "Signal-to-noise ratio (C/No), 00 to 99 dB-Hz (null when not tracking)"
-          # 20 (NMEA 4.10+)
-          # - name: signal_id
-          #   type: uint8
-          #   description: "NMEA 4.10+ Signal ID (hex). Values depend on talker ID / constellation:\n
-          #     0 = All signals (any constellation)\n
-          #     GP (GPS/SBAS): 1 = L1C/A, 6 = L2C-L\n
-          #     GA (Galileo): 7 = L1-BC, 2 = E5b\n
-          #     GB (BeiDou): B = B2I\n
-          #     GL (GLONASS): 3 = G2 C/A"
-      - id: HDT
-        description: Heading - True
-        payload:
-          # 1
-          - name: heading
-            type: float64
-            description: "Heading, degrees True"
-          # 2
-          - name: "true"
-            type: string
-            description: "T = True"
-      - id: MWV
-        description: Wind Speed and Angle
-        payload:
-          # 1
-          - name: wind_angle
-            type: float64
-            units: deg
-            description: "Wind angle, 0.0 to 359.9 degrees relative to the vessel's bow/centerline"
-          # 2
-          - name: reference
-            type: string
-            description: "Reference: R = Relative, T = True"
-          # 3
-          - name: wind_speed
-            type: float64
-            description: "Wind speed to the nearest tenth of a unit"
-          # 4
-          - name: wind_speed_units
-            type: string
-            description: "Wind speed units: K = km/h, M = m/s, N = knots, S = statute miles/h"
-          # 5
-          - name: status
-            type: string
-            description: "Data validity: A = Valid, V = Invalid"
-      # RMC exists in three lengths: NMEA 2.3 added the mode indicator and NMEA 4.1
-      # the navigational status. The 13-field form lives in the NMEA 4.11 block.
-      - id: RMC
-        description: "Recommended Minimum Specific GNSS Data. Eleven-field form, without the NMEA 2.3 mode indicator. Carries date and speed, which GGA does not, but no fix quality or altitude."
-        payload:
-          # 1
-          - name: utc_time
-            type: string
-          # 2
-          - name: status
-            type: string
-            description: "A = data valid\n
-              V = navigation receiver warning"
-          # 3
-          - name: latitude
-            type: string
-            units: deg
-          # 4
-          - name: latitude_direction
-            type: string
-            description: "N: North\n
-              S: South"
-          # 5
-          - name: longitude
-            type: string
-            units: deg
-          # 6
-          - name: longitude_direction
-            type: string
-            description: "E: East\n
-              W: West"
-          # 7
-          - name: speed_knots
-            type: float64
-            units: knots
-            description: "Speed over ground"
-          # 8
-          - name: track_degrees_true
-            type: float64
-            units: deg
-            description: "Track made good, degrees True"
-          # 9
-          - name: date
-            type: string
-            description: "Date as ddmmyy. Kept as a string: the two-digit year and the ddmmyy order make a numeric type misleading."
-          # 10
-          - name: magnetic_variation
-            type: float64
-            units: deg
-            description: "Magnitude of the magnetic variation; the direction is the next field"
-          # 11
-          - name: magnetic_variation_direction
-            type: string
-            description: "E = East\n
-              W = West"
       - id: RMC
         description: "Recommended Minimum Specific GNSS Data. Twelve-field form, with the mode indicator added in NMEA 2.3."
         payload:
@@ -841,313 +1396,44 @@ protocols:
               E = Estimated (dead reckoning)\n
               M = Manual input\n
               N = Data not valid"
-      - id: ROT
-        description: "Rate of Turn"
-        payload:
-          # 1
-          - name: rate_of_turn
-            type: float64
-            units: deg/min
-            description: "Rate of turn. NEGATIVE means the bow turns to port."
-          # 2
-          - name: status
-            type: string
-            description: "A = data valid\n
-              V = data invalid"
-      - id: THS
-        description: "True Heading and Status"
-        payload:
-          # 1
-          - name: heading
-            type: float64
-            units: deg
-            description: "Heading in degrees True, 0.00 to 359.99"
-          # 2
-          - name: mode
-            type: string
-            description: "Mode indicator:\n
-              A = Autonomous\n
-              E = Estimated (dead reckoning)\n
-              M = Manual input\n
-              S = Simulator\n
-              V = Data not valid"
-      - id: VTG
-        description: Track Made Good and Ground Speed
-        payload:
-          # 1
-          - name: track_degrees_true
-            type: float64
-            units: deg
-            description: "Track angle in degrees True"
-          # 2
-          - name: true_indicator
-            type: string
-            description: "T = True"
-          # 3
-          - name: track_degrees_magnetic
-            type: float64
-            units: deg
-            description: "Track angle in degrees Magnetic"
-          # 4
-          - name: magnetic_indicator
-            type: string
-            description: "M = Magnetic"
-          # 5
-          - name: speed_knots
-            type: float64
-            units: knots
-            description: "Speed over ground in knots"
-          # 6
-          - name: knots_indicator
-            type: string
-            description: "N = Knots"
-          # 7
-          - name: speed_kilometers_per_hour
-            type: float64
-            units: km/h
-            description: "Speed over ground in kilometers per hour"
-          # 8
-          - name: kmh_indicator
-            type: string
-            description: "K = Kilometers per hour"
-          # 9 (NMEA 2.3+)
-          - name: mode_indicator
-            type: string
-            description: "Mode indicator (NMEA 2.3+)\n
-              A = Autonomous\n
-              D = Differential\n
-              E = Estimated (dead reckoning)\n
-              M = Manual input\n
-              N = Data not valid"
-      - id: ZDA
-        description: Time & Date - UTC, day, month, year and local time zone
-        payload:
-          # 1
-          - name: utc_time
-            type: string
-            description: "UTC time (hours, minutes, seconds, may have fractional subseconds)"
-          # 2
-          - name: day
-            type: int8
-            description: "Day, 01 to 31"
-          # 3
-          - name: month
-            type: int8
-            description: "Month, 01 to 12"
-          # 4
-          - name: year
-            type: int16
-            description: "Year (4 digits)"
-          # 5
-          - name: local_zone_hours
-            type: int8
-            description: "Local zone description, 00 to +- 13 hours"
-          # 6
-          - name: local_zone_minutes
-            type: int8
-            description: "Local zone minutes description, 00 to 59, apply same sign as local hours"
   # =================================================================
-  # NMEA 0183 4.11 — Standard sentences that GAINED fields after 3.1
-  # -----------------------------------------------------------------
-  # A definition is matched by EXACT field count, so a sentence that grew needs
-  # one definition per length. Keeping the longer forms in their own version block
-  # means the CMA output's `protocol.version` tells a consumer WHICH generation of
-  # the standard the device is speaking — a 13-field RMC is a 4.1+ device.
+  # NMEA 0183 2.20 — forms superseded by the 2.30 FAA mode indicator
   # =================================================================
   - protocol: NMEA
-    version: '4.11'
+    version: '2.20'
     standard: true
     sentences:
-      - id: GBS
-        description: "GNSS Satellite Fault Detection, ten-field form: NMEA 4.11 appended System ID and Signal ID so the failed satellite can be attributed to a constellation and a signal."
+      - id: GLL
+        description: "Geographic Position - Latitude/Longitude. Six-field form, without the NMEA 2.3 mode indicator."
         payload:
           # 1
-          - name: utc_time
-            type: string
-            description: "UTC time of the GGA or GNS fix this sentence belongs to"
-          # 2
-          - name: latitude_error
-            type: float64
-            units: m
-            description: "Expected 1-sigma error in latitude"
-          # 3
-          - name: longitude_error
-            type: float64
-            units: m
-            description: "Expected 1-sigma error in longitude"
-          # 4
-          - name: altitude_error
-            type: float64
-            units: m
-            description: "Expected 1-sigma error in altitude"
-          # 5
-          - name: failed_satellite_id
-            type: uint8
-            description: "ID of the most likely failed satellite. Null when no failure is suspected."
-          # 6
-          - name: probability_of_missed_detection
-            type: float64
-            description: "Probability of missed detection for the most likely failed satellite"
-          # 7
-          - name: bias_estimate
-            type: float64
-            units: m
-            description: "Estimate of the bias on the most likely failed satellite"
-          # 8
-          - name: bias_standard_deviation
-            type: float64
-            units: m
-            description: "Standard deviation of the bias estimate"
-          # 9
-          - name: system_id
-            type: uint8
-            description: "GNSS System ID (NMEA 4.11). 1 = GPS, 2 = GLONASS, 3 = Galileo, 4 = BeiDou; see the NMEA 4.11 System ID table for the rest."
-          # 10
-          - name: signal_id
-            type: uint8
-            description: "GNSS Signal ID (NMEA 4.11) — which signal of that constellation. The meaning is per-constellation; see the NMEA 4.11 Signal ID table."
-      - id: GNS
-        description: "GNSS Fix Data, thirteen-field form: NMEA 4.1 appended a navigational status field for safety-of-life use."
-        payload:
-          # 1
-          - name: utc_position
-            type: string
-            units: ms
-          # 2
           - name: latitude
             type: string
             units: deg
-          # 3
+          # 2
           - name: latitude_direction
             type: string
             description: "N: North\n
               S: South"
-          # 4
+          # 3
           - name: longitude
             type: string
             units: deg
-          # 5
+          # 4
           - name: longitude_direction
             type: string
             description: "E: East\n
               W: West"
-          # 6
-          - name: mode_indicator
-            type: string
-            description: "ONE CHARACTER PER CONSTELLATION, in the order GPS, GLONASS, Galileo, BeiDou, ...\n
-              N = No fix\n
-              A = Autonomous\n
-              D = Differential\n
-              P = Precise\n
-              R = RTK integer (fixed) ambiguities\n
-              F = RTK float ambiguities\n
-              E = Estimated (dead reckoning)\n
-              M = Manual input\n
-              S = Simulator"
-          # 7
-          - name: satellites
-            type: uint8
-            description: "Total number of satellites in use, 00 to 99"
-          # 8
-          - name: hdop
-            type: float64
-          # 9
-          - name: altitude
-            type: float64
-            units: m
-            description: "Antenna altitude above/below mean-sea-level (geoid)"
-          # 10
-          - name: geoid_separation
-            type: float64
-            units: m
-            description: "Difference between the WGS-84 ellipsoid surface and the mean-sea-level (geoid) surface"
-          # 11
-          - name: age_of_differential_data
-            type: uint32
-            units: sec
-            description: "Age of the differential corrections; null when differential is not used"
-          # 12
-          - name: reference_station_id
-            type: uint16
-            description: "Reference station ID; null when no corrections are received"
-          # 13
-          - name: navigational_status
-            type: string
-            description: "Navigational status (NMEA 4.1+)\n
-              S = Safe\n
-              C = Caution\n
-              U = Unsafe\n
-              V = Navigational status not valid"
-      - id: GRS
-        description: "GNSS Range Residuals, sixteen-field form: NMEA 4.11 appended System ID and Signal ID, so the residuals can be attributed to a constellation and signal."
-        payload:
-          # 1
+          # 5
           - name: utc_time
             type: string
-            description: "UTC time of the GGA or GNS fix this sentence belongs to"
-          # 2
-          - name: residuals_mode
-            type: uint8
-            description: "0 = residuals were used to calculate the position given in the matching GGA/GNS\n
-              1 = residuals were recomputed after the position was computed"
-          # 3
-          - name: residual_1
-            type: float64
-            units: m
-          # 4
-          - name: residual_2
-            type: float64
-            units: m
-          # 5
-          - name: residual_3
-            type: float64
-            units: m
           # 6
-          - name: residual_4
-            type: float64
-            units: m
-          # 7
-          - name: residual_5
-            type: float64
-            units: m
-          # 8
-          - name: residual_6
-            type: float64
-            units: m
-          # 9
-          - name: residual_7
-            type: float64
-            units: m
-          # 10
-          - name: residual_8
-            type: float64
-            units: m
-          # 11
-          - name: residual_9
-            type: float64
-            units: m
-          # 12
-          - name: residual_10
-            type: float64
-            units: m
-          # 13
-          - name: residual_11
-            type: float64
-            units: m
-          # 14
-          - name: residual_12
-            type: float64
-            units: m
-          # 15
-          - name: system_id
-            type: uint8
-            description: "GNSS System ID (NMEA 4.11). 1 = GPS, 2 = GLONASS, 3 = Galileo, 4 = BeiDou; see the NMEA 4.11 System ID table for the rest."
-          # 16
-          - name: signal_id
-            type: uint8
-            description: "GNSS Signal ID (NMEA 4.11) — which signal of that constellation."
+          - name: status
+            type: string
+            description: "A = data valid\n
+              V = data invalid"
       - id: RMC
-        description: "Recommended Minimum Specific GNSS Data, thirteen-field form: NMEA 4.1 appended a navigational status field."
+        description: "Recommended Minimum Specific GNSS Data. Eleven-field form, without the NMEA 2.3 mode indicator. Carries date and speed, which GGA does not, but no fix quality or altitude."
         payload:
           # 1
           - name: utc_time
@@ -1199,52 +1485,21 @@ protocols:
             type: string
             description: "E = East\n
               W = West"
-          # 12
-          - name: mode_indicator
-            type: string
-            description: "Mode indicator (NMEA 2.3+)\n
-              A = Autonomous\n
-              D = Differential\n
-              E = Estimated (dead reckoning)\n
-              M = Manual input\n
-              N = Data not valid"
-          # 13
-          - name: navigational_status
-            type: string
-            description: "Navigational status (NMEA 4.1+)\n
-              S = Safe\n
-              C = Caution\n
-              U = Unsafe\n
-              V = Navigational status not valid"
-      - id: TXT
-        description: "Text Transmission — free-form text from the device, used for status and error reporting. Septentrio emits it as TXTbase to relay text from a base station in RTCM message 1029, with the text identifier set to 1 and the text formatted \"nnnn:<base txt>\" where nnnn is the base station ID."
-        payload:
-          # 1
-          - name: total_messages
-            type: uint8
-            description: "Total number of messages in this transmission, 01 to 99"
-          # 2
-          - name: message_number
-            type: uint8
-            description: "Number of this message within the transmission, 01 to 99"
-          # 3
-          - name: text_identifier
-            type: uint8
-            description: "Text identifier — what kind of message this is\n
-              00 = Error\n
-              01 = Warning\n
-              02 = Notice\n
-              07 = User"
-          # 4
-          - name: text
-            type: string
-            description: "The message text itself. ASCII only, and commas cannot appear in it — they would be read as field separators."
-
   # =================================================================
-  # NMEA 0183 — Proprietary sentences: Miros SM-050 Wave and Current Radar
+  # Proprietary sentences: Miros SM-050 Wave and Current Radar
+  # -----------------------------------------------------------------
+  # NMEA-FRAMED but not NMEA: these are Miros's own sentences, so they carry the
+  # vendor as `protocol` exactly like Kongsberg, Trimble and Leica below. That
+  # they follow NMEA framing is still in the output — `metadata.standard` is
+  # false and the checksum/talker metadata is unchanged.
+  #
+  # `version: '1'` is OUR knowledge-base revision, not a Miros one: no Miros
+  # protocol version is published for them, and CMA requires a version string.
+  # (The WM block is documented as "rev3", but that numbers the data block, not
+  # the protocol, and says nothing about CV or LD.)
   # =================================================================
-  - protocol: NMEA
-    version: '3.1'
+  - protocol: MIROS
+    version: '1'
     standard: false
     sentences:
       # ---------------------------------------------------------------
