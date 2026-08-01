@@ -15,14 +15,16 @@ details live in small docs under [`docs/`](docs/README.md); add/update those ins
 
 CoreMarine monorepo (pnpm workspaces) of TypeScript **marine device protocol parsers**
 + their **Node-RED wrappers**, under `packages/`. They are the parsing layer
-of the Tracker telemetry product, so output shapes are contracts. A deep refactor is in
-progress: all parsers must converge on the unified **CMA output format** —
-[`docs/CMA.md`](docs/CMA.md) — on the shared base `@coremarine/protocol-core`. **THREE OF FIVE DEVICES
-ARE DONE and published (2026-07-30): `nmea-parser@5.0.0` (the reference), `norsub-emru@5.0.0` and
-`thelmabiotel-tblive@2.0.0`, each with its Node-RED wrapper at the SAME MAJOR (a library and its
-wrapper share a major — see `docs/STATUS.md` §"VERSION POLICY"). NEXT = the two BINARY parsers,
-`septentrio-sbf` then `sbg-ecom` — `BinaryParser`, Base64 `raw`, length-prefixed framing with a CRC,
-so the text-protocol habits do not transfer.**
+of the Tracker telemetry product, so output shapes are contracts. The deep refactor onto the unified
+**CMA output format** — [`docs/CMA.md`](docs/CMA.md), on the shared base `@coremarine/protocol-core` —
+is **COMPLETE: ALL FIVE DEVICES emit CMA** (2026-08-01). A library and its wrapper share a major
+(see `docs/STATUS.md` §"VERSION POLICY").
+
+In tree → on npm: `nmea-parser` and `norsub-emru` 6.0.0 → 5.0.0 · `thelmabiotel-tblive` 3.0.0 → 2.0.0 ·
+`septentrio-sbf` 2.0.0 → 1.0.1 · `sbg-ecom` 1.0.0 → 0.0.1. **NOTHING IS LEFT BUT THE RELEASE PR**
+(`dev` → `main`), which publishes TEN packages. The two BINARY parsers (`septentrio-sbf`, `sbg-ecom`)
+work differently from the text ones — `BinaryParser`, Base64 `raw`, length-prefixed framing with a
+CRC — so text-protocol habits do not transfer to them.
 
 ## Docs map
 
@@ -36,7 +38,6 @@ so the text-protocol habits do not transfer.**
 | Commands | [`docs/COMMANDS.md`](docs/COMMANDS.md) |
 | Stack, CI, templates | [`docs/TOOLING.md`](docs/TOOLING.md) |
 | Code style | [`docs/CodeStyle.md`](docs/CodeStyle.md) |
-| npm→pnpm migration | [`docs/PNPM-MIGRATION.md`](docs/PNPM-MIGRATION.md) |
 | Protocol wire formats | [`docs/PROTOCOLS.md`](docs/PROTOCOLS.md) |
 | New packages | `CONTRIBUTING.md` + `templates/` (follow `TODO:` markers) |
 
@@ -71,9 +72,9 @@ Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](doc
 - **Discuss before coding.** The user (cru) wants decisions converged first, one step at a time.
 - Output-format changes are **breaking changes** for Tracker — never change a parser's output
   shape casually; that's the CMA refactor's job, done deliberately per package.
-- Stack: pnpm workspaces (supply-chain hardened), tsup build, Vitest (libs) / Mocha (nodered),
+- Stack: pnpm workspaces (supply-chain hardened), tsup build, Vitest (libs) / `node:test` (nodered),
   ESLint flat config (@stylistic + sonarjs + perfectionist), Valibot via SchemasJS wrapper,
-  Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
+  Node >= 22. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
 - Git: branch from `dev`, PR to `dev`; merging `main` **publishes to npm** via GitHub Actions.
-- The working tree currently has uncommitted work from old sessions — check
-  [`docs/STATUS.md`](docs/STATUS.md) before cleaning or committing anything.
+- **Build the libraries before believing a wrapper suite** — those suites run against `dist`, and
+  `tsx` strips types WITHOUT checking them, so run `tsc --noEmit` in a wrapper when its lib changes.

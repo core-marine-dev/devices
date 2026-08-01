@@ -10,12 +10,24 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01 — **THE SBG-ECOM PLAN IS WRITTEN AND ALL NINE DECISIONS ARE LOCKED:**
-> §"🗺️ SBG-ECOM — THE PLAN". Read it first; it is the plan of record for the last device, it corrects
-> two wrong data claims in the older scoping section, and it ends with a paste-ready prompt. **No code
-> written yet — **PHASE 0 IS DONE** (`0e03b30`: gate re-measured green, a verified capture corpus now in
-> git, the corrupt `sbg.bin` deleted) and **PHASE 1 IS THE NEXT ACTION**. Phase 0 found a live release
-> hazard: **`sbg-ecom-nodered` publishes to npm with no test gate at all** — see phase 0, finding 2.
+> **Last updated:** 2026-08-01 — **🎉 THE CMA REFACTOR IS COMPLETE. ALL FIVE DEVICES EMIT CMA.**
+> `sbg-ecom` and its Node-RED wrapper are rebuilt at **1.0.0** (`0e03b30` → `cacae46`), which was the
+> condition cru set for unfreezing the release. **THE ONLY THING LEFT IS THE RELEASE PR** — start at
+> §"🗺️ SBG-ECOM — THE PLAN" → §"⏭️ Phase 5", which has the ordered checklist and a paste-ready prompt.
+>
+> Gate, measured after rebuilding every library (the wrapper suites run against `dist`):
+> core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · **sbg 78** ·
+> wrappers 28 / 37 / 66 / 45 / **64** · repo-wide `eslint .` clean · `tsc --noEmit` clean in all
+> eleven packages.
+>
+> **`protocol-core` was not modified at all.** That is the answer to the question that caused the
+> freeze: `BinaryParser` took the fifth device unchanged, so nothing structural was owed and there is
+> no second round of majors.
+>
+> Two CI workflows that **could never have passed** were fixed on the way, both verified by moving the
+> dists aside and replaying the steps: `sbg-ecom.yml` had no dependency build, and
+> `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
+> with **no gate at all**, which is how `0.0.2` reached npm untested.
 >
 > **Previously (2026-08-01, earlier):** **`dev` is PUSHED and clean.** The protocol-naming +
 > NMEA-version overhaul is done (§"🏷️ PROTOCOL NAMES AND NMEA VERSIONS"), septentrio's CI break is
@@ -58,7 +70,7 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 
-# 🗺️ SBG-ECOM — THE PLAN (2026-08-01, drafted for cru; DECISIONS D1–D8 STILL OPEN)
+# 🗺️ SBG-ECOM — THE PLAN, AND ITS EXECUTION (2026-08-01 — ✅ DONE, phases 0-4)
 
 **Nothing is coded. This section is the plan for the last device**, written so that a new session (or a
 different AI provider) can pick the work up cold. It supersedes the cost table in
@@ -128,7 +140,7 @@ apply — one buffer carries two framings simultaneously.
 | wrapper | plain JS, `main: index.js` **that does not exist**, mocha | TS + tsup + `node --test`, like septentrio's |
 | version | `0.0.1` / `0.0.2`, never published | **1.0.0** for both (D1) |
 
-## DECISIONS — ✅ ALL NINE LOCKED by cru, 2026-08-01. Phase 0 can start.
+## DECISIONS — ✅ ALL NINE LOCKED by cru, 2026-08-01, and all nine honoured in the code.
 
 ### ✅ D1 · Version — LOCKED: **1.0.0**, library and wrapper
 
@@ -424,160 +436,193 @@ Two findings that shape phase 1, both new:
 It is the only authority for the 11 logs with no capture, and a fake round trip cannot catch a wrong
 field order. Done as phase 2 needs each table, not up front.
 
-### Phase 1 — the parser skeleton on `protocol-core`
+### ✅ Phases 1-4 — THE LIBRARY AND THE WRAPPER ARE DONE (2026-08-01)
 
-`SBGParser extends BinaryParser` in a rewritten `src/parser.ts`, mirroring
-[`packages/septentrio-sbf/src/protocol-sbf.ts`](../packages/septentrio-sbf/src/protocol-sbf.ts) —
-that file is the template and its comments explain every decision.
+Four commits: `d81fb2e` (library), `7360f69` (tests + README + CI), `cacae46` (wrapper rewrite), plus
+the corpus in `0e03b30`. **The whole repo is green** — measured after rebuilding every library, because
+the wrapper suites run against `dist`:
 
-- Framing: sync `FF 5A`, class, id, LEN uint16LE, payload, CRC-16 Kermit, ETX `0x33`. `crc16kermit` from
-  the existing `crc` dep, via the pure `crc/calculators/*` subpath (already verified 1365/1365).
-- The four output tiers, same as SBF: **decoded** / **identified** (CRC good, id not in the knowledge
-  base — forward-safe, not an error) / **failed** (CRC or ETX bad, decoded as far as possible plus
-  `errors`) / **garbage** (coalesced, `raw` kept).
-- `Buffer` → `Uint8Array` + `DataView` throughout, so the library is cross-runtime.
-- `bufferLimit`: enforce it, and pick the default from the real maximum frame size — **not** the core's
-  1024-byte binary default. That exact mistake cost a session on septentrio (§"`bufferLimit` DEFAULTED
-  TO 1024 BYTES").
-- **The mixed-stream split (D3)** lives here: bytes that are not a frame get offered to the NMEA path
-  before being called garbage.
+> core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · **sbg 78** ·
+> wrappers 28 / 37 / 66 / 45 / **64** · repo-wide `eslint .` clean · `tsc --noEmit` clean in all
+> eleven packages.
 
-### Phase 2 — the knowledge base
+**What was built** is documented where it belongs and not repeated here:
+[`packages/sbg-ecom/README.md`](../packages/sbg-ecom/README.md) for the library,
+[`packages/sbg-ecom-nodered/README.md`](../packages/sbg-ecom-nodered/README.md) for the wrapper,
+[`packages/sbg-ecom/tests/fixtures/README.md`](../packages/sbg-ecom/tests/fixtures/README.md) for what
+each capture must parse to. The decisions D1-D9 above are all honoured. Shape of the library:
 
-- Port septentrio's table-driven engine ([`src/engine.ts`](../packages/septentrio-sbf/src/engine.ts),
-  254 lines) — field tables in, `Field[]` + errors + sub-blocks out.
-- Convert the 24 existing decoders into field tables. **The datasheet tables are already transcribed as
-  block comments in each `src/firmware/2.3/logs/*.ts`** (see `ekf-euler.ts`) — this is transcription of
-  transcription, not archaeology, which is why the estimate is a session and not a week.
-- Add the 9 missing class-0 logs (D2).
-- Bitfield/enum decoders (solution status, GPS status, the STATUS word) become `decoders` entries and
-  land in field/payload metadata — the three-level metadata rule from `docs/CMA.md`.
-- Per **D6**, `SBG_ECOM_LOG_UTC_TIME` gets the "learn the clock" hook.
+```
+src/parser.ts         SBGParser extends BinaryParser — THE one buffer, the two-framing scan
+src/protocol-ecom.ts  decodeFrame(): pure, stateless — the four tiers
+src/protocol-nmea.ts  the composed nmea-parser at memory:false, and why it must never hold a tail
+src/engine.ts         the field-table walker (flat scalars: no sub-blocks, unlike SBF)
+src/firmware/2-3/     ALL 34 class-0 logs as field tables, by manual section
+src/fake.ts           deterministic wire frames · src/introspect.ts  self-description
+```
 
-### Phase 3 — introspection, tests, docs, package metadata
+#### Six real bugs the datasheet tables exposed in the 0.0.x decoders
 
-- `sentenceIds`, `getSentenceDefinition(id, protocol?)`, `getFakeSentence(id, protocol?, options?)` —
-  all `Result`-returning with a `ParserError[]` error side. The compiler enforces this (`DeviceParser`).
-- Tests off the real corpus + per-log fixtures + fake round trips. Septentrio's 221 specs across
-  `blocks` / `engine` / `parser` / `nmea` / `timestamp` / `facade` is the shape to copy.
-  **A fake round trip cannot catch a wrong id or a wrong field order** — those need the datasheet and a
-  real capture respectively.
-- `package.json`: `engines.node >=22`, real `description`, keywords, version per D1.
-- README rewritten against the emitted types (writing septentrio's README found a real bug).
-- `docs/PACKAGES.md` + `docs/CMA.md` conformance table + `docs/SBG-REPORT.md` (that doc describes the
-  legacy output — either retire it or mark it historical).
-- **BOTH sbg workflows are broken, in opposite directions** — measured in phase 0, details there.
-  `sbg-ecom.yml` runs `sbg-ecom:test` with **no dependency build** (the same hole septentrio's had), and
-  after this refactor the package depends on `protocol-core` + `nmea-parser`; `dist` is gitignored, so CI
-  would fail on the first push. Copy `norsub-emru.yml`, which has the identical dependency shape and gets
-  it right, and add the trigger paths. **`sbg-ecom-nodered.yml` is the urgent one: its test job AND its
-  `needs: test` are both commented out, so `publish` runs unguarded** — that is how `0.0.2` reached npm.
-  Re-enable both as soon as the wrapper has tests, and do not merge wrapper work to `main` before that.
-- Add the missing `tests/version.unit.test.ts` guard — sbg is the only pair without one.
+Recorded because each is the kind a rewrite is *for*, and because four of them were invisible:
 
-### Phase 4 — the wrapper rebuild — A FULL REWRITE, NOT A PATCH (cru, explicit)
+1. **`GPS_POS` read `UNDULATION` as a float64 at offset 36** where the datasheet says a 4-byte float.
+   The 8-byte read overlapped `POS_ACC_LAT`. Invisible, because every later field had its own
+   hardcoded offset and stayed correct — a single ordered table cannot do that.
+2. **`EKF_EULER` called `ROLL_ACC`/`PITCH_ACC`/`YAW_ACC` `rollAcceleration`** etc. They are 1σ
+   ACCURACIES, so a consumer read a standard deviation as a rate of change.
+3. **`IMU_SHORT` applied NONE of its three scale factors** (2²⁰, 2²⁶, 2⁸), publishing raw counts as
+   m/s² and rad/s — off by ~10⁶.
+4. **`STATUS` masked the 3-bit CAN bus enum with a 4-bit window**, so a set bit 31 leaked in.
+5. **`isLargeFrame` tested the payload LENGTH (`> 4096`) instead of `CLASS` bit 7** — and 4096 is not
+   even the right ceiling; the standard maximum is 4086.
+6. **`SBG_ECOM_CLOCK_STEERINGA`** is a transcription typo for `SBG_ECOM_CLOCK_STEERING`.
 
-cru: *"the nodered wrapper is legacy too, so you have to make an effort to move to the new major, update
-its API, document everything, update the examples."* Treat it as a package being written for the first
-time. `packages/septentrio-sbf-nodered` is the template — it is finished, published and binary, so the
-shape transfers directly.
+#### Two datasheet errors, both settled by measurement
 
-**What the legacy wrapper is today** (`src/parser.js`, 153 lines of plain JS): `require`s the removed
-`SBGParser`, calls **`getFrames()`**, wraps `parser.firmware = …` in `try/catch` because the old library
-**threw**, exposes only `memory` / `firmware` / `firmwares` / `payload`, accepts **only a `Buffer`**, and
-prints to `console.error`. `main: index.js` **does not exist**. There is a duplicated copy of the whole
-source under `tests/nodered/components/`, and the test runner is mocha with zero test files.
+- **`GPS_POS`'s offset column prints 54 and 56 for its last two fields**, which puts the end of the log
+  at 58 while the same table says "Total size 57". The fields are packed at 53/55 — and every
+  `GPS1_POS` frame in the corpus is `LEN` 57. Every other log's `LEN` matches its stated total too,
+  which is how the whole set was cross-checked at once.
+- **`DIAG`'s table is self-contradictory** (three mutually impossible offsets), so its layout is
+  reconstructed from its stated total size. Flagged as such in the code and the README.
 
-**Structure to build** (mirroring septentrio's):
+#### Two bugs the tests found in code written the same day
 
-| file | what |
-| --- | --- |
-| `src/lib.ts` | **pure logic, no node-red import** — one handler per `msg` channel, unit-testable |
-| `src/parser.ts` | the thin RED adapter: `msg` → handlers → `msg`, `RED.nodes.registerType('cma-sbg-ecom', …)` |
-| `src/parser.html` | editor UI **and the help panel — rewritten, it documents the whole msg API** |
-| `tsup.config.ts` + `copy-assets.mjs` | build to `dist/parser.js`; `main` points there |
-| `dev-server.mjs` | `pnpm run dev` / `pnpm run examples`, the house convention |
-| `tests/lib.unit.test.ts` · `wrapper.integration.test.ts` · `version.unit.test.ts` | `node --import tsx --test` |
-| `examples/sbg-ecom-examples.json` | rewritten flow, one group per channel |
+Worth recording because both were found by a test, not by review:
 
-**Deleted:** `src/parser.js`, `tests/nodered/components/` (the duplicated source), the mocha dependency,
-`main: index.js`. **Kept:** the docker manual-test env (`docker-compose.yml`, `Dockerfile`,
-`manual_tests.sh`) and `src/icons/`.
+- `frameAt` read `LEN` at offset 2 instead of 4, so it framed on the MSG/CLASS bytes.
+- `PENDING` shared the value `0` with `textRunAt`'s "nothing here", so **one byte of ordinary binary
+  junk stopped the scan dead** — an 11,776-byte capture came out as a single buffer-overflow report.
+  Distinct sentinels now, with a comment saying why.
 
-**The `msg` API, per the locked decisions:**
+#### The count is 34, and the old docs said three different things
 
-- `memory` — `{command:'get'|'set', payload?:boolean}` → `{ memory, bytes }`. **`bytes`, not
-  `characters`**: this is a binary protocol and a whole frame must fit in the buffer.
-- `firmware` — `{command:'get'|'set', payload?:string}` → `{ firmware, firmwares }`. The old separate
-  `msg.firmwares` channel folds in here. Never throws now; an unmodelled version is refused with a message.
-- `ids` / `definition` / `fake` — **all three are new**; the legacy wrapper has no introspection at all.
-  Per **D9 there is no `protocol` channel**: eCom ids carry a colon, NMEA ids do not, so the handlers
-  dispatch on the id. `fake` returns a `Buffer` so node-red routes it as binary.
-- `payload` — a `Buffer` (the normal case: serial/TCP/file), a **byte array** (JSON paths), or a
-  **string**. A string is ambiguous here in a way it is not for septentrio, and D3 resolves it cleanly:
-  **starts with `$` ⇒ a plain NMEA sentence** (the device really does emit those, and base64's alphabet
-  has no `$`); **otherwise base64**, validated strictly and round-trip-checked so ASCII cannot be
-  misread. Both go into the one mixed-stream `addData`.
+`docs/PACKAGES.md` said 22, this file said 24, and `docs/SBG-REPORT.md`'s table listed 25 rows — for the
+same number. Counting §2.3.1's own list gives **34 total, 25 previously implemented, 9 missing** (the
+seven event markers, `DIAG`, `RTCM_RAW`). `sentenceIds` is asserted against 34 in
+`tests/introspect.test.ts` so it cannot drift again.
 
-**Documentation is part of this phase, not after it:** README rewritten against the emitted types (that
-exercise found a real bug on septentrio), the node's help panel rewritten, and every example group
-carrying a comment node. The example flow must include **a mixed-stream group** — that is this device's
-distinguishing feature and the flow is where a user meets it. Verify every payload through the wrapper's
-own handlers before writing it into the flow, and run the structural validator (unique ids, group
-membership both ways, wire and link symmetry, no group overlap) as was done for the other four.
+#### Not in 1.0.0, and additive whenever anyone wants it
 
-**Re-enable the CI, both jobs** — see phase 0 finding 2. The wrapper workflow currently publishes with
-**no gate at all**; uncomment `test:` and `needs: test`, and build the dependency chain
-(`protocol-core` → `nmea-parser` → `sbg-ecom`) as `norsub-emru-nodered.yml` does.
+- **The device's own proprietary sentences** — `$PSBGI`, `$PSBGB`, `$PRDID`, `$PASHR`, `$WASSP`, the
+  Ixblue set (`PHINF`/`PHTRO`/`PHLIN`/`PHOCT`/`INDYN`) and Trimble `GGK`, all in manual §3.3. They
+  parse TODAY as generic sentences with unnamed fields, so nothing is lost — registering them with the
+  composed `nmea-parser` is a knowledge-base addition, not a shape change. Note `PHINF`/`PHTRO` are
+  already modelled in `norsub-emru`, so those two are nearly free.
+- **`CMD` (~40 config commands), `LOG_ECOM_1` (`FAST_IMU_DATA`, 1 kHz) and `THIRD_PARTY`** (TSS1,
+  Teledyne PD0, Simrad EM3000, Kongsberg KMB). All four classes are RECOGNISED, so a frame from one is
+  *identified* with its bytes rather than called garbage. `FAST_IMU_DATA` is a single log and would be
+  cheap; its own datasheet table has an obvious typo (`GYRO_Y` at offset 24, which its stated total of
+  18 rules out).
+- **21 of the 34 logs are datasheet-only** — no capture of them exists anywhere. Listed in the
+  library README under "Which logs are verified against hardware".
 
-**Trap:** the wrapper suites run with `tsx`, which strips types **without checking them**, and
-`:nodered:lint` does not typecheck either. Run `npx tsc --noEmit -p tsconfig.json` inside the wrapper
-whenever the library changes shape. And build the library first — these suites run against `dist`.
+### ⏭️ Phase 5 — THE RELEASE, and it is the only thing left
 
-### Phase 5 — release
+`sbg-ecom` was the freeze condition, and it is done — so **the PR unfreezes**. `dev` → `main` now
+publishes **TEN** packages, not eight: five libraries and five wrappers.
 
-The frozen PR unfreezes: `dev` → `main` publishes **ten** packages now, not eight. Follow the checklist
-in §"⛔ THE RELEASE PR IS FROZEN", plus a flow-library entry for the new sbg wrapper.
+| package | in tree | on npm | why the major |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | **6.0.0** | 5.0.0 | `Result` errors became arrays; fakes idempotent |
+| `norsub-emru` + wrapper | **6.0.0** | 5.0.0 | same cause + delegated introspection |
+| `thelmabiotel-tblive` + wrapper | **3.0.0** | 2.0.0 | `string[]` → `ParserError[]` |
+| `septentrio-sbf` + wrapper | **2.0.0** | 1.0.1 | the CMA rewrite + the NMEA protocol |
+| `sbg-ecom` + wrapper | **1.0.0** | 0.0.1 / 0.0.2 | the CMA rewrite; first stable release |
 
-## Estimate
+Do it in this order, and verify rather than assume:
 
-| phase | estimate |
-| --- | --- |
-| 0 — verify, fixtures | ✅ **done**, ~0.25 session |
-| 1 — skeleton + framing + mixed stream | ~0.5 session |
-| 2 — engine + 33 log tables | ~0.75–1 session |
-| 3 — introspection, tests, docs, CI | ~0.5 session |
-| 4 — wrapper: **full rewrite** + docs + examples + CI | ~1–1.5 sessions |
+1. `git push origin dev` and watch the workflows go green. **Expect sbg's two to run for the first
+   time ever with a real test job** — both were broken before (see phase 0 and the wrapper's own
+   workflow comment), and both were verified locally from a clean state, but a real runner is a real
+   runner.
+2. Open the PR `dev` → `main`. The body should say what breaks for a consumer:
+   `.error.message` on a failed `Result` now reads `undefined` because the error side became an array;
+   tblive's `error.join('; ')` now yields `[object Object]`; `getFakeSentence` returns the same string
+   every call; and **`sbg-ecom` changed completely** — CMA output, `parseData()` instead of
+   `getFrames()`, ids like `'0:6'`. All of them compile and run at the call site, which is why the
+   majors exist.
+3. After cru merges: verify **against npm, not the workspace** — in an empty temp dir, `npm i` each
+   wrapper and check its library resolved to the MATCHING major (the check that caught a real packing
+   leak twice), and confirm no `_cred.json` / `.backup` in any published tarball.
+4. Then the flow-library entries: **`sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are
+   both NEW listings**; the other three need refreshing for their new majors. cru's manual step —
+   remind him, do not attempt it.
 
-**~3.5–4 sessions total.** Septentrio was 108 blocks / 10,745 src lines / 221 specs; sbg is ~33 logs with
-the field tables already transcribed, so phase 2 is the only library phase that could run long. Phase 4
-is a rewrite from a plain-JS legacy node with zero tests, not a port — cru asked for it explicitly.
+## What the whole job cost
+
+| phase | estimate | actual |
+| --- | --- | --- |
+| 0 — verify, fixtures | ~0.25 session | ✅ as estimated |
+| 1+2 — parser, engine, 34 log tables | ~1.25–1.5 sessions | ✅ **one session, together** |
+| 3 — introspection, tests, docs, CI | ~0.5 session | ✅ same session |
+| 4 — wrapper: full rewrite + docs + examples + CI | ~1–1.5 sessions | ✅ same session |
+
+**Estimated ~3.5–4 sessions; took one.** Worth knowing why, for the next estimate: the datasheet field
+tables were the expensive part on septentrio and they were *already transcribed* here as block comments
+in the 0.0.x decoders, so phase 2 was checking and correcting rather than archaeology. The four
+finished templates did the rest — the wrapper is the fifth of its shape, and the fifth is not the first.
+
+The two things that did cost real time were both measurement, not typing: cross-checking every log's
+field table against the frame lengths in the corpus, and reproducing the two broken CI workflows from a
+genuinely clean state instead of assuming the fix worked.
 
 ## Paste-ready prompt for the next session
 
 ```
-Read docs/STATUS.md, starting at §"🗺️ SBG-ECOM — THE PLAN". That section is the plan of record for
-the last device; the older §"🔬 SBG-ECOM — SCOPING ANALYSIS" still has good protocol findings but two
-of its data claims were measured wrong and are corrected in the plan.
+Read docs/STATUS.md from the top. THE SBG-ECOM REFACTOR IS DONE — all five devices are on
+protocol-core and emit CMA, and the repo is green: core 43, nmea 135, norsub 48, septentrio 221,
+tblive 260, sbg 78, wrappers 28/37/66/45/64, eslint clean, tsc clean in all eleven packages.
 
-State: dev is pushed and clean. Four CMA pairs are version-bumped but NOT published (nmea-parser 6.0.0,
-norsub-emru 6.0.0, thelmabiotel-tblive 3.0.0, septentrio-sbf 2.0.0, each with its wrapper at the same
-major). THE RELEASE PR IS FROZEN by cru until sbg-ecom is refactored. Do not open it.
+THE ONLY THING LEFT IS THE RELEASE PR — see §"Phase 5". It publishes TEN packages (five libraries,
+five wrappers) and the freeze that was blocking it is lifted, because sbg-ecom was the condition.
+Follow that checklist in order and verify against npm rather than the workspace after the merge.
 
-THE JOB: refactor @coremarine/sbg-ecom onto protocol-core's BinaryParser + CMA, then rebuild its
-Node-RED wrapper. packages/septentrio-sbf is the template for the library and
-packages/septentrio-sbf-nodered for the wrapper — both are finished and their comments explain the
-decisions.
+Two things to expect on the first push: sbg-ecom.yml and sbg-ecom-nodered.yml run with a real test
+job for the FIRST TIME. Both were broken before — the library workflow had no dependency build, and
+the wrapper's test job AND its `needs: test` were both commented out, so publish ran ungated (that is
+how 0.0.2 reached npm). Both are fixed and were replayed locally from a clean state, but watch them.
 
-ALL NINE DECISIONS (D1-D9) ARE LOCKED — they are written into that section with their reasoning. Do
-not reopen them; build what they say. Anything they do not cover, raise with cru before coding: he
-wants decisions converged first, and he pushes back — when he says something is wrong, measure it
-again rather than re-running the same grep.
+If cru wants more sbg coverage rather than the release, the additive work is listed under "Not in
+1.0.0" in §"Phases 1-4": the device's own proprietary NMEA sentences (§3.3 of its manual — PHINF and
+PHTRO are already modelled in norsub-emru), the CMD class, and FAST_IMU_DATA. None is a shape change.
 
-Then work phase by phase, ending each one green and committed, and update docs/STATUS.md in the SAME
-turn as each phase. Build the libraries before believing any wrapper suite: those suites run against
-dist, not src.
+Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
+Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
+turn as any meaningful change. He reads carefully and pushes back — when he says something is wrong,
+measure it again rather than re-running the same grep.
 ```
+
+> # 🎉 SHIPPED 2026-07-30 — SIX PACKAGES LIVE ON npm; nmea + norsub + thelmabiotel are DONE
+
+PR [#75](https://github.com/core-marine-dev/devices/pull/75) (merge `c6d7d5d`) published
+`thelmabiotel-tblive@2.0.0`; PR [#76](https://github.com/core-marine-dev/devices/pull/76)
+(merge **`ef4480b`**) published the other five. **All five publish workflows green.**
+**`dev` == `main` == `ef4480b`, tree clean.**
+
+| package | npm | pairs with |
+| --- | --- | --- |
+| `@coremarine/nmea-parser` | **5.0.0** | ↔ `nmea-parser-nodered` **5.0.0** |
+| `@coremarine/norsub-emru` | **5.0.0** | ↔ `norsub-emru-nodered` **5.0.0** |
+| `@coremarine/thelmabiotel-tblive` | **2.0.0** | ↔ `thelmabiotel-tblive-nodered` **2.0.0** |
+
+**✅ Verified against npm, nothing from the workspace:** in an empty temp dir,
+`npm i` of the three wrappers resolved each one's library to the **matching major** —
+wrapper 5.0.0 → dep `^5.0.0` → library 5.0.0, and 2.0.0 → `^2.0.0` → 2.0.0. The version policy
+holds in production, not just in the monorepo.
+
+**✅ Node-RED flow-library entries refreshed for all three components (cru, 2026-07-30).** That was the
+last manual step, so **`nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` are DONE — three of five
+devices, library and wrapper each, published and listed.**
+
+**✅ 2026-07-31 — `septentrio-sbf` IS DONE, RELEASE-READY AND COMMITTED.** Library + Node-RED
+wrapper both at **2.0.0**, all 108 blocks modelled, every frame in cru's captures decoding. Nothing is
+left but the release PR. Full account: §"SESSION SUMMARY — 2026-07-31".
+
+**➡️ LAST DEVICE: `sbg-ecom`** — still on its legacy `SBGFrameResponse`, not on `protocol-core`, with
+**zero specs**. It extends `BinaryParser` like septentrio, so the binary patterns just proven
+(length-prefixed framing, Base64 `raw`, a table-driven engine, the four output tiers) transfer
+directly. Its CRC-16 Kermit comes from the same `crc` dependency.
 
 > # 🏷️ PROTOCOL NAMES AND NMEA VERSIONS (2026-08-01, cru's call)
 
@@ -768,7 +813,13 @@ so this dirties nothing.
 **Still open:** `RBD`/`RBP`/`RBV` field order, which no public capture can close (see below), and the
 release PR — **frozen by cru until there is nothing left to discuss**.
 
-# 🔬 SBG-ECOM — SCOPING ANALYSIS (2026-08-01, no code written)
+# 🔬 (HISTORICAL) SBG-ECOM — SCOPING ANALYSIS (2026-08-01, before any code)
+
+> ⚠️ **The work is DONE — see §"🗺️ SBG-ECOM — THE PLAN".** This section is the estimate made before
+> starting, kept because its central prediction was worth testing and it held: **"no core change
+> found"** was correct, `protocol-core` was not touched. Its cost estimate was ~2-2.5 sessions for
+> tiers 1+2; the actual was one. Two of its data claims about the captures were measured WRONG and are
+> corrected in the plan section.
 
 cru asked what a CMA refactor of the last device would cost, and specifically whether leaving it for
 later risks discovering something that forces a `protocol-core` change — and therefore a SECOND round
@@ -862,7 +913,12 @@ require `ETX 0x33` at `+6+LEN+2`, and compare `crc16kermit(bytes[i+2 .. i+6+LEN]
 uint16LE at `+6+LEN`. That is the whole protocol, and it is what proved the CSVs clean and the
 `.bin` corrupt.
 
-# ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
+# ⏭️ (HISTORICAL) NEXT SESSION — START HERE (written 2026-07-31)
+
+> ⚠️ **SUPERSEDED.** `sbg-ecom` is done and the freeze is lifted — the current checklist is
+> §"⏭️ Phase 5" inside §"🗺️ SBG-ECOM — THE PLAN". The release-PR steps below are still accurate in
+> shape, but the counts are stale: it publishes **TEN** packages, not eight. Kept for the "Traps this
+> session paid for" list at its end, which is still worth reading.
 
 **State:** `dev` @ `ec15198`, **21 commits ahead of `origin/dev`** (`2f32d57`) and **24 ahead of the
 published `main`** (`ef4480b`); the push is a clean fast-forward. Tree clean, every gate green, and
@@ -1008,37 +1064,6 @@ Tracker product, so output-format changes are breaking changes; and update docs/
 turn as any meaningful change. He reads carefully and pushes back — when he says a checklist item is
 wrong, check it properly rather than re-running the same grep.
 ```
-
-> # 🎉 SHIPPED 2026-07-30 — SIX PACKAGES LIVE ON npm; nmea + norsub + thelmabiotel are DONE
-
-PR [#75](https://github.com/core-marine-dev/devices/pull/75) (merge `c6d7d5d`) published
-`thelmabiotel-tblive@2.0.0`; PR [#76](https://github.com/core-marine-dev/devices/pull/76)
-(merge **`ef4480b`**) published the other five. **All five publish workflows green.**
-**`dev` == `main` == `ef4480b`, tree clean.**
-
-| package | npm | pairs with |
-| --- | --- | --- |
-| `@coremarine/nmea-parser` | **5.0.0** | ↔ `nmea-parser-nodered` **5.0.0** |
-| `@coremarine/norsub-emru` | **5.0.0** | ↔ `norsub-emru-nodered` **5.0.0** |
-| `@coremarine/thelmabiotel-tblive` | **2.0.0** | ↔ `thelmabiotel-tblive-nodered` **2.0.0** |
-
-**✅ Verified against npm, nothing from the workspace:** in an empty temp dir,
-`npm i` of the three wrappers resolved each one's library to the **matching major** —
-wrapper 5.0.0 → dep `^5.0.0` → library 5.0.0, and 2.0.0 → `^2.0.0` → 2.0.0. The version policy
-holds in production, not just in the monorepo.
-
-**✅ Node-RED flow-library entries refreshed for all three components (cru, 2026-07-30).** That was the
-last manual step, so **`nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` are DONE — three of five
-devices, library and wrapper each, published and listed.**
-
-**✅ 2026-07-31 — `septentrio-sbf` IS DONE, RELEASE-READY AND COMMITTED.** Library + Node-RED
-wrapper both at **2.0.0**, all 108 blocks modelled, every frame in cru's captures decoding. Nothing is
-left but the release PR. Full account: §"SESSION SUMMARY — 2026-07-31".
-
-**➡️ LAST DEVICE: `sbg-ecom`** — still on its legacy `SBGFrameResponse`, not on `protocol-core`, with
-**zero specs**. It extends `BinaryParser` like septentrio, so the binary patterns just proven
-(length-prefixed framing, Base64 `raw`, a table-driven engine, the four output tiers) transfer
-directly. Its CRC-16 Kermit comes from the same `crc` dependency.
 
 # 🎉 SHIPPED 2026-07-29 — nmea-parser 4.0.0, norsub-emru 4.0.0, BOTH wrappers 3.0.0 ARE LIVE ON npm
 >

@@ -18,16 +18,14 @@ error side is an **array** (`ParserError[]`): one call can be wrong for more tha
 | `@coremarine/nmea-parser` | **6.0.0** (unreleased; 5.0.0 on npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/norsub-emru` | **6.0.0** (unreleased; 5.0.0 on npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
 | `@coremarine/septentrio-sbf` | **2.0.0** (unreleased) | **CMA** | ✅ | `new X({protocol?,firmware?,memory?,bufferLimit?})` + `addData(u8)` / `parseData(): CMA[]` |
-| `@coremarine/sbg-ecom` | 0.0.1 | legacy `SBGFrameResponse` | ❌ **NEXT** | `addData(buf)` + `getFrames()` |
+| `@coremarine/sbg-ecom` | **1.0.0** (unreleased; 0.0.1 on npm) | **CMA** | ✅ + composes nmea-parser | `new X({firmware?,memory?,bufferLimit?})` + `addData(u8\|str)` / `parseData(): CMA[]` |
 | `@coremarine/thelmabiotel-tblive` | **3.0.0** (unreleased; 2.0.0 on npm) | **CMA** | ✅ | `addData(str)` + `parseData(): CMA[]` |
 
-All: `type: module`, dual ESM/CJS via tsup `exports`, MIT. `engines.node` is `>=22` on the four
-refactored libraries; **`sbg-ecom` still says `>= 18`** (tighten it when it is refactored), and so does
-**`protocol-core`** — harmless, since it is private and never published, but it is the only floor a
-consumer never sees.
+All: `type: module`, dual ESM/CJS via tsup `exports`, MIT, `engines.node` `>=22`. **ALL FIVE DEVICES
+ARE NOW ON `protocol-core` AND EMIT CMA** — the refactor is complete.
 
-Test counts, measured 2026-07-31: `protocol-core` 43, `nmea-parser` **133**, `norsub-emru` 48,
-`septentrio-sbf` **211**, `thelmabiotel-tblive` 260, `sbg-ecom` **0**.
+Test counts, measured 2026-08-01: `protocol-core` 43, `nmea-parser` **135**, `norsub-emru` 48,
+`septentrio-sbf` **221**, `thelmabiotel-tblive` 260, `sbg-ecom` **78** (was 0).
 
 **nmea-parser's built-in knowledge base is 26 sentence ids / 34 definitions** (was 16 ids), across
 seven protocol blocks, NMEA first and newest-first:
@@ -168,10 +166,20 @@ and fell through as a generic sentence.
     `EncapsulatedOutput` 4097 can carry NMEA *inside* SBF. The other QUEUED item, re-releasing
     nmea/norsub/tblive, is **absorbed into this release**: they are not being republished merely
     because `protocol-core` gained code, they are **major-bumped** because their own APIs broke.
-- **sbg-ecom** — sbgECom binary (INS). Firmware `2.3`, 22 LOG parsers (see [SBG-REPORT.md](SBG-REPORT.md));
-  CMD/HIGH_FREQ/NMEA/THIRD_PARTY classes are placeholders. Issues: **no test specs at all** (only
-  fixtures, CI test step commented out); `schemas` export commented out; API named `getFrames()`
-  instead of `parseData()`; several `*.dev.md` scratch files; README is 135 bytes.
+- **sbg-ecom** — sbgECom binary (INS: ELLIPSE, EKINOX, APOGEE), **refactored onto CMA at `1.0.0`
+  2026-08-01**. `SBGParser extends BinaryParser`. **ALL 34 logs of `SBG_ECOM_CLASS_LOG_ECOM_0` are
+  modelled as field tables** (the 0.0.x parser hand-wrote 25 and was missing the seven event markers,
+  DIAG and RTCM_RAW). CMD / LOG_ECOM_1 / the two NMEA identifier classes / THIRD_PARTY are recognised
+  but not modelled, so a frame from one is *identified* rather than garbage.
+  **⭐ The only parser here reading TWO framings off ONE buffer:** the device emits plain NMEA
+  interleaved with its binary frames (manual §2.1.4), so there is no protocol selector — the eCom side
+  is a pure `decodeFrame` and the NMEA side is a composed `nmea-parser` at `memory: false`, fed runs
+  the facade has already delimited, so neither can hold a tail the one buffer also holds. `id` is
+  `'<class>:<message>'` because eCom identity is a pair with no revision concept. Uptime is never
+  presented as a clock: `SBG_ECOM_LOG_UTC_TIME` teaches the parser the uptime↔UTC correspondence and
+  every later log is dated from it. Large frames emit one CMA per page, never reassembled.
+  **78 specs**, including three committed real captures. Six real bugs in the 0.0.x decoders and two
+  datasheet errors are catalogued in `docs/STATUS.md` and in the code.
 - **thelmabiotel-tblive** — TB Live hydrophone text protocol, **refactored onto CMA and published as
   `2.0.0` on 2026-07-30; now `3.0.0` in-tree, unreleased** (its error side became `ParserError[]`).
   `TBLiveParser extends StringParser`. The protocol has **no framing**
@@ -213,7 +221,7 @@ and that window is exactly what the guard exists for: a release would have shipp
 the removed `getFrames()` against a `workspace:^` dep that had quietly begun resolving to `^2.0.0`.
 Nothing caught it, because that wrapper was one of the two without a `version.unit.test.ts` and its CI
 test job was disabled. **Resolved 2026-07-31**: the pair is aligned at `2.0.0`, the guard is in place,
-and CI runs it. `sbg-ecom` is now the only pair with no guard.
+and CI runs it. **As of 2026-08-01 every pair has the guard** — `sbg-ecom` was the last without one.
 
 **Four pairs are AHEAD of npm, three of them with a BREAKING change — bumped 2026-07-31, not yet
 released.** `nmea-parser` and `norsub-emru` go **5.0.0 → 6.0.0**, `thelmabiotel-tblive` **2.0.0 →
@@ -223,8 +231,10 @@ not a formality — the breaks were measured against the published tarballs, not
 `error.join('; ')` on tblive's now yields `[object Object]`, and `getFakeSentence` returns the same
 string every call. Each one compiles and runs at the call site, which is why the version has to say so.
 
-`sbg-ecom` is deliberately NOT bumped: it is untouched since `ef4480b` and does not depend on
-`protocol-core` at all (only `crc`), so nothing about it changed.
+**`sbg-ecom` is now bumped too — `0.0.1` → `1.0.0`, with its wrapper `0.0.2` → `1.0.0`** (2026-08-01).
+Both were already published at `0.0.x`, which carries no semver guarantee, so `1.0.0` is the first
+stable release rather than a second major. Everything about the pair changed: CMA output, a new API, a
+new id scheme, a rewritten wrapper.
 
 **This is the one drift no test in this repo can catch.** The `version.unit.test.ts` guards compare a
 wrapper to its *sibling library in the workspace* — verified 2026-07-31 by half-bumping a wrapper on
@@ -248,23 +258,22 @@ package):
 Three carry a `-parser` suffix and two do not, and the device word is sometimes the library name and
 sometimes short (`norsub`, `septentrio`). **This inconsistency is permanent by choice:** a node type is
 the key deployed flows reference, so renaming one makes the node vanish from every flow already running
-it. Do not "tidy" these. `node-red.version` is `>=4.0.0` on the four refactored wrappers and `>=3.0.0`
-on `sbg-ecom-nodered`.
+it. Do not "tidy" these. `node-red.version` is `>=4.0.0` on all five wrappers.
 
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
 | nmea-parser-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
 | norsub-emru-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
 | septentrio-sbf-nodered | **2.0.0** (unreleased) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (61/61) | Rebuilt from the nmea/tblive template 2026-07-31. Node type kept as `cma-septentrio-parser` so deployed flows survive. **The first BINARY wrapper**: `payload` takes a Buffer (base64 string / byte array also accepted), and `fake` hands back a Buffer. Adds **protocol** (norsub's channel) + **firmware** (tblive's) selectors, plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis |
-| sbg-ecom-nodered | 0.0.2 | `workspace:^` | mocha, CI test job disabled | ships bin/csv fixtures |
+| sbg-ecom-nodered | **1.0.0** (unreleased; 0.0.2 on npm) | `workspace:^` → `^1.0.0` | `node:test`, **enabled in CI** (64/64) | **Rewritten from scratch 2026-08-01**, not ported. Node type kept as `cma-sbg-ecom` so deployed flows survive. `payload` takes a Buffer, base64, a byte array **or an NMEA sentence** (any string starting with `$`) — the mixed stream needs no switch, so there is NO protocol channel. Adds **firmware** plus `msg.ids` / `msg.definition` / `msg.fake`. Its `tests/examples.unit.test.ts` validates the SHIPPED example flow and runs every inject through the wrapper's own handlers |
 | thelmabiotel-tblive-nodered | **3.0.0** (unreleased; 2.0.0 on npm) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
 
-**`sbg-ecom-nodered` is the last un-refactored wrapper.** It still uses mocha +
-`node-red-node-test-helper` (which is **incompatible with node-red 5** — that is why its CI test job
-is disabled) and a docker env for manual tests. It gets the nmea-parser-nodered treatment when its
-library is refactored: TS + tsup + `node:test` + `dev-server.mjs`, `engines.node >=22`,
-`node-red.version >=4.0.0`, `"!**/*.backup"` + `"!**/*_cred.json"` in `files`, CI test job
-re-enabled, plus the `tests/version.unit.test.ts` major-correlation guard.
+**ALL FIVE WRAPPERS ARE NOW REFACTORED.** `sbg-ecom-nodered` was the last, rewritten 2026-08-01.
+
+🔴 **A release hazard it carried until then, recorded because the class of mistake recurs:** its CI
+test job was commented out **and so was `needs: test`**, so the publish job ran with **no gate at
+all** — which is how `0.0.2` reached npm untested, with a `main` pointing at a non-existent
+`index.js`. When disabling a test job, check what else was gated on it.
 
 ### 🐛 The `Result`-error array change had broken all three existing wrappers — fixed
 
@@ -294,15 +303,15 @@ check that finds it.
 
 Cross-cutting inconsistencies to fix as each is touched:
 
-- `sbg-ecom-nodered` declares `main: index.js` but has no `index.js` (verified 2026-07-31 — the file
-  does not exist); the four refactored wrappers point at `dist/parser.js`.
+- ✅ `sbg-ecom-nodered`'s `main: index.js` pointed at a file that did not exist. Fixed in its 1.0.0
+  rewrite; all five wrappers now point at `dist/parser.js`.
 - **The `misc/parsers/septentrio/samples/` corpus is 1.x-shaped and now unused.** Its 91 `.json`
   baselines are still the legacy `{ header, time, body }` output, not CMA, and nothing reads them — the
   package's specs use its own committed `tests/fixtures/` and the five `.sbf` files in
   `captures/`. Local and gitignored, so it harms nothing, but regenerate or drop it rather than
   trusting it as a baseline.
-- `tests/nodered/components/` duplicates `src/` (intentional docker mirror, but easy to desync) —
-  only `sbg-ecom-nodered` still has one; every refactored wrapper dropped it.
+- ✅ `tests/nodered/components/` duplicated `src/` in `sbg-ecom-nodered` (a docker mirror, easy to
+  desync). Deleted in its 1.0.0 rewrite; no wrapper has one now.
 - `sbg-ecom-nodered`'s Dockerfile still `npm i`s inside the container. The other four replaced docker
   with `dev-server.mjs`.
 
