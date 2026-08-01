@@ -312,8 +312,10 @@ Cross-cutting inconsistencies to fix as each is touched:
   trusting it as a baseline.
 - ✅ `tests/nodered/components/` duplicated `src/` in `sbg-ecom-nodered` (a docker mirror, easy to
   desync). Deleted in its 1.0.0 rewrite; no wrapper has one now.
-- `sbg-ecom-nodered`'s Dockerfile still `npm i`s inside the container. The other four replaced docker
-  with `dev-server.mjs`.
+- ✅ `sbg-ecom-nodered` was the last wrapper with a docker manual-test env (its Dockerfile `npm i`d
+  inside the container). Removed in its 1.0.0 rewrite — the TS build made it broken rather than merely
+  dated, since it copied `src/` into the image and node-red cannot load TypeScript. All five wrappers
+  now use `dev-server.mjs`.
 
 ## Future parsers (parked in `misc/todo/`, local only, not in workspaces)
 

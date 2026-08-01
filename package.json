@@ -84,7 +84,6 @@
     "sbg-ecom:nodered:test": "pnpm --filter @coremarine/sbg-ecom-nodered run test",
     "sbg-ecom:nodered:dev": "pnpm --filter @coremarine/sbg-ecom-nodered run dev",
     "sbg-ecom:nodered:examples": "pnpm --filter @coremarine/sbg-ecom-nodered run examples",
-    "sbg-ecom:nodered:docker": "pnpm --filter @coremarine/sbg-ecom-nodered run docker",
     "thelmabiotel-tblive:lint": "pnpm --filter @coremarine/thelmabiotel-tblive run lint",
     "thelmabiotel-tblive:format": "pnpm --filter @coremarine/thelmabiotel-tblive run format",
     "thelmabiotel-tblive:build": "pnpm --filter @coremarine/thelmabiotel-tblive run build",

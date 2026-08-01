@@ -150,7 +150,6 @@ pnpm run sbg-ecom:nodered:test        # node --test (unit + a real node-red inte
 pnpm run sbg-ecom:nodered:lint        # eslint
 pnpm run sbg-ecom:nodered:dev         # a local Node-RED on :1880 with a scratch flow
 pnpm run sbg-ecom:nodered:examples    # the same, editing the SHIPPED example flow
-pnpm run sbg-ecom:nodered:docker      # the docker manual-test environment
 ```
 
 Two traps worth knowing before you change anything:
