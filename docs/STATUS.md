@@ -10,7 +10,7 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01 — **`dev` @ `196d7fa`, tree clean, 6 commits this session and NOT
+> **Last updated:** 2026-08-01 — **`dev` @ `ec15198`, tree clean, 7 commits this session and NOT
 > pushed** (`origin/dev` is `2f32d57`; the push is a clean fast-forward). The protocol-naming +
 > NMEA-version overhaul is done and committed — see §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" immediately
 > below. Everything is green (nmea-parser is now **135**, not 133). **The release PR is the only thing
@@ -53,7 +53,7 @@
 >
 > # 🏷️ PROTOCOL NAMES AND NMEA VERSIONS (2026-08-01, cru's call)
 
-**Six commits, `c3d281d` → `196d7fa`, tree clean, nothing pushed.**
+**Seven commits, `c3d281d` → `ec15198`, tree clean, nothing pushed.**
 
 | commit | what |
 | --- | --- |
@@ -63,6 +63,7 @@
 | `7c86858` | septentrio wrapper — the ninth example group |
 | `1dda019` | this section |
 | `196d7fa` | cru's editor nudge aligning the new group |
+| `ec15198` | HEAD/counts correction in this file |
 
 `nmea-parser`'s example flow was not touched. **No version bumps:** every change lands inside the
 already-bumped, still-unpublished `nmea-parser@6.0.0` and `septentrio-sbf@2.0.0`.
@@ -178,9 +179,11 @@ plain NMEA string as payload (§5), and the release PR itself.
 
 # ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
 
-**State:** `dev` @ `196d7fa`, 20 commits ahead of the published `main` (`ef4480b`) and **not yet pushed**
-(`origin/dev` is `2f32d57`; the push is a clean fast-forward). Tree clean, every gate green, and **the
-only thing left is the release PR** — plus the two open questions in the 2026-08-01 section above.
+**State:** `dev` @ `ec15198`, **21 commits ahead of `origin/dev`** (`2f32d57`) and **24 ahead of the
+published `main`** (`ef4480b`); the push is a clean fast-forward. Tree clean, every gate green, and
+**the only thing left is the release PR** — plus the two open questions in the 2026-08-01 section above.
+(The older "13 commits ahead of `main`" further down this file counted against `origin/dev`, not
+`main` — the two are different refs and `main` is the one the release PR targets.)
 
 | package | version in tree | on npm | note |
 | --- | --- | --- | --- |
