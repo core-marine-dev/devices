@@ -1,6 +1,10 @@
 // installed
 import type { Result } from '@coremarine/protocol-core'
-import yaml from 'js-yaml'
+// NAMED import: js-yaml 5 removed the default export. It also defaults `load` to the
+// YAML 1.2 CORE schema, which drops the YAML 1.1 types and `!!merge` — verified safe
+// here, because the protocol files use only plain strings and booleans, and every
+// generated knowledge base is byte-identical across the 4.x -> 5.x bump.
+import { load } from 'js-yaml'
 
 // coded
 import { ProtocolsFileContentSchema } from './schemas'
@@ -12,7 +16,7 @@ import type { MapStoredSentences, NMEAError, Protocol, ProtocolsFileContent, Sto
 export const parseProtocols = (content: string): Result<ProtocolsFileContent, NMEAError[]> => {
   let data: unknown
   try {
-    data = yaml.load(content)
+    data = load(content)
   } catch (error) {
     return { success: false, error: [{ kind: 'invalid-yaml', message: (error as Error).message }] }
   }

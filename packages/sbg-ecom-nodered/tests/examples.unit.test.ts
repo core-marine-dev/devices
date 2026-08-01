@@ -133,7 +133,10 @@ const checkFake = (parser: SBGParser, value: unknown, label: string): void => {
   assert.ok(Array.isArray(back) && back.length === 1 && back[0].errors === undefined, `inject "${label}" fake re-parses`)
 }
 
-const CHANNELS: Readonly<Record<string, (parser: SBGParser, value: unknown, label: string) => void>> = {
+// PARTIAL on purpose: a msg key in the flow need not be a diagnostic channel (`payload`
+// is not), so indexing this can legitimately miss. Typed as a total Record it would claim
+// every lookup succeeds, and the undefined check below would be dead code.
+const CHANNELS: Readonly<Partial<Record<string, (parser: SBGParser, value: unknown, label: string) => void>>> = {
   memory: (parser, value, label) => assert.equal(typeof applyMemory(parser, value as never), 'object', label),
   firmware: (parser, value, label) => assert.equal(typeof applyFirmware(parser, value as never), 'object', label),
   ids: (parser, value, label) => assert.ok(Array.isArray(getIds(parser, value)), label),
@@ -141,8 +144,14 @@ const CHANNELS: Readonly<Record<string, (parser: SBGParser, value: unknown, labe
   fake: checkFake,
 }
 
-const checkChannel = (parser: SBGParser, channel: string, value: unknown, label: string): void => {
-  CHANNELS[channel]?.(parser, value, label)
+// Returns whether this channel had a checker, so the caller can prove it checked
+// SOMETHING. Without that count the loop below passes even if every prop is a channel
+// CHANNELS does not know — a test that asserts nothing while looking like it does.
+const checkChannel = (parser: SBGParser, channel: string, value: unknown, label: string): boolean => {
+  const checker = CHANNELS[channel]
+  if (checker === undefined) return false
+  checker(parser, value, label)
+  return true
 }
 
 describe('every inject in the flow actually works', () => {
@@ -167,12 +176,16 @@ describe('every inject in the flow actually works', () => {
   })
 
   test('each control channel answers rather than erroring', () => {
+    let checked = 0
     for (const node of injects) {
       const parser = new SBGParser()
       for (const prop of node.props ?? []) {
-        checkChannel(parser, prop.p, propValue(prop, node), node.name ?? node.id)
+        if (checkChannel(parser, prop.p, propValue(prop, node), node.name ?? node.id)) checked += 1
       }
     }
+    // The flow demonstrates every diagnostic channel, so this must be non-trivial:
+    // memory, firmware, ids, definition and fake all appear in it.
+    assert.ok(checked >= 5, `expected the flow to exercise the control channels, checked ${checked}`)
   })
 
   test('the memory group really demonstrates memory, with ONE shared parser', () => {

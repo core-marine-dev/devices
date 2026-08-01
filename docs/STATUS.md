@@ -468,6 +468,69 @@ text search alone cannot justify a removal: `@types/node` (`tsconfig.json` sets 
 Verified after removal: full gate exit 0, all 11 workflows replayed from a wiped `dist/`, and every
 remaining override still has a live route into the tree.
 
+## 🔐 DEPENDENCY UPGRADES — js-yaml 5, and a HIGH advisory the repo was hiding from itself (2026-08-01)
+
+cru asked for an upgrade pass, flagged js-yaml, and asked whether TypeScript 7 is possible yet.
+
+### 🔴 The one that mattered: a published pin the local override was masking
+
+`nmea-parser` declared `"js-yaml": "4.2.0"` — an EXACT pin — and `pnpm-workspace.yaml` carried
+`overrides: js-yaml: '>=4.1.1'`. The override applies **only inside this repo**, so the local install
+resolved to 4.3.0 while **every consumer of `@coremarine/nmea-parser` got 4.2.0**, which is vulnerable
+to **GHSA-52cp-r559-cp3m (HIGH** — merge-key chains force quadratic CPU, `>=4.0.0 <4.3.0`, fixed in
+4.3.0). `pnpm audit` was silent because it audits the *resolved local tree*, not the published range.
+
+**The lesson: an override cannot protect a consumer. Only the dependency range in the published
+package.json can.** Be suspicious of any override naming a package that a published package also
+declares.
+
+Now `^5.2.3` in nmea-parser, and the override is deleted.
+
+### js-yaml 4 → 5 is a MAJOR, and two things changed for us
+
+1. **No default export.** `import yaml from 'js-yaml'` had to become `import { load } from 'js-yaml'`
+   in `packages/nmea-parser/src/protocols.ts` and `scripts/yaml-to-ts.mjs`.
+2. **`load` now defaults to the YAML 1.2 CORE schema** — no YAML 1.1 types, no `!!merge`. This was the
+   real risk, because the protocol YAML *is* the knowledge base and output shapes are contracts.
+   Checked two ways: no 1.1-sensitive construct appears in any `protocols/*.yml` (no unquoted
+   `yes`/`no`/`on`/`off`, no merge keys, no octal, no sexagesimal, no timestamps — only plain strings
+   and `false`), and **all four generated knowledge bases regenerate BYTE-IDENTICAL under v5**
+   (`src/nmea.ts`, both `norsub.ts`, `septentrio-nmea.ts`). That diff is the proof, not the reasoning.
+
+`@types/js-yaml` was **removed**: v5 ships its own types, and the DefinitelyTyped package is frozen at
+4.0.9 — it would have shadowed the real types with a v4 shape, including the default export that no
+longer exists.
+
+Note the 5.x line has had its own advisories; **5.2.2 is the first clean one** (5.2.3 is latest).
+
+### ⛔ TypeScript 7: measured, still impossible
+
+`tsc@7.0.2` typechecks our code fine (exit 0). But with the eslint stack at latest, linting dies on a
+deliberate guard: **`Error: typescript-eslint does not support TS 7.0.`** Its peer range is
+`>=4.8.4 <6.1.0`. And 6.0.3 — what we are on — is the newest 6.x published, so we are already at the
+ceiling of what is supported. Details and how to re-test are in
+[`TOOLING.md`](TOOLING.md) §"TypeScript 7".
+
+### Everything else bumped, and the audit is now clean
+
+`eslint` 10.7.0 → 10.8.0 · `typescript-eslint` 8.63.0 → 8.65.0 · `eslint-plugin-sonarjs` 4.1.0 → 4.2.0
+· `@types/node` 26.1.1 → 26.1.2 · `node-red` 5.0.1 → 5.0.4.
+
+**The node-red bump alone cleared ten axios advisories and one in `tar`** — worth trying a direct bump
+before reaching for an override. The four that remained (`fast-uri`, `postcss`, `brace-expansion` HIGH;
+`body-parser` LOW) are all dev-only transitives that no published package can reach, and are now closed
+with overrides. **`pnpm audit`: no known vulnerabilities.**
+
+sonarjs 4.2.0 added rules, and one fired on a real weakness rather than a style nit:
+`sbg-ecom-nodered`'s "each control channel answers" test asserted nothing visible because its
+assertions live in a helper — and as written it would have passed even if it checked **zero** channels.
+Fixed properly (the helper now reports whether it handled the channel, and the test asserts a non-zero
+count) rather than with a disable comment.
+
+⚠️ A process note: running `replay2.sh` in the background while building in the foreground corrupted a
+gate run — that script does `rm -rf packages/*/dist`, so it cannot share a working tree with anything
+else. The failure looked like the overrides had broken the build; they had not.
+
 ## The findings worth remembering
 
 - **`TOOLING.md` claimed "all 5 nodered workflows have the test job commented out — they publish

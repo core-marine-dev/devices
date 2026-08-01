@@ -23,9 +23,30 @@ patchedDependencies:
 # mocha was its ONLY route into the tree, so the override had nothing left to
 # override. `diff` stays — mocha was one source, but node-red-node-test-helper
 # still reaches it through sinon.
+#
+# ⚠️ `js-yaml: '>=4.1.1'` was here and was ACTIVELY HARMFUL, so think twice before
+# adding an override for a package a published package also declares. nmea-parser
+# pinned js-yaml at an exact `4.2.0`; this override silently resolved the local
+# install to 4.3.0, so the repo tested against a patched version while every
+# CONSUMER of @coremarine/nmea-parser got 4.2.0 — which is vulnerable to
+# GHSA-52cp-r559-cp3m (HIGH, fixed in 4.3.0). An override cannot protect a
+# consumer; only the dependency range in the published package.json can.
+# js-yaml is now `^5.2.3` in nmea-parser itself, so the override is unnecessary.
 overrides:
   diff: '>=8.0.3'
-  js-yaml: '>=4.1.1'
   jsonata: '>=2.2.0'
   form-data: '>=4.0.6'
   esbuild: '>=0.28.1'
+  # Added 2026-08-01 from `pnpm audit`. All four are dev-only transitives and none is
+  # reachable from a published package (the tarballs ship `dist/` only), but they are
+  # cheap to close: fast-uri <- ajv <- node-red · postcss <- tsup + vitest ·
+  # brace-expansion <- minimatch <- eslint/typescript-eslint · body-parser <- express
+  # <- node-red. Bumping node-red 5.0.1 -> 5.0.4 already cleared ten axios advisories
+  # and one in tar, so check whether a direct bump fixes it before adding an override.
+  fast-uri: '>=3.1.4'
+  postcss: '>=8.5.18'
+  brace-expansion: '>=5.0.8'
+  body-parser: '>=1.20.6'
+
+minimumReleaseAgeExclude:
+  - js-yaml@5.2.3

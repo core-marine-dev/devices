@@ -54,11 +54,10 @@
   "dependencies": {
     "@schemasjs/valibot-numbers": "^1.1.1",
     "@schemasjs/validator": "^2.0.5",
-    "js-yaml": "4.2.0",
+    "js-yaml": "^5.2.3",
     "valibot": "^1.4.2"
   },
   "devDependencies": {
-    "@coremarine/protocol-core": "workspace:*",
-    "@types/js-yaml": "4.0.9"
+    "@coremarine/protocol-core": "workspace:*"
   }
 }

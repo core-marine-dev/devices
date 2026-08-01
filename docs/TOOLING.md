@@ -10,10 +10,29 @@
 | Test (Node-RED) | `node:test` + `node-red-node-test-helper` | run through `tsx`; `node:assert/strict` throughout. **Mocha is gone** from every wrapper (dropped 2026-08-01). ⚠️ `tsx` strips types WITHOUT checking them, so a green suite proves nothing about types — see the typecheck note under CI. |
 | Lint/format | ESLint 10 (flat config) | `@stylistic` (house style: no-semi, single-quotes, 2-space, K&R) + `eslint-plugin-sonarjs` (code quality: complexity, cognitive-load, etc.) + `eslint-plugin-perfectionist` (import ordering). See [`eslint.config.js`](../eslint.config.js). Mirrors the Tracker repo setup. |
 | Runtime validation | Valibot 1.4.2 via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` 2.0.5 + `@schemasjs/valibot-numbers` 1.1.1; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
-| TypeScript | 6.0.3 | root tsconfig: clean modern config (`moduleResolution: bundler`, `types: ["node"]`) |
+| TypeScript | **6.0.3 — and this is the ceiling** | root tsconfig: clean modern config (`moduleResolution: bundler`, `types: ["node"]`). ⛔ **TypeScript 7 is NOT possible yet**, see below. 6.0.3 is the newest release `typescript-eslint` accepts (`>=4.8.4 <6.1.0`), and no 6.1.x exists, so we are already at the top of the supported range. |
 | Node | **>= 22** (`engines.node`, uniform across all 11 packages) | CI tests **22.x + 24.x** — the two current LTS lines (Jod and Krypton) — and publishes on **24**. Node 26 exists but is not LTS yet, so it is deliberately not in the matrix. |
 
 Wishlist (long-term): runtime-agnostic libraries (node / deno / bun, maybe browser).
+
+### ⛔ TypeScript 7 — tried on 2026-08-01, still blocked by the SAME thing
+
+`typescript@7.0.2` is out (the native Go compiler). It was installed and tested; the blocker has not
+moved:
+
+- **`tsc` itself is fine** — `tsc --noEmit` at 7.0.2 typechecks our packages with exit 0, so the source
+  and the tsconfig are ready.
+- **`typescript-eslint` refuses it outright.** With the whole eslint stack at latest (eslint 10.8.0,
+  typescript-eslint 8.65.0, sonarjs 4.2.0) the lint run dies on a deliberate guard:
+  `Error: typescript-eslint does not support TS 7.0.` Its peer range is still `>=4.8.4 <6.1.0` — it does
+  not even accept a hypothetical 6.1.
+- On the older sonarjs 4.1.0 the failure was messier — a crash inside the plugin reading a TS AST enum
+  (`Cannot read properties of undefined (reading 'FunctionType')`) — which is the same root cause one
+  layer down.
+
+**So the answer is unchanged: not yet, and it is not our code holding it back.** Re-test by bumping
+`typescript-eslint` and re-reading its `peerDependencies.typescript`; when that range admits 7, try
+again. Nothing else in the stack objected — tsup/esbuild never typecheck, and vitest was untouched.
 
 ## CI / publishing (`.github/workflows/`, 11 files)
 
