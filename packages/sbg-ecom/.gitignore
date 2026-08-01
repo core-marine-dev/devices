@@ -5,6 +5,11 @@ package-lock.json
 docs
 *.csv
 *.bin
+# ...except the verified test corpus. These are real device captures, every frame
+# CRC-checked before committing — see tests/fixtures/README.md. They are the ONLY
+# copy of this device's output in git; the raw CSV/bin captures they were carved
+# from live on cru's disk only.
+!tests/fixtures/*.bin
 
 # Logs
 !logs
