@@ -46,8 +46,12 @@ parser.addData(chunk2)
 const drained: CMA[] = parser.parseData()   // returns + clears the queued blocks
 ```
 
-- `addData(data: Uint8Array): void` — parse immediately and queue the results.
-- `parseData(data?: Uint8Array): CMA[]` — optionally add `data`, then return **and clear** the queue.
+- `addData(data: string | Uint8Array): void` — parse immediately and queue the results.
+- `parseData(data?: string | Uint8Array): CMA[]` — optionally add `data`, then return **and clear** the
+  queue.
+
+On `sbf` the input is bytes (a string is encoded byte-per-character). On `nmea` it is the sentence as
+a string, and bytes work too — see [NMEA — the second protocol](#nmea--the-second-protocol).
 
 A block split across two chunks is held on the internal buffer and parsed once its tail arrives; a
 lone trailing `0x24` is treated as a possible half-received sync, not as junk.
@@ -577,11 +581,11 @@ The same block also identifies the box, at `metadata.payload.receiver`:
 
 | Member | Signature | Description |
 | --- | --- | --- |
-| `parseData` | `(data?: Uint8Array) => CMA[]` | Optionally add `data`, then return and clear the queued blocks. |
-| `addData` | `(data: Uint8Array) => void` | Parse immediately and queue the results. |
+| `parseData` | `(data?: string \| Uint8Array) => CMA[]` | Optionally add `data`, then return and clear the queued blocks. Bytes on `sbf`, the sentence as a string on `nmea` — either is accepted on both. |
+| `addData` | `(data: string \| Uint8Array) => void` | Parse immediately and queue the results. |
 | `sentenceIds` | `string[]` | Every block number this parser can decode, describe or fabricate. |
-| `getSentenceDefinition` | `(id: number \| string, firmware?: string) => Result<SentenceDefinition[], ParserError[]>` | What a sentence contains — for SBF, one entry **per revision**. Ask `.parser` for SBF's richer shape. |
-| `getFakeSentence` | `(id: number \| string, firmware?: string, options?: FakeOptions) => Result<Uint8Array, ParserError[]>` | A real wire frame with a real CRC. Idempotent unless `{ random: true }`. `options` is SBF-only. |
+| `getSentenceDefinition` | `(id: number \| string, protocol?: string) => Result<SentenceDefinition[], ParserError[]>` | What a sentence contains — for SBF, one entry **per revision**. Ask `.parser` for SBF's richer shape. |
+| `getFakeSentence` | `(id: number \| string, protocol?: string, options?: FakeOptions) => Result<Uint8Array, ParserError[]>` | A real wire frame with a real CRC. Idempotent unless `{ random: true }`. `options` is SBF-only. |
 | `protocol` | `'sbf' \| 'nmea'` (get/set) | The active protocol. Switching discards the buffer. |
 | `protocols` | `readonly ['sbf', 'nmea']` | Every protocol this device can speak. |
 | `parser` | `SBFParser \| SeptentrioNMEAParser` | The active protocol parser. Narrow with `instanceof` for SBF's `leapSeconds` / `reportedFirmware`. |

@@ -242,7 +242,7 @@ import type { Result, NMEAError } from '@coremarine/nmea-parser'
 import { readFileSync } from 'node:fs'
 const yaml = readFileSync('./my-protocols.yml', 'utf8')
 
-const result: Result<void, NMEAError> = parser.addSentences(yaml)
+const result: Result<void, NMEAError[]> = parser.addSentences(yaml)
 if (!result.success) {
   // never throws — errors come back as a Result
   console.error(result.error.kind, result.error.message)  // 'invalid-yaml' | 'invalid-schema'
@@ -278,21 +278,21 @@ Field `type` is one of the CMA types (`char`, `string`, `boolean`, `int8`…`int
 | --- | --- | --- |
 | `parseData` | `(input?: string) => CMA[]` | Optionally add `input`, then return and clear the queued sentences. |
 | `addData` | `(input: string) => void` | Parse immediately and queue the results. |
-| `addSentences` | `(yaml: string) => Result<void, NMEAError>` | Feed more known sentences from a YAML string. Never throws. |
+| `addSentences` | `(yaml: string) => Result<void, NMEAError[]>` | Feed more known sentences from a YAML string. Never throws. |
 | `getSentences` | `() => StoredSentence[]` | All known sentence definitions. |
 | `getSentencesByProtocol` | `() => Record<string, StoredSentence[]>` | Known definitions grouped by protocol name. |
-| `getSentenceDefinition` | `(id: string) => Result<Sentence[], NMEAError>` | Every stored definition for an id (talker-aware) — an ARRAY, one entry per NMEA version. |
-| `getFakeSentence` | `(id: string) => Result<string, NMEAError>` | A valid NMEA-like sentence with garbage fields. Built from the newest definition of the id. |
+| `getSentenceDefinition` | `(id: string, protocol?: string) => Result<Sentence[], NMEAError[]>` | Every stored definition for an id (talker-aware) — an ARRAY, one entry per NMEA revision. `protocol` narrows it, by protocol NAME or by version. |
+| `getFakeSentence` | `(id: string, protocol?: string, options?: FakeSentenceOptions) => Result<NMEALike, NMEAError[]>` | A valid NMEA-like sentence with garbage fields. Built from the newest definition of the id, or from the one `protocol` names. Idempotent unless `{ random: true }`. |
 | `memory` | `boolean` (get/set) | Carry a half-received sentence between calls. |
 | `bufferLimit` | `number` (get/set) | Max characters held in the carried-over remainder. |
 
 ```typescript
 // known sentences
 const known = parser.getSentencesByProtocol()
-const gga = parser.getSentenceDefinition('GGA')   // Result<Sentence[], NMEAError>
+const gga = parser.getSentenceDefinition('GGA')   // Result<Sentence[], NMEAError[]>
 
 // fake sentence (testing)
-const fake = parser.getFakeSentence('AAM')       // Result<string, NMEAError>
+const fake = parser.getFakeSentence('AAM')       // Result<NMEALike, NMEAError[]>
 ```
 
 ## Extending: device parsers built on NMEA
@@ -399,8 +399,8 @@ say *why* a lookup failed — a malformed id and an unknown id are different mis
 
 | 4.x | 5.0.0 |
 | --- | --- |
-| `getSentence(id): Sentence \| null` | `getSentenceDefinition(id): Result<Sentence[], NMEAError>` |
-| `getFakeSentenceByID(id): string \| null` | `getFakeSentence(id): Result<string, NMEAError>` |
+| `getSentence(id): Sentence \| null` | `getSentenceDefinition(id): Result<Sentence[], NMEAError[]>` |
+| `getFakeSentenceByID(id): string \| null` | `getFakeSentence(id): Result<NMEALike, NMEAError[]>` |
 
 ```typescript
 // 4.x

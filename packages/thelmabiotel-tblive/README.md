@@ -71,8 +71,8 @@ const sentences = parser.parseData('$001129,1551087409,421,OPs,15,2,37,69\r')
 | `firmware` | `'1.0.1' \| '1.0.2' \| 'unknown'` | Readable and writable; learned automatically |
 | `firmwares` | `readonly string[]` | The firmwares this parser understands |
 | `sentenceIds` | `SentenceId[]` | Every sentence it can fabricate or describe |
-| `getFakeSentence(id, protocol, options?)` | `Result<string, string[]>` | Fabricate a wire sentence — see below |
-| `getSentenceDefinition(id, protocol?)` | `Result<SentenceDefinition[], string[]>` | Ask what it expects — see below |
+| `getFakeSentence(id, protocol, options?)` | `Result<string, ParserError[]>` | Fabricate a wire sentence — see below |
+| `getSentenceDefinition(id, protocol?)` | `Result<SentenceDefinition[], ParserError[]>` | Ask what it expects — see below |
 
 Both of the last two return a **`Result`**, never `null`: an unknown id, an unknown protocol and a
 malformed option are three different mistakes, and the caller is told which.
@@ -82,7 +82,7 @@ const result = parser.getFakeSentence('emitter', '1.0.2', { frequency: 34 })
 if (result.success) {
   console.log(result.value)
 } else {
-  console.error(result.error)   // string[]
+  console.error(result.error.map((e) => e.message))   // ParserError[], not string[]
 }
 ```
 
