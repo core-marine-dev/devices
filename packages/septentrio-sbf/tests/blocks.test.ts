@@ -27,7 +27,7 @@ describe('AttEuler (5938)', () => {
     expect(sentence.id).toBe('5938')
     expect(sentence.metadata.name).toBe('AttEuler')
     expect(sentence.metadata.revision).toBe(0)
-    expect(sentence.protocol).toStrictEqual({ name: 'SBF', version: '4.10.1' })
+    expect(sentence.protocol).toStrictEqual({ name: 'SEPTENTRIO SBF', version: '4.10.1' })
     expect(sentence.errors).toBeUndefined()
   })
 

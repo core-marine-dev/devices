@@ -125,7 +125,7 @@ test('real node-red loads the node and parses injected SBF bytes to CMA[]', () =
   const payload = msg.payload as CMA[]
   assert.ok(Array.isArray(payload), 'payload is an array (CMA[])')
   assert.equal(payload.length, 1)
-  assert.equal(payload[0].protocol.name, 'SBF')
+  assert.equal(payload[0].protocol.name, 'SEPTENTRIO SBF')
   assert.equal(payload[0].protocol.version, '4.10.1')
   assert.equal(payload[0].errors, undefined)
 })

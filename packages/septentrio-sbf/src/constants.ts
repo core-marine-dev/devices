@@ -70,7 +70,13 @@ export const TYPE_BYTES: Readonly<Record<SBFType, number>> = {
 // the datasheets.
 export const DO_NOT_USE_FLOAT = -2 * (10 ** 10)
 
-export const PROTOCOL_NAME = 'SBF'
+// This package parses TWO wire formats, so `protocol.name` has to say WHICH — a
+// bare vendor name would be ambiguous and a bare `SBF` does not read as Septentrio
+// unless you already know the acronym. The $PSSN sentences use 'SEPTENTRIO NMEA'
+// (src/protocol-nmea.ts), so `name.startsWith('SEPTENTRIO')` means "proprietary to
+// this device, either wire format". Standard sentences keep whatever nmea-parser
+// assigns them ('NMEA', or a vendor for Trimble/Leica formats).
+export const PROTOCOL_NAME = 'SEPTENTRIO SBF'
 export const DEFAULT_FIRMWARE = '4.10.1'
 
 // The name reported at metadata.name for a block the knowledge base does not

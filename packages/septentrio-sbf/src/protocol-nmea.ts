@@ -170,7 +170,10 @@ const enrichSNC = (sentence: CMA): CMA => {
   }
 }
 
-const PSSN_PROTOCOL = 'SEPTENTRIO'
+// Matches `protocol: SEPTENTRIO NMEA` in protocols/septentrio.yml — the name is
+// also the lookup key for getSentenceDefinition/getFakeSentence, so the two must
+// stay identical. See PROTOCOL_NAME in src/constants.ts for why both are qualified.
+const PSSN_PROTOCOL = 'SEPTENTRIO NMEA'
 const PSSN_VERSION = '4.10.1'
 const SNC_ID = 'SNC'
 const PSSN_ID = 'PSSN'

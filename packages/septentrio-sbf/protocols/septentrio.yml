@@ -22,7 +22,7 @@ protocols:
   # since a wrong order still parses cleanly. Check them against the first real
   # capture with NMEA output enabled.
   # =================================================================
-  - protocol: SEPTENTRIO
+  - protocol: SEPTENTRIO NMEA
     version: '4.10.1'
     standard: false
     sentences:

@@ -59,7 +59,7 @@ interface CMA {
   raw: string              // the whole block, BASE64 (it is binary)
   timestamp: number        // epoch ms — the RECEIVER's own GNSS time when it has one (see Timestamps)
   id: string               // the SBF block NUMBER as a string, e.g. '5938'
-  protocol: { name: 'SBF', version: string }        // version = the firmware knowledge base in use
+  protocol: { name: 'SEPTENTRIO SBF', version: string }        // version = the firmware knowledge base in use
   payload: Field[]         // the SBF BODY only, one entry per datasheet row, in datasheet order
   metadata: {
     name: string           // the block NAME, e.g. 'AttEuler' ('unknown' if not modelled)
@@ -113,7 +113,7 @@ Three conventions are worth knowing before you read a payload:
   "raw": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
   "timestamp": 1685616912000,
   "id": "5938",
-  "protocol": { "name": "SBF", "version": "4.10.1" },
+  "protocol": { "name": "SEPTENTRIO SBF", "version": "4.10.1" },
   "payload": [
     { "raw": "Bw==", "name": "NrSV", "type": "uint8", "value": 7 },
     { "raw": "AA==", "name": "Error", "type": "uint8", "value": 0,
@@ -327,7 +327,7 @@ if (result.success) {
 {
   "id": "5938",
   "name": "AttEuler",
-  "protocol": { "name": "SBF", "version": "4.10.1" },
+  "protocol": { "name": "SEPTENTRIO SBF", "version": "4.10.1" },
   "revision": 0,
   "timestamp": "receiver",
   "payload": [
@@ -440,6 +440,17 @@ Appendix C.1 of the reference guide:
 All six arrive as `$PSSN,<SUBTYPE>,…`, with the subtype in the FIRST FIELD rather than the id, so the id
 is resolved to `PSSN<SUBTYPE>` before decoding. `submessage_id` stays in the payload because it is a
 real wire field.
+
+**Three protocol names come out of this package**, because it is the only one parsing two wire formats:
+
+| `protocol.name` | what it labels |
+| --- | --- |
+| `SEPTENTRIO SBF` | every binary SBF block |
+| `SEPTENTRIO NMEA` | the six proprietary `$PSSN` sentences |
+| `NMEA` (or `TRIMBLE` / `LEICA`) | standard sentences, straight from `@coremarine/nmea-parser` |
+
+So `protocol.name.startsWith('SEPTENTRIO')` means "proprietary to this device, either wire format",
+and the standard sentences stay labelled exactly as the NMEA parser labels them everywhere else.
 
 Two traps worth knowing:
 

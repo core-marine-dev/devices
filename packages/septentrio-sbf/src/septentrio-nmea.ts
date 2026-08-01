@@ -4,7 +4,7 @@ import type { ProtocolsFileContent } from '@coremarine/nmea-parser'
 export const SEPTENTRIO_SENTENCES: ProtocolsFileContent = {
   protocols: [
     {
-      protocol: 'SEPTENTRIO',
+      protocol: 'SEPTENTRIO NMEA',
       version: '4.10.1',
       standard: false,
       sentences: [

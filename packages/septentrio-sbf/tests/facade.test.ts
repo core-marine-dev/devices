@@ -97,7 +97,7 @@ describe('firmware', () => {
 
   test('it is reported as protocol.version on every sentence', () => {
     const [sentence] = new SeptentrioParser().parseData(attEulerFrame())
-    expect(sentence.protocol).toStrictEqual({ name: 'SBF', version: '4.10.1' })
+    expect(sentence.protocol).toStrictEqual({ name: 'SEPTENTRIO SBF', version: '4.10.1' })
   })
 
   test('an unsupported firmware keeps the current one instead of throwing', () => {
@@ -144,7 +144,7 @@ describe('getSentenceDefinition', () => {
     expect(result.value).toHaveLength(1)
     const [definition] = result.value
     expect(definition.id).toBe('5938')
-    expect(definition.protocol).toStrictEqual({ name: 'SBF', version: '4.10.1' })
+    expect(definition.protocol).toStrictEqual({ name: 'SEPTENTRIO SBF', version: '4.10.1' })
     // The FACADE promises only the shared contract, because it fronts more than one
     // protocol now. SBF's extra keys — name, revision, timestamp — are protocol
     // specific, so they come through `.parser`, the rule this facade already applies
@@ -280,7 +280,7 @@ describe('the protocol argument is the firmware', () => {
     const pinned = parser.getSentenceDefinition(5938, '4.10.1')
     expect(pinned.success).toBe(true)
     if (!pinned.success) return
-    expect(pinned.value[0].protocol).toStrictEqual({ name: 'SBF', version: '4.10.1' })
+    expect(pinned.value[0].protocol).toStrictEqual({ name: 'SEPTENTRIO SBF', version: '4.10.1' })
   })
 
   test('omitted, it is the firmware the parser is set to', () => {

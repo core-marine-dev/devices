@@ -52,7 +52,7 @@ describe('$PSSN — the five fixed-shape sentences', () => {
   test('HRP: attitude with a standard deviation per axis', () => {
     const hrp = parse('PSSN,HRP,152135.00,180725,304.12,-1.25,2.34,0.21,0.35,0.28,14,4,3.5,E')
     expect(hrp.id).toBe('PSSNHRP')
-    expect(hrp.protocol).toStrictEqual({ name: 'SEPTENTRIO', version: '4.10.1' })
+    expect(hrp.protocol).toStrictEqual({ name: 'SEPTENTRIO NMEA', version: '4.10.1' })
     expect(hrp.payload).toHaveLength(13)
     expect(field(hrp, 'submessage_id').value).toBe('HRP')
     expect(field(hrp, 'heading').value as number).toBeCloseTo(304.12)
@@ -146,7 +146,7 @@ describe('$PSSN,SNC — the bracket-nested one', () => {
   test('the guide example decodes, and the payload is TWO fields', () => {
     const [cma] = new SeptentrioNMEAParser().parseData(bytes(GUIDE_EXAMPLE))
     expect(cma.id).toBe('PSSNSNC')
-    expect(cma.protocol).toStrictEqual({ name: 'SEPTENTRIO', version: '4.10.1' })
+    expect(cma.protocol).toStrictEqual({ name: 'SEPTENTRIO NMEA', version: '4.10.1' })
     expect(cma.payload).toHaveLength(2)
     expect(cma.payload[0].value).toBe('SNC')
     // Field 1 is the whole group, sliced from `raw` so the checksum still verifies
@@ -245,7 +245,7 @@ describe('the NMEA protocol through the device facade', () => {
     const definition = parser.getSentenceDefinition('PSSNHRP')
     expect(definition.success).toBe(true)
     if (!definition.success) return
-    expect(definition.value[0].protocol.name).toBe('SEPTENTRIO')
+    expect(definition.value[0].protocol.name).toBe('SEPTENTRIO NMEA')
   })
 
   test('a fake NMEA sentence comes back as BYTES, like the SBF side', () => {
