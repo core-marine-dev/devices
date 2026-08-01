@@ -188,7 +188,7 @@ API would balloon as protocols are added, and most methods would be meaningless 
 active):
 
 ```typescript
-parser.parser.getFakeSentenceByID('PNORSUB8')   // a valid sample sentence
+parser.parser.getFakeSentence('PNORSUB8')       // Result<NMEALike, ParserError[]> — a sample sentence
 parser.parser.getSentenceDefinition('PNORSUB8') // Result<SentenceDefinition[], ParserError[]>
 parser.parser.getSentencesByProtocol()          // definitions grouped by protocol
 parser.parser.addSentences(yaml)                // add your own sentences at runtime
@@ -241,6 +241,32 @@ Full rules: [`docs/CMA.md`](https://github.com/core-marine-dev/devices/blob/main
   reported as a garbage sentence rather than decoded. Every NorSub telegram carries one.
 - The definitions are bundled pre-generated, so the parser never parses YAML at startup and needs no
   filesystem access.
+
+## Upgrading from 5.x
+
+`6.0.0` inherits every breaking change of [`@coremarine/nmea-parser@6.0.0`](https://www.npmjs.com/package/@coremarine/nmea-parser)
+— see its *Upgrading from 5.x* — plus one of its own.
+
+**Inherited:** every `Result` error side is now an **array**, so `result.error.message` reads
+`undefined` (use `result.error.map((e) => e.message)`); `getFakeSentence` is deterministic, with
+`{ random: true }` as the opt-out; and `protocol` selects *which* definition of an id is used.
+
+**Its own:** the three introspection members — `sentenceIds`, `getSentenceDefinition` and
+`getFakeSentence` — are now **delegated to the active protocol parser**, so you can call them on the
+facade directly instead of reaching through `.parser`:
+
+```typescript
+parser.sentenceIds                        // was: parser.parser.sentenceIds
+parser.getSentenceDefinition('PNORSUB8')  // was: parser.parser.getSentenceDefinition(...)
+```
+
+This is the one exception to the facade's otherwise deliberate non-delegation, because those three are
+the shared contract every parser in the family implements. A failed lookup adds an
+`inactive-protocol` error: a lookup failing means the *selected* protocol does not define that id, not
+that the device cannot speak it.
+
+Two field **descriptions** were also corrected — `PHTRO.roll_direction` and `RDI ADCP`'s `PRDID.roll`
+both carried a pitch description on a roll field. Descriptions only: no field, type or order moved.
 
 ## License
 

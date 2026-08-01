@@ -244,8 +244,11 @@ const yaml = readFileSync('./my-protocols.yml', 'utf8')
 
 const result: Result<void, NMEAError[]> = parser.addSentences(yaml)
 if (!result.success) {
-  // never throws — errors come back as a Result
-  console.error(result.error.kind, result.error.message)  // 'invalid-yaml' | 'invalid-schema'
+  // never throws — errors come back as a Result, and the error side is an ARRAY:
+  // one call can be wrong for more than one reason.
+  for (const error of result.error) {
+    console.error(error.kind, error.message)  // 'invalid-yaml' | 'invalid-schema'
+  }
 }
 ```
 
@@ -392,6 +395,48 @@ const parse = (parser: DeviceParser<string>, chunk: string) => parser.parseData(
 
 `bufferLimit` defaults to `1024` characters — far more than the NMEA max sentence length (82 characters, flags included) — so a single incomplete sentence always fits. Changing it is not recommended unless you understand the NMEA framing well.
 
+## Upgrading from 5.x
+
+Three breaking changes. All of them **compile and run** at the call site, which is exactly why the
+major exists: nothing tells you they happened except the version.
+
+### 1. Every `Result` error side is an ARRAY
+
+One call can be wrong for more than one reason, so `error` is now `NMEAError[]`.
+
+```typescript
+// 5.x
+if (!result.success) console.error(result.error.message)
+
+// 6.0.0 — the 5.x line above now prints `undefined`
+if (!result.success) console.error(result.error.map((e) => e.message).join('; '))
+```
+
+This affects `addSentences`, `getSentenceDefinition` and `getFakeSentence`.
+
+### 2. `getFakeSentence` is idempotent
+
+It used to call `Math.random()` once per field, so the same id gave a different sentence every call and
+the output could not be committed as a fixture. It is now deterministic. Pass `{ random: true }` for the
+old behaviour:
+
+```typescript
+parser.getFakeSentence('GGA')                   // the same string every time
+parser.getFakeSentence('GGA', undefined, { random: true })  // varied, as 5.x always was
+```
+
+### 3. `protocol` selects WHICH definition of an id is used
+
+`getSentenceDefinition(id, protocol?)` and `getFakeSentence(id, protocol?)` take a protocol name or
+version as their second argument. Omitting it still returns every definition of that id. Asking for one
+the id does not have returns the new error kind `'unknown-protocol'`, which lists what it *is* defined
+by.
+
+### Also new, not breaking
+
+`sentenceIds` — the ids the knowledge base holds, completing the shared introspection contract that
+`norsub-emru`, `septentrio-sbf`, `sbg-ecom` and `thelmabiotel-tblive` also implement.
+
 ## Upgrading from 4.x
 
 Two methods were renamed and both now return a `Result` instead of `null`, because `null` could not
@@ -409,7 +454,7 @@ if (gga !== null) { /* ... */ }
 
 // 5.0.0
 const result = parser.getSentenceDefinition('GGA')
-if (result.success) { /* result.value is Sentence[] */ } else { /* result.error.kind + .message */ }
+if (result.success) { /* result.value is Sentence[] */ } else { /* result.error is NMEAError[] */ }
 ```
 
 `getSentenceDefinition` also returns **every** version of an id rather than only the newest. The

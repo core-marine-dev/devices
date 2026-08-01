@@ -283,6 +283,31 @@ Recorded because both cost real time, and because a reader hitting them should k
 1. **`GPS1_POS`/`GPS2_POS` offsets.** The offset column prints 54 for `BASE_STATION_ID` and 56 for `DIFF_AGE`, which puts the end of the log at 58 — while the same table says "Total size 57". The fields are **packed**, at 53 and 55, and that is measured, not assumed: every `GPS1_POS` frame in the corpus has `LEN` 57.
 2. **`SBG_ECOM_LOG_DEPTH`'s `DEPTH` unit** is printed as `m/s`; its own description calls it a depth measurement. It is metres.
 
+## Upgrading from 0.0.x
+
+`0.0.1` was a pre-release with no semver guarantee, and **everything about this package changed** in
+`1.0.0`. There is no incremental migration — treat it as a new library:
+
+| 0.0.x | 1.0.0 |
+| --- | --- |
+| a bespoke frame object | **CMA** — see [Output](#output) |
+| `getFrames()` | `parseData(data?): CMA[]` |
+| 25 hand-written log decoders | **all 34 logs** of `SBG_ECOM_CLASS_LOG_ECOM_0`, as field tables |
+| logs identified by message number alone | `id` is `'<class>:<message>'`, e.g. `'0:6'` |
+| NMEA on the same wire was not handled | plain NMEA is parsed from the same buffer, no switch to set |
+| — | `sentenceIds`, `getSentenceDefinition`, `getFakeSentence` |
+
+Two behaviours worth knowing even if you never used `0.0.x`:
+
+- **Uptime is never presented as a clock.** Every log carries microseconds since power-up.
+  `SBG_ECOM_LOG_UTC_TIME` teaches the parser the uptime↔UTC correspondence, and only then is a log
+  dated from it.
+- **Nothing is dropped silently.** A frame from an unmodelled class is *identified* rather than called
+  garbage, and a bad CRC is decoded as far as possible and reported in `errors`.
+
+**Six real bugs in the `0.0.x` decoders were fixed on the way**, so a value that looked right before may
+legitimately differ now. They are catalogued in `docs/STATUS.md`.
+
 ## Development
 
 ```bash

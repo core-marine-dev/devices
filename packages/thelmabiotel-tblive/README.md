@@ -303,6 +303,24 @@ deployment knows better:
 const parser = new TBLiveParser({ firmware: '1.0.1' })
 ```
 
+## Upgrading from 2.x
+
+One breaking change, and it compiles and runs at the call site — which is why the major exists.
+
+**The `Result` error side went from `string[]` to `ParserError[]`**, so every reason a request was
+refused now carries its own `kind` instead of being flattened into a bare message.
+
+```typescript
+// 2.x — errors were strings
+if (!result.success) console.error(result.error.join('; '))
+
+// 3.0.0 — the 2.x line above now yields "[object Object]"
+if (!result.success) console.error(result.error.map((e) => `${e.kind}: ${e.message}`).join('; '))
+```
+
+This affects `getSentenceDefinition` and `getFakeSentence`. Nothing else changed: the CMA output shape,
+the sentence table, the tokenizer and the firmware learning are all as they were in `2.0.0`.
+
 ## Upgrading from 1.x
 
 `1.x` emitted a `ParsedSentence`; `2.0.0` emits **CMA**. Every change:
