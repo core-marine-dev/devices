@@ -10,9 +10,11 @@
         "id": "g-errors",
         "type": "group",
         "z": "sbf-tab",
-        "name": "Flow errors — a node failure is reported, not swallowed",
+        "name": "Flow Errors",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "catch-all",
@@ -20,7 +22,7 @@
         ],
         "x": 54,
         "y": 39,
-        "w": 442,
+        "w": 352,
         "h": 82
     },
     {
@@ -29,7 +31,9 @@
         "z": "sbf-tab",
         "name": "Decoded blocks — id is the block NUMBER, the name is in metadata.name",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c1",
@@ -52,17 +56,18 @@
         "z": "sbf-tab",
         "name": "A missing measurement is null, never a zero",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c2",
             "i-att-dnu",
-            "p-dnu",
-            "dbg-dnu"
+            "e9ac1b047f98efad"
         ],
         "x": 54,
-        "y": 359,
-        "w": 812,
+        "y": 459,
+        "w": 502,
         "h": 122
     },
     {
@@ -71,18 +76,19 @@
         "z": "sbf-tab",
         "name": "Failed and garbage — nothing vanishes",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c3",
             "i-crc",
             "i-junk",
-            "p-garbage",
-            "dbg-garbage"
+            "bd749a499d537b41"
         ],
-        "x": 54,
-        "y": 499,
-        "w": 772,
+        "x": 574,
+        "y": 459,
+        "w": 462,
         "h": 162
     },
     {
@@ -91,7 +97,9 @@
         "z": "sbf-tab",
         "name": "Memory — fire 1/2, then 2/2",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c4",
@@ -100,12 +108,11 @@
             "i-mem-off",
             "i-mem-on",
             "i-mem-get",
-            "p-memory",
-            "dbg-memory"
+            "4f0ab4615abd21db"
         ],
         "x": 54,
-        "y": 679,
-        "w": 712,
+        "y": 639,
+        "w": 422,
         "h": 282
     },
     {
@@ -114,7 +121,9 @@
         "z": "sbf-tab",
         "name": "Firmware and protocol — learned from the device, or pinned",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c5",
@@ -123,12 +132,11 @@
             "i-fw-set",
             "i-fw-bad",
             "i-proto",
-            "p-firmware",
-            "dbg-firmware"
+            "5de1f73002413bff"
         ],
-        "x": 54,
-        "y": 979,
-        "w": 752,
+        "x": 574,
+        "y": 639,
+        "w": 442,
         "h": 282
     },
     {
@@ -137,7 +145,9 @@
         "z": "sbf-tab",
         "name": "Diagnostics — ask the running node what it expects",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c6",
@@ -145,12 +155,11 @@
             "i-def",
             "i-def-att",
             "i-def-bad",
-            "p-diagnostics",
-            "dbg-diagnostics"
+            "20a93b365cbbaec5"
         ],
-        "x": 54,
-        "y": 1279,
-        "w": 792,
+        "x": 574,
+        "y": 939,
+        "w": 482,
         "h": 242
     },
     {
@@ -159,27 +168,48 @@
         "z": "sbf-tab",
         "name": "Fake frames — deterministic fixtures",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "c7",
             "i-fake",
             "i-fake-rev",
             "i-fake-rand",
-            "p-fake",
-            "dbg-fake"
+            "dc6f01f5ad2a2846"
         ],
         "x": 54,
-        "y": 1539,
-        "w": 752,
+        "y": 939,
+        "w": 442,
         "h": 202
+    },
+    {
+        "id": "0e25330276b85f74",
+        "type": "group",
+        "z": "sbf-tab",
+        "name": "Septentrio SBF",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "p-dnu",
+            "dbg-dnu",
+            "ac8cfd800671404b"
+        ],
+        "x": 54,
+        "y": 359,
+        "w": 452,
+        "h": 82
     },
     {
         "id": "catch-all",
         "type": "catch",
         "z": "sbf-tab",
         "g": "g-errors",
-        "name": "",
+        "name": "ERRORS",
         "scope": null,
         "uncaught": false,
         "x": 140,
@@ -195,7 +225,7 @@
         "type": "debug",
         "z": "sbf-tab",
         "g": "g-errors",
-        "name": "errors",
+        "name": "ERRORS",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -204,7 +234,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 400,
+        "x": 300,
         "y": 80,
         "wires": []
     },
@@ -379,7 +409,7 @@
         "name": "null is NOT zero",
         "info": "The AttEuler frame above is in attitude mode 1 — heading and pitch only — so Roll and RollDot come back `value: null` with `metadata.doNotUse: true` and the sentinel that matched.\n\nA Do-Not-Use course-over-ground is not a heading of north. Check for null before using a reading.",
         "x": 160,
-        "y": 400,
+        "y": 500,
         "wires": []
     },
     {
@@ -401,46 +431,12 @@
         "payload": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
         "payloadType": "str",
         "x": 280,
-        "y": 440,
+        "y": 540,
         "wires": [
             [
-                "p-dnu"
+                "e9ac1b047f98efad"
             ]
         ]
-    },
-    {
-        "id": "p-dnu",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "g": "g-dnu",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 580,
-        "y": 440,
-        "wires": [
-            [
-                "dbg-dnu"
-            ]
-        ]
-    },
-    {
-        "id": "dbg-dnu",
-        "type": "debug",
-        "z": "sbf-tab",
-        "g": "g-dnu",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 760,
-        "y": 440,
-        "wires": []
     },
     {
         "id": "c3",
@@ -449,8 +445,8 @@
         "g": "g-garbage",
         "name": "Nothing is dropped silently",
         "info": "Bad CRC: every field still decodes, and `errors` says what is wrong. Flagged data beats none.\nJunk: a CMA with id \"unknown\", empty payload, the bytes kept in `raw`. Adjacent junk is coalesced into ONE report.",
-        "x": 190,
-        "y": 540,
+        "x": 710,
+        "y": 500,
         "wires": []
     },
     {
@@ -471,11 +467,11 @@
         "topic": "",
         "payload": "JEA0EjIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
         "payloadType": "str",
-        "x": 260,
-        "y": 580,
+        "x": 780,
+        "y": 540,
         "wires": [
             [
-                "p-garbage"
+                "bd749a499d537b41"
             ]
         ]
     },
@@ -497,47 +493,13 @@
         "topic": "",
         "payload": "AQID//4=",
         "payloadType": "str",
-        "x": 280,
-        "y": 620,
-        "wires": [
-            [
-                "p-garbage"
-            ]
-        ]
-    },
-    {
-        "id": "p-garbage",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "g": "g-garbage",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 540,
+        "x": 800,
         "y": 580,
         "wires": [
             [
-                "dbg-garbage"
+                "bd749a499d537b41"
             ]
         ]
-    },
-    {
-        "id": "dbg-garbage",
-        "type": "debug",
-        "z": "sbf-tab",
-        "g": "g-garbage",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 720,
-        "y": 580,
-        "wires": []
     },
     {
         "id": "c4",
@@ -547,7 +509,7 @@
         "name": "Fire 1/2 then 2/2",
         "info": "SBF framing is length-prefixed, so a block only decodes once its LAST byte arrives. With memory ON (the default) the head waits on the buffer.\n\nTurn memory off with the node below and the same pair produces garbage instead — the head is discarded when the tail arrives.",
         "x": 160,
-        "y": 720,
+        "y": 680,
         "wires": []
     },
     {
@@ -569,10 +531,10 @@
         "payload": "JEC0kzIXLADQkPEW2AgHAAEAAAA=",
         "payloadType": "str",
         "x": 230,
-        "y": 760,
+        "y": 720,
         "wires": [
             [
-                "p-memory"
+                "4f0ab4615abd21db"
             ]
         ]
     },
@@ -595,10 +557,10 @@
         "payload": "z7EuQz1QEMH5ApXQ75RGvvkCldAMQaA+",
         "payloadType": "str",
         "x": 230,
-        "y": 800,
+        "y": 760,
         "wires": [
             [
-                "p-memory"
+                "4f0ab4615abd21db"
             ]
         ]
     },
@@ -623,10 +585,10 @@
         "payload": "",
         "payloadType": "date",
         "x": 280,
-        "y": 840,
+        "y": 800,
         "wires": [
             [
-                "p-memory"
+                "4f0ab4615abd21db"
             ]
         ]
     },
@@ -651,10 +613,10 @@
         "payload": "",
         "payloadType": "date",
         "x": 280,
-        "y": 880,
+        "y": 840,
         "wires": [
             [
-                "p-memory"
+                "4f0ab4615abd21db"
             ]
         ]
     },
@@ -679,46 +641,12 @@
         "payload": "",
         "payloadType": "date",
         "x": 290,
-        "y": 920,
+        "y": 880,
         "wires": [
             [
-                "p-memory"
+                "4f0ab4615abd21db"
             ]
         ]
-    },
-    {
-        "id": "p-memory",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "g": "g-memory",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 480,
-        "y": 840,
-        "wires": [
-            [
-                "dbg-memory"
-            ]
-        ]
-    },
-    {
-        "id": "dbg-memory",
-        "type": "debug",
-        "z": "sbf-tab",
-        "g": "g-memory",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 660,
-        "y": 840,
-        "wires": []
     },
     {
         "id": "c5",
@@ -727,8 +655,8 @@
         "g": "g-firmware",
         "name": "The receiver is the authority",
         "info": "ReceiverSetup (5902) reports the real firmware and the parser adopts it, so you rarely pin it. An unmodelled version is REPORTED (`reported` in the answer, plus an error on that block), never substituted.\n\nAfter a ReceiverTime block, `leapSeconds` shows the GPS-UTC offset learned from the device itself.",
-        "x": 200,
-        "y": 1020,
+        "x": 720,
+        "y": 680,
         "wires": []
     },
     {
@@ -749,11 +677,11 @@
         "topic": "",
         "payload": "JEA+4xoXGACwbM0GyggXAhQHKTASBwAA",
         "payloadType": "str",
-        "x": 250,
-        "y": 1060,
+        "x": 770,
+        "y": 720,
         "wires": [
             [
-                "p-firmware"
+                "5de1f73002413bff"
             ]
         ]
     },
@@ -777,11 +705,11 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 330,
-        "y": 1100,
+        "x": 850,
+        "y": 760,
         "wires": [
             [
-                "p-firmware"
+                "5de1f73002413bff"
             ]
         ]
     },
@@ -805,11 +733,11 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 310,
-        "y": 1140,
+        "x": 830,
+        "y": 800,
         "wires": [
             [
-                "p-firmware"
+                "5de1f73002413bff"
             ]
         ]
     },
@@ -833,11 +761,11 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 250,
-        "y": 1180,
+        "x": 770,
+        "y": 840,
         "wires": [
             [
-                "p-firmware"
+                "5de1f73002413bff"
             ]
         ]
     },
@@ -861,47 +789,13 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 330,
-        "y": 1220,
+        "x": 850,
+        "y": 880,
         "wires": [
             [
-                "p-firmware"
+                "5de1f73002413bff"
             ]
         ]
-    },
-    {
-        "id": "p-firmware",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "g": "g-firmware",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 520,
-        "y": 1140,
-        "wires": [
-            [
-                "dbg-firmware"
-            ]
-        ]
-    },
-    {
-        "id": "dbg-firmware",
-        "type": "debug",
-        "z": "sbf-tab",
-        "g": "g-firmware",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 700,
-        "y": 1140,
-        "wires": []
     },
     {
         "id": "c6",
@@ -910,8 +804,8 @@
         "g": "g-diagnostics",
         "name": "Ask the running node what it expects",
         "info": "A receiver on a remote install stays there for years. `definition` returns the field table the parser will actually apply — types, units, Do-Not-Use values — one entry per revision, because a receiver generation only sends the fields its revision defines.",
-        "x": 220,
-        "y": 1320,
+        "x": 740,
+        "y": 980,
         "wires": []
     },
     {
@@ -934,11 +828,11 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 320,
-        "y": 1360,
+        "x": 840,
+        "y": 1020,
         "wires": [
             [
-                "p-diagnostics"
+                "20a93b365cbbaec5"
             ]
         ]
     },
@@ -962,11 +856,11 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 270,
-        "y": 1400,
+        "x": 790,
+        "y": 1060,
         "wires": [
             [
-                "p-diagnostics"
+                "20a93b365cbbaec5"
             ]
         ]
     },
@@ -990,11 +884,11 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 360,
-        "y": 1440,
+        "x": 880,
+        "y": 1100,
         "wires": [
             [
-                "p-diagnostics"
+                "20a93b365cbbaec5"
             ]
         ]
     },
@@ -1018,47 +912,13 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 310,
-        "y": 1480,
+        "x": 830,
+        "y": 1140,
         "wires": [
             [
-                "p-diagnostics"
+                "20a93b365cbbaec5"
             ]
         ]
-    },
-    {
-        "id": "p-diagnostics",
-        "type": "cma-septentrio-parser",
-        "z": "sbf-tab",
-        "g": "g-diagnostics",
-        "name": "",
-        "firmware": "",
-        "memory": true,
-        "x": 560,
-        "y": 1400,
-        "wires": [
-            [
-                "dbg-diagnostics"
-            ]
-        ]
-    },
-    {
-        "id": "dbg-diagnostics",
-        "type": "debug",
-        "z": "sbf-tab",
-        "g": "g-diagnostics",
-        "name": "payload",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 740,
-        "y": 1400,
-        "wires": []
     },
     {
         "id": "c7",
@@ -1068,7 +928,7 @@
         "name": "Deterministic by design",
         "info": "A fake frame carries a real CRC and a real Length, so it parses straight back — wire `fake` into another parser node to see it.\n\nThe same request returns the same bytes forever, which is what makes it committable into a flow like this one. `random: true` varies the filler and is still reproducible.",
         "x": 180,
-        "y": 1580,
+        "y": 980,
         "wires": []
     },
     {
@@ -1092,10 +952,10 @@
         "payload": "",
         "payloadType": "date",
         "x": 250,
-        "y": 1620,
+        "y": 1020,
         "wires": [
             [
-                "p-fake"
+                "dc6f01f5ad2a2846"
             ]
         ]
     },
@@ -1120,10 +980,10 @@
         "payload": "",
         "payloadType": "date",
         "x": 260,
-        "y": 1660,
+        "y": 1060,
         "wires": [
             [
-                "p-fake"
+                "dc6f01f5ad2a2846"
             ]
         ]
     },
@@ -1148,45 +1008,151 @@
         "payload": "",
         "payloadType": "date",
         "x": 280,
-        "y": 1700,
+        "y": 1100,
         "wires": [
             [
-                "p-fake"
+                "dc6f01f5ad2a2846"
             ]
         ]
     },
     {
-        "id": "p-fake",
+        "id": "p-dnu",
         "type": "cma-septentrio-parser",
         "z": "sbf-tab",
-        "g": "g-fake",
+        "g": "0e25330276b85f74",
         "name": "",
         "firmware": "",
         "memory": true,
-        "x": 520,
-        "y": 1660,
+        "x": 240,
+        "y": 400,
         "wires": [
             [
-                "dbg-fake"
+                "dbg-dnu"
             ]
         ]
     },
     {
-        "id": "dbg-fake",
+        "id": "dbg-dnu",
         "type": "debug",
         "z": "sbf-tab",
-        "g": "g-fake",
-        "name": "payload",
+        "g": "0e25330276b85f74",
+        "name": "Output",
         "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 700,
-        "y": 1660,
+        "x": 410,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "ac8cfd800671404b",
+        "type": "link in",
+        "z": "sbf-tab",
+        "g": "0e25330276b85f74",
+        "name": "link in 1",
+        "links": [
+            "e9ac1b047f98efad",
+            "bd749a499d537b41",
+            "4f0ab4615abd21db",
+            "5de1f73002413bff",
+            "20a93b365cbbaec5",
+            "dc6f01f5ad2a2846"
+        ],
+        "x": 95,
+        "y": 400,
+        "wires": [
+            [
+                "p-dnu"
+            ]
+        ]
+    },
+    {
+        "id": "e9ac1b047f98efad",
+        "type": "link out",
+        "z": "sbf-tab",
+        "g": "g-dnu",
+        "name": "link out 1",
+        "mode": "link",
+        "links": [
+            "ac8cfd800671404b"
+        ],
+        "x": 515,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "bd749a499d537b41",
+        "type": "link out",
+        "z": "sbf-tab",
+        "g": "g-garbage",
+        "name": "link out 2",
+        "mode": "link",
+        "links": [
+            "ac8cfd800671404b"
+        ],
+        "x": 995,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "4f0ab4615abd21db",
+        "type": "link out",
+        "z": "sbf-tab",
+        "g": "g-memory",
+        "name": "link out 3",
+        "mode": "link",
+        "links": [
+            "ac8cfd800671404b"
+        ],
+        "x": 435,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "5de1f73002413bff",
+        "type": "link out",
+        "z": "sbf-tab",
+        "g": "g-firmware",
+        "name": "link out 4",
+        "mode": "link",
+        "links": [
+            "ac8cfd800671404b"
+        ],
+        "x": 975,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "20a93b365cbbaec5",
+        "type": "link out",
+        "z": "sbf-tab",
+        "g": "g-diagnostics",
+        "name": "link out 5",
+        "mode": "link",
+        "links": [
+            "ac8cfd800671404b"
+        ],
+        "x": 1015,
+        "y": 1080,
+        "wires": []
+    },
+    {
+        "id": "dc6f01f5ad2a2846",
+        "type": "link out",
+        "z": "sbf-tab",
+        "g": "g-fake",
+        "name": "link out 6",
+        "mode": "link",
+        "links": [
+            "ac8cfd800671404b"
+        ],
+        "x": 455,
+        "y": 1060,
         "wires": []
     }
 ]
