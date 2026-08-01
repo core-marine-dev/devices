@@ -52,25 +52,35 @@ const PENDING = 0
 const NOT_A_FRAME = -1
 const NOT_A_RUN = -1
 
-// The NMEA address field: '$' then five characters of talker + type ('$GPGGA',
-// '$PSBGI'). Requiring it is what stops a stray 0x24 inside binary junk from being
-// offered to the NMEA parser and coming back as an "incomplete sentence" — junk is
-// junk, and it belongs in a coalesced garbage report with its bytes in base64.
+/* THE NMEA ADDRESS FIELD, which is how a real sentence is told apart from a stray
+   0x24 inside binary junk: `$`, then an address of uppercase letters and digits, then
+   a `,` or a `*`. Without this test a lone `$` in a junk run would be handed to the
+   NMEA parser and come back as an "incomplete sentence" report — junk is junk, and it
+   belongs in a coalesced garbage CMA with its bytes in base64.
+
+   The minimum is THREE address characters, not five. Five is what a receiver sends
+   (`$GPGGA` = talker + type), but nmea-parser's own `getFakeSentence` emits the bare
+   type (`$GGA,…`), and refusing that would mean this parser could not read a sentence
+   its own sibling fabricated. Three still rejects binary noise: a 0x24 followed by
+   three or more [A-Z0-9] and then a separator is not something a float lands on. */
 const DOLLAR = 0x24
-const ADDRESS_LENGTH = 5
+const COMMA = 0x2C
+const ASTERISK = 0x2A
+const MINIMUM_ADDRESS = 3
+const MAXIMUM_ADDRESS = 10
 
 const isAddressByte = (byte: number): boolean =>
   (byte >= 0x41 && byte <= 0x5A) || (byte >= 0x30 && byte <= 0x39)
 
 const isSentenceStart = (buffer: Uint8Array, index: number): boolean => {
   if (buffer[index] !== DOLLAR) return false
-  // Not yet decidable: the address may still be arriving. Treated as a start so the
-  // run goes PENDING rather than being called junk and consumed.
-  if (index + ADDRESS_LENGTH >= buffer.length) return true
-  for (let offset = 1; offset <= ADDRESS_LENGTH; offset++) {
-    if (!isAddressByte(buffer[index + offset])) return false
-  }
-  return true
+  let end = index + 1
+  while (end < buffer.length && end - index <= MAXIMUM_ADDRESS && isAddressByte(buffer[end])) end += 1
+  // Ran out of buffer mid-address: not yet decidable, so treat it as a start and let
+  // the run go PENDING rather than consuming it as junk.
+  if (end >= buffer.length) return true
+  if (end - index - 1 < MINIMUM_ADDRESS) return false
+  return buffer[end] === COMMA || buffer[end] === ASTERISK
 }
 
 const isSync = (buffer: Uint8Array, index: number): boolean =>

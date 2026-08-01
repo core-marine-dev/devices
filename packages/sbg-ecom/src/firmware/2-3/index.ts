@@ -31,9 +31,15 @@ import { utcTime } from './time'
 import { CLASS_LOG_ECOM_0 } from '../../constants'
 import type { ClassRegistry, LogDefinition, LogRegistry } from '../../types'
 
-/* The firmware 2.3 knowledge base. ALL 33 logs of SBG_ECOM_CLASS_LOG_ECOM_0
-   (§2.3.1 "Binary Output Logs Overview") are modelled — the 24 the 0.0.x parser
+/* The firmware 2.3 knowledge base. ALL 34 logs of SBG_ECOM_CLASS_LOG_ECOM_0
+   (§2.3.1 "Binary Output Logs Overview") are modelled — the 25 the 0.0.x parser
    had, plus the nine it was missing (the seven event markers, DIAG and RTCM_RAW).
+
+   ⚠️ THE TOTAL IS 34, and it was worth counting twice: the old docs said 22 in
+   docs/PACKAGES.md, 24 in docs/STATUS.md and 25 in the table in docs/SBG-REPORT.md,
+   three different numbers for the same thing. Counting §2.3.1's own list gives 34,
+   and `sentenceIds` is asserted against it in tests/introspect.test.ts so the figure
+   cannot drift again.
 
    The other classes (§2.1.4) are deliberately EMPTY in 1.0.0, not absent: a frame
    from CMD, ECOM_1, the NMEA identifier classes or THIRD_PARTY is recognised by its
@@ -45,13 +51,13 @@ import type { ClassRegistry, LogDefinition, LogRegistry } from '../../types'
      §2.3.4 inertial sensor data           2   IMU_DATA IMU_SHORT
      §2.3.5 EKF output logs                5   EKF_EULER EKF_QUAT EKF_NAV
                                                SHIP_MOTION SHIP_MOTION_HP
-     §2.3.6 aiding sensors outputs        14   MAG MAG_CALIB GPS1/2_VEL GPS1/2_POS
+     §2.3.6 aiding sensors outputs        16   MAG MAG_CALIB GPS1/2_VEL GPS1/2_POS
                                                GPS1/2_HDT GPS1/2_RAW ODO_VEL
                                                AIR_DATA DVL_BOTTOM_TRACK
                                                DVL_WATER_TRACK DEPTH USBL
-     §2.3.7 miscellaneous logs            10   EVENT_A..E EVENT_OUT_A/B DIAG RTCM_RAW
+     §2.3.7 miscellaneous logs             9   EVENT_A..E EVENT_OUT_A/B DIAG RTCM_RAW
                                          ---
-                                          33
+                                          34
 */
 const LOGS: readonly LogDefinition[] = [
   // §2.3.3 General information and time
