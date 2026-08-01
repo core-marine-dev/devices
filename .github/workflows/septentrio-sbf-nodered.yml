@@ -11,6 +11,9 @@ on:
       # publish no-ops unless the version changed.
       - packages/septentrio-sbf/**
       - packages/core/**
+      # The library's `nmea` protocol composes nmea-parser, so a change there
+      # reaches this wrapper's output too.
+      - packages/nmea-parser/**
 
 jobs:
   test:
@@ -40,7 +43,7 @@ jobs:
       # The wrapper's tests import the real @coremarine/septentrio-sbf, which
       # bundles the private protocol-core — both dists must exist first.
       - name: 🛠️ Build monorepo deps
-        run: "pnpm run protocol-core:build && pnpm run septentrio-sbf:build"
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build && pnpm run septentrio-sbf:build"
 
       # node-red auto-loads the wrapper from its published entry (dist/parser.js), so the
       # integration test needs the wrapper built (JS + copied html/icons) before it runs.

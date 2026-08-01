@@ -12,6 +12,9 @@ on:
       # their tests. The version gate keeps the extra trigger harmless: tests run,
       # publish no-ops unless the version changed.
       - packages/core/**
+      # norsub-emru is a facade over nmea-parser, so a change there reaches this
+      # wrapper's output too — and this job already builds it.
+      - packages/nmea-parser/**
 
 jobs:
   test:

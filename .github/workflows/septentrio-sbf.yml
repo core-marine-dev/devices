@@ -5,6 +5,16 @@ on:
   push:
     paths:
       - packages/septentrio-sbf/**
+      # Its NMEA protocol composes the real upstream library, so a change there can
+      # break this package with no job running.
+      - packages/nmea-parser/**
+      # This package BUNDLES the private @coremarine/protocol-core into its dist
+      # (tsup noExternal), so a core change alters what it publishes and can break
+      # its tests. The version gate keeps the extra trigger harmless: tests run,
+      # publish no-ops unless the version changed.
+      - packages/core/**
+      # the shared protocols generator is a build input for this package
+      - scripts/**
 
 jobs:
   test:
@@ -30,6 +40,12 @@ jobs:
 
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      # Its tests import @coremarine/nmea-parser, which resolves to that package's
+      # dist — absent in a fresh checkout, since dist is gitignored. Without this
+      # step every test file fails to resolve before a single test runs.
+      - name: 🏗️ Build dependencies
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build"
 
       - name: 🧑‍🔬 Tests
         run: "pnpm run septentrio-sbf:test"
@@ -78,6 +94,10 @@ jobs:
       - name: 📥 Install Dependencies
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
+
+      - name: 🏗️ Build dependencies
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build"
 
       - name: 🛠️ Build
         if: steps.check.outputs.publish == 'true'

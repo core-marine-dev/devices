@@ -194,6 +194,33 @@ The example flow's NMEA inject carries the two plain sentences instead of base64
 
 Counts: septentrio **221** (was 216, +5), its wrapper **66** (was 62, +4).
 
+### 7. ⚠️ THE SEPTENTRIO CI WOULD HAVE FAILED ON THE FIRST PUSH (found 2026-08-01)
+
+Checking cru's pre-PR list turned up a **real break, not a tidy-up**. `septentrio-sbf.yml` ran
+`septentrio-sbf:test` with no dependency build — written when the package had no `@coremarine`
+dependency, and never updated when the **NMEA protocol added one**. `dist` is gitignored, so on a
+fresh checkout there is nothing to resolve. Reproduced by moving the two dists aside:
+
+```
+Test Files  6 failed (6)      Tests  no tests
+```
+
+**Every test file failed to resolve before a single test ran.** The wrapper's workflow had the same
+hole one level up: it built `protocol-core` + `septentrio-sbf`, but `septentrio-sbf:build` itself now
+needs nmea-parser — `DTS Build error`. Both fixed to match `norsub-emru.yml`, which has the identical
+dependency shape and got it right, and both replayed from a clean state afterwards: deps build →
+221 tests → build → wrapper build → 66 tests.
+
+Also added, same reasoning as the comments already in those files: `packages/nmea-parser/**` and
+`packages/core/**` + `scripts/**` to septentrio's triggers, and `packages/nmea-parser/**` to the
+septentrio AND norsub wrapper triggers — a change to nmea-parser reaches all of them, and the version
+gate keeps the extra triggers harmless (tests run, publish no-ops unless the version changed).
+
+**This is the third variant of one lesson this session: a package is not tested against what CI will
+actually give it.** First `tsx` stripping types without checking them, then wrapper suites running on
+a stale `dist`, now a workflow with no dep build at all. Local green says nothing about a clean
+checkout — the way to check is to move `dist` aside and replay the workflow's steps in order.
+
 ### Trap this paid for — read before touching a library
 
 **The Node-RED wrapper suites run against the library's BUILT `dist`, not its source.** All four
