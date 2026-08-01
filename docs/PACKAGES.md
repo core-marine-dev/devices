@@ -24,11 +24,40 @@ error side is an **array** (`ParserError[]`): one call can be wrong for more tha
 All: `type: module`, dual ESM/CJS via tsup `exports`, MIT, `engines.node` `>=22`. **ALL FIVE DEVICES
 ARE NOW ON `protocol-core` AND EMIT CMA** — the refactor is complete.
 
-Test counts, re-measured 2026-08-01 after the §3.3 work: `protocol-core` 43, `nmea-parser` **135**,
-`norsub-emru` 48, `septentrio-sbf` **221**, `thelmabiotel-tblive` 260, `sbg-ecom` **112** (was 78,
-was 0). Wrappers: 28 / 37 / **66** / 45 / 64.
+Test counts, re-measured 2026-08-01 after the §3.3 work and the release checklist: `protocol-core` 43,
+`nmea-parser` **135**, `norsub-emru` **55**, `septentrio-sbf` **221**, `thelmabiotel-tblive` 260,
+`sbg-ecom` **112** (was 78, was 0). Wrappers: 28 / 37 / **66** / 45 / 64.
 
-**nmea-parser's built-in knowledge base is 26 sentence ids / 34 definitions** (was 16 ids), across
+**Coverage is now ENFORCED at 80% in all six libraries** (`thresholds` in each `vitest.config.ts`;
+tblive keeps its stricter 95/90). Achieved, measured 2026-08-01 — statements / branches / functions /
+lines:
+
+| package | stmts | branch | funcs | lines |
+| --- | --- | --- | --- | --- |
+| `protocol-core` | 95.42 | 90.32 | 89.28 | 95.83 |
+| `nmea-parser` | 97.05 | 92.11 | 98.82 | 97.54 |
+| `norsub-emru` | 94.84 | **84.09** | 100 | 96.38 |
+| `septentrio-sbf` | 95.55 | 81.37 | 96.22 | 97.64 |
+| `thelmabiotel-tblive` | 100 | 96.19 | 100 | 100 |
+| `sbg-ecom` | 96.10 | 85.87 | 97.94 | 97.64 |
+
+`norsub-emru` was the one package BELOW the bar — 79.54% branches — and the gap was the status
+aggregator's guards: an empty `status` field, a value too large for a uint32, and PNORSUB7b with empty
+halves. All three are what a real device sends, all three now have specs, and the number is 84.09%.
+Three branches remain uncovered on purpose: the `protocol` setter's switch body and
+`protocol-nmea.ts`'s `if (builtin.success)` false branch are unreachable while only one protocol is
+registered.
+
+**Every wrapper now has `test:coverage` too** (`node --test --experimental-test-coverage`, scoped to
+`src/**`). Measured on `src/`, as the libraries are: nmea 96.06/90.91, norsub 99.41/94.25, septentrio
+98.73/87.60, tblive 98.77/97.73, sbg 98.37/91.23 (lines/branches). ⚠️ **Measure `src/**` only.**
+Including `dist/` double-counts: the bundle contains a second copy of `src/lib.ts` reachable only
+through the real-node-red integration test, which drags the apparent branch figure into the 50s and
+made the septentrio wrapper look like it was failing at 76% when its source is at 87.60%.
+
+**nmea-parser's built-in knowledge base is 28 sentence ids / 37 definitions** (was 16 ids; 26/34 before
+`VBW` and `DPT` were added on 2026-08-01 — measured at runtime, `sentenceIds.length` and
+`getSentences().length`), across
 seven protocol blocks, NMEA first and newest-first:
 NMEA `4.11` (`AAM` `DTM` `GBS` `GGA` `GLL` `GNS` `GRS` `GSA` `GST` `GSV` `HDT` `MWV` `RMC` `ROT` `THS`
 `TXT` `VTG` `ZDA`) · NMEA `4.00` (`GBS` `GNS` `GRS` `GSA` `GSV` `RMC` — the forms superseded by the 4.10

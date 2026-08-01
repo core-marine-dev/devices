@@ -25,9 +25,13 @@
 > (docs).
 >
 > Gate re-run from scratch this session (builds first — the wrapper suites run against `dist`):
-> **45 steps, exit 0.** core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · **sbg 112**
+> **45 steps, exit 0.** core 43 · nmea 135 · norsub **55** · septentrio 221 · tblive 260 · **sbg 112**
 > (was 78) · wrappers 28 / 37 / **66** / 45 / 64 · repo-wide `eslint` clean · `tsc --noEmit` clean in
 > all eleven packages. `docs/PACKAGES.md` had the septentrio wrapper at 61; it is 66, now corrected.
+>
+> **A 10-point release checklist was then run point by point — see §"✅ THE RELEASE CHECKLIST".**
+> Everything cru asked to check was measured, not assumed; ten findings were fixed and one is left for
+> him, because it lives on npmjs.com and not in this repo.
 >
 > **🔴 One near-miss caught:** norsub's two roll-description fixes had been applied to a TEST FIXTURE
 > copy of `norsub.yml`, not to the file `norsub-emru` ships — so 6.0.0 would have published the bugs
@@ -397,6 +401,59 @@ From §3.3, with their SBG message ids. Field counts are payload only:
    `NMEA`): `SBG NMEA` for PSBGI/PSBGB, `TELEDYNE RDI` for PRDID, `IXBLUE` for the five PH*/INDYN,
    `ASHTECH` for PASHR, `TRIMBLE` for GGK — unless GGK turns out to be nmea-parser's `PTNLGGK`, in
    which case it needs nothing.
+
+# ✅ THE RELEASE CHECKLIST — 10 POINTS, MEASURED (2026-08-01, cru's ask)
+
+cru asked for ten checks before the release, explicitly "do not suppose anything". Every number below
+came from running something. **Nine points are now green; one is not ours to close.**
+
+## ⛔ THE ONE THING LEFT, AND IT IS NOT IN THIS REPO
+
+**Four packages have never published through OIDC trusted publishing**, which is what the workflows now
+use. Evidence, not inference: the six packages released on 2026-07-30 all carry SLSA provenance
+attestations (`npm view <pkg> dist.attestations`), and `septentrio-sbf`, `septentrio-sbf-nodered`,
+`sbg-ecom` and `sbg-ecom-nodered` have **none** — their latest versions date from May 2024, published
+with a token, before the OIDC cutover in `af64d49` (2026-07-13).
+
+Trusted publishing is configured **per package on npmjs.com**, not in the repo, so it cannot be checked
+or fixed from here. **If those four have no trusted publisher configured, their publish job fails.**
+cru must confirm on npmjs.com before merging.
+
+## What was checked, and what it showed
+
+| # | check | result |
+| --- | --- | --- |
+| 1 | every package on the next major | ✅ verified live against npm — all ten exactly one major ahead |
+| 2 | pair majors match | ✅ all five, `workspace:^`, guard proven by half-bumping on purpose |
+| 3 | ≥80% coverage | ❌ `norsub-emru` was 79.54% branches → **fixed, 84.09%**, and 80% is now ENFORCED in all six |
+| 4 | CI/CD current | ⚠️ `setup-node` v6→**v7**, pnpm 11.15.1→**11.18.0**, 4 wrappers had **no typecheck** → all fixed |
+| 5 | CI will pass | ✅ all 11 workflows replayed from a wiped `dist/`, exit 0; tarballs clean; **except the OIDC item above** |
+| 6 | parser READMEs | ❌ 3 real bugs → fixed; 4 packages had no upgrade section for the major they publish → written |
+| 7 | wrapper READMEs + editor help | ❌ `msg.sentence` → `msg.definition` never propagated → fixed in 2 READMEs + 1 help panel |
+| 8 | repo docs | ❌ `TOOLING.md` had 5 false rows; `AGENTS.md`/`ARCHITECTURE.md` still described Mocha + Docker → fixed |
+| 9 | wrapper package.json | ⚠️ one description, missing `cma` keywords → fixed; everything else already uniform |
+| 10 | example flows match the API | ⚠️ one stale key in nmea's flow → fixed; sbg's flow gained the §3.3 sentences |
+
+## The findings worth remembering
+
+- **`TOOLING.md` claimed "all 5 nodered workflows have the test job commented out — they publish
+  untested".** That was true once and is now the opposite: all five have enabled, gated test jobs. A
+  stale doc that describes a *fixed* safety problem as current is worse than no doc.
+- **Only `sbg-ecom-nodered` typechecked in CI.** All five wrappers build with `dts: false`, so tsup
+  never typechecks; tests run under `tsx`, which strips types; eslint does not typecheck either. Four
+  wrappers therefore had NO type checking anywhere in CI. The libraries were fine — they all emit
+  declarations, so their build is the typecheck.
+- **Coverage of a wrapper must be scoped to `src/**`.** The bundle in `dist/` holds a second copy of
+  `src/lib.ts` that only the real-node-red test reaches, so including it reports ~55-62% branches and
+  makes a healthy wrapper look broken. `septentrio-sbf-nodered` looked like a 76% failure that way; its
+  source is 87.60%.
+- **`msg.sentence` was renamed `msg.definition` and the docs never followed** — in the nmea wrapper's
+  README *and* its Node-RED help panel, and in norsub's README, where the output types were wrong too
+  (`object | null` for something that returns an array or an error string, and the code's own comment
+  says it stopped returning `null`).
+- **The root script set was not uniform**, contradicting `4941437`: two wrappers had no
+  `:nodered:lint` alias and two libraries used `:coverage` where four used `:test:coverage`. Normalised,
+  and every wrapper gained `:nodered:test:coverage`.
 
 # ✅ §3.3 IS IN — NINE SENTENCES, AND THREE THINGS THE READING CHANGED (2026-08-01)
 

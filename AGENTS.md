@@ -49,7 +49,7 @@ Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thel
 pnpm run <package>:test            # vitest (watch)
 pnpm run <package>:build           # format + tsup (ESM + CJS)
 pnpm run <package>:lint            # eslint
-pnpm run <package>:nodered:test    # mocha (Node-RED wrapper)
+pnpm run <package>:nodered:test    # node:test via tsx (Node-RED wrapper) — does NOT typecheck
 ```
 
 Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](docs/COMMANDS.md).

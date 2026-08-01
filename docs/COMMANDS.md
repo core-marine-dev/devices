@@ -8,10 +8,13 @@ Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thel
 ```bash
 pnpm run <package>:build           # format (eslint) + tsup transpile to ESM + CJS
 pnpm run <package>:test            # vitest (watch mode)
-pnpm run <package>:test:coverage   # vitest coverage (NOTE: sbg-ecom/septentrio use "<package>:coverage")
+pnpm run <package>:test:coverage   # vitest coverage — uniform across all six libraries
 pnpm run <package>:lint            # eslint check
 pnpm run <package>:format          # eslint --fix
-pnpm run nmea-parser:protocols     # regenerate src/nmea.ts from protocols YAML (nmea-parser only)
+pnpm run nmea-parser:protocols     # regenerate src/nmea.ts from protocols YAML
+pnpm run norsub-emru:protocols     # same, for norsub's own definitions
+                                   # (septentrio-sbf has a package-level `protocols` script too,
+                                   #  run by its own `test`; there is no root alias for it)
 pnpm lint                          # eslint — whole monorepo
 pnpm lint:fix                      # eslint --fix — whole monorepo
 ```
