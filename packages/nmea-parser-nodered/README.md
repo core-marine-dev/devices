@@ -11,7 +11,7 @@ Node-Red component to read NMEA 0183 sentences. It is a wrapper of [@coremarine/
 NMEA component uses 5 properties to work:
 
 - `payload` is the main property with NMEA content.
-- `sentences`, `sentence`, `memory` and `fake` are optionals.
+- `sentences`, `definition`, `memory` and `fake` are optionals.
 
 | Input property         | Description                                                                            |
 | :--------------------- | :------------------------------------------------------------------------------------- |
@@ -23,7 +23,7 @@ NMEA component uses 5 properties to work:
 
 ## Output
 
-Each input proerty would be responded in the same output property
+Each input property is answered in the output property of the same name
 
 | Output property        | Description                                                                                                                    |
 | :--------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
@@ -68,10 +68,10 @@ NMEA 0183 sentence). Each time it receives data from payload input, it gives the
 
 It just a wrapper of the npm library [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (take a look on it).
 
-To interact with the *memory* | *sentences* | *sentence* API is through the `memory` | `sentences` | `sentence` property:
+To interact with the *memory* | *sentences* | *definition* API is through the `memory` | `sentences` | `definition` property:
 
-- If you request something in `msg.memory` | `msg.sentences` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.sentences` | `msg.sentence` output
+- If you request something in `msg.memory` | `msg.sentences` | `msg.definition` input
+- The response will be in `msg.memory` | `msg.sentences` | `msg.definition` output
 
 ### Memory
 
