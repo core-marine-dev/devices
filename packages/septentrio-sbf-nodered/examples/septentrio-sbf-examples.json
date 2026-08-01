@@ -205,6 +205,29 @@
         "h": 82
     },
     {
+        "id": "g-protocols",
+        "type": "group",
+        "z": "sbf-tab",
+        "name": "Two protocols on one node — switch, then feed",
+        "style": {
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
+        },
+        "nodes": [
+            "c-protocols",
+            "i-proto-sbf",
+            "i-sbf-frame",
+            "i-proto-nmea",
+            "i-nmea-text",
+            "lo-protocols"
+        ],
+        "x": 54,
+        "y": 1199,
+        "w": 497,
+        "h": 242
+    },
+    {
         "id": "catch-all",
         "type": "catch",
         "z": "sbf-tab",
@@ -1157,37 +1180,14 @@
         "wires": []
     },
     {
-        "id": "g-protocols",
-        "type": "group",
-        "z": "sbf-tab",
-        "name": "Two protocols on one node — switch, then feed",
-        "style": {
-            "label": true,
-            "stroke": "#000000",
-            "color": "#000000"
-        },
-        "nodes": [
-            "c-protocols",
-            "i-proto-sbf",
-            "i-sbf-frame",
-            "i-proto-nmea",
-            "i-nmea-text",
-            "lo-protocols"
-        ],
-        "x": 54,
-        "y": 1201,
-        "w": 482,
-        "h": 242
-    },
-    {
         "id": "c-protocols",
         "type": "comment",
         "z": "sbf-tab",
         "g": "g-protocols",
         "name": "One node, three protocol names",
         "info": "A Septentrio receiver can be configured to emit SBF **or** NMEA on the same port, so the node parses both — one at a time. Fire the two `protocol: set` injects to switch it, then feed it.\n\n`protocol.name` in the output says which wire format the sentence came from:\n\n- `SEPTENTRIO SBF` — the binary blocks\n- `SEPTENTRIO NMEA` — the six proprietary `$PSSN` sentences\n- `NMEA` — standard sentences, straight from @coremarine/nmea-parser\n\nSo `startsWith('SEPTENTRIO')` means \"proprietary to this device, either wire format\".\n\nTwo things worth knowing:\n\n- **The payload is bytes in BOTH protocols** — a plain `$PSSN,…` string is refused. The NMEA inject here carries the same ASCII, base64-encoded, exactly as a serial-in node would deliver it.\n- **Switching discards the buffer**, and this node is shared with the other groups on this tab, so leave it on `sbf` when you are done.",
-        "x": 240,
-        "y": 1242,
+        "x": 210,
+        "y": 1240,
         "wires": []
     },
     {
@@ -1210,8 +1210,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 240,
-        "y": 1282,
+        "x": 360,
+        "y": 1280,
         "wires": [
             [
                 "lo-protocols"
@@ -1236,8 +1236,8 @@
         "topic": "",
         "payload": "JEC0kzIXLADQkPEW2AgHAAEAAADPsS5DPVAQwfkCldDvlEa++QKV0AxBoD4=",
         "payloadType": "str",
-        "x": 240,
-        "y": 1322,
+        "x": 330,
+        "y": 1320,
         "wires": [
             [
                 "lo-protocols"
@@ -1264,8 +1264,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 240,
-        "y": 1362,
+        "x": 350,
+        "y": 1360,
         "wires": [
             [
                 "lo-protocols"
@@ -1290,8 +1290,8 @@
         "topic": "",
         "payload": "JFBTU04sVEZNLDEwNDc1MS4wMCwyLDEwMjEsMTAyMywxMDI1KjVGDQokR1BHR0EsMTIzNTE5LDQ4MDcuMDM4LE4sMDExMzEuMDAwLEUsMSwwOCwwLjksNTQ1LjQsTSw0Ni45LE0sLCo0Nw0K",
         "payloadType": "str",
-        "x": 240,
-        "y": 1402,
+        "x": 270,
+        "y": 1400,
         "wires": [
             [
                 "lo-protocols"
@@ -1308,8 +1308,8 @@
         "links": [
             "ac8cfd800671404b"
         ],
-        "x": 480,
-        "y": 1342,
+        "x": 510,
+        "y": 1340,
         "wires": []
     }
 ]
