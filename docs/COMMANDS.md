@@ -28,10 +28,21 @@ usage: [`docs/TOOLING.md`](TOOLING.md) §Local CI (act).
 
 ## Node-RED components
 
+All five wrappers now have the same script set — TS + tsup + `node:test`, no docker, no
+`node-red-node-test-helper` (which is incompatible with node-red 5):
+
 ```bash
-pnpm run <package>:nodered:test    # mocha + node-red-node-test-helper
-pnpm run <package>:nodered:docker  # launch local Node-RED docker env for manual testing
+pnpm run <package>:nodered:build      # tsup -> dist/ + copy parser.html and icons
+pnpm run <package>:nodered:test       # node --test: unit + a REAL headless node-red run
+pnpm run <package>:nodered:lint       # eslint
+pnpm run <package>:nodered:dev        # local Node-RED on :1880 with a scratch flow
+pnpm run <package>:nodered:examples   # the same, editing the SHIPPED example flow
 ```
+
+⚠️ **The wrapper suites run against the library's BUILT `dist`, not its source** — build the library
+first or you are testing a stale copy. And `tsx` strips types **without checking them**, so a green
+suite says nothing about the types: run `npx tsc --noEmit -p tsconfig.json` inside a wrapper whenever
+its library changes shape.
 
 ## Single test file
 
@@ -51,7 +62,8 @@ cd packages/<package> && pnpm vitest run tests/<file>.test.ts
 
 `misc/tests/` (gitignored) holds the synthetic-data generators used to design the CMA format:
 
-- `misc/tests/sbg/generate.ts` — generates the SBG binary corpus (`log_*.bin`, `all_logs.bin`)
-- `misc/tests/sbg/sbg-to-cma.ts`, `sbg-cma-compare.ts` — legacy→CMA conversion + comparison
+- `misc/tests/sbg/generate.ts`, `sbg-to-cma.ts`, `sbg-cma-compare.ts` — the pre-1.0.0 SBG scratch
+  harness, now superseded: the corpus lives in `packages/sbg-ecom/tests/fixtures/` (committed, with a
+  README stating what each file must parse to) and the comparison is moot now that the library emits CMA
 - `misc/tests/p08trident/` — P08-Trident FPSO simulation (NMEA @1Hz + SBG @10Hz synthetic
   logs); see its `REQUIREMENTS.md`
