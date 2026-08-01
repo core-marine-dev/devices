@@ -13,7 +13,9 @@
 > **Last updated:** 2026-08-01 — **THE SBG-ECOM PLAN IS WRITTEN AND ALL NINE DECISIONS ARE LOCKED:**
 > §"🗺️ SBG-ECOM — THE PLAN". Read it first; it is the plan of record for the last device, it corrects
 > two wrong data claims in the older scoping section, and it ends with a paste-ready prompt. **No code
-> written yet — PHASE 0 IS THE NEXT ACTION.**
+> written yet — **PHASE 0 IS DONE** (`0e03b30`: gate re-measured green, a verified capture corpus now in
+> git, the corrupt `sbg.bin` deleted) and **PHASE 1 IS THE NEXT ACTION**. Phase 0 found a live release
+> hazard: **`sbg-ecom-nodered` publishes to npm with no test gate at all** — see phase 0, finding 2.
 >
 > **Previously (2026-08-01, earlier):** **`dev` is PUSHED and clean.** The protocol-naming +
 > NMEA-version overhaul is done (§"🏷️ PROTOCOL NAMES AND NMEA VERSIONS"), septentrio's CI break is
@@ -130,8 +132,14 @@ apply — one buffer carries two framings simultaneously.
 
 ### ✅ D1 · Version — LOCKED
 
-**1.0.0** for library and wrapper. cru: "yes, new major (and stable) version". Neither has ever been
-published, so there is no consumer to break; both at the same major, per the version policy.
+**1.0.0** for library and wrapper. cru: "yes, new major (and stable) version". Both at the same major,
+per the version policy.
+
+⚠️ **Correction from phase 0:** the original reasoning here said neither package had ever been published.
+**It was wrong** — npm has `@coremarine/sbg-ecom@0.0.1` and `@coremarine/sbg-ecom-nodered@0.0.1` and
+`0.0.2`. The decision is unaffected (`0.0.x` carries no semver guarantee, so `1.0.0` is the right first
+stable release rather than `2.0.0`), but a consumer could be on `0.0.1` today, so the against-npm
+verification after publishing is not a formality.
 
 ### ✅ D2 · Scope — LOCKED
 
@@ -358,15 +366,63 @@ protocol sitting beside a `protocol` parameter meaning the firmware is a trap on
 
 Each phase ends green and committed. **Update this doc in the same turn as each phase.**
 
-### Phase 0 — verify the ground (no code)
+### ✅ Phase 0 — verify the ground — DONE 2026-08-01 (`0e03b30`), and it found three things
 
-1. Re-run the gate rather than trusting this file: five vitest suites, four node-red suites, repo-wide
-   `eslint .`, `tsc --noEmit` per package. **Build every library first** — the wrapper suites run against
-   `dist`, and a stale `dist` has hidden real breaks twice.
-2. Fixture triage per **D8**.
-3. Read the manual — `misc/parsers/sbg/datasheets/Ellipse+Ekinox+Apogee+Series+-+Firmware+Manual.pdf`
-   (SBGFWM 2.3, 164 pp.), §2 framing and the §5-ish LOG tables. It is the ONLY authority for the 11
-   logs with no capture coverage, and a fake round trip cannot catch a wrong field order.
+**The gate is green, measured not recalled** (all six libraries rebuilt first, so every wrapper suite ran
+against fresh `dist`):
+
+> core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · wrappers 28 / 37 / 66 / 45 ·
+> repo-wide `eslint .` clean · `tsc --noEmit` clean in all ten packages.
+
+Identical to what this doc claimed, so nothing had rotted. `sbg-ecom:test` and `sbg-ecom:nodered:test`
+**exit 1** — "no test files found" — which is not merely "zero specs", see finding 2.
+
+#### ⚠️ 1. BOTH sbg PACKAGES ARE ALREADY ON npm — D1's stated premise was wrong
+
+`npm view` says `@coremarine/sbg-ecom` is published at **0.0.1** and `@coremarine/sbg-ecom-nodered` at
+**0.0.1 and 0.0.2**. D1 said "neither package has ever been published… there is no consumer to break".
+**The decision still stands** — `0.0.x` carries no semver guarantee, so `1.0.0` is exactly the right
+first stable release, not `2.0.0` — but the reasoning has to be corrected, and the post-publish
+verification step matters now: someone could be consuming `0.0.1` today.
+
+#### 🔴 2. THE WRAPPER PUBLISHES WITH NO TEST GATE AT ALL — fix before any sbg work lands on `main`
+
+In `.github/workflows/sbg-ecom-nodered.yml` the test job is commented out **and so is `needs: test`**, so
+`publish` runs unguarded. This is not theoretical: the 2026-07-22 run on `main` shows the publish job
+**succeeded**, which is how `0.0.2` reached npm. The only thing keeping it quiet is the path trigger
+(`packages/sbg-ecom-nodered/**`) — and the refactor touches exactly that path, so **the first merge to
+`main` that includes wrapper work would publish an untested package** whose `main: index.js` does not
+exist and whose `src/parser.js` calls a library API that was removed.
+
+The library's workflow is the mirror image: its test job runs `sbg-ecom:test`, which **exits 1**, so
+`needs: test` blocks publish — the 2026-07-22 run on `main` shows `failure`. sbg-ecom is protected only
+by an accidentally-failing test. Both are fixed in phase 3 alongside the missing dependency build; this
+note exists so nobody merges wrapper work to `main` before then.
+
+#### 📦 3. The corpus is in git, and the source capture turns out to be LOSSY
+
+`packages/sbg-ecom/tests/fixtures/` now holds three contiguous, frame-aligned, fully CRC-checked slices
+with a README stating exactly what each one must parse to — see that file, it is the authority:
+`stream-mixed.bin` (71 frames + 3 interleaved GGA, **no loss** — the happy-path interleaving test),
+`stream-lossy.bin` (698 B, one **orphan GGA tail** whose head never arrived), `stream-logs.bin`
+(249 frames, 12 log types, **ending in a lone trailing `0xFF`**). `tests/sbg.bin` is deleted (320
+well-framed frames, 0 passing CRC) and `.gitignore` now un-ignores `tests/fixtures/*.bin`.
+
+Two findings that shape phase 1, both new:
+
+- **`sbg_2000.csv` has 9 places where bytes went missing** mid-sentence or mid-frame — 81 of its 90
+  inter-frame gaps are clean sentences, the other 9 are orphan tails and header-less frame fragments.
+  So the mixed-stream scanner meets real dropped bytes, not just clean alternation. The first carve
+  accidentally cut across one of these and would have shipped a fixture whose documented expectation was
+  false; re-carved deliberately into a clean file and a lossy one.
+- **A trailing `0xFF` must stay PENDING, not become garbage** — it is a sync byte split across chunks.
+  Septentrio's `blockAt` already has that rule; sbg needs it, and `stream-logs.bin` ends with exactly
+  that byte so the test is free.
+
+**Still owed from phase 0:** reading the manual's LOG tables
+(`misc/parsers/sbg/datasheets/Ellipse+Ekinox+Apogee+Series+-+Firmware+Manual.pdf`, SBGFWM 2.3, 164 pp.).
+It is the only authority for the 11 logs with no capture, and a fake round trip cannot catch a wrong
+field order. Done as phase 2 needs each table, not up front.
 
 ### Phase 1 — the parser skeleton on `protocol-core`
 
@@ -410,10 +466,13 @@ that file is the template and its comments explain every decision.
 - README rewritten against the emitted types (writing septentrio's README found a real bug).
 - `docs/PACKAGES.md` + `docs/CMA.md` conformance table + `docs/SBG-REPORT.md` (that doc describes the
   legacy output — either retire it or mark it historical).
-- **`.github/workflows/sbg-ecom.yml` has the same hole septentrio's did**: it runs `sbg-ecom:test` with
-  **no dependency build**, and after this refactor the package depends on `protocol-core` (and
-  `nmea-parser` if D3 is yes). `dist` is gitignored, so CI would fail on the first push. Copy
-  `norsub-emru.yml`, which has the identical dependency shape and gets it right. Add the trigger paths too.
+- **BOTH sbg workflows are broken, in opposite directions** — measured in phase 0, details there.
+  `sbg-ecom.yml` runs `sbg-ecom:test` with **no dependency build** (the same hole septentrio's had), and
+  after this refactor the package depends on `protocol-core` + `nmea-parser`; `dist` is gitignored, so CI
+  would fail on the first push. Copy `norsub-emru.yml`, which has the identical dependency shape and gets
+  it right, and add the trigger paths. **`sbg-ecom-nodered.yml` is the urgent one: its test job AND its
+  `needs: test` are both commented out, so `publish` runs unguarded** — that is how `0.0.2` reached npm.
+  Re-enable both as soon as the wrapper has tests, and do not merge wrapper work to `main` before that.
 - Add the missing `tests/version.unit.test.ts` guard — sbg is the only pair without one.
 
 ### Phase 4 — the wrapper rebuild
