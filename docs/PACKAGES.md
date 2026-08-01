@@ -24,8 +24,9 @@ error side is an **array** (`ParserError[]`): one call can be wrong for more tha
 All: `type: module`, dual ESM/CJS via tsup `exports`, MIT, `engines.node` `>=22`. **ALL FIVE DEVICES
 ARE NOW ON `protocol-core` AND EMIT CMA** — the refactor is complete.
 
-Test counts, measured 2026-08-01: `protocol-core` 43, `nmea-parser` **135**, `norsub-emru` 48,
-`septentrio-sbf` **221**, `thelmabiotel-tblive` 260, `sbg-ecom` **78** (was 0).
+Test counts, re-measured 2026-08-01 after the §3.3 work: `protocol-core` 43, `nmea-parser` **135**,
+`norsub-emru` 48, `septentrio-sbf` **221**, `thelmabiotel-tblive` 260, `sbg-ecom` **112** (was 78,
+was 0). Wrappers: 28 / 37 / **66** / 45 / 64.
 
 **nmea-parser's built-in knowledge base is 26 sentence ids / 34 definitions** (was 16 ids), across
 seven protocol blocks, NMEA first and newest-first:
@@ -178,8 +179,36 @@ and fell through as a generic sentence.
   `'<class>:<message>'` because eCom identity is a pair with no revision concept. Uptime is never
   presented as a clock: `SBG_ECOM_LOG_UTC_TIME` teaches the parser the uptime↔UTC correspondence and
   every later log is dated from it. Large frames emit one CMA per page, never reassembled.
-  **78 specs**, including three committed real captures. Six real bugs in the 0.0.x decoders and two
+  **112 specs**, including three committed real captures. Six real bugs in the 0.0.x decoders and two
   datasheet errors are catalogued in `docs/STATUS.md` and in the code.
+  - **The §3.3 proprietary NMEA sentences are IN as of 2026-08-01** — `src/sbg-nmea.ts` (definitions)
+    and `src/nmea-metadata.ts` (the one decoder), registered on the composed `SBGNMEAParser` exactly the
+    way `septentrio-sbf` registers its `$PSSN` family. **Nine modelled**, with the VENDOR as
+    `protocol.name` per the MIROS precedent: `PSBGI` 8 and `PSBGB` 23 as `SBG NMEA`, `PRDID` 3 as
+    `TELEDYNE RDI`, `PASHR` 11 as `ASHTECH`, and `PHINF` 1 / `PHTRO` 4 / `PHLIN` 3 / `PHOCT` 19 /
+    `INDYN` 10 as `IXBLUE`.
+    `PHINF`'s single field is a 32-bit OCTANS status word, decoded into 27 named flags at field AND
+    payload level; bits 4, 26 and 28-30 have no row in §3.3.8 and are deliberately NOT invented.
+  - ⚠️ **`PSBGI` and `PSBGB` carry ONE MORE FIELD than their tables list** — 8 where §3.3.4 says 7,
+    23 where §3.3.7 says 22. SBG's own formatter emits a trailing comma before the checksum, and the
+    printed checksum verifies only WITH it, independently in both sentences; none of the nine sentences
+    SBG renders for other vendors has one. This matters because definitions are matched by EXACT field
+    count, so a 7-field definition would never match a real sentence. The shorter table forms are NOT
+    defined — no capture contains either sentence, so the examples are the only witness.
+  - **`GGK` (§3.3.13) needed nothing**: it is `$PTNL,GGK,...` with 12 fields, already modelled as
+    `PTNLGGK` in nmea-parser and already resolved by its `PTNL:12` resolver — and SBG's §3.2.1 quality
+    enum agrees with Trimble's numbering, so there was nothing to fork. A spec pins that it still parses.
+  - **`PASHR` is ONE definition covering TWO sbgECom messages** — 02 (§3.3.5) and 12 (§3.3.6, "WASSP") —
+    which is **cru's decision of 2026-08-01**, option A of two. They share the wire id and all 11 fields;
+    only the heave SIGN differs (msg 02 positive down, msg 12 positive up), the sbgECom message id never
+    reaches the wire because the NMEA half is not wrapped in eCom frames (§2.1.4), and the manual's null
+    example is byte-identical under both sections, checksum included — so no resolver could separate
+    them. The ambiguity is therefore STATED in the heave field's `description`, naming both conventions
+    and both message numbers, rather than resolved. The rejected option B was a
+    `new SBGParser({ heaveSign })` option; it remains purely additive if ever wanted. Five specs pin the
+    decision, including that roll and pitch do NOT inherit the warning and that `WASSP` is not an id.
+    ⚠️ Do not later infer the sign from heave's printed precision (`fff.ff` vs `fff.fff`): the null form
+    has no digits, so it cannot work.
 - **thelmabiotel-tblive** — TB Live hydrophone text protocol, **refactored onto CMA and published as
   `2.0.0` on 2026-07-30; now `3.0.0` in-tree, unreleased** (its error side became `ParserError[]`).
   `TBLiveParser extends StringParser`. The protocol has **no framing**
@@ -264,7 +293,7 @@ it. Do not "tidy" these. `node-red.version` is `>=4.0.0` on all five wrappers.
 | --- | --- | --- | --- | --- |
 | nmea-parser-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
 | norsub-emru-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
-| septentrio-sbf-nodered | **2.0.0** (unreleased) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (61/61) | Rebuilt from the nmea/tblive template 2026-07-31. Node type kept as `cma-septentrio-parser` so deployed flows survive. **The first BINARY wrapper**: `payload` takes a Buffer (base64 string / byte array also accepted), and `fake` hands back a Buffer. Adds **protocol** (norsub's channel) + **firmware** (tblive's) selectors, plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis |
+| septentrio-sbf-nodered | **2.0.0** (unreleased) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (66/66) | Rebuilt from the nmea/tblive template 2026-07-31. Node type kept as `cma-septentrio-parser` so deployed flows survive. **The first BINARY wrapper**: `payload` takes a Buffer (base64 string / byte array also accepted), and `fake` hands back a Buffer. Adds **protocol** (norsub's channel) + **firmware** (tblive's) selectors, plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis |
 | sbg-ecom-nodered | **1.0.0** (unreleased; 0.0.2 on npm) | `workspace:^` → `^1.0.0` | `node:test`, **enabled in CI** (64/64) | **Rewritten from scratch 2026-08-01**, not ported. Node type kept as `cma-sbg-ecom` so deployed flows survive. `payload` takes a Buffer, base64, a byte array **or an NMEA sentence** (any string starting with `$`) — the mixed stream needs no switch, so there is NO protocol channel. Adds **firmware** plus `msg.ids` / `msg.definition` / `msg.fake`. Its `tests/examples.unit.test.ts` validates the SHIPPED example flow and runs every inject through the wrapper's own handlers |
 | thelmabiotel-tblive-nodered | **3.0.0** (unreleased; 2.0.0 on npm) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
 
