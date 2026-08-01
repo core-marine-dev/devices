@@ -48,11 +48,14 @@ describe('Parser', () => {
     const parser = new Parser()
     const before = parser.getSentenceDefinition('AAM')
     expect(before.success ? before.value.length : 0).toBe(1)
-    // A second revision of an id the built-in already knows.
+    // A second revision of an id the built-in already knows. The version has to
+    // beat the built-in's 4.11 for the "newest wins" half of this test to mean
+    // anything — the built-ins now carry REAL NMEA revisions, so a user-supplied
+    // definition only takes precedence if it claims a higher one.
     const result = parser.addSentences([
       'protocols:',
       '  - protocol: NMEA',
-      '    version: \'4.0\'',
+      '    version: \'5.0\'',
       '    standard: true',
       '    sentences:',
       '      - id: AAM',
@@ -66,8 +69,8 @@ describe('Parser', () => {
     expect(after.success).toBe(true)
     const versions = after.success ? after.value.map((d) => d.protocol.version) : []
     expect(versions).toHaveLength(2)
-    expect(versions).toContain('3.1')
-    expect(versions).toContain('4.0')
+    expect(versions).toContain('4.11')
+    expect(versions).toContain('5.0')
     // The fake sentence still uses the NEWEST definition, which now has one field.
     const fake = parser.getFakeSentence('AAM')
     expect(fake.success).toBe(true)
@@ -166,10 +169,10 @@ describe('Parser', () => {
     // A Result rather than null, so the two kinds of failure are distinguishable.
     const unknown = parser.getSentenceDefinition('PdfgsdfAAM')
     expect(unknown.success).toBe(false)
-    expect(unknown.success ? '' : unknown.error.kind).toBe('unknown-id')
+    expect(unknown.success ? '' : unknown.error[0].kind).toBe('unknown-id')
     expect(parser.getSentenceDefinition('XXAAM').success).toBe(false)
     const invalid = parser.getSentenceDefinition('X')
-    expect(invalid.success ? '' : invalid.error.kind).toBe('invalid-id')
+    expect(invalid.success ? '' : invalid.error[0].kind).toBe('invalid-id')
   })
 
   test('Generate + parse fake sentences without talkers', () => {
@@ -216,7 +219,7 @@ test('GGA sentence -> CMA', () => {
   expect(output).toHaveLength(1)
   const gga = output[0]
   expect(gga.id).toBe('GGA')
-  expect(gga.protocol).toEqual({ name: 'NMEA', version: '3.1' })
+  expect(gga.protocol).toEqual({ name: 'NMEA', version: '4.11' })
   expect(gga.metadata?.standard).toBe(true)
   expect((gga.metadata?.talker as Talker).value).toBe('IN')
   expect(gga.payload).toHaveLength(14)
@@ -245,7 +248,7 @@ describe('Failed and garbage sentences', () => {
   test('1-character checksum — fully parsed, format error reported', () => {
     const [cma] = new Parser().parseData(GGA.replace('*61', '*6'))
     expect(cma.id).toBe('GGA')
-    expect(cma.protocol).toEqual({ name: 'NMEA', version: '3.1' })
+    expect(cma.protocol).toEqual({ name: 'NMEA', version: '4.11' })
     // Still fully decoded: the checksum problem does not stop the decode.
     expect(cma.payload.find((f) => f.name === 'satellites')?.value).toBe(12)
     expect(cma.errors).toHaveLength(2)
@@ -341,5 +344,111 @@ describe('Failed and garbage sentences', () => {
     const output = new Parser().parseData(`junk${GGA.replace('*61', '*6')}$HEHDT,1,T\r\n${GGA}`)
     expect(output.length).toBeGreaterThan(3)
     output.forEach((cma) => expect(CMASchema.is(cma)).toBe(true))
+  })
+})
+
+// The shared API shape is `(id, protocol, options?)` — see docs/STATUS.md. For
+// NMEA the protocol SELECTS which definition of an id to use, because the same
+// id can be defined by several protocols and versions.
+describe('the protocol argument selects which definition of an id is used', () => {
+  const parser = (): Parser => new Parser()
+
+  test('omitted, every definition of the id comes back', () => {
+    const found = parser().getSentenceDefinition('GGA')
+    expect(found.success).toBe(true)
+    if (!found.success) return
+    expect(found.value.length).toBeGreaterThan(0)
+    expect(found.value.every((definition: { id: string }) => definition.id === 'GGA')).toBe(true)
+  })
+
+  test('given, only the definitions of that protocol come back', () => {
+    const found = parser().getSentenceDefinition('GGA', 'NMEA')
+    expect(found.success).toBe(true)
+    if (!found.success) return
+    expect(found.value.every((definition: { protocol: { name: string } }) => definition.protocol.name === 'NMEA')).toBe(true)
+  })
+
+  test('a version works as well as a name', () => {
+    const byName = parser().getSentenceDefinition('GGA', 'NMEA')
+    const byVersion = parser().getSentenceDefinition('GGA', '4.11')
+    expect(byName.success && byVersion.success).toBe(true)
+    if (!byName.success || !byVersion.success) return
+    expect(byVersion.value).toStrictEqual(byName.value)
+  })
+
+  test('a protocol that does not define the id fails, and says which ones do', () => {
+    const found = parser().getSentenceDefinition('GGA', 'NORSUB8')
+    expect(found.success).toBe(false)
+    if (found.success) return
+    expect(found.error[0].kind).toBe('unknown-protocol')
+    expect(found.error[0].message).toContain('NMEA')
+  })
+
+  test('a fake sentence can be pinned to a protocol too', () => {
+    const fake = parser().getFakeSentence('GGA', 'NMEA')
+    expect(fake.success).toBe(true)
+    if (!fake.success) return
+    const [sentence] = parser().parseData(fake.value)
+    expect(sentence.id).toBe('GGA')
+    expect(sentence.errors).toBeUndefined()
+  })
+})
+
+// A fake sentence is meant to be COMMITTED — into a spec, an example flow, a bug
+// report — so with no options it has to be idempotent (cru, 2026-07-31). The old
+// generator used Math.random() on every field, which made every fixture drift.
+describe('fake sentences are idempotent by default', () => {
+  const parser = (): Parser => new Parser()
+
+  test('the same call returns the same string, twice and across instances', () => {
+    const first = parser().getFakeSentence('GGA')
+    const second = parser().getFakeSentence('GGA')
+    expect(first.success && second.success).toBe(true)
+    if (!first.success || !second.success) return
+    expect(first.value).toBe(second.value)
+  })
+
+  test('every id the parser advertises is stable', () => {
+    const one = parser()
+    const two = parser()
+    for (const id of one.sentenceIds) {
+      const a = one.getFakeSentence(id)
+      const b = two.getFakeSentence(id)
+      expect(a.success).toBe(true)
+      if (!a.success || !b.success) continue
+      expect(a.value).toBe(b.value)
+    }
+  })
+
+  test('different sentences and different fields get different values', () => {
+    const gga = parser().getFakeSentence('GGA')
+    const hdt = parser().getFakeSentence('HDT')
+    expect(gga.success && hdt.success && gga.value === hdt.value).toBe(false)
+    // fields within one sentence are seeded per index, so they are not all equal
+    if (!gga.success) return
+    const fields = gga.value.slice(1, gga.value.indexOf('*')).split(',').slice(1)
+    expect(new Set(fields).size).toBeGreaterThan(1)
+  })
+
+  test('a deterministic fake still parses back cleanly', () => {
+    const fake = parser().getFakeSentence('GGA')
+    expect(fake.success).toBe(true)
+    if (!fake.success) return
+    const [sentence] = parser().parseData(fake.value)
+    expect(sentence.id).toBe('GGA')
+    expect(sentence.errors).toBeUndefined()
+    expect(NMEALikeSchema.is(fake.value)).toBe(true)
+  })
+
+  test('{ random: true } opts back into varied values', () => {
+    const first = parser().getFakeSentence('GGA', undefined, { random: true })
+    const second = parser().getFakeSentence('GGA', undefined, { random: true })
+    expect(first.success && second.success).toBe(true)
+    if (!first.success || !second.success) return
+    expect(first.value).not.toBe(second.value)
+    // ...and it must still be a valid sentence
+    const [sentence] = parser().parseData(first.value)
+    expect(sentence.id).toBe('GGA')
+    expect(sentence.errors).toBeUndefined()
   })
 })

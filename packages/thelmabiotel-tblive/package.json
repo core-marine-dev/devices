@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/thelmabiotel-tblive",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Library to work with Thlema Biotel TB-Lives hydrophones",
   "author": "CoreMarine",
   "license": "MIT",

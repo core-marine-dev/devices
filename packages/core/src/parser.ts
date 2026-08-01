@@ -1,7 +1,8 @@
 // coded
 import { MAX_BYTES, MAX_CHARACTERS } from './constants'
+import type { Result } from './result'
 import { BooleanSchema, NaturalSchema } from './schemas'
-import type { CMA, DeviceParser, DraftCMA, ExtractedSentences, Input, ParserOptions, Timestamp, TimestampMetadata } from './types'
+import type { CMA, DeviceParser, DraftCMA, ExtractedSentences, Input, ParserError, ParserOptions, SentenceDefinition, Timestamp, TimestampMetadata } from './types'
 
 // Shared parser contract. Every CoreMarine device parser is created with an
 // options object, fed bytes/chars with `addData`, and drained with
@@ -73,6 +74,14 @@ export abstract class Parser<B extends Input> implements DeviceParser<B> {
 
   // Protocol-specific — the one method a concrete parser must implement.
   protected abstract extractSentences(buffer: B): ExtractedSentences<B>
+
+  // The introspection surface, abstract so that "every parser has the same API"
+  // is enforced by the compiler rather than by convention. A parser that cannot
+  // fabricate or describe a given sentence returns a failed Result explaining
+  // why — it does not omit the method.
+  abstract get sentenceIds(): string[]
+  abstract getSentenceDefinition(id: string, protocol?: string): Result<SentenceDefinition[], ParserError[]>
+  abstract getFakeSentence(id: string, protocol?: string, options?: unknown): Result<B, ParserError[]>
   // Buffer-type mechanics — supplied by the StringParser / BinaryParser bases.
   protected abstract emptyBuffer(): B
   protected abstract concat(a: B, b: B): B

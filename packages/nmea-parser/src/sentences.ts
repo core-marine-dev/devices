@@ -1,5 +1,5 @@
 // installed
-import { TYPE_SCHEMAS, UNKNOWN } from '@coremarine/protocol-core'
+import { generator, TYPE_SCHEMAS, UNKNOWN } from '@coremarine/protocol-core'
 import type { DraftCMA, Field, GarbageSentence, Type, Value } from '@coremarine/protocol-core'
 
 // coded
@@ -9,8 +9,7 @@ import { aggregateMetadata } from './metadata'
 import type { MetadataAggregators } from './metadata'
 import { resolveSentenceId } from './resolvers'
 import type { SentenceResolvers } from './resolvers'
-import type { MapStoredSentences, NMEALike, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from './types'
-import { isLowerCharASCII, isNumberCharASCII, isUpperCharASCII } from './utils'
+import type { FakeSentenceOptions, MapStoredSentences, NMEALike, ProtocolField, ProtocolFieldType, StoredSentence, Talker } from './types'
 
 // EXTRACTION ---------------------------------------------------------------------------------------------------------
 export const lastUncompletedSentence = (text: string): string | null => {
@@ -354,65 +353,75 @@ export const parseSentence = (
 )
 
 // TESTING — FAKE SENTENCE GENERATION ---------------------------------------------------------------------------------
+// IDEMPOTENT BY DEFAULT (cru, 2026-07-31): with no options, `getFakeSentence('GGA')`
+// returns the same string forever. A fake sentence is meant to be committed — into
+// a spec, into a Node-RED example flow, into a bug report — and a fixture that
+// changes on every call cannot be any of those. The values are derived from a seed
+// built out of the sentence id and the field's index, so they still look like
+// arbitrary data while being reproducible.
+//
+// `{ random: true }` restores the old behaviour for when you want to hammer a
+// decoder with varied input.
+
+// The seed label for one field: id + index means two fields of the same type in
+// the same sentence get different values, and the same field always gets its own.
+const fieldSeed = (id: string, index: number): string => `${id}:${index}`
+
+// A whole-number magnitude from a [0, 1) draw, spread across the type's range.
+const scaledInteger = (draw: number, limit: number): number => Math.floor(draw * limit)
+
 // eslint-disable-next-line sonarjs/function-return-type, sonarjs/cyclomatic-complexity -- intentional union per field type; test data generation
-const createNumberValue = (type: ProtocolFieldType): number | string | null => {
-  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
-  const sign = (Math.random() < 0.5) ? -1 : 1
-  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
-  const useed = Math.round(Math.random() * (Number.MAX_SAFE_INTEGER - Number.MIN_SAFE_INTEGER) + Number.MIN_SAFE_INTEGER)
-  const seed = useed * sign
-  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
-  const fseed = Math.random() * sign
-  const uint64 = new BigUint64Array([0n])
-  globalThis.crypto.getRandomValues(uint64)
-  const int64 = new BigInt64Array([0n])
-  globalThis.crypto.getRandomValues(int64)
+const createNumberValue = (type: ProtocolFieldType, next: () => number): number | string | null => {
+  const sign = (next() < 0.5) ? -1 : 1
+  const draw = next()
   switch (type) {
-    case 'uint8': return (new Uint8Array([useed]))[0]
-    case 'uint16': return (new Uint16Array([useed]))[0]
-    case 'uint32': return (new Uint32Array([useed]))[0]
-    case 'uint64': return uint64[0].toString()
-    case 'int8': return (new Int8Array([seed]))[0]
-    case 'int16': return (new Int16Array([seed]))[0]
-    case 'int32': return (new Int32Array([seed]))[0]
-    case 'int64': return int64[0].toString()
-    case 'float32': return (new Float32Array([fseed]))[0]
-    case 'float64': return (new Float64Array([fseed]))[0]
+    case 'uint8': return scaledInteger(draw, 256)
+    case 'uint16': return scaledInteger(draw, 65536)
+    case 'uint32': return scaledInteger(draw, 4294967296)
+    case 'uint64': return String(scaledInteger(draw, Number.MAX_SAFE_INTEGER))
+    case 'int8': return sign * scaledInteger(draw, 128)
+    case 'int16': return sign * scaledInteger(draw, 32768)
+    case 'int32': return sign * scaledInteger(draw, 2147483648)
+    case 'int64': return String(sign * scaledInteger(draw, Number.MAX_SAFE_INTEGER))
+    case 'float32': return (new Float32Array([sign * draw]))[0]
+    case 'float64': return sign * draw
   }
   return null
 }
 
-const createStringValue = (): string => {
-  // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
-  const text = Math.random().toString(36).substring(2)
-  return Array.from(text)
-    .map((letter) => (isLowerCharASCII(letter) || isUpperCharASCII(letter) || isNumberCharASCII(letter)) ? letter : 'a')
-    .join('')
+const ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789'
+
+const createStringValue = (next: () => number): string => {
+  const length = 4 + scaledInteger(next(), 5)
+  let text = ''
+  for (let index = 0; index < length; index++) {
+    text += ALPHABET[scaledInteger(next(), ALPHABET.length)]
+  }
+  return text
 }
 
 // eslint-disable-next-line sonarjs/function-return-type -- intentional union per field type; test data generation
-export const createValue = (type: ProtocolFieldType): Value => {
+export const createValue = (type: ProtocolFieldType, next: () => number = Math.random): Value => {
   switch (type) {
     case 'boolean':
-      // eslint-disable-next-line sonarjs/pseudo-random -- test data generation, not security-sensitive
-      return Math.random() > 0.5
+      return next() > 0.5
     case 'string':
-      return createStringValue()
+      return createStringValue(next)
   }
-  return createNumberValue(type)
+  return createNumberValue(type, next)
 }
 
-export const createPayload = (model: StoredSentence): string => {
-  const values = model.payload.map((field) => {
-    const value = createValue(field.type)
+export const createPayload = (model: StoredSentence, options: FakeSentenceOptions = {}): string => {
+  const values = model.payload.map((field, index) => {
+    const value = createValue(field.type, generator(fieldSeed(model.id, index), options.random))
     return (value !== null) ? value.toString() : ''
   })
   return values.join(SEPARATOR)
 }
 
-export const createFakeSentence = (model: StoredSentence, talker?: string): NMEALike => {
+export const createFakeSentence = (model: StoredSentence, talker?: string, options: FakeSentenceOptions = {}): NMEALike => {
   const id = (talker !== undefined) ? `${talker}${model.id}` : model.id
-  const info = `${id}${SEPARATOR}${createPayload(model)}`
+  const info = `${id}${SEPARATOR}${createPayload(model, options)}`
   const checksum = numberChecksumToString(calculateChecksum(info))
   return `${START_FLAG}${info}${DELIMITER}${checksum}${END_FLAG}`
 }

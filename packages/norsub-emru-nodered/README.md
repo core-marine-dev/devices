@@ -46,7 +46,7 @@ a bad request that key holds an **error string** instead of a result — the nod
 | `memory` | object | Get or set the memory setting. |
 | `protocol` | object | Get or set which protocol the device is emitting. |
 | `sentences` | object | Get the known sentence definitions, or add your own. |
-| `sentence` | string | A sentence id, to read its definition. |
+| `definition` | string | A sentence id, to read every stored definition of it. |
 | `fake` | string | A sentence id, to get a valid sample sentence. |
 
 ### Output
@@ -57,8 +57,8 @@ a bad request that key holds an **error string** instead of a result — the nod
 | `memory` | object | `{ memory: boolean, characters: number }` |
 | `protocol` | object | `{ protocol: string, protocols: string[] }` |
 | `sentences` | object | The known definitions, grouped by protocol. |
-| `sentence` | object \| null | The definition, or `null` if the id is unknown. |
-| `fake` | string \| null | A sample sentence, or `null` if the id is unknown. |
+| `definition` | array \| string | Every definition of that id — or an **error string** saying why not. Never `null`. |
+| `fake` | string | A sample sentence, or an **error string** saying why not. Never `null`. |
 
 ## Failed and garbage sentences
 
@@ -176,15 +176,19 @@ string back. `get` lists everything currently known.
 A ready-to-use file ships as [`examples/example-sentences.yml`](examples/example-sentences.yml), and
 the example flow shows the before/after of hot-expanding the parser with it.
 
-## Sentence & Fake
+## Definition & Fake
 
 | Input | Output |
 | --- | --- |
-| `sentence`: `'PNORSUB8'` | `sentence`: the definition, or `null` |
-| `fake`: `'PNORSUB8'` | `fake`: a valid sample sentence, or `null` |
+| `definition`: `'PNORSUB8'` | `definition`: an **array** — every stored definition of that id — or an **error string** |
+| `fake`: `'PNORSUB8'` | `fake`: a valid sample sentence, or an **error string** |
 
-A fake sentence is structurally correct with a valid checksum; the field values are garbage. Useful
-for exercising a flow without a device attached.
+Neither ever answers `null`: an unknown or malformed id comes back as a readable error string saying
+why, which is the whole point of the library returning a `Result`.
+
+A fake sentence is structurally correct with a valid checksum; the field values are filler. Useful
+for exercising a flow without a device attached — and the same id always gives the same sentence, so it
+is safe to use as a fixture.
 
 ## Upgrading from 2.x
 

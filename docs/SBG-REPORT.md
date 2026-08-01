@@ -1,3 +1,15 @@
+> # ⚠️ HISTORICAL — this document describes the PRE-1.0.0 legacy parser
+>
+> `@coremarine/sbg-ecom` was refactored onto CMA at **1.0.0** (2026-08-01). Nothing below reflects
+> what the library emits now: the output is CMA, the API is `addData`/`parseData`, `SBGFrameResponse`
+> is gone, and the knowledge base covers **all 34** class-0 logs rather than the 25 counted here
+> (this document says 22 in its prose and lists 25 rows — one of the three different figures the old
+> docs gave for the same thing).
+>
+> Kept because the "legacy output" section is the record of what a consumer on `0.0.1` sees, which is
+> what makes the 1.0.0 break legible. For the current library read
+> [`packages/sbg-ecom/README.md`](../packages/sbg-ecom/README.md).
+
 # SBG ECOM - Library & Node-RED Wrapper Report
 
 ## 1. Supported sentences / frames

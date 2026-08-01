@@ -6,8 +6,8 @@ details live in small docs under [`docs/`](docs/README.md); add/update those ins
 ## Read first
 
 1. **[`docs/STATUS.md`](docs/STATUS.md)** — living handoff log: where work stands, next steps,
-   uncommitted-work triage. **Read it before touching anything, and keep it updated in the same
-   turn as any meaningful change** (its maintenance rule applies to you).
+   uncommitted-work triage. **Read it first, and update it in the same turn as any meaningful
+   change** (its maintenance rule applies to you).
 2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — what this repo is and how it's laid out.
 3. [`docs/PACKAGES.md`](docs/PACKAGES.md) — per-package state and known issues.
 
@@ -15,12 +15,16 @@ details live in small docs under [`docs/`](docs/README.md); add/update those ins
 
 CoreMarine monorepo (pnpm workspaces) of TypeScript **marine device protocol parsers**
 + their **Node-RED wrappers**, under `packages/`. They are the parsing layer
-of the Tracker telemetry product, so output shapes are contracts. A deep refactor is in
-progress: all parsers must converge on the unified **CMA output format** —
-[`docs/CMA.md`](docs/CMA.md) — on the shared base `@coremarine/protocol-core`. **Done and published (2026-07-29):
-`nmea-parser@4.0.0` (the reference) and `norsub-emru@4.0.0`, each with its Node-RED wrapper at `3.0.0`.
-NEXT = `thelmabiotel-tblive` (CMA-shaped but not on the base class) + its wrapper, then the binary
-parsers `septentrio-sbf` and `sbg-ecom`.**
+of the Tracker telemetry product, so output shapes are contracts. The deep refactor onto the unified
+**CMA output format** — [`docs/CMA.md`](docs/CMA.md), on the shared base `@coremarine/protocol-core` —
+is **COMPLETE: ALL FIVE DEVICES emit CMA** (2026-08-01). A library and its wrapper share a major
+(see `docs/STATUS.md` §"VERSION POLICY").
+
+**The 2026-08-01 release shipped TEN packages**: `nmea-parser` + `norsub-emru` 6.0.0, `tblive` 3.0.0,
+`septentrio-sbf` 2.0.0, `sbg-ecom` 1.0.0, each with its wrapper at the same major; `protocol-core` is
+`private`. Verify with `npm view`, don't trust this line. ⛔ **Publishing needs cru's word EACH time** —
+`git push` and opening a PR count, not just the merge. The two BINARY parsers (`septentrio-sbf`,
+`sbg-ecom`) differ from the text ones — `BinaryParser`, Base64 `raw`, length-prefixed framing, CRC.
 
 ## Docs map
 
@@ -34,7 +38,6 @@ parsers `septentrio-sbf` and `sbg-ecom`.**
 | Commands | [`docs/COMMANDS.md`](docs/COMMANDS.md) |
 | Stack, CI, templates | [`docs/TOOLING.md`](docs/TOOLING.md) |
 | Code style | [`docs/CodeStyle.md`](docs/CodeStyle.md) |
-| npm→pnpm migration | [`docs/PNPM-MIGRATION.md`](docs/PNPM-MIGRATION.md) |
 | Protocol wire formats | [`docs/PROTOCOLS.md`](docs/PROTOCOLS.md) |
 | New packages | `CONTRIBUTING.md` + `templates/` (follow `TODO:` markers) |
 
@@ -46,7 +49,7 @@ Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thel
 pnpm run <package>:test            # vitest (watch)
 pnpm run <package>:build           # format + tsup (ESM + CJS)
 pnpm run <package>:lint            # eslint
-pnpm run <package>:nodered:test    # mocha (Node-RED wrapper)
+pnpm run <package>:nodered:test    # node:test via tsx (Node-RED wrapper) — does NOT typecheck
 ```
 
 Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](docs/COMMANDS.md).
@@ -69,9 +72,9 @@ Full list incl. coverage, docker env, single-file runs: [`docs/COMMANDS.md`](doc
 - **Discuss before coding.** The user (cru) wants decisions converged first, one step at a time.
 - Output-format changes are **breaking changes** for Tracker — never change a parser's output
   shape casually; that's the CMA refactor's job, done deliberately per package.
-- Stack: pnpm workspaces (supply-chain hardened), tsup build, Vitest (libs) / Mocha (nodered),
+- Stack: pnpm workspaces (supply-chain hardened), tsup build, Vitest (libs) / `node:test` (nodered),
   ESLint flat config (@stylistic + sonarjs + perfectionist), Valibot via SchemasJS wrapper,
-  Node >= 18. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
+  Node >= 22. Details: [`docs/TOOLING.md`](docs/TOOLING.md).
 - Git: branch from `dev`, PR to `dev`; merging `main` **publishes to npm** via GitHub Actions.
-- The working tree currently has uncommitted work from old sessions — check
-  [`docs/STATUS.md`](docs/STATUS.md) before cleaning or committing anything.
+- **Build the libraries before believing a wrapper suite** — those suites run against `dist`, and
+  `tsx` strips types WITHOUT checking them, so run `tsc --noEmit` in a wrapper when its lib changes.

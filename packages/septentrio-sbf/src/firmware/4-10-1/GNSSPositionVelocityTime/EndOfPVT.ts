@@ -1,28 +1,20 @@
-import type { Padding, SBFBodyData } from '../../../types'
-import { getPadding } from '../../../utils'
+// coded
+import type { BlockDefinition } from '../../../types'
+
 /* EndOfPVT -> Number: 5921 => "OnChange" interval: default PVT output rate
   This block marks the end of transmission of all PVT related blocks
   belonging to the same epoch.
 
-  EndOfAtt -------------------------------------------------------------
+  EndOfPVT -------------------------------------------------------------
   Block fields           Type    Units Do-Not-Use  Description
   Padding                uint                      Padding bytes
+
+  Body is padding only — see EndOfAtt for why that means an empty payload.
 */
-const PADDING_INDEX = 0
-
-export interface EndOfPVT {
-  padding: Padding
-}
-
-interface Response extends SBFBodyData {
-  body: EndOfPVT
-}
-
-export const endOfPVT = (blockRevision: number, data: Buffer): Response => {
-  const name = 'EndOfPVT'
-  const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
-  const body: EndOfPVT = {
-    padding: getPadding(data, PADDING_INDEX, PADDING_LENGTH),
-  }
-  return { name, body }
+export const endOfPVT: BlockDefinition = {
+  name: 'EndOfPVT',
+  number: 5921,
+  description: 'Marks the end of transmission of all PVT blocks belonging to the same epoch',
+  timestamp: 'receiver',
+  revisions: [[]],
 }

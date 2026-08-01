@@ -3,10 +3,15 @@ import { describe, expect, test } from 'vitest'
 
 // coded
 import { StringParser } from '../src/parser'
-import type { CMA, DeviceParser, DraftCMA, ExtractedSentences } from '../src/types'
+import type { Result } from '../src/result'
+import type { CMA, DeviceParser, DraftCMA, ExtractedSentences, ParserError, SentenceDefinition } from '../src/types'
 
 // Minimal concrete parser: newline-delimited sentences. Anything after the
 // last newline is an incomplete sentence and becomes the remainder.
+//
+// It also implements the three introspection members, because the base class
+// declares them abstract: "every parser has the same API" is compiler-enforced,
+// so even a two-line test double has to answer those questions.
 class LineParser extends StringParser {
   protected extractSentences(buffer: string): ExtractedSentences<string> {
     const parts = buffer.split('\n')
@@ -19,6 +24,18 @@ class LineParser extends StringParser {
       payload: [],
     }))
     return { sentences, remainder }
+  }
+
+  get sentenceIds(): string[] { return ['LINE'] }
+
+  getSentenceDefinition(id: string): Result<SentenceDefinition[], ParserError[]> {
+    if (id !== 'LINE') return { success: false, error: [{ kind: 'unknown-id', message: `no definition for ${id}` }] }
+    return { success: true, value: [{ id, protocol: { name: 'test', version: '1.0' }, payload: [{ name: 'text', type: 'string' }] }] }
+  }
+
+  getFakeSentence(id: string): Result<string, ParserError[]> {
+    if (id !== 'LINE') return { success: false, error: [{ kind: 'unknown-id', message: `cannot fabricate ${id}` }] }
+    return { success: true, value: 'LINE\n' }
   }
 }
 
@@ -104,6 +121,12 @@ class ComposedDevice implements DeviceParser<string> {
 
   addData(data: string): void { this._parser.addData(data) }
   parseData(data?: string): CMA[] { return this._parser.parseData(data) }
+
+  // A facade delegates the introspection members to whichever protocol parser is
+  // active, exactly as it delegates the data ones.
+  get sentenceIds(): string[] { return this._parser.sentenceIds }
+  getSentenceDefinition(id: string): Result<SentenceDefinition[], ParserError[]> { return this._parser.getSentenceDefinition(id) }
+  getFakeSentence(id: string): Result<string, ParserError[]> { return this._parser.getFakeSentence(id) }
 }
 
 describe('DeviceParser contract', () => {
@@ -116,5 +139,27 @@ describe('DeviceParser contract', () => {
       expect(parser.buffer).toBe('BB')
       expect(parser.memory).toBe(true)
     }
+  })
+
+  test('the introspection surface is part of the contract, on both shapes', () => {
+    const parsers: DeviceParser<string>[] = [new LineParser(), new ComposedDevice()]
+    for (const parser of parsers) {
+      expect(parser.sentenceIds).toStrictEqual(['LINE'])
+      const definition = parser.getSentenceDefinition('LINE')
+      expect(definition.success).toBe(true)
+      const fake = parser.getFakeSentence('LINE')
+      expect(fake.success).toBe(true)
+      // A fake sentence must be something addData accepts and can decode back.
+      if (!fake.success) continue
+      expect(parser.parseData(fake.value).map((sentence) => sentence.id)).toStrictEqual(['LINE'])
+    }
+  })
+
+  test('an unknown id fails with a reason instead of throwing', () => {
+    const result = new LineParser().getFakeSentence('NOPE')
+    expect(result.success).toBe(false)
+    if (result.success) return
+    // An ARRAY: one call can fail for several reasons, each keeping its own kind.
+    expect(result.error).toStrictEqual([{ kind: 'unknown-id', message: 'cannot fabricate NOPE' }])
   })
 })

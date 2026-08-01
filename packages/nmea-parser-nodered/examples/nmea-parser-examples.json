@@ -613,7 +613,7 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "{\t    \"memory\": msg.memory,\t    \"sentences\": msg.sentences,\t    \"sentence\": msg.sentence,\t    \"payload\": msg.payload\t}",
+        "complete": "{\t    \"memory\": msg.memory,\t    \"sentences\": msg.sentences,\t    \"definition\": msg.definition,\t    \"payload\": msg.payload\t}",
         "targetType": "jsonata",
         "statusVal": "",
         "statusType": "auto",

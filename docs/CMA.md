@@ -261,17 +261,21 @@ that is a positive "the content is intact" signal, which is exactly what it shou
 
 ## Reference material
 
-- `misc/tests/sbg/` (local, gitignored) — SBG binary corpus + `sbg-to-cma.ts` /
-  `sbg-cma-compare.ts` (legacy output vs target CMA output, side by side).
-- `misc/archive/sbg2cma-comparison-dump.txt` (local) — captured comparison dump per SBG log type.
-- [SBG-REPORT.md](SBG-REPORT.md) — what sbg-ecom's legacy output looks like today.
+- **`packages/sbg-ecom/tests/fixtures/`** (COMMITTED, with a README stating exactly what each file
+  must parse to) — three real ELLIPSE captures, every frame CRC-checked. This is the only copy of that
+  device's output in git; the captures they were carved from are gitignored.
+- `misc/tests/sbg/` (local, gitignored) — the older SBG scratch harness, superseded by the above.
+- [SBG-REPORT.md](SBG-REPORT.md) — ⚠️ HISTORICAL: describes the PRE-1.0.0 legacy output.
 
-## Conformance state (2026-07-30)
+## Conformance state (2026-08-01 — ALL FIVE DEVICES DONE)
 
 | Library | Output today |
 | --- | --- |
-| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`, failed/garbage sentences, sentence resolvers). **npm 4.0.0** |
-| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level. **npm 4.0.0** |
-| thelmabiotel-tblive | **CMA**, on `protocol-core` — `TBLiveParser extends StringParser`. Frameless-protocol tokenizer, learned firmware as `protocol.version`, `mode` in metadata, failed/garbage sentences + interference reporting. The opaque emitter `data` field is deliberately NOT decoded. Adds `getFakeSentence` + `getSentenceDefinition`, both `Result`-returning. **Library done 2026-07-30, unreleased at `2.0.0`; wrapper next** |
-| septentrio-sbf | legacy `SBFResponse` (frame header/time/body) |
-| sbg-ecom | legacy `SBGFrameResponse` (frame header/data/footer) |
+| nmea-parser | **CMA — the reference implementation**, on `protocol-core` (3-level metadata, timestamp metadata, `Result`, failed/garbage sentences, sentence resolvers). **npm 5.0.0** |
+| norsub-emru | **CMA**, on `protocol-core` via nmea-parser — device facade composing a protocol parser; status at field + payload level. **npm 5.0.0** |
+| thelmabiotel-tblive | **CMA**, on `protocol-core` — `TBLiveParser extends StringParser`. Frameless-protocol tokenizer, learned firmware as `protocol.version`, `mode` in metadata, failed/garbage sentences + interference reporting. The opaque emitter `data` field is deliberately NOT decoded. Adds `getFakeSentence` + `getSentenceDefinition`, both `Result`-returning. **npm 2.0.0** (wrapper 2.0.0) |
+| septentrio-sbf | **CMA** — `SBFParser extends BinaryParser` behind a device facade that also fronts NMEA. All 108 blocks of Appendix B, Base64 `raw`, four output tiers, GNSS time promoted to `cma.timestamp`. **2.0.0 in-tree, unreleased** |
+| sbg-ecom | **CMA** — `SBGParser extends BinaryParser`, all 34 class-0 logs as field tables. **The only parser reading TWO framings off ONE buffer**: the device interleaves plain NMEA with its binary frames, so there is no protocol selector and the NMEA half is a composed `nmea-parser` at `memory: false`. `id` is `'<class>:<message>'` (eCom identity is a pair, with no revision concept). Uptime is never a timestamp — `SBG_ECOM_LOG_UTC_TIME` teaches the uptime↔UTC correspondence and later logs are dated from it. **1.0.0 in-tree, unreleased** |
+
+**The refactor's goal is met: every parser in this repo emits CMA.** What remains is per-device
+knowledge-base breadth, not format work — see `docs/PACKAGES.md` for what each one models.

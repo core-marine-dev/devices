@@ -5,35 +5,68 @@ on:
   push:
     paths:
       - packages/sbg-ecom-nodered/**
+      # Its tests run against the real library's BUILT dist, so a library change can
+      # break them. Since 1.0.0 the library composes nmea-parser and bundles
+      # protocol-core, so those reach this package too. The version gate keeps the extra
+      # triggers harmless: tests run, publish no-ops unless the version changed.
+      - packages/sbg-ecom/**
+      - packages/nmea-parser/**
+      - packages/core/**
+      - scripts/**
 
 jobs:
-  # Test job stays disabled until the wrapper is refactored onto the new lib API
-  # (it still calls the removed addProtocols API). Re-enable during that refactor.
-  # test:
-  #   name: 🧪 Test
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       node-version: [22.x, 24.x]
-  #   steps:
-  #     - name: 👍 Checkout
-  #       uses: actions/checkout@v7
-  #     - name: 📦 Setup pnpm
-  #       uses: pnpm/action-setup@v6
-  #     - name: ❇️ Setup node.js
-  #       uses: actions/setup-node@v6
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
-  #     - name: 📥 Install Dependencies
-  #       run: pnpm install --frozen-lockfile
-  #     - name: 🧑‍🔬 Tests
-  #       run: "pnpm run sbg-ecom:nodered:test"
+  # ⚠️ THIS JOB WAS COMMENTED OUT — AND SO WAS `needs: test` BELOW, so `publish` ran with
+  # NO GATE AT ALL. That is not theoretical: the run on `main` of 2026-07-22 succeeded and
+  # published 0.0.2 — an untested wrapper whose `main` pointed at an `index.js` that did
+  # not exist and whose parser.js called a library API that had been removed. Re-enabled
+  # with the 1.0.0 rewrite, which is what gave it tests to gate on.
+  test:
+    name: 🧪 Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x, 24.x]
+
+    steps:
+      - name: 👍 Checkout
+        uses: actions/checkout@v7
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The whole chain, in order: protocol-core -> nmea-parser -> sbg-ecom -> this
+      # wrapper. Every `exports` points only at `dist/`, which is gitignored, so on a
+      # fresh checkout nothing resolves until each one is built.
+      - name: 🛠️ Build monorepo deps
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build && pnpm run sbg-ecom:build"
+
+      # The wrapper's own dist, because its tests boot a real node-red that loads the
+      # BUILT node — not src/.
+      - name: 🛠️ Build
+        run: "pnpm run sbg-ecom:nodered:build"
+
+      # tsx strips types WITHOUT checking them, and eslint does not typecheck either, so a
+      # green suite says nothing about the types. This step is the only thing that does.
+      - name: 🔍 Typecheck
+        run: "pnpm --filter @coremarine/sbg-ecom-nodered exec tsc --noEmit -p tsconfig.json"
+
+      - name: 🧑‍🔬 Tests
+        run: "pnpm run sbg-ecom:nodered:test"
 
   publish:
     name: 🚀 Publish
     runs-on: ubuntu-latest
-    # needs: test
+    needs: test
     if: github.ref == 'refs/heads/main'
 
     # OIDC trusted publishing to npm (no NPM_TOKEN); provenance is emitted automatically.
@@ -46,7 +79,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -71,6 +104,16 @@ jobs:
       - name: 📥 Install Dependencies
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
+
+      # The published tarball is `dist/`, so it has to be built — and it cannot be built
+      # without the library chain beneath it.
+      - name: 🛠️ Build monorepo deps
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build && pnpm run sbg-ecom:build"
+
+      - name: 🛠️ Build
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run sbg-ecom:nodered:build"
 
       - name: 🚀 Publish to npm
         if: steps.check.outputs.publish == 'true'

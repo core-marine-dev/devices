@@ -32,6 +32,12 @@ const isString = (value: unknown): value is string => typeof value === 'string'
 const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean'
 const isNil = (value: unknown): value is null | undefined => value === null || value === undefined
 
+// `Result.error` is an ARRAY of `{ kind, message }` — one call can be wrong for more than
+// one reason. Reading `.message` off the array yields `undefined`, which is what a user
+// saw instead of the actual problem.
+export const messages = (errors: readonly { message: string }[]): string =>
+  errors.map((entry) => entry.message).join('; ')
+
 const report = (parser: NMEAParser): MemoryReport => ({
   memory: parser.memory,
   characters: parser.bufferLimit,
@@ -79,7 +85,7 @@ export const applySentences = (
       return 'sentences.set needs a "content" (YAML string) or a "file" path'
     }
     const result = parser.addSentences(yaml)
-    if (!result.success) return `sentences: ${result.error.message}`
+    if (!result.success) return `sentences: ${messages(result.error)}`
     return parser.getSentencesByProtocol()
   }
   return 'sentences.command should be "get" or "set"'
@@ -93,7 +99,7 @@ export const getDefinition = (parser: NMEAParser, definition: unknown): Sentence
   if (isNil(definition)) return undefined
   if (!isString(definition)) return 'definition must be a sentence id string'
   const result = parser.getSentenceDefinition(definition)
-  return result.success ? result.value : result.error.message
+  return result.success ? result.value : messages(result.error)
 }
 
 // fake: string id -> a fake NMEA-like sentence
@@ -103,7 +109,7 @@ export const getFakeSentence = (parser: NMEAParser, fake: unknown): NMEALike | s
   if (isNil(fake)) return undefined
   if (!isString(fake)) return 'fake sentence id must be a string'
   const result = parser.getFakeSentence(fake)
-  return result.success ? result.value : result.error.message
+  return result.success ? result.value : messages(result.error)
 }
 
 // payload: ASCII NMEA string -> CMA[]

@@ -1,7 +1,7 @@
 {
   "name": "@coremarine/sbg-ecom",
-  "version": "0.0.1",
-  "description": "Library to parse sbgECom binary protocol for SBG devices",
+  "version": "1.0.0",
+  "description": "Parser for the SBG Systems sbgECom binary protocol (ELLIPSE, EKINOX, APOGEE), emitting the unified CoreMarine CMA format",
   "author": "CoreMarine",
   "license": "MIT",
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/sbg-ecom",
@@ -14,6 +14,7 @@
     "url": "https://github.com/core-marine-dev/devices/issues"
   },
   "keywords": [
+    "cma",
     "sbg",
     "ecom",
     "sbgECom",
@@ -44,7 +45,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "pnpm run format && tsup",
@@ -54,9 +55,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@coremarine/protocol-core": "workspace:^",
+    "@coremarine/nmea-parser": "workspace:^",
     "crc": "^4.3.2"
-  },
-  "devDependencies": {
-    "@schemasjs/valibot-numbers": "^1.1.1"
   }
 }

@@ -22,7 +22,8 @@ import { parseArgs } from 'node:util'
 
 // installed
 import { ESLint } from 'eslint'
-import yaml from 'js-yaml'
+// NAMED import: js-yaml 5 removed the default export.
+import { load } from 'js-yaml'
 
 const USAGE = 'usage: yaml-to-ts.mjs <src.yml> <dst.ts> [--name=NAME] [--type=Type --type-from=specifier]'
 
@@ -54,7 +55,7 @@ const header = type === undefined
   : `// ${importGroup(typeFrom)}\nimport type { ${type} } from '${typeFrom}'\n\n`
 const annotation = type === undefined ? '' : `: ${type}`
 
-const content = yaml.load(readFileSync(resolve(src), 'utf-8'))
+const content = load(readFileSync(resolve(src), 'utf-8'))
 const target = resolve(dst)
 writeFileSync(target, `${header}export const ${name}${annotation} = ${JSON.stringify(content, null, 2)}\n`, { encoding: 'utf-8', flag: 'w+' })
 

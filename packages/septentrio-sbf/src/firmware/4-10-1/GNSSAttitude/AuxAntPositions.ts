@@ -1,17 +1,20 @@
-import { BYTES_LENGTH } from '../../../constants'
-import type { Padding, SBFBodyData } from '../../../types'
+// coded
+import { DO_NOT_USE_FLOAT } from '../../../constants'
+import type { BlockDefinition, Decoder, FieldDefinition } from '../../../types'
+import { label } from '../../../utils'
+
 /* AuxAntPositions -> Number: 5942 => "OnChange" interval: default PVT output rate
   The AuxAntPositions block contains the relative position and velocity of the
   different antennas in a multi-antenna receiver.
   The coordinates are expressed in the local-level ENU reference frame.
 
   When the antenna positions cannot be estimated, the baseline vectors are set
-  to their Do-Not-Use value
+  to their Do-Not-Use value.
 
   AuxAntPositions -------------------------------------------------------------
   Block fields           Type  Units  Do-Not-Use  Description
   N                     uint8                     Number of AuxAntPositionSub sub-blocks in this AuxAntPositions block
-  SBLength              uint8                     Length of one sub-block in bytes
+  SBLength              uint8  bytes              Length of one sub-block in bytes
   AuxAntPositionSub[N]                            A succession of N AuxAntPositionSub sub-blocks
   Padding                uint                     Padding bytes
 
@@ -19,7 +22,7 @@ import type { Padding, SBFBodyData } from '../../../types'
   Block fields           Type  Units  Do-Not-Use  Description
   NrSV                  uint8                255  Total number of satellites tracked by the antenna identified by the AuxAntID field and used in the attitude computation
   Error                 uint8                     Aux antenna position error code:
-                                                    0: Not error
+                                                    0: No error
                                                     1: Not enough measurements
                                                     2: Reserved
                                                     3: Reserved
@@ -27,7 +30,7 @@ import type { Padding, SBFBodyData } from '../../../types'
   AmbiguityType         uint8                255  Aux antenna positions obtained with
                                                     0: Fixed ambiguities
                                                     1: Float ambiguities
-  AuxAntID              uint8                     Auxiliary antenna ID: 1 for the ﬁrst auxiliary antenna, 2 for the second, etc...
+  AuxAntID              uint8                     Auxiliary antenna ID: 1 for the first auxiliary antenna, 2 for the second, etc...
   DeltaEast           float64      m   -2 * 10¹⁰  Position in East direction  (relative to main antenna)
   DeltaNorth          float64      m   -2 * 10¹⁰  Position in North direction (relative to main antenna)
   DeltaUp             float64      m   -2 * 10¹⁰  Position in Up direction    (relative to main antenna)
@@ -35,184 +38,56 @@ import type { Padding, SBFBodyData } from '../../../types'
   NorthVel            float64  m/sec   -2 * 10¹⁰  Velocity in North direction (relative to main antenna)
   UpVel               float64  m/sec   -2 * 10¹⁰  Velocity in Up direction    (relative to main antenna)
   Padding                uint
+
+  The sub-block fields are FLATTENED into the payload in wire order (N,
+  SBLength, then N × the sub-block), so every field keeps a real CMA type and
+  the measurements stay in the mandatory part of the output. The same fields are
+  mirrored, grouped per antenna, at metadata.subBlocks — read antenna i as
+  metadata.subBlocks[i] with no index arithmetic. SBLength is honoured rather
+  than assumed, so a firmware that adds fields to the sub-block is skipped
+  cleanly instead of drifting.
 */
+const AUX_ANT_POSITION_SUB: readonly FieldDefinition[] = [
+  { name: 'NrSV', type: 'uint8', doNotUse: 255, description: 'Total number of satellites tracked by this antenna and used in the attitude computation' },
+  { name: 'Error', type: 'uint8', description: 'Aux antenna position error code. When not 0, every coordinate in this sub-block is set to its Do-Not-Use value' },
+  { name: 'AmbiguityType', type: 'uint8', doNotUse: 255, description: 'Ambiguities the aux antenna position was obtained with: 0 fixed, 1 float' },
+  { name: 'AuxAntID', type: 'uint8', description: 'Auxiliary antenna ID: 1 for the first auxiliary antenna, 2 for the second, etc.' },
+  { name: 'DeltaEast', type: 'float64', units: 'm', doNotUse: DO_NOT_USE_FLOAT, description: 'Position in the East direction, relative to the main antenna' },
+  { name: 'DeltaNorth', type: 'float64', units: 'm', doNotUse: DO_NOT_USE_FLOAT, description: 'Position in the North direction, relative to the main antenna' },
+  { name: 'DeltaUp', type: 'float64', units: 'm', doNotUse: DO_NOT_USE_FLOAT, description: 'Position in the Up direction, relative to the main antenna' },
+  { name: 'EastVel', type: 'float64', units: 'm/s', doNotUse: DO_NOT_USE_FLOAT, description: 'Velocity in the East direction, relative to the main antenna' },
+  { name: 'NorthVel', type: 'float64', units: 'm/s', doNotUse: DO_NOT_USE_FLOAT, description: 'Velocity in the North direction, relative to the main antenna' },
+  { name: 'UpVel', type: 'float64', units: 'm/s', doNotUse: DO_NOT_USE_FLOAT, description: 'Velocity in the Up direction, relative to the main antenna' },
+]
 
-// AuxAntPositions
-const N_INDEX = 0
-const N_LENGTH = BYTES_LENGTH.UINT8
+const FIELDS: readonly FieldDefinition[] = [
+  { name: 'N', type: 'uint8', description: 'Number of AuxAntPositionSub sub-blocks in this block' },
+  { name: 'SBLength', type: 'uint8', units: 'bytes', description: 'Length of one sub-block in bytes' },
+  { name: 'AuxAntPositionSub', count: 'N', length: 'SBLength', fields: AUX_ANT_POSITION_SUB, description: 'A succession of N AuxAntPositionSub sub-blocks' },
+]
 
-const SBLENGTH_INDEX = N_INDEX + N_LENGTH
-const SBLENGTH_LENGTH = BYTES_LENGTH.UINT8
-// AuxAntPositionSub
-const NRSV_INDEX = 0
-const NRSV_LENGTH = BYTES_LENGTH.UINT8
-
-const ERROR_INDEX = NRSV_INDEX + NRSV_LENGTH
-const ERROR_LENGTH = BYTES_LENGTH.UINT8
-
-const AMBIGUITY_TYPE_INDEX = ERROR_INDEX + ERROR_LENGTH
-const AMBIGUITY_TYPE_LENGTH = BYTES_LENGTH.UINT8
-
-const AUX_ANT_ID_INDEX = AMBIGUITY_TYPE_INDEX + AMBIGUITY_TYPE_LENGTH
-const AUX_ANT_ID_LENGTH = BYTES_LENGTH.UINT8
-
-const DELTA_EAST_INDEX = AUX_ANT_ID_INDEX + AUX_ANT_ID_LENGTH
-const DELTA_EAST_LENGTH = BYTES_LENGTH.DOUBLE
-const DELTA_NORTH_INDEX = DELTA_EAST_INDEX + DELTA_EAST_LENGTH
-const DELTA_NORTH_LENGTH = BYTES_LENGTH.DOUBLE
-const DELTA_UP_INDEX = DELTA_NORTH_INDEX + DELTA_NORTH_LENGTH
-const DELTA_UP_LENGTH = BYTES_LENGTH.DOUBLE
-
-const EAST_VEL_INDEX = DELTA_UP_INDEX + DELTA_UP_LENGTH
-const EAST_VEL_LENGTH = BYTES_LENGTH.DOUBLE
-const NORTH_VEL_INDEX = EAST_VEL_INDEX + EAST_VEL_LENGTH
-const NORTH_VEL_LENGTH = BYTES_LENGTH.DOUBLE
-const UP_VEL_INDEX = NORTH_VEL_INDEX + NORTH_VEL_LENGTH
-const UP_VEL_LENGTH = BYTES_LENGTH.DOUBLE
-
-const PADDING_SUB_INDEX = UP_VEL_INDEX + UP_VEL_LENGTH
-
-export const ERROR = {
-  NO: 'NO_ERROR',
-  MEASUREMENTS: 'NOT_ENOUGH_MEASUREMENTS',
-  RESERVED: 'RESERVED',
-  UNKNOWN: 'UNKNOWN',
-} as const
-export type Error = typeof ERROR[keyof typeof ERROR]
-
-export const AMBIGUITY = {
-  FIXED: 'FIXED',
-  FLOAT: 'FLOAT',
-  UNKNOWN: 'UNKNOWN',
-} as const
-export type Ambiguity = typeof AMBIGUITY[keyof typeof AMBIGUITY]
-
-export interface AuxAntPositionSub {
-  nrSV: number | null
-  error: number
-  ambiguityType: number | null
-  auxAntID: number
-  deltaEast: number | null
-  deltaNorth: number | null
-  deltaUp: number | null
-  eastVel: number | null
-  northVel: number | null
-  upVel: number | null
-  padding: Padding
-  metadata: {
-    error: Error
-    ambiguityType: Ambiguity
-  }
+export const AUX_ANT_ERROR_CODE: Readonly<Record<number, string>> = {
+  0: 'NO_ERROR',
+  1: 'NOT_ENOUGH_MEASUREMENTS',
+  2: 'RESERVED',
+  3: 'RESERVED',
 }
 
-export interface AuxAntPositions {
-  n: number
-  sbLength: number
-  auxAntPositionSub: AuxAntPositionSub[]
-  padding: number | null
+export const AMBIGUITY_TYPE: Readonly<Record<number, string>> = {
+  0: 'FIXED_AMBIGUITIES',
+  1: 'FLOAT_AMBIGUITIES',
 }
 
-const DO_NOT_USE_UINT = 255
-const DO_NOT_USE_DOUBLE = -2.0 * Math.pow(10, 10)
-
-const getUInt = (uint: number): number | null => (uint !== DO_NOT_USE_UINT) ? uint : null
-const getDouble = (double: number): number | null => (double !== DO_NOT_USE_DOUBLE) ? double : null
-
-const getError = (error: number): Error => {
-  switch (error) {
-    case 0:
-      return ERROR.NO
-    case 1:
-      return ERROR.MEASUREMENTS
-    case 2:
-    case 3:
-      return ERROR.RESERVED
-  }
-  return ERROR.UNKNOWN
+const decoders: Readonly<Record<string, Decoder>> = {
+  Error: (value) => label(AUX_ANT_ERROR_CODE, value),
+  AmbiguityType: (value) => label(AMBIGUITY_TYPE, value),
 }
 
-const getAmbiguityType = (ambiguity: number | null): Ambiguity => {
-  switch (ambiguity) {
-    case 0:
-      return AMBIGUITY.FIXED
-    case 1:
-      return AMBIGUITY.FLOAT
-  }
-  return AMBIGUITY.UNKNOWN
-}
-
-const getAuxAntPositionSub = (data: Buffer): AuxAntPositionSub => {
-  const PADDING_SUB_LENGTH = data.subarray(PADDING_SUB_INDEX).length
-  const error = data.readUIntLE(ERROR_INDEX, ERROR_LENGTH)
-  const ambiguityType = getUInt(data.readUIntLE(AMBIGUITY_TYPE_INDEX, AMBIGUITY_TYPE_LENGTH))
-  const body: AuxAntPositionSub = {
-    nrSV: getUInt(data.readUIntLE(NRSV_INDEX, NRSV_LENGTH)),
-    error,
-    ambiguityType,
-    auxAntID: data.readUIntLE(AUX_ANT_ID_INDEX, AUX_ANT_ID_LENGTH),
-    deltaEast: getDouble(data.readDoubleLE(DELTA_EAST_INDEX)),
-    deltaNorth: getDouble(data.readDoubleLE(DELTA_NORTH_INDEX)),
-    deltaUp: getDouble(data.readDoubleLE(DELTA_UP_INDEX)),
-    eastVel: getDouble(data.readDoubleLE(EAST_VEL_INDEX)),
-    northVel: getDouble(data.readDoubleLE(NORTH_VEL_INDEX)),
-    upVel: getDouble(data.readDoubleLE(UP_VEL_INDEX)),
-    padding: (PADDING_SUB_LENGTH > 0) ? data.readUIntLE(PADDING_SUB_INDEX, PADDING_SUB_LENGTH) : null,
-    metadata: {
-      error: getError(error),
-      ambiguityType: getAmbiguityType(ambiguityType),
-    },
-  }
-  body.metadata = {
-    error: getError(body.error),
-    ambiguityType: getAmbiguityType(body.ambiguityType),
-  }
-  if (body.error !== 0) {
-    body.deltaEast = null
-    body.deltaNorth = null
-    body.deltaUp = null
-    body.eastVel = null
-    body.northVel = null
-    body.upVel = null
-  }
-  return body
-}
-
-const getSubBodies = (antennas: number, length: number, data: Buffer): AuxAntPositionSub[] => {
-  const subBodies = [] as AuxAntPositionSub[]
-  for (let index = 0; index < antennas; index++) {
-    const start = (index * length)
-    const end = start + length
-    const buffer = data.subarray(start, end)
-    const subBody = getAuxAntPositionSub(buffer)
-    subBodies.push(subBody)
-  }
-  return subBodies
-}
-
-interface Response extends SBFBodyData {
-  body: AuxAntPositions | { n: number }
-}
-
-export const auxAntPositions = (blockRevision: number, data: Buffer): Response => {
-  const name = 'AuxAntPositions'
-  // Check Antennas
-  const antennas = data.readUIntLE(N_INDEX, N_LENGTH)
-  if (antennas < 1) return { name, body: { n: antennas } }
-  // Sub bodies
-  const sbLength = data.readUIntLE(SBLENGTH_INDEX, SBLENGTH_LENGTH)
-  const subBodiesStart = 2
-  const PADDING_INDEX = subBodiesStart + (antennas * sbLength)
-  const subBodiesBuffer = data.subarray(subBodiesStart, PADDING_INDEX)
-  const subBodies = getSubBodies(antennas, sbLength, subBodiesBuffer)
-  // Padding
-  const PADDING_LENGTH = data.subarray(PADDING_INDEX).length
-  const padding = (PADDING_LENGTH > 0) ? data.readUIntLE(PADDING_INDEX, PADDING_LENGTH) : null
-  // Body
-  const body: AuxAntPositions = {
-    n: antennas,
-    sbLength,
-    auxAntPositionSub: subBodies,
-    padding,
-  }
-  return { name, body }
+export const auxAntPositions: BlockDefinition = {
+  name: 'AuxAntPositions',
+  number: 5942,
+  description: 'Relative position and velocity of the auxiliary antennas of a multi-antenna receiver, in the local-level ENU frame',
+  timestamp: 'receiver',
+  revisions: [FIELDS],
+  decoders,
 }

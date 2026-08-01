@@ -10,8 +10,281 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-29 (END OF SESSION — nmea + norsub track CLOSED, all four packages on npm;
-> next = `thelmabiotel-tblive`) · **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
+> **Last updated:** 2026-08-01, release session — **🚀 THE RELEASE IS GOING OUT.** cru gave the word:
+> push `dev`, open the PR, merge. Merging `main` publishes **TEN packages** to npm.
+>
+> **➡️ NEW AGENT: read §"🚀 THE RELEASE" and then §"🤝 HANDOFF — 2026-08-01".** Between them they have
+> the whole state. Nothing else in this file needs reading first.
+>
+> **🎉 THE CMA REFACTOR IS COMPLETE, AND §3.3 IS IN.** All five devices emit CMA; `sbg-ecom` also models
+> all nine modelled proprietary NMEA sentences of the manual's §3.3 (§"✅ §3.3 IS IN").
+>
+> **⛔ THE STANDING RULE STILL APPLIES TO THE NEXT PIECE OF WORK.** cru authorised THIS release
+> explicitly and in order (comment → commit → push → PR → merge). That consent does not carry forward:
+> the next change waits for him to say "publish" again, and that includes `git push` and OPENING a PR,
+> not just the merge.
+>
+> Gate re-run from scratch this session (builds first — the wrapper suites run against `dist`):
+> **45 steps, exit 0.** core 43 · nmea 135 · norsub **55** · septentrio 221 · tblive 260 · **sbg 112**
+> (was 78) · wrappers 28 / 37 / **66** / 45 / 64 · repo-wide `eslint` clean · `tsc --noEmit` clean in
+> all eleven packages. `docs/PACKAGES.md` had the septentrio wrapper at 61; it is 66, now corrected.
+>
+> **A 10-point release checklist was then run point by point — see §"✅ THE RELEASE CHECKLIST".**
+> Everything cru asked to check was measured, not assumed; ten findings were fixed and one is left for
+> him, because it lives on npmjs.com and not in this repo.
+>
+> **🔴 One near-miss caught:** norsub's two roll-description fixes had been applied to a TEST FIXTURE
+> copy of `norsub.yml`, not to the file `norsub-emru` ships — so 6.0.0 would have published the bugs
+> this doc said were fixed. Now really fixed. See §"🐛 Two real bugs in norsub-emru's tables".
+>
+> **`protocol-core` was not modified at all.** That is the answer to the question that caused the
+> freeze: `BinaryParser` took the fifth device unchanged, so nothing structural was owed and there is
+> no second round of majors.
+>
+> Two CI workflows that **could never have passed** were fixed on the way, both verified by moving the
+> dists aside and replaying the steps: `sbg-ecom.yml` had no dependency build, and
+> `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
+> with **no gate at all**, which is how `0.0.2` reached npm untested.
+
+# 🚀 THE RELEASE — TEN PACKAGES (2026-08-01, cru gave the word)
+
+`dev` → `main`. Merging `main` runs the eleven workflows' publish jobs, and each publishes if and only
+if its `name@version` is not already on npm — so exactly these ten go out:
+
+| package | from | to | why the major |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | 5.0.0 | **6.0.0** | `Result` errors became arrays; fakes idempotent; `protocol` selects a definition |
+| `norsub-emru` + wrapper | 5.0.0 | **6.0.0** | the same, plus delegated introspection |
+| `thelmabiotel-tblive` + wrapper | 2.0.0 | **3.0.0** | `string[]` → `ParserError[]` |
+| `septentrio-sbf` + wrapper | 1.0.1 | **2.0.0** | the CMA rewrite + NMEA as a second protocol |
+| `sbg-ecom` + wrapper | 0.0.1 / 0.0.2 | **1.0.0** | the CMA rewrite; first stable release |
+
+`protocol-core` is `private` and stays unpublished; its workflow has no publish job.
+
+**What a consumer has to change** is in each package's README under *Upgrading from …* — written for
+this release, all four that were missing one. The breaks that compile and run silently, which is why the
+majors exist: `.error.message` on a failed `Result` now reads `undefined`; tblive's `error.join('; ')`
+yields `[object Object]`; `getFakeSentence` returns the same string every call; and `sbg-ecom` changed
+completely (CMA output, `parseData()` instead of `getFrames()`, ids like `'0:6'`).
+
+**Verified immediately before the push** — measured, not assumed:
+
+- full gate **exit 0**: core 43 · nmea 135 · norsub 55 · septentrio 221 · tblive 260 · sbg 112 ·
+  wrappers 28 / 37 / 66 / 45 / 64 · repo-wide `eslint` clean · `tsc --noEmit` clean in all eleven
+- all **11 workflows replayed** from a wiped `dist/`, with the commands read out of the workflow files
+- `pnpm audit`: **no known vulnerabilities**
+- all ten tarballs pack README + LICENSE + package.json + `dist/` and nothing else — no `_cred.json`,
+  no `.backup`, no `.env`, no source maps
+- coverage enforced at 80% in all six libraries, and every package clears it
+
+**Trusted publishing:** cru confirmed every package except `protocol-core` has a GitHub trusted
+publisher configured on npmjs.com. That was the one open risk — four packages had never published
+through OIDC (no provenance attestations, last released May 2024) — and it is closed.
+
+**After the merge, verify against npm rather than the workspace:** in an empty temp dir, `npm i` each
+wrapper and check its library resolved to the MATCHING major. That check has caught a real packing leak
+twice.
+
+**Then the flow-library entries, which are cru's manual step** — remind him, do not attempt it:
+`sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are NEW listings; the other three need
+refreshing for their new majors.
+
+# 🤝 HANDOFF — 2026-08-01, session ended at a usage limit
+
+## Where the tree is
+
+**Tree CLEAN**, **22 commits ahead of `origin/dev`**, **nothing pushed**. The later 2026-08-01 session
+added three: `13fac20` (norsub's roll fixes, which had gone into a test fixture), `3d60da2` (the nine
+§3.3 sentences + the PHINF decoder) and `2c1b61e` (docs), plus the docs commit carrying this line.
+
+⛔ **cru's standing rule: NOTHING is published until he says "publish"** — and that covers `git push` and
+opening the PR, not only the merge.
+
+| package | library | wrapper | on npm |
+| --- | --- | --- | --- |
+| `nmea-parser` | 6.0.0 | 6.0.0 | 5.0.0 |
+| `norsub-emru` | 6.0.0 | 6.0.0 | 5.0.0 |
+| `thelmabiotel-tblive` | 3.0.0 | 3.0.0 | 2.0.0 |
+| `septentrio-sbf` | 2.0.0 | 2.0.0 | 1.0.1 |
+| `sbg-ecom` | **1.0.0** | **1.0.0** | 0.0.1 / 0.0.2 |
+
+**Re-run the gate before trusting any of the numbers above** — and **build every library first**, because
+the wrapper suites run against `dist`. It was re-run this way on 2026-08-01 (45 steps, exit 0), and it is
+cheap enough to repeat:
+
+```bash
+for p in protocol-core nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:build"; done
+for p in protocol-core nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:test"; done
+for p in nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:nodered:build" && pnpm run "${p}:nodered:test"; done
+pnpm run lint
+for d in packages/*/; do (cd "$d" && npx tsc --noEmit -p tsconfig.json); done
+```
+
+## ✅ THE `PASHR` DECISION IS MADE — option A (cru, 2026-08-01)
+
+**`WASSP` (msg 12) is emitted as `$PASHR`, the same wire id as `PASHR` (msg 02)** — same 11 fields, and
+the ONLY difference is the heave SIGN (msg 02 positive down, msg 12 positive up). Nothing in the sentence
+distinguishes them; it is a device CONFIGURATION choice, so a `SentenceResolver` cannot tell them apart
+either — a resolver reads the payload, and the payload is identical in shape.
+
+Two things settled it, both verified by reading §3.3.5 and §3.3.6 rather than taken from these notes:
+the manual states it itself ("It shares the same definition as PASHR but with slight differences such as
+heave sign being positive up"), and **the null example printed under both sections is byte-identical,
+checksum included** — `$PASHR,,,T,,,,,,,0,1*21`. There is nothing left to key a resolver on.
+
+**cru chose A: model `PASHR` ONCE and state the ambiguity in the heave field's `description`.** The
+rejected option B was a parser option (`new SBGParser({ heaveSign: 'up' | 'down' })`); it stays
+available as a purely additive change if a consumer ever needs the sign pinned in the output.
+
+Built as decided, in the `ASHTECH` protocol block. Four specs pin the decision rather than just the
+parse: both messages' examples parse through the one definition, the byte-identical null form parses,
+the heave description names BOTH conventions and BOTH message numbers, and roll/pitch do NOT inherit
+the warning — only heave is ambiguous. A fifth asserts `PASHR` appears exactly once in `sentenceIds`
+and that `WASSP` is not an id at all.
+
+⚠️ Do not "improve" this later by inferring the sign from heave's printed precision. §3.3.5 formats it
+`fff.ff` and §3.3.6 `fff.fff`, which is tempting — and useless: the null form has no digits, and no
+device is obliged to print trailing precision consistently.
+
+Claude put option A to cru and the session ended before he answered. **Do not guess — ask.**
+
+## ✅ JOB 1 IS DONE — the §3.3 proprietary NMEA sentences
+
+Built 2026-08-01: `src/sbg-nmea.ts` + `src/nmea-metadata.ts`, registered on `SBGNMEAParser`,
+`tests/nmea.test.ts` new, **`sbg-ecom` 78 → 112 specs**, lint and `tsc` clean. Full account, including
+the three findings that changed the plan, is in §"✅ §3.3 IS IN".
+
+**Nine modelled** (`PRDID` `PASHR` `PSBGI` `PSBGB` `PHINF` `PHTRO` `PHLIN` `PHOCT` `INDYN`) and **`GGK`
+needed nothing** — it is already nmea-parser's `PTNLGGK`, enum included. `PASHR` covers sbgECom messages
+02 AND 12 as one definition, per cru's option-A decision above. The library README documents all of it.
+
+Three things a later reader should not have to rediscover:
+
+- **`PSBGI` is 8 fields and `PSBGB` is 23**, one more each than their tables list, because SBG's own
+  formatter emits a trailing comma and the printed checksums verify only with it. Field counts are
+  matched EXACTLY, so this is the difference between parsing and falling through.
+- **All thirteen §3.3 examples verify by computation.** The "SBG's examples are wrong" warning applies
+  to §3.2, not §3.3. §3.3's real defect is that PHLIN's printed example is the PHTRO one.
+- **`$INDYN` has no `$P` prefix** and the device really uses talker `IN` (`$INGGA` is in the corpus), so
+  two specs pin that it is not read as `IN` + `DYN`.
+
+## 🔴 A NEAR-MISS FOUND ON THE WAY — norsub's two roll fixes had gone into the WRONG FILE
+
+`18305c3` applied them to `packages/nmea-parser/protocols/norsub.yml`, which is only a **test fixture**.
+The shipped knowledge base is `packages/norsub-emru/protocols/norsub.yml` → `src/norsub.ts`, and both
+wrong descriptions were still there — so `norsub-emru@6.0.0` would have published the exact bugs this
+doc claimed it had fixed. Corrected in the shipped YAML and regenerated; 48/48 green. Details and the
+lesson are in §"🐛 Two real bugs in norsub-emru's tables".
+
+## JOB 2 — the release PR, which publishes TEN packages
+
+Unchanged and fully written up in §"⏭️ Phase 5" inside §"🗺️ SBG-ECOM — THE PLAN". The freeze condition
+is met. Do **not** open the PR without cru: merging `main` publishes.
+
+Expect one thing on the first push: **`sbg-ecom.yml` and `sbg-ecom-nodered.yml` run with a real test job
+for the first time ever.** Both were broken; both are fixed and were replayed locally from a clean state
+(dists moved aside), but a real runner is a real runner.
+
+## Traps this session paid for — do not rediscover them
+
+- **`tsx` strips types WITHOUT checking them.** A wrapper suite can be 64/64 green with real type errors.
+  `npx tsc --noEmit -p tsconfig.json` inside the wrapper is the only thing that finds them. It caught
+  errors here after the tests passed.
+- **Wrapper suites run against the library's built `dist`.** Build the library first.
+- **A distinct sentinel value matters.** `PENDING = 0` collided with a "nothing here" return of `0` and
+  one byte of binary junk stopped a whole scan dead. The symptom was an 11,776-byte capture arriving as
+  a single buffer-overflow report.
+- **A fake round trip proves the framing, not the field table** — it is built from the same table it is
+  decoded with. Only the datasheet and a real capture catch a wrong table. Physics catches a lot: a
+  stationary IMU reads 1 g, a quaternion is normalised, a geoid undulation near Madrid is ~50 m.
+- **Cross-check a log's field table against the frame LENGTH in a real capture.** Every sbgECom log's
+  `LEN` equals its datasheet "Total size", which is how all 34 tables were validated at once — and how
+  GPS_POS's contradictory offset column was settled.
+- **The same vendor sentence documented by two manufacturers is a free cross-check.** It is what found
+  two wrong roll descriptions in the published `norsub-emru@5.0.0`.
+- **Datasheets are wrong often enough to check by computation**: SBG's ROT examples carry a copy-pasted
+  checksum that matches neither payload; its GGA and RMC examples contradict their own tables; its DIAG
+  field table is self-contradictory. Septentrio's `SNC` example has the same class of error.
+- **`cd` persists between Bash tool calls** — use absolute paths. And in **zsh**, `$p:test` is parsed as
+  the `:t` path modifier: write `"${p}:test"`.
+- **Be surgical with edits to this file.** An over-broad slice deleted three historical sections here
+  today; they were recovered from `HEAD` and verified by diffing the section-header lists. Prefer
+  anchored replacements over line ranges.
+- **TWO PACKAGES CAN HOLD FILES WITH THE SAME NAME, AND ONLY ONE OF THEM SHIPS.**
+  `packages/nmea-parser/protocols/norsub.yml` is a test fixture; `packages/norsub-emru/protocols/norsub.yml`
+  is the shipped knowledge base. A fix went into the first and was recorded as done. A grep that finds
+  the corrected text proves nothing about WHICH file it found — check the path, and check the generated
+  artefact, because that is what the bundle contains.
+- **Transcribe datasheet examples by copy, never from memory.** Two strings "quoted" from the SBG manual
+  in a checksum-verification script this session were not in the manual at all, and one of them produced
+  a confident report of a datasheet error that did not exist. Verbatim text, or nothing.
+
+## Paste-ready prompt for the next session
+
+```
+Read docs/STATUS.md and start at §"🤝 HANDOFF — 2026-08-01". Do not skim it: it has the exact state and
+what is left, which is now ONLY the release.
+
+⛔ FIRST RULE, cru's standing order: PUBLISH NOTHING until he says the word "publish". That covers
+git push and OPENING the PR, not just merging. Local builds, tests and commits are fine.
+
+State: dev is clean, 22 commits ahead of origin/dev, NOTHING PUSHED. The CMA refactor is COMPLETE —
+all five devices are on protocol-core and emit
+CMA, sbg-ecom and its wrapper are at 1.0.0, and protocol-core was never modified (the question that
+froze the release). The gate was re-run from scratch on 2026-08-01: 45 steps, exit 0, sbg-ecom 112
+specs. Re-run it rather than trusting numbers, and BUILD EVERY LIBRARY FIRST — the wrapper suites run
+against dist.
+
+JOB 1 IS DONE. All nine §3.3 proprietary sentences are modelled in sbg-ecom (src/sbg-nmea.ts +
+src/nmea-metadata.ts), GGK needed nothing because it is already nmea-parser's PTNLGGK, and
+§"✅ §3.3 IS IN" records the three findings that changed the plan — chiefly that PSBGI and PSBGB carry
+ONE MORE FIELD than their datasheet tables list.
+
+PASHR IS SETTLED — cru chose option A on 2026-08-01: ONE definition covering sbgECom messages 02 and
+12, with the heave sign ambiguity stated in that field's description rather than resolved. The two are
+the same wire id with the same 11 fields, and the manual's null example is byte-identical under both
+sections, checksum included, so nothing could key a resolver. Do not later infer the sign from heave's
+printed precision — see the decision section for why that does not work.
+
+JOB 2: the release PR, which publishes TEN packages. §"⏭️ Phase 5" has the ordered checklist. See the
+first rule — do not open it, and do not push, until cru says publish.
+
+Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
+Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
+turn as any meaningful change, not at the end. He reads carefully and pushes back — when he says
+something is wrong, MEASURE it again rather than re-running the same grep. Several of this session's
+best findings came from him asking for a check Claude had not thought to run.
+```
+
+>
+> **Previously (2026-08-01, earlier):** **`dev` is PUSHED and clean.** The protocol-naming +
+> NMEA-version overhaul is done (§"🏷️ PROTOCOL NAMES AND NMEA VERSIONS"), septentrio's CI break is
+> fixed, and every README was re-verified against the emitted types. **THE RELEASE PR IS FROZEN by cru
+> until `sbg-ecom` is refactored** — the reasoning, the measured scoping and Claude's recorded
+> disagreement are in §"🔬 SBG-ECOM — SCOPING ANALYSIS". **The job is now sbg.**
+>
+> **Previously (2026-07-31, end of session):** `dev` @ `7557769`, tree clean, 13 commits that session.
+> `septentrio-sbf` IS DONE: all 108 SBF blocks + NMEA as a second protocol. ALL FOUR CMA PAIRS
+> ARE VERSION-BUMPED. NOTHING IS LEFT BUT THE RELEASE PR (`dev` → `main`), which publishes EIGHT
+> packages. Start at §"⏭️ NEXT SESSION — START HERE" — it has a paste-ready prompt. Everything else in
+> this file is the account of how we got here.
+>
+> **The older banner text below is still accurate for the SBF half of the work.** All 108 blocks of
+> Appendix B modelled (190/190 specs, 0 unmodelled frames left in cru's captures), README +
+> `package.json` + `docs/PACKAGES.md` done, and the **Node-RED wrapper rebuilt and aligned at 2.0.0**
+> (61/61). Three real faults found and fixed along the way: `ExtEventBaseVectGeod` numbered 4216
+> instead of 4217, `bufferLimit` defaulting to 1024 bytes (smaller than blocks cru's receiver emits),
+> and the wrapper still calling the removed `getFrames()` while its dep resolved to `^2.0.0`. A FOURTH,
+> found by running the other wrappers: the `Result`-error **array** change had broken all three of them
+> (`undefined` / `[object Object]` error text) — **fixed, all four wrapper suites now green**; the
+> published packages were never affected. Note the Appendix B total is **108**, not the 107 quoted in
+> older sections.
+> **✅ ALL FOUR CMA PAIRS ARE VERSION-BUMPED** (2026-07-31, cru's call): `nmea-parser` +
+> `norsub-emru` **6.0.0**, `thelmabiotel-tblive` **3.0.0**, `septentrio-sbf` **2.0.0**, each with its
+> wrapper at the same major; `sbg-ecom` untouched. The breaks were measured against the published
+> tarballs, not assumed — §"ALL FOUR CMA PAIRS ARE BUMPED".
+> **Next: the release PR (`dev` → `main`), which publishes eight packages, then §QUEUED item 2.** ·
+> **Branch:** `dev`. **NMEA CMA refactor (slice A–F) +
 > STEP 1 (3-level metadata) + STEP 2 (Result pattern) + STEP 3 (timestamp metadata, core-wide) are
 > done & green.** Repo was idle 2025-12-15 → 2026-07-08.
 >
@@ -24,8 +297,1378 @@
 >
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
+
+# 🔍 NMEA CROSS-CHECK — the two device datasheets against nmea-parser (2026-08-01, cru's ask)
+
+cru asked, before adding SBG's proprietary sentences: do the Septentrio and SBG datasheets define
+STANDARD NMEA sentences, are they already in nmea-parser, and do the definitions DIFFER?
+
+**Answer: 7 of the 9 standard sentences SBG emits already matched exactly. Two were missing and are
+now added. And the comparison found two real bugs in norsub-emru's published tables.**
+
+## Septentrio: no field tables to compare, but it CONFIRMS our version convention
+
+Appendix C lists 30-odd sentence identifiers and then says: *"For a full description of the NMEA
+messages, please refer to the NMEA 0183 standard."* So there is nothing to diff — it defers to the
+standard for every non-proprietary sentence. Its six proprietary ones (HRP, RBD, RBP, RBV, SNC, TFM) are
+already modelled in `septentrio-sbf`.
+
+**What it does give us is independent corroboration of the version convention cru locked on
+2026-08-01.** `setNMEAVersion` (§3.2.14): *"If v3x is selected, the NMEA sentences are formatted
+according to the 3.01 version of the standard. If v4x is selected, **system ID, signal ID and
+navigational status fields are added in some sentences** according to version 4.11 of the standard."*
+
+That is exactly the `4.11` / `4.00` split in `protocols/nmea.yml`, arrived at from different sources —
+`4.11` holds the forms WITH system/signal/nav-status (GSA 18, GSV 20, GBS 10, GRS 16, RMC 13, GNS 13)
+and `4.00` the forms without (17, 19, 8, 14, 12, 12).
+
+Two consequences worth knowing:
+
+- **A Septentrio set to `v3x` reports `version: '4.00'`, not `'3.01'`** — and that is CORRECT by the
+  convention (the newest revision whose table matches those exact fields), because nothing in those
+  sentences changed between 3.01 and 4.00. It will still read oddly to someone who set `v3x`, so it is
+  written down here rather than left to be rediscovered.
+- Septentrio's own doc is internally inconsistent about its own version: §1.2.2 says it supports "3.01
+  and 4.10", the command doc says `v4x` follows "4.11". Both map to our `4.11` block.
+
+Sentences a Septentrio can emit that nmea-parser still does not model: **GFA, GMP, GGQ, LLK** — all four
+already recorded as open items (no field table with a verified example could be found; Leica's two are
+skipped unless Tracker talks to Leica gear). `GGAaux1` and `TXTbase` are NOT extra ids — they are the
+ordinary GGA and TXT formatters with different content, so they already parse.
+
+## SBG: 9 standard sentences, 7 matched exactly
+
+Measured field-by-field against §3.2.5-§3.2.13. Payload field counts, excluding the id and checksum:
+
+| sentence | SBG says | nmea-parser had | verdict |
+| --- | --- | --- | --- |
+| GGA | 14 | 14 (`4.11`) | ✅ same order, same semantics |
+| RMC | 13 | 13 (`4.11`) + 12 (`4.00`) | ✅ SBG emits the 4.11 form |
+| VTG | 9 | 9 (`4.11`) | ✅ |
+| ZDA | 6 | 6 (`4.11`) | ✅ |
+| HDT | 2 | 2 (`4.11`) | ✅ |
+| GST | 8 | 8 (`4.11`) | ✅ SBG's field 2 is always NULL, but it is the same slot |
+| ROT | 2 | 2 (`4.11`) | ✅ |
+| **VBW** | **6** | **— missing** | ➕ added, as `2.30` |
+| **DPT** | **3** | **— missing** | ➕ added, as `4.11` |
+
+**VBW and DPT went into `nmea-parser`, not into `sbg-ecom`** — they are standard sentences, and the next
+device emitting DPT would otherwise duplicate it. nmea-parser already hosts the vendor blocks (MIROS,
+Kongsberg, Trimble, Leica), so this is the established home. Free to do: 6.0.0 is unpublished.
+
+Their versions follow cru's convention, sourced from gpsd's NMEA Revealed as the rest of the file is:
+**DPT's third field (maximum range scale) arrived in 3.00**, so a 3-field DPT is current ⇒ `4.11`.
+**VBW's four stern-speed fields arrived in 3.00**, so the 6-field form SBG emits is pre-3.00 ⇒ a NEW
+`2.30` block, and the full 10-field form is `4.11`. Both verified against SBG's own printed examples.
+
+## 🐛 Two real bugs in norsub-emru's tables, found only by reading two vendors side by side
+
+Both are copy-paste of a PITCH description onto a ROLL field, and both are wrong in the **published**
+`norsub-emru@5.0.0`. Descriptions only — no field, type or order moved, so nothing breaks.
+
+> 🔴 **THE FIX WENT INTO THE WRONG FILE AND DID NOT SHIP — caught 2026-08-01, now really fixed.**
+> `18305c3` applied both corrections to `packages/nmea-parser/protocols/norsub.yml`, which is only a
+> **test fixture** (it generates `packages/nmea-parser/tests/norsub.ts`). The file `norsub-emru`
+> actually ships is `packages/norsub-emru/protocols/norsub.yml` → `src/norsub.ts`, and both wrong
+> descriptions were still sitting in it. `norsub-emru@6.0.0` would have published carrying the exact
+> bugs this section claims it fixed, with the docs asserting otherwise.
 >
-> # 🎉 SHIPPED 2026-07-29 — nmea-parser 4.0.0, norsub-emru 4.0.0, BOTH wrappers 3.0.0 ARE LIVE ON npm
+> Now corrected in the shipped YAML and regenerated (`pnpm --filter @coremarine/norsub-emru run
+> protocols`); 48/48 still green. **The lesson: two files with the same name in two packages, and
+> only one of them ships.** A grep that finds the corrected text proves nothing about which file it
+> found — check the path, and check the GENERATED artefact, which is what the bundle contains.
+
+| where | said | should say | authority |
+| --- | --- | --- | --- |
+| `GYROCOMPAS1` `PHTRO.roll_direction` | "M bow up, P bow down" | **"B port down, T port up"** | SBG §3.3.9, and its own example `$PHTRO,0.03,P,0.22,T*56` ends in `T` |
+| `RDI ADCP` `PRDID.roll` | "…bow up / …bow down" | **"…port up / …port down"** | SBG §3.3.3: "Signed vessel roll in degrees, positive port up" |
+
+The lesson is the method, not the bugs: **the same vendor sentence documented by two different
+manufacturers is a free cross-check, and it is the only thing that catches a description that is
+plausible but attached to the wrong axis.** A round trip cannot; a field count cannot.
+
+## ⚠️ Three errors in SBG's own §3.2 examples, all verified by computation
+
+Recorded because a future reader will hit them and should know they were checked, not missed:
+
+- **ROT: both printed examples carry `*55`, and neither computes to it.** `$GPROT,,V*55` computes `*08`
+  and `$GPROT,31.61,A*55` computes `*34` — one checksum copy-pasted onto two different payloads. Same
+  class as Septentrio's Appendix C.1.5 `SNC` printing `68` where it computes `4C`.
+- **GGA: the populated example has 15 fields where its own table says 14** (`…,0.0,M,,,*63` — one
+  comma too many), while the empty example has 14. The checksum verifies over the 15-field string, so
+  the sentence is self-consistent as printed and the TABLE is the thing to trust — two of three sources
+  say 14. nmea-parser correctly refuses the 15-field one as an unrecognised generic sentence.
+- **RMC: the populated example has 12 fields where the table says 13** (no `navStatus`). Both forms are
+  modelled, so both parse — the 12-field one as `4.00`, which is what it is.
+
+Their §3.3 tables are sloppier still: PHTRO and PHLIN number their fields 1, 3, 4, 5 (there is no field
+2), and PHLIN's "Message format" example prints `$PHTRO,…` instead of `$PHLIN,…`.
+
+## ✅ DONE — the proprietary sentences (cru: "add it for this version 1.x")
+
+**Eight of the eleven are modelled and green as of 2026-08-01; `GGK` turned out to need nothing, and
+`PASHR` is the one still waiting on cru.** See §"✅ §3.3 IS IN" below for what was built, what the
+field counts turned out to be and the three things the reading changed. The table in this section is
+the ORIGINAL scoping table and is kept as written, with its two wrong field counts intact — PSBGI is 8
+on the wire and PSBGB 23, not the 7 and 22 its tables list, which is exactly the kind of thing only
+computation catches.
+
+They belong in `sbg-ecom`, not in nmea-parser: each is that DEVICE's rendering of a vendor sentence,
+and the two renderings can legitimately differ — which is exactly what the PHTRO comparison above
+demonstrates.
+
+From §3.3, with their SBG message ids. Field counts are payload only:
+
+| id | msg | vendor | fields | notes |
+| --- | --- | --- | --- | --- |
+| `PRDID` | 00 | Teledyne RDI | 3 | pitch, roll, heading. Same 3 fields as norsub's `RDI ADCP` block |
+| `PSBGI` | 01 | SBG | 7 | UTC time, gyro XYZ, accel XYZ |
+| `PASHR` | 02 | Ashtech-style | 11 | time, heading, T, roll, pitch, heave, 3 std devs, posStatus, imuStatus |
+| `PSBGB` | 04 | SBG | 22 | the big one: version, time, utcStatus, attitude + 3 std + 2 status, heave + std + status, 3 rates, 3 velocities, velocity std + status |
+| `PHINF` | 05 | Ixblue | 1 | an 8-hex-char status word — **and a 32-bit bit table worth decoding into metadata** |
+| `PHTRO` | 06 | Ixblue | 4 | pitch, sign (M/P), roll, sign (**B/T**) |
+| `PHLIN` | 07 | Ixblue | 3 | surge, sway, heave — ⚠️ SBG warns sway AND heave are sign-REVERSED vs its own convention |
+| `PHOCT` | 08 | Ixblue | ~18 | time, attitude, heading, ship motion — table not yet transcribed |
+| `INDYN` | 09 | Ixblue | ? | position, heading, attitude, rate, velocity — not yet transcribed |
+| `GGK` | 10 | Trimble | ? | time, lat, lon, ellipsoidal height — compare with nmea-parser's existing `PTNLGGK` (12 fields) before defining |
+| `WASSP` | 12 | WASSP | 11 | **⚠️ IT IS SENT AS `$PASHR`** — same id as msg 02, same field count, but heave is positive UP instead of down. Two different meanings on one wire id, so it CANNOT be a second definition keyed by id+length. Needs a decision. |
+
+**Two things to settle before writing them:**
+
+1. **`WASSP` vs `PASHR` collide.** Both go out as `$PASHR` with 11 fields; only the heave SIGN differs,
+   and nothing in the sentence says which one it is — it is a device CONFIGURATION choice. A resolver
+   cannot tell them apart either. The honest options are: model `PASHR` once and document the sign
+   ambiguity in its description; or add a parser option naming which the device is configured for.
+   Recommend the former plus the note — inventing a distinction the wire does not carry would be worse.
+2. **`protocol.name` per vendor**, following the MIROS precedent (a vendor sentence gets the vendor, not
+   `NMEA`): `SBG NMEA` for PSBGI/PSBGB, `TELEDYNE RDI` for PRDID, `IXBLUE` for the five PH*/INDYN,
+   `ASHTECH` for PASHR, `TRIMBLE` for GGK — unless GGK turns out to be nmea-parser's `PTNLGGK`, in
+   which case it needs nothing.
+
+# ✅ THE RELEASE CHECKLIST — 10 POINTS, MEASURED (2026-08-01, cru's ask)
+
+cru asked for ten checks before the release, explicitly "do not suppose anything". Every number below
+came from running something. **Nine points are now green; one is not ours to close.**
+
+## ⛔ THE ONE THING LEFT, AND IT IS NOT IN THIS REPO
+
+**Four packages have never published through OIDC trusted publishing**, which is what the workflows now
+use. Evidence, not inference: the six packages released on 2026-07-30 all carry SLSA provenance
+attestations (`npm view <pkg> dist.attestations`), and `septentrio-sbf`, `septentrio-sbf-nodered`,
+`sbg-ecom` and `sbg-ecom-nodered` have **none** — their latest versions date from May 2024, published
+with a token, before the OIDC cutover in `af64d49` (2026-07-13).
+
+Trusted publishing is configured **per package on npmjs.com**, not in the repo, so it cannot be checked
+or fixed from here. **If those four have no trusted publisher configured, their publish job fails.**
+cru must confirm on npmjs.com before merging.
+
+## What was checked, and what it showed
+
+| # | check | result |
+| --- | --- | --- |
+| 1 | every package on the next major | ✅ verified live against npm — all ten exactly one major ahead |
+| 2 | pair majors match | ✅ all five, `workspace:^`, guard proven by half-bumping on purpose |
+| 3 | ≥80% coverage | ❌ `norsub-emru` was 79.54% branches → **fixed, 84.09%**, and 80% is now ENFORCED in all six |
+| 4 | CI/CD current | ⚠️ `setup-node` v6→**v7**, pnpm 11.15.1→**11.18.0**, 4 wrappers had **no typecheck** → all fixed |
+| 5 | CI will pass | ✅ all 11 workflows replayed from a wiped `dist/`, exit 0; tarballs clean; **except the OIDC item above** |
+| 6 | parser READMEs | ❌ 3 real bugs → fixed; 4 packages had no upgrade section for the major they publish → written |
+| 7 | wrapper READMEs + editor help | ❌ `msg.sentence` → `msg.definition` never propagated → fixed in 2 READMEs + 1 help panel |
+| 8 | repo docs | ❌ `TOOLING.md` had 5 false rows; `AGENTS.md`/`ARCHITECTURE.md` still described Mocha + Docker → fixed |
+| 9 | wrapper package.json | ⚠️ one description, missing `cma` keywords → fixed; everything else already uniform |
+| 10 | example flows match the API | ⚠️ one stale key in nmea's flow → fixed; sbg's flow gained the §3.3 sentences |
+
+## 🧹 A DEPENDENCY AUDIT — 46 packages and one published runtime dep removed (cru's ask)
+
+cru asked whether `chai`, `mocha`, `sinon` and friends are still needed. Audited by walking every
+source/config file in the repo (never `node_modules`, `dist` or the lockfile) and checking each
+declared dependency for a real reference, then confirming each candidate individually.
+
+**Removed — zero references anywhere:**
+
+| package | where | why it was there |
+| --- | --- | --- |
+| `chai` | root devDep | the wrappers used Mocha + chai before `node:test` |
+| `mocha` | root devDep | same |
+| `deep-equal-in-any-order` | root devDep | same (a chai plugin) |
+| `@valibot/to-json-schema` | **`nmea-parser` RUNTIME dep** | added in `3d656bf` during a 2.2.0 schemas refactor, never imported |
+
+The install is **46 packages lighter**. The `@valibot/to-json-schema` one matters most: it was in the
+**published** dependency list, so every consumer of `@coremarine/nmea-parser` was installing it for
+nothing. It is not in the built `dist` either.
+
+**`serialize-javascript` was dropped from `overrides` too** — `pnpm why` showed mocha was its only
+route into the tree, so the override had nothing left to override. **`diff` was kept**: mocha was one
+source, but `node-red-node-test-helper` still reaches it through `sinon`.
+
+**`sinon` is NOT ours.** It is not declared anywhere; it arrives transitively under
+`node-red-node-test-helper`, which the wrapper integration tests need. It cannot be removed from here.
+
+⚠️ **Four things look unused and are REQUIRED** — none of them appears in an import, which is why a
+text search alone cannot justify a removal: `@types/node` (`tsconfig.json` sets `types: ["node"]`),
+`@types/node-red` (node-red ships no types, and all five wrappers import types from it),
+`@types/js-yaml` (js-yaml ships no types either) and `@vitest/coverage-v8` (the `--coverage` provider).
+
+Verified after removal: full gate exit 0, all 11 workflows replayed from a wiped `dist/`, and every
+remaining override still has a live route into the tree.
+
+## 🔐 DEPENDENCY UPGRADES — js-yaml 5, and a HIGH advisory the repo was hiding from itself (2026-08-01)
+
+cru asked for an upgrade pass, flagged js-yaml, and asked whether TypeScript 7 is possible yet.
+
+### 🔴 The one that mattered: a published pin the local override was masking
+
+`nmea-parser` declared `"js-yaml": "4.2.0"` — an EXACT pin — and `pnpm-workspace.yaml` carried
+`overrides: js-yaml: '>=4.1.1'`. The override applies **only inside this repo**, so the local install
+resolved to 4.3.0 while **every consumer of `@coremarine/nmea-parser` got 4.2.0**, which is vulnerable
+to **GHSA-52cp-r559-cp3m (HIGH** — merge-key chains force quadratic CPU, `>=4.0.0 <4.3.0`, fixed in
+4.3.0). `pnpm audit` was silent because it audits the *resolved local tree*, not the published range.
+
+**The lesson: an override cannot protect a consumer. Only the dependency range in the published
+package.json can.** Be suspicious of any override naming a package that a published package also
+declares.
+
+Now `^5.2.3` in nmea-parser, and the override is deleted.
+
+### js-yaml 4 → 5 is a MAJOR, and two things changed for us
+
+1. **No default export.** `import yaml from 'js-yaml'` had to become `import { load } from 'js-yaml'`
+   in `packages/nmea-parser/src/protocols.ts` and `scripts/yaml-to-ts.mjs`.
+2. **`load` now defaults to the YAML 1.2 CORE schema** — no YAML 1.1 types, no `!!merge`. This was the
+   real risk, because the protocol YAML *is* the knowledge base and output shapes are contracts.
+   Checked two ways: no 1.1-sensitive construct appears in any `protocols/*.yml` (no unquoted
+   `yes`/`no`/`on`/`off`, no merge keys, no octal, no sexagesimal, no timestamps — only plain strings
+   and `false`), and **all four generated knowledge bases regenerate BYTE-IDENTICAL under v5**
+   (`src/nmea.ts`, both `norsub.ts`, `septentrio-nmea.ts`). That diff is the proof, not the reasoning.
+
+`@types/js-yaml` was **removed**: v5 ships its own types, and the DefinitelyTyped package is frozen at
+4.0.9 — it would have shadowed the real types with a v4 shape, including the default export that no
+longer exists.
+
+Note the 5.x line has had its own advisories; **5.2.2 is the first clean one** (5.2.3 is latest).
+
+### ⛔ TypeScript 7: measured, still impossible
+
+`tsc@7.0.2` typechecks our code fine (exit 0). But with the eslint stack at latest, linting dies on a
+deliberate guard: **`Error: typescript-eslint does not support TS 7.0.`** Its peer range is
+`>=4.8.4 <6.1.0`. And 6.0.3 — what we are on — is the newest 6.x published, so we are already at the
+ceiling of what is supported. Details and how to re-test are in
+[`TOOLING.md`](TOOLING.md) §"TypeScript 7".
+
+### Everything else bumped, and the audit is now clean
+
+`eslint` 10.7.0 → 10.8.0 · `typescript-eslint` 8.63.0 → 8.65.0 · `eslint-plugin-sonarjs` 4.1.0 → 4.2.0
+· `@types/node` 26.1.1 → 26.1.2 · `node-red` 5.0.1 → 5.0.4.
+
+**The node-red bump alone cleared ten axios advisories and one in `tar`** — worth trying a direct bump
+before reaching for an override. The four that remained (`fast-uri`, `postcss`, `brace-expansion` HIGH;
+`body-parser` LOW) are all dev-only transitives that no published package can reach, and are now closed
+with overrides. **`pnpm audit`: no known vulnerabilities.**
+
+sonarjs 4.2.0 added rules, and one fired on a real weakness rather than a style nit:
+`sbg-ecom-nodered`'s "each control channel answers" test asserted nothing visible because its
+assertions live in a helper — and as written it would have passed even if it checked **zero** channels.
+Fixed properly (the helper now reports whether it handled the channel, and the test asserts a non-zero
+count) rather than with a disable comment.
+
+⚠️ A process note: running `replay2.sh` in the background while building in the foreground corrupted a
+gate run — that script does `rm -rf packages/*/dist`, so it cannot share a working tree with anything
+else. The failure looked like the overrides had broken the build; they had not.
+
+## The findings worth remembering
+
+- **`TOOLING.md` claimed "all 5 nodered workflows have the test job commented out — they publish
+  untested".** That was true once and is now the opposite: all five have enabled, gated test jobs. A
+  stale doc that describes a *fixed* safety problem as current is worse than no doc.
+- **Only `sbg-ecom-nodered` typechecked in CI.** All five wrappers build with `dts: false`, so tsup
+  never typechecks; tests run under `tsx`, which strips types; eslint does not typecheck either. Four
+  wrappers therefore had NO type checking anywhere in CI. The libraries were fine — they all emit
+  declarations, so their build is the typecheck.
+- **Coverage of a wrapper must be scoped to `src/**`.** The bundle in `dist/` holds a second copy of
+  `src/lib.ts` that only the real-node-red test reaches, so including it reports ~55-62% branches and
+  makes a healthy wrapper look broken. `septentrio-sbf-nodered` looked like a 76% failure that way; its
+  source is 87.60%.
+- **`msg.sentence` was renamed `msg.definition` and the docs never followed** — in the nmea wrapper's
+  README *and* its Node-RED help panel, and in norsub's README, where the output types were wrong too
+  (`object | null` for something that returns an array or an error string, and the code's own comment
+  says it stopped returning `null`).
+- **The root script set was not uniform**, contradicting `4941437`: two wrappers had no
+  `:nodered:lint` alias and two libraries used `:coverage` where four used `:test:coverage`. Normalised,
+  and every wrapper gained `:nodered:test:coverage`.
+
+# ✅ §3.3 IS IN — NINE SENTENCES, AND THREE THINGS THE READING CHANGED (2026-08-01)
+
+`packages/sbg-ecom/src/sbg-nmea.ts` holds the definitions and `src/nmea-metadata.ts` the one decoder,
+registered on the composed `SBGNMEAParser` the way `septentrio-sbf` registers `$PSSN`. **`sbg-ecom` is
+78 → 112 specs**, `tests/nmea.test.ts` is new, repo lint and `tsc --noEmit` clean.
+
+| id | msg | `protocol.name` | fields | note |
+| --- | --- | --- | --- | --- |
+| `PRDID` | 00 | `TELEDYNE RDI` | 3 | |
+| `PASHR` | **02 + 12** | `ASHTECH` | 11 | ONE definition for both messages — see the decision |
+| `PSBGI` | 01 | `SBG NMEA` | **8** | ⚠️ not 7 |
+| `PSBGB` | 04 | `SBG NMEA` | **23** | ⚠️ not 22 |
+| `PHINF` | 05 | `IXBLUE` | 1 | 27 named flags decoded into metadata |
+| `PHTRO` | 06 | `IXBLUE` | 4 | |
+| `PHLIN` | 07 | `IXBLUE` | 3 | no valid printed example exists |
+| `PHOCT` | 08 | `IXBLUE` | **19** | the notes guessed ~18 |
+| `INDYN` | 09 | `IXBLUE` | **10** | id has no `$P` prefix |
+| ~~`GGK`~~ | 10 | — | — | ✅ already parses as `PTNLGGK` |
+
+## 1. SBG's own two sentences emit a TRAILING COMMA — so the tables undercount by one
+
+`$PSBGI,003944.74,…,-9.72,*42` and `$PSBGB,1,…,0,*53` both end in a comma before the checksum, and in
+both cases **the printed checksum verifies only WITH that comma**. Two independent witnesses, and none
+of the nine sentences SBG renders for *other* vendors has one — it reads as a shared formatter path in
+the firmware.
+
+This is not cosmetic. Definitions are matched by **EXACT field count** (`hasSameNumberOfFields`, a plain
+`split(',')`, so a trailing comma really does yield an extra empty token), so a 7-field `PSBGI`
+definition would never match a real sentence. The extra field is modelled as `reserved` and documented.
+
+**The shorter, table-documented forms are deliberately NOT defined.** No capture in the corpus contains
+either sentence — the corpus has GGA, HDT and ZDA only — so the printed examples are the sole witness,
+and a second definition built from the table alone would be a guess. A device emitting the short form
+falls through as a generic sentence: visible, `raw` and values intact, never silently dropped. A spec
+pins that behaviour. If a real short-form capture ever turns up, adding the second definition is
+additive.
+
+## 2. `GGK` needed nothing at all, enum included
+
+§3.3.13 is `$PTNL,GGK,...` with 12 fields, which nmea-parser already models as `PTNLGGK` and already
+resolves through its `PTNL:12` resolver — field for field, including the `EHT`-prefixed ellipsoidal
+height that is a string for exactly that reason. **And the enums agree**: SBG's §3.2.1 GGK column maps
+0/1/2/3/4 to invalid, standalone, floating RTK, fixed RTK and DGPS, which is Trimble's own numbering.
+SBG just never uses 5-15. Defining it again would have forked a table that matches.
+
+Worth recording: SBG derives that quality indicator **and** the DOP from INS position standard
+deviation, not satellite geometry (§3.2.1, and §3.2.2 gives the formula). Same numbers, different
+provenance.
+
+## 3. `$INDYN` has no `$P` prefix, and this device really does use the `IN` talker
+
+The corpus contains `$INGGA`, `$INHDT` and `$INZDA`, so `INDYN` could plausibly be read as talker `IN`
++ sentence `DYN`. It is not: `parser.ts` tries a **direct id lookup before stripping any talker**
+(`lookup`, the `direct` branch), so `INDYN` resolves to its own definition. Two specs pin it — one that
+`$INDYN` keeps its full id, one that `$INHDT` still correctly becomes `HDT` with talker `IN`, so the
+first cannot be passed by breaking talker handling.
+
+⚠️ One **known artefact**, pinned rather than hidden: nmea-parser annotates `metadata.talker` from the
+first two characters of any id, so `$INDYN` is labelled talker `IN` ("Integrated Navigation") even
+though its `IN` is part of the sentence name. Harmless — the definition matched and every field is
+right — but a consumer switching on `metadata.talker` should know. Changing it is generic nmea-parser
+behaviour, so it was not done from this package.
+
+## What §3.3's own quality turned out to be
+
+**All thirteen printed examples in §3.3 verify by computation** — unlike §3.2, where three do not. So
+the earlier note that datasheet examples here are unreliable applies to §3.2, not §3.3. Two real
+§3.3 defects, both harmless: §3.3.10 prints the **PHTRO** example under PHLIN (so PHLIN has no valid
+example, and the one in its spec is constructed and marked as such), and PHTRO/PHLIN/INDYN number their
+field rows sloppily (1, 3, 4, 5 with no field 2; INDYN jumps from 10 to "20 Check sum").
+
+`PHINF` is the only sentence needing a decoder: one field, 8 hex characters, 28 named bits in §3.3.8.
+Decoded at field **and** payload level, following norsub's identical case and the locked CMA placement
+rules. **Bits 4, 26, 28, 29 and 30 are NOT decoded** — 4 is explicitly reserved and the rest have no
+row, and a name invented for an undocumented bit would be indistinguishable from a real one. A spec
+asserts the flag count is exactly 27 so a 28th cannot appear unnoticed, and another asserts a non-hex
+word is refused rather than becoming `NaN` and then a word of confidently-false "all clear" flags.
+
+# 🗺️ SBG-ECOM — THE PLAN, AND ITS EXECUTION (2026-08-01 — ✅ DONE, phases 0-4)
+
+**Nothing is coded. This section is the plan for the last device**, written so that a new session (or a
+different AI provider) can pick the work up cold. It supersedes the cost table in
+§"🔬 SBG-ECOM — SCOPING ANALYSIS" but not its protocol findings, which still hold.
+
+## ⚠️ FIRST: two claims in the scoping section were WRONG — re-measured 2026-08-01
+
+The scoping section says "the committed capture is corrupt and the good one is not in git". **Measured
+again with an independent scanner** (walk for `FF 5A`, LEN uint16LE at +4, require ETX `0x33` at
+`+6+LEN+2`, compare `crc16kermit(bytes[i+2 .. i+6+LEN])` against the uint16LE at `+6+LEN`):
+
+| file | tracked? | well-framed | CRC-valid | log ids present |
+| --- | --- | --- | --- | --- |
+| `packages/sbg-ecom/tests/sbg.bin` | **NO** (gitignored) | 320 | **0** ⚠️ | 44 36 7 4 3 9 8 15 |
+| `packages/sbg-ecom/tests/sbg-raw.bin` | **NO** (gitignored) | 249 | **249** ✅ | 44 36 3 7 4 8 9 13 14 15 1 2 |
+| `packages/sbg-ecom-nodered/examples/sbg-raw.bin` | **YES** | 249 | **249** ✅ | identical to the above |
+
+So: **the corrupt file is NOT in git, and the file that IS in git is perfectly good.** The two `.bin`s
+are not "identical" — one is a different, healthy capture. `git ls-files packages/sbg-ecom/tests` returns
+**nothing**; the only tracked capture in the whole pair is the wrapper's `examples/sbg-raw.bin`, and it
+passes every frame. The urgency of "get the CSVs into git" drops accordingly — but the *value* does not,
+see the corpus table below.
+
+Second correction: the CSVs are **not the only capture with NMEA in it**. Mixed-stream ASCII appears in
+three of the six files.
+
+## The corpus, measured
+
+| file | frames (all CRC-valid) | `$GPGGA` sentences |
+| --- | --- | --- |
+| `sbg_50.csv` | 70 | 0 |
+| `sbg_100.csv` | 138 | 0 |
+| `sbg_1000.csv` | 1,268 | 0 |
+| `sbg_2000.csv` | 2,869 | **81** |
+| `sbg-raw.bin` (tracked) | 249 | **1** |
+| `sbg.bin` (corrupt) | 320, none valid | 5 |
+
+**Distinct LOG (class 0) ids with real capture coverage: 13** — `1` STATUS, `2` UTC_TIME, `3` IMU_DATA,
+`4` MAG, `6` EKF_EULER, `7` EKF_QUAT, `8` EKF_NAV, `9` SHIP_MOTION, `13` GPS1_VEL, `14` GPS1_POS,
+`15` GPS1_HDT, `36` AIR_DATA, `44` IMU_SHORT. (The scoping section said seven — that counted the CSVs
+alone and missed the six the tracked `.bin` adds.) **The other 11 implemented logs are datasheet-only**,
+the same position `RBD`/`RBP`/`RBV` are in on septentrio: `5` MAG_CALIB, `16`/`17`/`18` GPS2, `19` ODO,
+`29`/`30` DVL, `31`/`38` GPS RAW, `32` SHIP_MOTION_HP, `37` USBL, `47` DEPTH.
+
+The mixed stream is confirmed and is **the one structural novelty of this device**:
+
+```
+$GPGGA,093721.00,4024.87314846,N,00343.50344998,W,1,19,2.8,600.668,M,50.238,M,,*7B
+```
+
+sits as plain ASCII between binary frames. Manual §2.1.4: the NMEA classes are only identifiers, the
+device emits NMEA **as raw text alongside** eCom. Septentrio's "select one protocol" model does **not**
+apply — one buffer carries two framings simultaneously.
+
+## What has to change, measured
+
+| | today | target |
+| --- | --- | --- |
+| base class | none — own `Parser` with `Buffer` | `BinaryParser` from `protocol-core` |
+| API | `addData(Buffer)` + `getFrames()` | `addData(Uint8Array)` + `parseData(): CMA[]` |
+| output | `SBGFrameResponse` (header/data/footer) | CMA |
+| errors | `throw` + `console.debug` | `Result` + `errors[]` on the sentence |
+| logs | 24 hand-written decoder functions, `payload.readFloatLE(offset)` | field tables + one shared engine |
+| tests | **0 specs** | the septentrio pattern |
+| introspection | none | `sentenceIds` / `getSentenceDefinition` / `getFakeSentence` |
+| `engines.node` | `>= 18` | `>=22` |
+| wrapper | plain JS, `main: index.js` **that does not exist**, mocha | TS + tsup + `node --test`, like septentrio's |
+| version | `0.0.1` / `0.0.2`, never published | **1.0.0** for both (D1) |
+
+## DECISIONS — ✅ ALL NINE LOCKED by cru, 2026-08-01, and all nine honoured in the code.
+
+### ✅ D1 · Version — LOCKED: **1.0.0**, library and wrapper
+
+cru's requirement is **a new major, stable** — and, in his words, *"1 or 2 or whatever should be the new
+major"*: the number is not the point, so **it is settled at `1.0.0` and is not to be relitigated.**
+Library `0.0.1` → **1.0.0**, wrapper `0.0.2` → **1.0.0**, same major, per the version policy.
+
+⚠️ **Correction from phase 0:** the original reasoning here said neither package had ever been published.
+**It was wrong** — npm has `@coremarine/sbg-ecom@0.0.1` and `@coremarine/sbg-ecom-nodered@0.0.1` and
+`0.0.2`. Someone could be on `0.0.1` today, so the against-npm verification after publishing is not a
+formality.
+
+### ✅ D2 · Scope — LOCKED
+
+**The proprietary binary protocol (sbgECom) is the focus.** cru: the same relationship norsub has with
+its proprietary NMEA. Concretely: **all class-0 LOG messages, datasheet-complete** — the 24 implemented
+plus the missing ones — and **the large-frame path, which he never implemented** (he did standard frames
+only; see D7, where his model of what that means turns out to be wrong). CMD, HIGH_FREQ and THIRD_PARTY
+stay out for 1.0.0. Whether other protocols ride inside is D3.
+
+### ✅ D3 · The mixed stream — LOCKED: ONE buffer, both framings, always
+
+cru asked whether the Ellipse really interleaves binary and NMEA, and recalled that both might start
+with `$`. **They do not: sbgECom syncs on `FF 5A`, NMEA on `$` (0x24)** — there is no shared start flag
+and therefore no ambiguity to resolve.
+
+**Measured, byte-exact, on `sbg_2000.csv`** (149,498 bytes, 2,869 CRC-valid frames):
+
+```
+prev frame ends @257   ... 09 12 33        <- ETX 0x33
+GGA            @257..341  $GPGGA,093721.00,4024.87314846,N,...*7B\r\n
+next frame     @341       ff 5a 0d 00 2c 00 f8 71
+```
+
+**Gap before the sentence: 0 bytes. Gap after: 0 bytes.** Not one byte of any of the 81 `$GPGGA`
+sentences falls inside a frame span, and **every frame in the whole capture is class 0** — the device
+never wrapped an NMEA sentence in an eCom frame. Of the 7,103 bytes lying outside valid frames,
+essentially all of them ARE those sentences; there is no other junk in the stream.
+
+The manual agrees twice. §2.1.4 on classes `0x02`/`0x03`/`0x04`: *"This class is only used for
+identification purpose and does not contain any sbgECom message"* — the class ids exist so you can
+configure which sentence goes out, not to carry it. And §2.1.1 Note 4: *"Some third party frames are
+available on output and will not comply with this protocol format… It belongs to the user to decode the
+different formats if several protocols are used at the same time."* The datasheet is telling the
+integrator the stream is mixed.
+
+**cru's architecture, locked:**
+
+- **The input path never branches on a setting.** Both framings are looked for on every chunk,
+  whatever the parser is "set" to. (Whether a setting survives at all for introspection is **D9**.)
+- **`addData` accepts `string | Uint8Array` always** — not, as in septentrio, "whichever the active
+  protocol wants".
+- **The facade owns ONE buffer**, scans it, and delegates each identified slice to the eCom decoder or
+  to `nmea-parser`, converting the slice to that parser's input type.
+- **Output is always CMA**, so a mixed batch needs no special handling downstream.
+
+Two mechanics settled on top of that shape:
+
+**The canonical buffer is BYTES.** A string input is converted at the door byte-per-character
+(`asBytes`, the septentrio precedent), and only the slices identified as NMEA are decoded back to text.
+The asymmetry is real and decides it: NMEA 0183 is a strict ASCII subset, so bytes→text is always
+lossless, while eCom payloads are arbitrary bytes and text→bytes only round-trips under
+latin1/byte-per-character — a consumer who UTF-8-decoded the stream has already destroyed it before we
+see it. Documented the same way septentrio documents its own string input.
+
+**⚠️ THERE IS EXACTLY ONE BUFFER.** cru asked how to manage a global buffer alongside each internal
+parser's own buffer. The answer is that the second buffer should not exist:
+
+- **The eCom side is NOT a `Parser` subclass** — it is a pure `decodeFrame(bytes): DraftCMA`, no state,
+  nothing to buffer. That is the whole reason the problem disappears; septentrio needed two buffered
+  parsers because they were alternatives, here they are two decoders behind one scan.
+- **`nmea-parser` is used statelessly**: `memory: false`, and it is only ever handed a **complete**
+  sentence, so it drains fully and its buffer is `''` when it returns. **Invariant to assert in the
+  tests:** after every `extractSentences`, `nmeaParser.buffer === ''`. If it ever is not, our slice was
+  wrong — emit the leftover as garbage rather than dropping it silently.
+- **The facade extends `BinaryParser`** and therefore gets the one real buffer, `_sentences`, `addData`
+  and `parseData` from `protocol-core` for free. `bufferLimit` is its own.
+
+```
+SBGParser extends BinaryParser            // protocol-core owns _buffer / _sentences / addData / parseData
+  ├─ extractSentences(buffer)             // THE scan: FF 5A -> eCom, $ -> NMEA, else junk
+  ├─ decodeFrame(bytes): DraftCMA         // pure, stateless          (src/protocol-ecom.ts)
+  └─ _nmea: NMEAParser { memory: false }  // fed COMPLETE sentences   (src/protocol-nmea.ts)
+```
+
+**Timestamps fall out of this correctly, with one catch.** `nmea-parser` stamps its own
+`received`/`parsed` when we delegate — microseconds after the facade received the chunk. Because its
+output goes back through `extractSentences` as a draft, the core's `stampTimestamp` **overwrites** that
+block with the facade's, so every CMA in a batch shares one `received`. The catch: that overwrite would
+also discard the `sentence` time nmea-parser derived from GGA. So the facade's `sentenceTimestamp` hook
+must return `draft.metadata?.timestamp?.sentence` when it is already present, and only compute the
+UTC_TIME mapping (D6) otherwise. **Open sub-question for phase 1:** whether an NMEA sentence arriving on
+this wire also gets its time promoted to `cma.timestamp`, as D6 does for eCom logs. Consistency says yes.
+
+The scan loop is SBF's, plus one branch — at position `i`:
+
+1. `FF 5A` → frame it (LEN, ETX, CRC). Complete → decode; incomplete → PENDING, stop.
+2. `$` (0x24) → find the terminator. Found → slice, decode to text, hand to `nmea-parser`. Not found and
+   at the tail → PENDING, stop. Not found but another `$` or `FF 5A` follows → hand it over anyway;
+   nmea-parser reports `Missing end flag`, which is its existing behaviour.
+3. Neither → junk byte, coalesced into one garbage sentence as SBF already does.
+
+**Frames are resolved FIRST, then NMEA on what is left over** — that ordering is what makes the two
+framings unambiguous, because a `$` byte inside an eCom payload is never scanned (the walker skips whole
+frames), and `0xFF` can never appear inside ASCII NMEA text.
+
+### ✅ D4 · `id` — LOCKED: option A, `'<class>:<msg>'`
+
+cru chose **A**. `id = '0:6'`, `metadata.name = 'SBG_ECOM_LOG_EKF_EULER'`. The reasoning he asked about,
+kept because it is the thing a future reader will re-derive otherwise:
+
+**Septentrio and sbg are not the same shape.** SBF has ONE 16-bit ID field that packs block number
+(13 bits) + revision (3 bits) — one identity plus a version of that same block. **sbgECom §2.1.1 has TWO
+independent header bytes: `MSG` (1 byte) and `CLASS` (1 byte)**, and there is no revision concept at all.
+`MSG 6` means EKF_EULER in class `0x00` and something entirely different in class `0x02` — the class is
+part of the identity, not a variant of it.
+
+| | septentrio SBF | sbg eCom |
+| --- | --- | --- |
+| header identity | one uint16: number + revision | two bytes: `MSG` + `CLASS` |
+| revision | yes, 3 bits | none |
+| `id` today | `'5938'`, revision in metadata | — |
+
+The rejected options, for the record: `'6'` alone (collides the day class `0x01` or `0x10` is added, and
+that would be a breaking change), and `'SBG_ECOM_LOG_EKF_EULER'` (matches the example in `docs/CMA.md`,
+but the id then changes shape between known and unknown logs, and the names are OUR transcription rather
+than wire truth).
+
+A useful side effect of A: **an eCom id always contains a colon and an NMEA id never does**, so under D3
+the two knowledge bases can be told apart from the id alone. That is what makes D9 askable.
+
+### ✅ D5 · `protocol.name` — LOCKED
+
+**`SBG ECOM`** for binary frames, **`SBG NMEA`** for proprietary sentences, and whatever `nmea-parser`
+reports (`NMEA`) for standard ones — the pattern locked for septentrio on 2026-08-01.
+`protocol.version` = the firmware, `'2.3'`.
+
+### ✅ D6 · Timestamps — LOCKED
+
+cru: *"uptime is not a timestamp for us (the concept), and if the device can tell us, we trust the
+device."* So: **µs-since-power-up is never a timestamp.** Learn the UTC↔uptime mapping from
+`SBG_ECOM_LOG_UTC_TIME` (id 2, present in the captures — 82 frames in `sbg_2000`), exactly as septentrio
+learns `DeltaLS` from `ReceiverTime`, gated on the UTC status bits (clock valid / stable). Every later
+log's µs stamp then converts to a true epoch at `metadata.timestamp.sentence`, and **that value is
+promoted to `cma.timestamp`**, as with NMEA GGA and SBF. With no UTC_TIME frame seen, no sentence
+timestamp is emitted — the raw µs value stays visible in metadata, never dressed up as a clock.
+
+### ✅ D7 · Large frames — LOCKED: one CMA per page, pagination in metadata, NO reassembly
+
+cru, after reading the datasheet findings below: *"We are not going to reassemble large frames inside
+the parser into one large frame. A large frame should be parsed as a sentence, with its pagination props
+inside `cma.metadata`."* **That is exactly right and it is what gets built** — one CMA per page, never
+held, never joined, `transmissionId` / `pageIndex` / `pages` in `metadata`. It is the same
+"expose, don't hide" rule the rest of CMA follows; the consumer reassembles if it cares.
+
+**The one part that is not doable is decoding a page's DATA into the message's field table** — and not
+for lack of effort: it is ill-defined. A page cuts at a fixed byte boundary (4081), so it can split a
+field in half, and page 1 starts mid-field. There is no field list to publish for a fragment. Since the
+only large-frame users are `SBG_ECOM_CMD_API_GET`/`POST`, whose payload is REST-API **JSON text**, there
+would be no field table even after reassembly — so "a longer payload with more fields" has nothing
+behind it on this protocol.
+
+**cru's second reason for refusing reassembly, and it is the stronger one:** a page can be lost on the
+wire. An in-parser reassembly buffer would then hold a transmission that never completes — a zombie that
+is never emitted and never freed. On a device streaming for months that is a memory leak with no
+symptom. **Reassembly, if anyone ever wants it, belongs to a higher layer (Tracker), which can time it
+out and see the gap.** Do not add it here; this paragraph is why.
+
+**The emitted shape, cru's call:** one CMA per page, and the payload carries **exactly one field, type
+`string`, whose value is the Base64 of that page's fragment**.
+
+```
+id       '0:6'          <- CLASS with bit 7 MASKED OFF, so page frames share the id of a standard frame
+payload  [ { raw: <base64 fragment>, name: 'DATA', type: 'string', value: <the same base64>,
+             description: 'One page of a paginated payload. Pages are NOT reassembled here…' } ]
+metadata { name, large: { transmissionId, pageIndex, pages }, timestamp: {…} }
+```
+
+`raw` and `value` holding the same base64 is **deliberate, not a slip** — `raw` is the byte slice as the
+CMA contract requires, and the honest "decoded value" of a fragment we cannot decode is that same text.
+Do not "fix" it later.
+
+**Practical stakes: this is forward-safety code only.** Ellipse gen 1–3 cannot emit a large frame
+(§2.1.2.1) and there are **0 in 4,594 captured frames**, so it will be tested against synthetic frames
+built by `getFakeSentence`. Worth building correctly, not worth gold-plating.
+
+#### Why cru's original model needed correcting — §2.1.2, quoted
+
+cru: *"large frames are like standard sentences but with a longer payload (more fields) and extra props
+in `cma.metadata` (page id, all pages / count)"*. **§2.1.2 says otherwise on both halves.**
+
+1. **A large frame is flagged by `CLASS` bit 7 being set (`0b1xxxxxxx`, i.e. `0x80`), not by payload
+   size.** The legacy `isLargeFrame(payload.length) => length > 4096` in `src/utils.ts` is therefore
+   wrong twice: wrong signal, and the standard maximum is **4086**, not 4096.
+2. **The DATA of a large frame is not more fields — it is a FRAGMENT.** The datasheet calls it *"the
+   payload part that has to be reassembled by the host"*. Page 1 of 3 is a slice of a byte stream that
+   cuts wherever 4081 bytes fall, possibly mid-field. It cannot be field-decoded on its own; only the
+   reassembled whole can.
+3. Large frames exist **only** for payloads over 4086 bytes, which today means only
+   `SBG_ECOM_CMD_API_GET` / `SBG_ECOM_CMD_API_POST` — the sbgInsRestApi, in the **CMD** class that D2
+   excludes.
+4. ⚠️ **"ELLIPSE Generation 1, 2 and 3 don't use large frame nor the new sbgInsRestApi."** — §2.1.2.1,
+   verbatim. **cru's hardware cannot emit one.** Consistent with the corpus: 0 large frames in 4,594
+   captured frames.
+
+Header layout, for the record: `SYNC1 SYNC2 MSG CLASS|0x80 LEN(2) TXID(1) PAGEIDX(2) NRPAGES(2)
+DATA(0..4081) CRC(2) ETX`, and `LEN` **includes** TX ID + PAGE IDX + NR PAGES.
+
+So the work is **detection and framing** — class bit 7, the 5-byte page header, `LEN` accounting that
+includes it — so the parser never mis-frames one. The legacy `isLargeFrame` must go.
+
+### ✅ D8 · Fixtures — LOCKED
+
+Septentrio's pattern: small per-log `.bin` fixtures under `tests/fixtures/`, carved from the corpus,
+committed; plus the healthy `sbg-raw.bin` as a full-stream fixture. **Delete
+`packages/sbg-ecom/tests/sbg.bin`** — 320 well-framed frames, 0 CRC-valid; it is not data, it is a trap.
+Do not commit 580 KB of CSV; carve a trimmed binary corpus covering all 13 captured log types. Requires
+narrowing `*.bin` in `packages/sbg-ecom/.gitignore`.
+
+### ✅ D9 · No `protocol` selector — LOCKED, dropped
+
+`SBGParser` has **no `protocol` property**. `sentenceIds` returns both sets merged, and
+`getSentenceDefinition` / `getFakeSentence` dispatch on the id itself — eCom ids contain a colon
+(D4-A), NMEA ids never do. The reasoning, kept so it is not re-litigated:
+**The name would not be honest.** In septentrio `parser.protocol = 'nmea'` genuinely changes how bytes
+are read. Here the input path never branches (D3), so a property called `protocol` would control nothing
+about parsing — the kind of API that costs someone an afternoon.
+
+**And in this repo `protocol` already means something else.** The `protocol` **parameter** of
+`getSentenceDefinition(id, protocol?)` is the FIRMWARE/VERSION — see the `DeviceParser` contract comment
+in [`packages/core/src/types.ts`](../packages/core/src/types.ts). A `protocol` property meaning the wire
+protocol sitting beside a `protocol` parameter meaning the firmware is a trap on its own.
+
+## The plan, in order
+
+Each phase ends green and committed. **Update this doc in the same turn as each phase.**
+
+### ✅ Phase 0 — verify the ground — DONE 2026-08-01 (`0e03b30`), and it found three things
+
+**The gate is green, measured not recalled** (all six libraries rebuilt first, so every wrapper suite ran
+against fresh `dist`):
+
+> core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · wrappers 28 / 37 / 66 / 45 ·
+> repo-wide `eslint .` clean · `tsc --noEmit` clean in all ten packages.
+
+Identical to what this doc claimed, so nothing had rotted. `sbg-ecom:test` and `sbg-ecom:nodered:test`
+**exit 1** — "no test files found" — which is not merely "zero specs", see finding 2.
+
+#### ⚠️ 1. BOTH sbg PACKAGES ARE ALREADY ON npm — D1's stated premise was wrong
+
+`npm view` says `@coremarine/sbg-ecom` is published at **0.0.1** and `@coremarine/sbg-ecom-nodered` at
+**0.0.1 and 0.0.2**. D1 said "neither package has ever been published… there is no consumer to break".
+**The decision still stands** — `0.0.x` carries no semver guarantee, so `1.0.0` is exactly the right
+first stable release, not `2.0.0` — but the reasoning has to be corrected, and the post-publish
+verification step matters now: someone could be consuming `0.0.1` today.
+
+#### 🔴 2. THE WRAPPER PUBLISHES WITH NO TEST GATE AT ALL — fix before any sbg work lands on `main`
+
+In `.github/workflows/sbg-ecom-nodered.yml` the test job is commented out **and so is `needs: test`**, so
+`publish` runs unguarded. This is not theoretical: the 2026-07-22 run on `main` shows the publish job
+**succeeded**, which is how `0.0.2` reached npm. The only thing keeping it quiet is the path trigger
+(`packages/sbg-ecom-nodered/**`) — and the refactor touches exactly that path, so **the first merge to
+`main` that includes wrapper work would publish an untested package** whose `main: index.js` does not
+exist and whose `src/parser.js` calls a library API that was removed.
+
+The library's workflow is the mirror image: its test job runs `sbg-ecom:test`, which **exits 1**, so
+`needs: test` blocks publish — the 2026-07-22 run on `main` shows `failure`. sbg-ecom is protected only
+by an accidentally-failing test. Both are fixed in phase 3 alongside the missing dependency build; this
+note exists so nobody merges wrapper work to `main` before then.
+
+#### 📦 3. The corpus is in git, and the source capture turns out to be LOSSY
+
+`packages/sbg-ecom/tests/fixtures/` now holds three contiguous, frame-aligned, fully CRC-checked slices
+with a README stating exactly what each one must parse to — see that file, it is the authority:
+`stream-mixed.bin` (71 frames + 3 interleaved GGA, **no loss** — the happy-path interleaving test),
+`stream-lossy.bin` (698 B, one **orphan GGA tail** whose head never arrived), `stream-logs.bin`
+(249 frames, 12 log types, **ending in a lone trailing `0xFF`**). `tests/sbg.bin` is deleted (320
+well-framed frames, 0 passing CRC) and `.gitignore` now un-ignores `tests/fixtures/*.bin`.
+
+Two findings that shape phase 1, both new:
+
+- **`sbg_2000.csv` has 9 places where bytes went missing** mid-sentence or mid-frame — 81 of its 90
+  inter-frame gaps are clean sentences, the other 9 are orphan tails and header-less frame fragments.
+  So the mixed-stream scanner meets real dropped bytes, not just clean alternation. The first carve
+  accidentally cut across one of these and would have shipped a fixture whose documented expectation was
+  false; re-carved deliberately into a clean file and a lossy one.
+- **A trailing `0xFF` must stay PENDING, not become garbage** — it is a sync byte split across chunks.
+  Septentrio's `blockAt` already has that rule; sbg needs it, and `stream-logs.bin` ends with exactly
+  that byte so the test is free.
+
+**Still owed from phase 0:** reading the manual's LOG tables
+(`misc/parsers/sbg/datasheets/Ellipse+Ekinox+Apogee+Series+-+Firmware+Manual.pdf`, SBGFWM 2.3, 164 pp.).
+It is the only authority for the 11 logs with no capture, and a fake round trip cannot catch a wrong
+field order. Done as phase 2 needs each table, not up front.
+
+### ✅ Phases 1-4 — THE LIBRARY AND THE WRAPPER ARE DONE (2026-08-01)
+
+Four commits: `d81fb2e` (library), `7360f69` (tests + README + CI), `cacae46` (wrapper rewrite), plus
+the corpus in `0e03b30`. **The whole repo is green** — measured after rebuilding every library, because
+the wrapper suites run against `dist`:
+
+> core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · **sbg 78** ·
+> wrappers 28 / 37 / 66 / 45 / **64** · repo-wide `eslint .` clean · `tsc --noEmit` clean in all
+> eleven packages.
+
+**What was built** is documented where it belongs and not repeated here:
+[`packages/sbg-ecom/README.md`](../packages/sbg-ecom/README.md) for the library,
+[`packages/sbg-ecom-nodered/README.md`](../packages/sbg-ecom-nodered/README.md) for the wrapper,
+[`packages/sbg-ecom/tests/fixtures/README.md`](../packages/sbg-ecom/tests/fixtures/README.md) for what
+each capture must parse to. The decisions D1-D9 above are all honoured. Shape of the library:
+
+```
+src/parser.ts         SBGParser extends BinaryParser — THE one buffer, the two-framing scan
+src/protocol-ecom.ts  decodeFrame(): pure, stateless — the four tiers
+src/protocol-nmea.ts  the composed nmea-parser at memory:false, and why it must never hold a tail
+src/engine.ts         the field-table walker (flat scalars: no sub-blocks, unlike SBF)
+src/firmware/2-3/     ALL 34 class-0 logs as field tables, by manual section
+src/fake.ts           deterministic wire frames · src/introspect.ts  self-description
+```
+
+#### Six real bugs the datasheet tables exposed in the 0.0.x decoders
+
+Recorded because each is the kind a rewrite is *for*, and because four of them were invisible:
+
+1. **`GPS_POS` read `UNDULATION` as a float64 at offset 36** where the datasheet says a 4-byte float.
+   The 8-byte read overlapped `POS_ACC_LAT`. Invisible, because every later field had its own
+   hardcoded offset and stayed correct — a single ordered table cannot do that.
+2. **`EKF_EULER` called `ROLL_ACC`/`PITCH_ACC`/`YAW_ACC` `rollAcceleration`** etc. They are 1σ
+   ACCURACIES, so a consumer read a standard deviation as a rate of change.
+3. **`IMU_SHORT` applied NONE of its three scale factors** (2²⁰, 2²⁶, 2⁸), publishing raw counts as
+   m/s² and rad/s — off by ~10⁶.
+4. **`STATUS` masked the 3-bit CAN bus enum with a 4-bit window**, so a set bit 31 leaked in.
+5. **`isLargeFrame` tested the payload LENGTH (`> 4096`) instead of `CLASS` bit 7** — and 4096 is not
+   even the right ceiling; the standard maximum is 4086.
+6. **`SBG_ECOM_CLOCK_STEERINGA`** is a transcription typo for `SBG_ECOM_CLOCK_STEERING`.
+
+#### Two datasheet errors, both settled by measurement
+
+- **`GPS_POS`'s offset column prints 54 and 56 for its last two fields**, which puts the end of the log
+  at 58 while the same table says "Total size 57". The fields are packed at 53/55 — and every
+  `GPS1_POS` frame in the corpus is `LEN` 57. Every other log's `LEN` matches its stated total too,
+  which is how the whole set was cross-checked at once.
+- **`DIAG`'s table is self-contradictory** (three mutually impossible offsets), so its layout is
+  reconstructed from its stated total size. Flagged as such in the code and the README.
+
+#### Two bugs the tests found in code written the same day
+
+Worth recording because both were found by a test, not by review:
+
+- `frameAt` read `LEN` at offset 2 instead of 4, so it framed on the MSG/CLASS bytes.
+- `PENDING` shared the value `0` with `textRunAt`'s "nothing here", so **one byte of ordinary binary
+  junk stopped the scan dead** — an 11,776-byte capture came out as a single buffer-overflow report.
+  Distinct sentinels now, with a comment saying why.
+
+#### The count is 34, and the old docs said three different things
+
+`docs/PACKAGES.md` said 22, this file said 24, and `docs/SBG-REPORT.md`'s table listed 25 rows — for the
+same number. Counting §2.3.1's own list gives **34 total, 25 previously implemented, 9 missing** (the
+seven event markers, `DIAG`, `RTCM_RAW`). `sentenceIds` is asserted against 34 in
+`tests/introspect.test.ts` so it cannot drift again.
+
+#### Not in 1.0.0, and additive whenever anyone wants it
+
+- **The device's own proprietary sentences** — `$PSBGI`, `$PSBGB`, `$PRDID`, `$PASHR`, `$WASSP`, the
+  Ixblue set (`PHINF`/`PHTRO`/`PHLIN`/`PHOCT`/`INDYN`) and Trimble `GGK`, all in manual §3.3. They
+  parse TODAY as generic sentences with unnamed fields, so nothing is lost — registering them with the
+  composed `nmea-parser` is a knowledge-base addition, not a shape change. Note `PHINF`/`PHTRO` are
+  already modelled in `norsub-emru`, so those two are nearly free.
+- **`CMD` (~40 config commands), `LOG_ECOM_1` (`FAST_IMU_DATA`, 1 kHz) and `THIRD_PARTY`** (TSS1,
+  Teledyne PD0, Simrad EM3000, Kongsberg KMB). All four classes are RECOGNISED, so a frame from one is
+  *identified* with its bytes rather than called garbage. `FAST_IMU_DATA` is a single log and would be
+  cheap; its own datasheet table has an obvious typo (`GYRO_Y` at offset 24, which its stated total of
+  18 rules out).
+- **21 of the 34 logs are datasheet-only** — no capture of them exists anywhere. Listed in the
+  library README under "Which logs are verified against hardware".
+
+### ⏭️ Phase 5 — THE RELEASE, and it is the only thing left
+
+`sbg-ecom` was the freeze condition, and it is done — so **the PR unfreezes**. `dev` → `main` now
+publishes **TEN** packages, not eight: five libraries and five wrappers.
+
+| package | in tree | on npm | why the major |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | **6.0.0** | 5.0.0 | `Result` errors became arrays; fakes idempotent |
+| `norsub-emru` + wrapper | **6.0.0** | 5.0.0 | same cause + delegated introspection |
+| `thelmabiotel-tblive` + wrapper | **3.0.0** | 2.0.0 | `string[]` → `ParserError[]` |
+| `septentrio-sbf` + wrapper | **2.0.0** | 1.0.1 | the CMA rewrite + the NMEA protocol |
+| `sbg-ecom` + wrapper | **1.0.0** | 0.0.1 / 0.0.2 | the CMA rewrite; first stable release |
+
+Do it in this order, and verify rather than assume:
+
+1. `git push origin dev` and watch the workflows go green. **Expect sbg's two to run for the first
+   time ever with a real test job** — both were broken before (see phase 0 and the wrapper's own
+   workflow comment), and both were verified locally from a clean state, but a real runner is a real
+   runner.
+2. Open the PR `dev` → `main`. The body should say what breaks for a consumer:
+   `.error.message` on a failed `Result` now reads `undefined` because the error side became an array;
+   tblive's `error.join('; ')` now yields `[object Object]`; `getFakeSentence` returns the same string
+   every call; and **`sbg-ecom` changed completely** — CMA output, `parseData()` instead of
+   `getFrames()`, ids like `'0:6'`. All of them compile and run at the call site, which is why the
+   majors exist.
+3. After cru merges: verify **against npm, not the workspace** — in an empty temp dir, `npm i` each
+   wrapper and check its library resolved to the MATCHING major (the check that caught a real packing
+   leak twice), and confirm no `_cred.json` / `.backup` in any published tarball.
+4. Then the flow-library entries: **`sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are
+   both NEW listings**; the other three need refreshing for their new majors. cru's manual step —
+   remind him, do not attempt it.
+
+## What the whole job cost
+
+| phase | estimate | actual |
+| --- | --- | --- |
+| 0 — verify, fixtures | ~0.25 session | ✅ as estimated |
+| 1+2 — parser, engine, 34 log tables | ~1.25–1.5 sessions | ✅ **one session, together** |
+| 3 — introspection, tests, docs, CI | ~0.5 session | ✅ same session |
+| 4 — wrapper: full rewrite + docs + examples + CI | ~1–1.5 sessions | ✅ same session |
+
+**Estimated ~3.5–4 sessions; took one.** Worth knowing why, for the next estimate: the datasheet field
+tables were the expensive part on septentrio and they were *already transcribed* here as block comments
+in the 0.0.x decoders, so phase 2 was checking and correcting rather than archaeology. The four
+finished templates did the rest — the wrapper is the fifth of its shape, and the fifth is not the first.
+
+The two things that did cost real time were both measurement, not typing: cross-checking every log's
+field table against the frame lengths in the corpus, and reproducing the two broken CI workflows from a
+genuinely clean state instead of assuming the fix worked.
+
+## Paste-ready prompt for the next session
+
+```
+Read docs/STATUS.md from the top. THE SBG-ECOM REFACTOR IS DONE — all five devices are on
+protocol-core and emit CMA, and the repo is green: core 43, nmea 135, norsub 48, septentrio 221,
+tblive 260, sbg 78, wrappers 28/37/66/45/64, eslint clean, tsc clean in all eleven packages.
+
+THE ONLY THING LEFT IS THE RELEASE PR — see §"Phase 5". It publishes TEN packages (five libraries,
+five wrappers) and the freeze that was blocking it is lifted, because sbg-ecom was the condition.
+Follow that checklist in order and verify against npm rather than the workspace after the merge.
+
+Two things to expect on the first push: sbg-ecom.yml and sbg-ecom-nodered.yml run with a real test
+job for the FIRST TIME. Both were broken before — the library workflow had no dependency build, and
+the wrapper's test job AND its `needs: test` were both commented out, so publish ran ungated (that is
+how 0.0.2 reached npm). Both are fixed and were replayed locally from a clean state, but watch them.
+
+If cru wants more sbg coverage rather than the release, the additive work is listed under "Not in
+1.0.0" in §"Phases 1-4": the device's own proprietary NMEA sentences (§3.3 of its manual — PHINF and
+PHTRO are already modelled in norsub-emru), the CMD class, and FAST_IMU_DATA. None is a shape change.
+
+Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
+Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
+turn as any meaningful change. He reads carefully and pushes back — when he says something is wrong,
+measure it again rather than re-running the same grep.
+```
+
+> # 🎉 SHIPPED 2026-07-30 — SIX PACKAGES LIVE ON npm; nmea + norsub + thelmabiotel are DONE
+
+PR [#75](https://github.com/core-marine-dev/devices/pull/75) (merge `c6d7d5d`) published
+`thelmabiotel-tblive@2.0.0`; PR [#76](https://github.com/core-marine-dev/devices/pull/76)
+(merge **`ef4480b`**) published the other five. **All five publish workflows green.**
+**`dev` == `main` == `ef4480b`, tree clean.**
+
+| package | npm | pairs with |
+| --- | --- | --- |
+| `@coremarine/nmea-parser` | **5.0.0** | ↔ `nmea-parser-nodered` **5.0.0** |
+| `@coremarine/norsub-emru` | **5.0.0** | ↔ `norsub-emru-nodered` **5.0.0** |
+| `@coremarine/thelmabiotel-tblive` | **2.0.0** | ↔ `thelmabiotel-tblive-nodered` **2.0.0** |
+
+**✅ Verified against npm, nothing from the workspace:** in an empty temp dir,
+`npm i` of the three wrappers resolved each one's library to the **matching major** —
+wrapper 5.0.0 → dep `^5.0.0` → library 5.0.0, and 2.0.0 → `^2.0.0` → 2.0.0. The version policy
+holds in production, not just in the monorepo.
+
+**✅ Node-RED flow-library entries refreshed for all three components (cru, 2026-07-30).** That was the
+last manual step, so **`nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` are DONE — three of five
+devices, library and wrapper each, published and listed.**
+
+**✅ 2026-07-31 — `septentrio-sbf` IS DONE, RELEASE-READY AND COMMITTED.** Library + Node-RED
+wrapper both at **2.0.0**, all 108 blocks modelled, every frame in cru's captures decoding. Nothing is
+left but the release PR. Full account: §"SESSION SUMMARY — 2026-07-31".
+
+**➡️ LAST DEVICE: `sbg-ecom`** — still on its legacy `SBGFrameResponse`, not on `protocol-core`, with
+**zero specs**. It extends `BinaryParser` like septentrio, so the binary patterns just proven
+(length-prefixed framing, Base64 `raw`, a table-driven engine, the four output tiers) transfer
+directly. Its CRC-16 Kermit comes from the same `crc` dependency.
+
+> # 🏷️ PROTOCOL NAMES AND NMEA VERSIONS (2026-08-01, cru's call)
+
+**Seven commits, `c3d281d` → `ec15198`, tree clean, nothing pushed.**
+
+| commit | what |
+| --- | --- |
+| `c3d281d` | cru's visual rework of three example flows (norsub-emru, septentrio-sbf, tblive) — layout only, committed on its own so the rest does not bury it |
+| `9865dc8` | **nmea-parser!** — real NMEA revisions, MIROS as a vendor, the 4.10 GSA/GSV forms |
+| `ec97899` | **septentrio-sbf!** — `SEPTENTRIO SBF` / `SEPTENTRIO NMEA` |
+| `7c86858` | septentrio wrapper — the ninth example group |
+| `1dda019` | this section |
+| `196d7fa` | cru's editor nudge aligning the new group |
+| `ec15198` | HEAD/counts correction in this file |
+| `9513a93` | ahead-count correction |
+| `698bf08` | **PSSNHRP verified against real receiver captures** |
+
+`nmea-parser`'s example flow was not touched. **No version bumps:** every change lands inside the
+already-bumped, still-unpublished `nmea-parser@6.0.0` and `septentrio-sbf@2.0.0`.
+
+**Why this happened before the release PR, not after:** all four pairs are version-bumped but **not yet
+published**, so `protocol.name` and `protocol.version` could still be changed for free. After the PR
+each of these would cost another major.
+
+### 1. `septentrio-sbf` emits THREE protocol names, and they now say which wire format
+
+It is the only package parsing two wire formats, so a bare vendor name was ambiguous.
+
+| `protocol.name` | labels | was |
+| --- | --- | --- |
+| `SEPTENTRIO SBF` | every binary SBF block | `SBF` |
+| `SEPTENTRIO NMEA` | the six proprietary `$PSSN` sentences | `SEPTENTRIO` |
+| `NMEA` / `TRIMBLE` / `LEICA` | standard sentences, straight from nmea-parser | unchanged |
+
+`name.startsWith('SEPTENTRIO')` now means "proprietary to this device, either wire format". The name is
+ALSO the lookup key for `getSentenceDefinition`/`getFakeSentence`, so `protocols/septentrio.yml` and
+`PSSN_PROTOCOL` in `src/protocol-nmea.ts` have to move together — there are comments on both saying so.
+
+### 2. Miros moved out of `NMEA` into its own `MIROS` block
+
+`PMIRWM`/`PMIRCV`/`PMIRLD` are Miros SM-050 wave-radar sentences and were labelled `protocol: 'NMEA'`,
+`standard: false` — so the output claimed a vendor sentence was standard NMEA. Now `MIROS` version `1`,
+matching how Kongsberg/Trimble/Leica were already handled (`1` = OUR knowledge-base revision when the
+vendor publishes none). That they are NMEA-framed is still in the output: `metadata.standard` is false
+and the talker/checksum metadata is unchanged.
+
+### 3. Every NMEA version is now a REAL revision
+
+**There has never been an NMEA 0183 "3.1"** — the published revisions are 2.00, 2.01, 2.10, 2.20, 2.30,
+3.00, 3.01, 4.00, 4.10, 4.11. cru had picked `3.1` arbitrarily years ago from PDFs a teammate sent.
+
+**The convention, locked:** `version` = **the newest published revision whose table for that sentence
+matches EXACTLY those fields**. An unchanged sentence reads `4.11`; a superseded form carries the last
+revision where it was current. cru's original ask was "just put the latest everywhere", but that would
+have made an 8-field GBS claim to be `4.11`, which 4.11 does not define — and would have thrown away the
+only signal telling a consumer the device speaks an older form.
+
+| block | sentences |
+| --- | --- |
+| `4.11` | AAM DTM GBS(10) GGA GLL(7) GNS(13) GRS(16) **GSA(18)** GST **GSV(20)** HDT MWV RMC(13) ROT THS TXT VTG ZDA |
+| `4.00` | GBS(8) GNS(12) GRS(14) GSA(17) GSV(19) RMC(12) — superseded by the 4.10 GNSS update |
+| `2.20` | GLL(6) RMC(11) — superseded by the 2.30 FAA mode indicator |
+
+The two deltas, from [gpsd's NMEA Revealed](https://gpsd.gitlab.io/gpsd/NMEA.html), a v4 vendor field
+dictionary and the trade coverage of the 4.10/4.11 releases: **2.30** added the FAA mode indicator to
+GLL/RMC/VTG; **4.10** added System ID to GSA, Signal ID to GSV, both to GBS and GRS, and navigational
+status to RMC and GNS. **The standard itself is paid and non-public — these are secondary sources.**
+GST is the softest row (listed as "updated" in 4.10, but no field change found in any source).
+
+**`GSA` with 18 fields and `GSV` with 20 are NEW definitions** — they were sitting in `nmea.yml`
+**commented out**, so any multi-constellation receiver emitting System/Signal ID matched nothing and
+fell through as a generic sentence with unnamed fields. Septentrio boxes emit exactly those.
+
+### 4. Ordering, as cru asked
+
+`nmea.yml` is now: NMEA blocks first (newest revision first), then the proprietary ones. The file has a
+banner at the top stating the version convention so nobody has to rediscover it.
+
+### How this was done safely
+
+`protocols/*.yml` is the SOURCE OF TRUTH — `src/nmea.ts` and `src/septentrio-nmea.ts` are GENERATED by
+`scripts/yaml-to-ts.mjs` (`pnpm run <pkg>:protocols`, idempotent). The YAML was restructured by
+line-span surgery and verified by loading it before and after: every sentence's serialised payload is
+**byte-identical**, except the two intentionally new ones. Do not hand-edit the generated `.ts`.
+
+### 5. A ninth example group in the septentrio wrapper (cru's ask)
+
+`examples/septentrio-sbf-examples.json` gained **"Two protocols on one node — switch, then feed"**:
+four injects — `protocol: set sbf`, an SBF AttEuler frame, `protocol: set nmea`, and one NMEA payload
+carrying `$PSSN,TFM` + `$GPGGA` — so all three protocol names show up in one run. Both payloads were
+verified through the wrapper's OWN `applyProtocol`/`parsePayload` before being written into the flow.
+
+Two things the group's comment node says, because both surprise people:
+
+- **The payload is bytes in BOTH protocols.** `toBytes` accepts a Buffer, a byte array or a base64
+  string; a plain `$PSSN,…` ASCII string is REFUSED. The NMEA inject therefore carries base64, which is
+  what a serial-in node would deliver anyway. **Worth deciding separately:** whether the wrapper should
+  accept a plain NMEA string when `protocol === 'nmea'`. It is a wrapper contract change, so it is cru's
+  call, and it is free only while 2.0.0 is unpublished.
+- **The parser node is SHARED with the other groups on the tab**, and switching discards the buffer, so
+  the group tells you to leave it on `sbf`.
+
+The file is exactly `JSON.stringify(flow, null, 4)` with no trailing newline, so it can be edited
+programmatically with zero formatting churn — which is how this was added on top of cru's own layout
+work without touching a single one of his nodes. **The new injects are left-aligned at one x**; cru does
+the right-edge nudge in the editor, as with the other groups (Node-RED computes node width from the
+label at load time, so it cannot be done offline). A structural validator (unique ids, group membership
+both ways, wire and link-in/link-out symmetry, members inside the group box, no group overlap) was run
+over all four wrapper example flows: **all clean**.
+
+### 6. NMEA input is a STRING now (cru's call, 2026-08-01)
+
+`SeptentrioNMEAParser` composes `nmea-parser`, a StringParser, and NMEA 0183 is ASCII — but the facade
+demanded `Uint8Array` on both protocols and converted to text internally, so a plain `'$PSSN,…'` was
+refused at the wrapper and produced garbage at the library. That is backwards for a text protocol.
+
+**Both forms are accepted; text is the documented one.** cru's words: "document it accepts just ascii
+string, or the examples only with ascii strings, because it is not the purpose to have bytes as input".
+So the READMEs, the node's help panel and the example flow all use a string, and bytes are stated as
+the serial-path escape hatch rather than advertised.
+
+**Why bytes stay accepted at all:** a serial/TCP/file node emits bytes whichever protocol the receiver
+is configured for, and a Septentrio box can emit SBF and NMEA on the same port. If the accepted type
+flipped with the setting, a working flow would break the moment you switch protocol — which is the
+thing the uniform interface existed to prevent.
+
+| protocol | string means | bytes |
+| --- | --- | --- |
+| `nmea` | **the sentence** | accepted, converted at the door |
+| `sbf` | base64 at the WRAPPER; encoded byte-per-character at the LIBRARY | the normal form |
+
+Mechanics: `addData`/`parseData` widen to `string | Uint8Array` on `SeptentrioNMEAParser` and on the
+facade, which still satisfies `DeviceParser<Uint8Array>` — a function taking MORE is usable where one
+taking less is expected — so `buffer` stays `Uint8Array` and the contract in `protocol-core` did not
+move. The ASCII conversions moved from private helpers in `protocol-nmea.ts` to `src/utils.ts`
+(`toText`/`toBytes`/`asText`/`asBytes`) because the facade needs them too. In the wrapper,
+`parsePayload` branches on `parser.protocol` before `toBytes`, and a bad payload on `nmea` now gets a
+message asking for a sentence instead of for base64.
+
+The example flow's NMEA inject carries the two plain sentences instead of base64. Its label changed
+`NMEA bytes` → `NMEA text`, one character shorter, so cru's alignment survives without a re-nudge.
+
+Counts: septentrio **221** (was 216, +5), its wrapper **66** (was 62, +4).
+
+### 7. ⚠️ THE SEPTENTRIO CI WOULD HAVE FAILED ON THE FIRST PUSH (found 2026-08-01)
+
+Checking cru's pre-PR list turned up a **real break, not a tidy-up**. `septentrio-sbf.yml` ran
+`septentrio-sbf:test` with no dependency build — written when the package had no `@coremarine`
+dependency, and never updated when the **NMEA protocol added one**. `dist` is gitignored, so on a
+fresh checkout there is nothing to resolve. Reproduced by moving the two dists aside:
+
+```
+Test Files  6 failed (6)      Tests  no tests
+```
+
+**Every test file failed to resolve before a single test ran.** The wrapper's workflow had the same
+hole one level up: it built `protocol-core` + `septentrio-sbf`, but `septentrio-sbf:build` itself now
+needs nmea-parser — `DTS Build error`. Both fixed to match `norsub-emru.yml`, which has the identical
+dependency shape and got it right, and both replayed from a clean state afterwards: deps build →
+221 tests → build → wrapper build → 66 tests.
+
+Also added, same reasoning as the comments already in those files: `packages/nmea-parser/**` and
+`packages/core/**` + `scripts/**` to septentrio's triggers, and `packages/nmea-parser/**` to the
+septentrio AND norsub wrapper triggers — a change to nmea-parser reaches all of them, and the version
+gate keeps the extra triggers harmless (tests run, publish no-ops unless the version changed).
+
+**This is the third variant of one lesson this session: a package is not tested against what CI will
+actually give it.** First `tsx` stripping types without checking them, then wrapper suites running on
+a stale `dist`, now a workflow with no dep build at all. Local green says nothing about a clean
+checkout — the way to check is to move `dist` aside and replay the workflow's steps in order.
+
+### Trap this paid for — read before touching a library
+
+**The Node-RED wrapper suites run against the library's BUILT `dist`, not its source.** All four
+wrappers passed while `septentrio-sbf`'s dist was stale; rebuilding it turned up a real assertion break
+in `septentrio-sbf-nodered`. **Build the libraries before believing a wrapper suite**, exactly as the
+CI workflows do.
+
+### Gate, re-measured after all of the above
+
+core 43 · nmea **135** (was 133, +2 for GSA/GSV) · norsub 48 · septentrio 211 · tblive 260 ·
+wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean · `tsc --noEmit` clean in every package.
+
+**All six libraries were rebuilt** (`protocol-core`, `nmea-parser`, `norsub-emru`, `septentrio-sbf`,
+`thelmabiotel-tblive`, `sbg-ecom`) so every wrapper suite ran against fresh `dist`. `dist` is gitignored,
+so this dirties nothing.
+
+**Still open:** `RBD`/`RBP`/`RBV` field order, which no public capture can close (see below), and the
+release PR — **frozen by cru until there is nothing left to discuss**.
+
+# 🔬 (HISTORICAL) SBG-ECOM — SCOPING ANALYSIS (2026-08-01, before any code)
+
+> ⚠️ **The work is DONE — see §"🗺️ SBG-ECOM — THE PLAN".** This section is the estimate made before
+> starting, kept because its central prediction was worth testing and it held: **"no core change
+> found"** was correct, `protocol-core` was not touched. Its cost estimate was ~2-2.5 sessions for
+> tiers 1+2; the actual was one. Two of its data claims about the captures were measured WRONG and are
+> corrected in the plan section.
+
+cru asked what a CMA refactor of the last device would cost, and specifically whether leaving it for
+later risks discovering something that forces a `protocol-core` change — and therefore a SECOND round
+of majors across all four published parsers. Everything below is measured, not recalled.
+
+## The verdict on the fear: no core change found
+
+| eCom feature | needs a core change? | why not |
+| --- | --- | --- |
+| sync + length + CRC + ETX framing | **no** | `BinaryParser`, whose own comment already reads *"Binary protocols (Septentrio SBF, SBG sbgECom)"* |
+| CRC-16, poly `0x8408` | **no** | `crc16kermit` from the same `crc` dep — verified against the datasheet's own C code, **1365/1365** |
+| identity is a PAIR (class + id) | **no** | CMA `id` is a string: `'0:14'`, or the log name |
+| device time is µs since power-up, not a wall clock | **no** | precedent: norsub deliberately emits no `metadata.timestamp.sentence` for exactly this reason |
+| large frames (TX id / page idx / nr pages) | **no** | today's code does NOT reassemble — it exposes page metadata per frame, which is ordinary CMA `metadata`. Reassembly, if ever wanted, is parser-local state |
+| NMEA + third-party logs | **no** | septentrio already proved composing `nmea-parser` |
+
+**A `protocol-core` change only forces new majors if it changes the CMA OUTPUT SHAPE.** Adding a
+capability is additive and invisible to consumers. Nothing in eCom was found that CMA cannot express.
+
+**The one genuinely new shape** — found only by scanning the captures, not from the manual —
+is that septentrio's "pick one protocol" model does NOT apply. `sbg_2000.csv` carries **81 plain-ASCII
+`$GPGGA` sentences interleaved with binary eCom frames on the same stream**:
+
+```
+$GPGGA,093721.00,4024.87314846,N,00343.50344998,W,1,19,2.8,600.668,M,50.238,M,,*7B
+```
+
+The manual explains it (§2.1.4): the NMEA classes are *"only used for identification purpose and does
+not contain any sbgECom message"* — the device emits NMEA as raw text ALONGSIDE eCom. So the extract
+step has to split two framings out of one buffer. That belongs in the package, not the core.
+
+## Two findings about the test data — ⚠️ BOTH WERE PARTLY WRONG, see §"🗺️ SBG-ECOM — THE PLAN"
+
+**Re-measured 2026-08-01:** the corrupt `sbg.bin` is **not tracked** (gitignored), and the tracked
+`sbg-raw.bin` is a **different, healthy capture** — 249 frames, all CRC-valid. The corrected table, and
+the fact that the mixed NMEA stream appears in the `.bin` files too, are in the plan section. Read the
+bullets below only for the protocol reasoning.
+
+- ⚠️ **THE COMMITTED CAPTURE IS CORRUPT AND THE GOOD ONE IS NOT IN GIT.** `packages/sbg-ecom/tests/sbg.bin`
+  — and the identical `sbg-raw.bin` shipped in the wrapper's `examples/` and `tests/`, both **tracked** —
+  has **0 of 955** well-framed frames passing CRC. Framing is intact (ETX lands correctly every time),
+  so the payload bytes were mangled by whatever produced the file. The four CSVs are pristine:
+  **4,442 frames, 100% CRC-valid, zero bad.** But `packages/sbg-ecom/.gitignore` ignores `*.csv` and
+  `*.bin`, and **`misc/` is untracked entirely** — so the only verified capture of this device that
+  exists is on cru's disk alone, while the broken one is committed. **Get the CSVs into git.**
+- **The legacy parser is better than its reputation.** Fed clean bytes it parsed **1365/1365** frames
+  and named every one. It looks broken only because its own fixture is broken.
+
+Corpus coverage (all four CSVs): class 0 ids **9** ×1297, **6** ×1289, **13** ×669, **15** ×505,
+**14** ×410, **1** ×136, **2** ×136 — seven log types. The other modelled logs would ship
+datasheet-verified but not capture-verified, the same position `RBD`/`RBP`/`RBV` are in on septentrio.
+
+## What the packages actually are today
+
+| | library | wrapper |
+| --- | --- | --- |
+| code | 2,180 lines, 33 files, TS | **`src/parser.js` — plain JS**, no tsup, `main: index.js` does not exist |
+| tests | **zero** (only fixtures) | docker + `manual_tests.sh`, plus a duplicated copy of the source under `tests/nodered/components/` |
+| shape | `SBGFrameResponse`, `Buffer` throughout (not cross-runtime) | node-red `>=3`, node `>=18` |
+
+Scope against the 164-page manual (SBGFWM 2.3, which matches the implemented firmware): **LOG class 0**
+has ~33 logs documented, **24 implemented**, 9 missing (events A–E, out A/B, DIAG, RTCM raw). **Class 1**
+(fast IMU), **CMD** (~40 config commands), **NMEA_0** (9 sentences), **NMEA_1** (11 proprietary) and
+**THIRD_PARTY** (~12, incl. TSS1, Teledyne PD0, Simrad EM3000, Kongsberg KMB) are all empty stubs.
+§5 input protocols and §6 CAN are a different transport — out of scope for a parser.
+
+## Cost
+
+Septentrio is the yardstick: 108 blocks, 10,745 src lines, 2,811 test lines, 221 specs. sbg is far
+smaller, and the expensive part — transcribing datasheet field tables — is **already done for 24 logs**.
+Porting those to CMA field tables is mechanical, not archaeological.
+
+| tier | work | estimate |
+| --- | --- | --- |
+| **1. library to CMA parity** | port 24 logs, `Buffer`→`Uint8Array`, mixed-stream extraction, +9 missing logs, tests off the 4,442-frame corpus, README, 1.0.0 | **~1–1.5 sessions** |
+| **2. wrapper rebuild** | from scratch (TS + tsup + `node:test` + example flow) with three finished templates to copy | **~1 session** |
+| **3. optional** | NMEA classes — mostly free, `nmea-parser` already has GGA/RMC/VTG/ZDA/HDT/GST/ROT and norsub has PHTRO/PHINF; only VBW/DPT and the proprietary set are new — plus third-party binaries and the CMD class | open-ended, skip |
+
+**Claude's recommendation, for the record:** tiers 1+2, but AFTER the release PR rather than before it.
+Holding eight finished packages hostage to the device cru has least time for is a high premium for thin
+cover. The cheap insurance is a **SPIKE**: one session putting sbg on `BinaryParser` + CMA with two or
+three log types and proving the mixed binary/ASCII extraction against the real corpus. That turns "the
+analysis says it fits" into running code. **cru's call was to hold the PR until sbg is done** — recorded
+here as his decision, not a forgotten step.
+
+## How to reproduce any of the above
+
+The scratch scripts are gone, but each check is a few lines: read a CSV, take the `data` column
+(PostgreSQL `\x` bytea hex), concatenate, then walk the bytes for `FF 5A`, read `LEN` at +4 (LE),
+require `ETX 0x33` at `+6+LEN+2`, and compare `crc16kermit(bytes[i+2 .. i+6+LEN])` against the
+uint16LE at `+6+LEN`. That is the whole protocol, and it is what proved the CSVs clean and the
+`.bin` corrupt.
+
+# ⏭️ (HISTORICAL) NEXT SESSION — START HERE (written 2026-07-31)
+
+> ⚠️ **SUPERSEDED.** `sbg-ecom` is done and the freeze is lifted — the current checklist is
+> §"⏭️ Phase 5" inside §"🗺️ SBG-ECOM — THE PLAN". The release-PR steps below are still accurate in
+> shape, but the counts are stale: it publishes **TEN** packages, not eight. Kept for the "Traps this
+> session paid for" list at its end, which is still worth reading.
+
+**State:** `dev` @ `ec15198`, **21 commits ahead of `origin/dev`** (`2f32d57`) and **24 ahead of the
+published `main`** (`ef4480b`); the push is a clean fast-forward. Tree clean, every gate green, and
+**the only thing left is the release PR** — plus the two open questions in the 2026-08-01 section above.
+(The older "13 commits ahead of `main`" further down this file counted against `origin/dev`, not
+`main` — the two are different refs and `main` is the one the release PR targets.)
+
+| package | version in tree | on npm | note |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | **6.0.0** | 5.0.0 | breaking: `Result` errors are arrays, fakes idempotent |
+| `norsub-emru` + wrapper | **6.0.0** | 5.0.0 | breaking, same cause + delegated introspection |
+| `thelmabiotel-tblive` + wrapper | **3.0.0** | 2.0.0 | breaking: `string[]` → `ParserError[]` |
+| `septentrio-sbf` + wrapper | **2.0.0** | 1.0.1 | the CMA rewrite + NMEA protocol |
+| `sbg-ecom` + wrapper | 0.0.1 / 0.0.2 | — | UNTOUCHED, deliberately: not on `protocol-core` |
+
+**Gate as of that commit** (superseded — see §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" above, where nmea
+is now **135**): core 43 · nmea **133** · norsub 48 ·
+septentrio **211** · tblive 260 · wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean ·
+`tsc --noEmit` clean in every package · `pnpm install --frozen-lockfile` clean.
+
+## ⛔ THE RELEASE PR IS FROZEN — cru's decision, 2026-08-01
+
+**Do not open it.** cru's call: `sbg-ecom` and its wrapper get refactored FIRST, so that if the last
+device turns out to need anything structural, it lands in the SAME round of majors instead of forcing a
+second one. Claude's recorded disagreement and the cheaper alternative (a spike) are in
+§"🔬 SBG-ECOM — SCOPING ANALYSIS" above — cru read it and chose to hold. **The job is now sbg.**
+
+`dev` IS pushed (that part is safe and was agreed: every publish job is gated on
+`github.ref == 'refs/heads/main'` and no-ops unless the version changed).
+
+When the freeze lifts, the release PR is `dev` → `main` and **eight packages publish** — the four
+libraries and their four wrappers. Do it in this order, and verify rather than assume:
+
+1. `git push origin dev` and watch the workflows go green.
+2. Open the PR `dev` → `main`. The body should say what breaks for a consumer:
+   `.error.message` on a failed `Result` now reads `undefined` because the error side became an array;
+   tblive's `error.join('; ')` now yields `[object Object]`; `getFakeSentence` returns the same string
+   every call. All three compile and run at the call site, which is why the majors exist.
+3. After cru merges: verify **against npm, not the workspace** — in an empty temp dir, `npm i` each
+   wrapper and check its library resolved to the MATCHING major (that is the check that caught a real
+   packing leak twice before), and confirm no `_cred.json` / `.backup` in any published tarball.
+4. Then the flow-library entries: `septentrio-sbf-nodered@2.0.0` is NEW and needs one; the other three
+   need refreshing for the new majors. That is cru's manual step — remind him, do not attempt it.
+
+## Then, in cru's stated order
+
+1. **`sbg-ecom`** — the LAST device. Still on legacy `SBGFrameResponse`, not on `protocol-core`,
+   **zero specs**, `engines.node >= 18`, `getFrames()` instead of `parseData()`, `main: index.js` that
+   does not exist in its wrapper, mocha + `node-red-node-test-helper` (broken on node-red 5) so its CI
+   test job is disabled, and it is the only pair with no `version.unit.test.ts` guard. It extends
+   `BinaryParser` like septentrio, so the binary patterns just proven transfer directly: length-prefixed
+   framing, Base64 `raw`, a table-driven engine, the four output tiers. Its CRC-16 Kermit comes from the
+   same `crc` dependency, via the same pure `crc/calculators/*` subpath.
+2. **`nmea-parser`'s standard-sentence gap** (optional, additive): `GMP` and `GFA` are still missing —
+   no field table with a verified example could be found. `ALM` is skipped on purpose (raw hex dump).
+   Leica `GGQ` and `LLK` likewise, unless Tracker talks to Leica gear.
+3. **§QUEUED item 3** — making `nmea-parser` comply with the `$root.timestamp` rule for GGA. cru has
+   said he will carry GGA time across sentences in the **Tracker** layer instead, so confirm before doing it.
+
+## Open items that are NOT blockers, but are real
+
+- ✅ **`PSSNHRP` IS NOW VERIFIED — against public captures, not a capture of cru's** (2026-08-01). cru
+  has no receiver output to hand, so the search went to GitHub code search instead, and four unrelated
+  repos carry real Septentrio NMEA logs: `semuconsulting/pynmeagps` (`tests/septentriox5_nmea.log`, a
+  Septentrio X5), `dup06087/autonomous_ship_controller` (a vessel), `Jailander/localisation-1` (Norway
+  field logs), `Team-Abhiyaan/mosaic_gnss_driver` (a mosaic). All parse with **no errors**, so their
+  checksums verify against our own computation — four receivers agreeing on one field order.
+  The mode-2 capture is the one that proves ORDER rather than count: fields 5 and 8 (roll and its
+  standard deviation) are the empty pair, exactly as the datasheet's mode note predicts. `TFM` and
+  `SNC` are confirmed too, and the real `SNC` ends `*4C` — **the Appendix C.1.5 checksum `68` is a
+  datasheet typo, as suspected.** All five are pinned verbatim in `tests/nmea.test.ts`
+  (§"real receiver output"), which is why septentrio is now **216**, not 211.
+- ⚠️ **`PSSNRBD` / `PSSNRBP` / `PSSNRBV` still rest on the datasheet tables.** No public capture of any
+  of the three was found — they only appear in rover-base setups, which are rarer than attitude. The
+  independent implementation `dtc-pronto/dgps-ros` transcribed the same Appendix C.1.2/3/4 and agrees
+  field for field, which rules out a transcription slip HERE but not an error in the guide. Its test
+  strings are synthetic (`*00` placeholder checksums), so they are NOT usable as fixtures. Documented
+  as datasheet-only in the septentrio README rather than left implicit.
+- **The example flow's injects are left-aligned at one x.** Node-RED computes node width from the label
+  at load time and the flow JSON carries no `w` for ordinary nodes, so right-edge alignment cannot be
+  computed offline. cru does that nudge in the editor, as he did for the other three flows.
+- **Nothing in this repo compares a version to npm.** The `version.unit.test.ts` guards compare a
+  wrapper to its sibling library in the workspace — verified by half-bumping one on purpose — but
+  publishing a breaking change at an unchanged version would simply succeed. If that is worth closing it
+  is a CI check against the registry, not a unit test.
+- **`misc/parsers/septentrio/samples/`** still holds 1.x-shaped `{ header, time, body }` baselines that
+  nothing reads. Regenerate or drop; do not trust them as fixtures.
+- **The tally comment in `firmware/4-10-1/index.ts`** calls `LBandTrackerStatus` Status's "14th" when
+  `Status/` already holds 14 without it. The totals sum to 108 correctly; the parenthetical needs
+  someone with the guide open.
+
+## Traps this session paid for — do not rediscover them
+
+- **The wrappers run their tests with `tsx`, which strips types WITHOUT checking them**, and
+  `<pkg>:nodered:lint` does not typecheck either. Three real breaks hid behind 62 passing tests this
+  session. **Run `npx tsc --noEmit -p tsconfig.json` inside a wrapper** whenever its library changes shape.
+- **A fake round trip cannot catch a wrong identifier** — it builds the frame from the same wrong number
+  and agrees with itself. Only an external authority (the datasheet) catches it. That is how
+  `ExtEventBaseVectGeod` sat at 4216 instead of 4217.
+- **Vendor examples are the only defence against a wrong field ORDER**, because a wrong order parses
+  cleanly. Where a vendor example exists, test with it verbatim.
+- **A datasheet example can be wrong**: Appendix C.1.5's own `SNC` prints checksum `68` where the
+  sentence computes `4C`.
+- **`git commit <path>` will not stage an untracked file**; and when splitting a lockfile change across
+  commits, regenerate it per commit with `pnpm install --lockfile-only` or `--frozen-lockfile` breaks at
+  the intermediate commit.
+- **`cd` persists between Bash tool calls.** Use absolute paths.
+
+## Paste-ready prompt for the next session
+
+```
+Read docs/STATUS.md first. Start at §"🔬 SBG-ECOM — SCOPING ANALYSIS" and then §"NEXT SESSION —
+START HERE". Do not skim them: this session's job was scoped in detail there, with measurements.
+
+Where things stand: dev is pushed and clean, four CMA pairs are version-bumped but NOT published
+(nmea-parser 6.0.0, norsub-emru 6.0.0, thelmabiotel-tblive 3.0.0, septentrio-sbf 2.0.0, each with its
+wrapper at the same major). THE RELEASE PR IS FROZEN by cru until sbg-ecom is refactored, so that
+anything structural the last device needs lands in the same round of majors. Do not open the PR.
+
+THE JOB IS sbg-ecom: the last device, and the only pair still on the legacy shape. Refactor the
+library onto protocol-core's BinaryParser + CMA, then rebuild its Node-RED wrapper. The analysis says
+this costs ~1-1.5 sessions for the library and ~1 for the wrapper, and that NOTHING in the protocol
+needs a protocol-core change — read the evidence before trusting that sentence.
+
+Two things to do early, before any refactor, because they are cheap and both are traps:
+
+  1. THE COMMITTED CAPTURE IS CORRUPT. packages/sbg-ecom/tests/sbg.bin and the wrapper's
+     examples/sbg-raw.bin (both tracked) fail CRC on every one of their 955 well-framed frames. The
+     four CSVs next to them are pristine — 4,442 frames, 100% valid — but *.csv and *.bin are
+     GITIGNORED and misc/ is untracked, so the only good capture of this device lives on cru's disk.
+     Get the CSVs into git and delete or regenerate the .bin. Verify, do not assume: walk for FF 5A,
+     read LEN at +4 LE, require ETX 0x33 at +6+LEN+2, compare crc16kermit(bytes[i+2 .. i+6+LEN]).
+  2. THE STREAM IS MIXED. sbg_2000.csv carries 81 plain-ASCII $GPGGA sentences INTERLEAVED with the
+     binary frames — the device emits NMEA as raw text alongside eCom (manual §2.1.4). Septentrio's
+     "select one protocol" model does not apply; the extract step must split both from one buffer.
+
+Before anything else, re-run the gate rather than trusting the doc: the five vitest suites, the four
+node-red suites, repo-wide eslint, and tsc --noEmit in each package. And BUILD THE LIBRARIES FIRST —
+the wrapper suites run against dist, not src, and a stale dist has hidden real breaks twice.
+
+Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
+Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
+turn as any meaningful change. He reads carefully and pushes back — when he says a checklist item is
+wrong, check it properly rather than re-running the same grep.
+```
+
+# 🎉 SHIPPED 2026-07-29 — nmea-parser 4.0.0, norsub-emru 4.0.0, BOTH wrappers 3.0.0 ARE LIVE ON npm
 >
 > PR [#74](https://github.com/core-marine-dev/devices/pull/74) merged by cru at 12:24 UTC, merge commit
 > **`941fd58`**; **`main` @ `941fd58`**. All five workflows green; `npm view` → `nmea-parser 4.0.0`,
@@ -71,6 +1714,1401 @@
 > `NaN` leaks into `Field.value`. Plus the real framing insight: **this protocol has no framing at
 > all in command mode**, which is why `parse.ts` looks the way it does. See §"What the datasheets
 > actually say" and §"The real internal problem, named".
+
+# ✅ NMEA IS IN — `septentrio-sbf` NOW SPEAKS TWO PROTOCOLS (2026-07-31, `a859621`)
+
+`protocol: 'sbf' | 'nmea'` on the facade, norsub semantics (one at a time, composed, switching discards
+the buffer). Both protocol parsers take BYTES so the facade stays uniform; the NMEA one wraps
+nmea-parser internally, converting byte-per-character because NMEA 0183 is ASCII — no
+TextEncoder/TextDecoder, so the package stays runtime-agnostic.
+
+**Five of the six `$PSSN` sentences are plain YAML** in `protocols/septentrio.yml` (HRP 13 fields, RBD
+11, RBP 12, RBV 12, TFM 6), resolved by `PSSN:<length>` entries. RBP and RBV share a length and are told
+apart by the subtype field.
+
+## `SNC` — built exactly as cru designed it, and his design was the better one
+
+**The payload is ALWAYS TWO FIELDS**: `submessage_id`, and the whole bracket group as one field whose
+`metadata` carries the decoded tree. That constant shape is the property that actually solves the
+problem — my own first proposal kept the field count varying in the payload and merely relocated the
+mess. The variable part now lives in metadata, where nothing is keyed by field count.
+
+```jsonc
+payload[1]: {
+  raw: '[0,379359000,1840,[1,2,0,0]]',   // sliced from the sentence's own raw — byte-faithful,
+  value: '[0,379359000,1840,[1,2,0,0]]', // so the checksum still verifies against it
+  type: 'string',
+  metadata: {
+    fields: [ /* message_revision, time_of_week (+units ms), week_number — honest numeric types */ ],
+    submessages: [ /* Field[] per NTRIP connection — the SBF metadata.subBlocks idiom */ ],
+  },
+}
+```
+
+**CMA is not violated, and that is asserted rather than assumed:** `tests/nmea.test.ts` validates every
+sentence this layer emits against `CMASchema`. One deviation from cru's literal sketch: `metadata` is
+`{ fields, submessages }` rather than a bare array, because the runtime schema accepts an array but
+**TypeScript refuses** it — `Field[]` is not assignable to `Record<string, unknown>` ("index signature
+for type 'string' is missing"), so a bare array would need a cast at every site.
+
+**The undocumented separator turned out not to matter** — cru's instinct, proven: the decoder parses
+bracket DEPTH from `raw`, not the comma split, so `],[`, `][` and a mix of both give identical results
+(a test). An unbalanced group is REFUSED: the sentence stays a generic `PSSN`, complete but unnamed,
+rather than confidently wrong.
+
+**Two bugs the tests caught in my first draft,** both the same mistake: SNC was in the resolver map, so
+its id was renamed before the decoder could recognise it, and a 2-connection SNC (12 comma-split fields)
+collided with the RBP/RBV resolver key. SNC is now absent from that map and the decoder matches on the
+subtype field, not the id.
+
+## Consequences worth knowing
+
+- **The facade's introspection narrowed to the shared contract.** `getSentenceDefinition` returns
+  `SentenceDefinition[]`/`ParserError[]`, because a facade can only promise what every protocol it
+  fronts can deliver. SBF's `name`/`revision`/`timestamp`/`opaque` come from `.parser` — the rule this
+  facade already applied to every other protocol-specific extra.
+- **`septentrio-sbf` gained a runtime dependency** on `@coremarine/nmea-parser` (external in the bundle,
+  never inlined — only `protocol-core` is inlined). It is now coupled to nmea's major.
+- **The "switching protocol discards the buffer" branch is tested for the first time** — with one
+  protocol there was nothing to switch to.
+- **Three wrapper breaks were found by `tsc --noEmit`, not by its 62 passing tests** (`reportedFirmware`
+  and `leapSeconds` do not exist under NMEA; `msg.definition`'s type). Exactly the failure mode STATUS
+  already warns about: the wrappers run on `tsx`, which strips types without checking them.
+
+⚠️ **Unverified against hardware:** Appendix C gives worked examples only for SNC and TFM, so
+HRP/RBD/RBP/RBV rest on the datasheet tables alone. A wrong field order still parses cleanly, so the
+first real capture with NMEA output enabled is worth checking against them. Noted in the YAML header too.
+
+septentrio **211** tests (18 new) · wrapper **62** · repo-wide lint, tsc and build clean.
+
+# ❓ THE `$PSSN` QUESTION — five are easy, one is not (2026-07-31, ANSWERED — see the section above)
+
+cru's instruction: the Septentrio-proprietary `$PSSN` family lives in **`septentrio-sbf`**, not in
+nmea-parser, and **CMA is never violated**. Analysis done, nothing coded.
+
+**All six are `$PSSN,<SUB>,…`** — the `$PSXN`/`$PTNL` shape, type in field 0 — so they need resolvers
+keyed by id + field count. Measured from Appendix C's own tables:
+
+| sentence | payload fields | resolver key | shape |
+| --- | --- | --- | --- |
+| `TFM` | 6 | `PSSN:6` | ordinary |
+| `RBD` | 11 | `PSSN:11` | ordinary |
+| `RBP` | 12 | `PSSN:12` | ordinary |
+| `RBV` | 12 | `PSSN:12` | ordinary — same length as RBP, told apart by field 0 |
+| `HRP` | 13 | `PSSN:13` | ordinary |
+| `SNC` | **variable** | — | **nested brackets, see below** |
+
+**Five of the six need no new machinery at all.** They are plain comma-delimited NMEA, so they are
+ordinary YAML definitions plus resolver entries, registered by a `SeptentrioNMEAParser extends
+NMEAParser` — the norsub pattern, byte for byte. No nmea-parser change, no CMA change. `HRP` is the one
+worth having: heading/roll/pitch with a standard deviation per axis.
+
+**`SNC` genuinely cannot be modelled by the data-driven pipeline.** Its own example from the guide:
+
+```
+$PSSN,SNC,[0,379359000,1840,[1,2,0,0]]*68
+```
+
+Split on commas — which is what the parser does before any definition applies — the fields come out as
+`[0` · `379359000` · `1840` · `[1` · `2` · `0` · `0]]`. The brackets are glued to the values, and the
+inner `[…]` block REPEATS once per NTRIP connection, so the field COUNT changes with how many
+connections exist. Definitions are matched by exact field count, so no YAML can describe it. This is
+SBF's sub-block problem wearing an NMEA suit.
+
+**Recommendation: do the five, leave `SNC` decoding generically, and say so in the README.** Two facts
+make that cheap rather than lazy: the same data is already fully modelled on the SBF side as
+`NTRIPClientStatus` (4053, one of the 108), and a generic `SNC` still emits `raw` plus every field —
+nothing is lost or silently dropped, it is just unnamed. If Tracker ever needs NTRIP status over NMEA
+specifically, the honest fix is a decoder in the septentrio package that flattens the sub-messages into
+`payload` in wire order with a positional `metadata` mirror — exactly what the SBF side already does for
+sub-blocks — NOT bending the CMA field model.
+
+**One provenance caveat cru should know:** unlike the Trimble/Leica sentences, Appendix C gives examples
+only for `SNC` and `TFM`. For `HRP` `RBD` `RBP` `RBV` the field order comes from the datasheet table
+alone. That is Septentrio's own format documented by Septentrio, so it is authoritative — but there is
+no vendor example to catch a transcription slip, so the first real capture from cru's receiver is worth
+checking against them.
+
+# 📡 nmea-parser KNOWS TEN MORE SENTENCES — 16 → 26 built-ins (2026-07-31, `c5d04e8`)
+
+Groundwork for putting NMEA into the Septentrio facade. Appendix C of the 4.10.1 guide lists **30 NMEA
+formatters** the receiver can emit; **9** were already known. cru's call: add the standard ones to
+**nmea-parser** (they are standard, so every device gains them), add the third-party ones too if they
+are simple, and keep the Septentrio-proprietary `$PSSN` family in `septentrio-sbf`.
+
+**Added:** standard `GBS` `GLL` `GNS` `GRS` `RMC` `ROT` `TXT` — `RMC` was missing entirely, which is hard
+to justify for a GNSS parser — plus third-party Trimble `PTNLAVR` / `PTNLGGK` and Leica `LLQ`.
+
+**Five sentences exist in more than one LENGTH,** and [sentences.ts](../packages/nmea-parser/src/sentences.ts)
+matches a definition by EXACT field count, so each length is its own definition: `RMC` 11/12/13, `GLL`
+6/7, `GNS` 12/13, `GBS` 8/10, `GRS` 14/16. The longer forms went into a new **`NMEA 4.11`** protocol
+block, which makes the version informative: a 13-field RMC means the device speaks 4.1+.
+
+**`$PTNL` is the `$PSXN` trap again** — same id, same field count, real type in field 0 — resolved by a
+new `PTNL:12` entry in `BUILTIN_SENTENCE_RESOLVERS`. The resolver mechanism proved reusable, which is
+why it exists.
+
+**The three third-party sentences are tested with their VENDOR EXAMPLES VERBATIM.** That matters more
+than it sounds: a wrong field ORDER still parses cleanly and would pass any hand-made fixture, so only
+the vendor's own string can catch it.
+
+**Deliberately NOT added, and why:** `GMP` `GFA` `GGQ` `LLK` — no field table with a verified example
+could be found, and inventing one from prose is worse than decoding generically. `ALM` — a raw hex
+almanac dump, so naming its fields adds nothing. `PTNLAVR` fields 7-8 are `reserved_1`/`reserved_2`:
+both Trimble sources skip them and leave them empty in their own examples, so they pass through rather
+than being guessed at as roll.
+
+`version: '1'` on the Trimble and Leica blocks is THIS knowledge base's revision — neither vendor
+publishes a protocol version for those sentences and **CMA requires a version string**.
+
+No version bump: `nmea-parser` is already at an unreleased **6.0.0**, so this ships with it. 133 tests
+(13 new), and the whole repo re-verified green afterwards (core 43 · nmea 133 · norsub 48 · septentrio
+190 · tblive 260 · wrappers 28/37/61/45 · lint clean).
+
+**⏭️ NEXT, and it needs cru:** the six `$PSSN` sentences, in `septentrio-sbf`. See §"THE `$PSSN`
+QUESTION".
+
+# 🎛️ THE SEPTENTRIO EXAMPLE FLOW IS RE-LAID ONTO THE HOUSE CONVENTION (2026-07-31)
+
+cru asked whether the septentrio example flow needed a refactor. It did — and the problem was
+**structural, not cosmetic**, which is why it looked wrong in the first place.
+
+| | before | after |
+| --- | --- | --- |
+| group x | **20, 500, 1000** (three columns) | **34** (one column, like nmea/norsub) |
+| parser nodes | **1**, shared by all 21 injects | **7**, one per group |
+| longest wire span | **1010 px** across the canvas | **260 px**, all local |
+| injects | 21 | 23 (two clones, see below) |
+
+**Why one column was impossible before.** nmea (6 parsers) and norsub (7) give every group its OWN
+parser, which is what makes each group self-contained and lets them stack in a single column at x=34.
+Septentrio funnelled everything into one parser node parked at x=1000, so the groups HAD to spread
+sideways. Moving coordinates alone would not have fixed it — the wires would just have got longer.
+This is also what cru's "if there are too many wires, put a link node in the middle" rule is for; with
+per-group parsers the longest wire is 260 px and **no link node is needed**.
+
+**Per-group parsers are a correctness fix, not just tidiness.** Each node instance owns its own
+buffer, so the split-frame demo can no longer be polluted by an unrelated inject firing into a shared
+parser — which the old flow allowed.
+
+**The two cloned injects exist for a reason — one of them is load-bearing.** A parser per group means
+an order-dependent demo only works if both halves live in the SAME group:
+
+- `ReceiverTime 5914` is cloned into the **firmware** group, because it teaches the parser the GPS-UTC
+  offset in-band and `firmware: get` then reports `leapSeconds: 18`. Split across groups, that demo
+  silently reports the fallback instead. Its label now says "fire this FIRST".
+- `AttEuler 5938` is cloned into the **"a missing measurement is null, never a zero"** group, which
+  previously held a comment and nothing else. That frame's `Roll`/`RollDot` ARE at Do-Not-Use, so the
+  group now demonstrates its own claim instead of pointing at another group's inject.
+
+**Verified by DRIVING the shipped file, not by loading it.** A real headless node-red booted against
+`examples/septentrio-sbf-examples.json` with every debug node swapped for a capture sink, and all
+**23 injects fired one at a time in flow order** (order matters twice, above). All 26 output messages
+behave as their labels claim: `leapSeconds: 18` after ReceiverTime · 1/2 → `[]` then 2/2 → AttEuler ·
+`Roll: null` + `metadata.doNotUse` · bad CRC decodes **with** errors and junk becomes one garbage
+sentence · `ids` = 108 · `definition: 4007` = 3 entries (one per revision) and `1234` refused with a
+message · `fake` returns Buffers of 44/96/44 bytes. 61/61 wrapper tests, lint and repo-wide lint clean.
+
+**⏭️ Left for cru, deliberately:** the final visual nudge. Node-RED's `x` is a node's CENTRE and the
+flow JSON carries no `w` for ordinary nodes — the editor computes width from the label at load time —
+so **right-edge alignment of injects cannot be computed offline**. That is exactly why norsub's injects
+sit at x=200/210/220/240/260 rather than one value. Ours are all at x=200 (left-aligned, tidy but not
+his convention); dragging them to a common right edge is a minute in the editor and cannot be done
+faithfully from here.
+
+# ✅ THE SESSION IS COMMITTED — `dev` @ `7557769`, tree clean (2026-07-31)
+
+**The full session ledger — 13 commits on `dev`, ahead of the published `main` (`ef4480b`):**
+
+| # | commit | what |
+| --- | --- | --- |
+| 1 | `6149cdc` | `feat(protocol-core)`: base64 + GPS-time + seeded-random helpers |
+| 2 | `da8c0db` | `feat(...)!`: introspection in the contract, errors as arrays (core + 3 libs + 3 wrappers) |
+| 3 | `dd24ebb` | `feat(septentrio-sbf)!`: the CMA rewrite, all 108 blocks, 2.0.0 |
+| 4 | `0202963` | `feat(septentrio-sbf-nodered)!`: the wrapper rebuild, 2.0.0 |
+| 5 | `e7a4f64` | `ci(septentrio-sbf-nodered)`: tests re-enabled, dep chain built, triggers widened |
+| 6 | `4f0f67d` | `docs`: the first six commits recorded |
+| 7 | `34ab0c9` | `chore(release)`: nmea + norsub 6.0.0, tblive 3.0.0, wrappers aligned |
+| 8 | `938220b` | `docs(packages)`: every claim re-verified, **nine were wrong** |
+| 9 | `17af24c` | `refactor(septentrio-sbf-nodered)`: one column of self-contained example groups |
+| 10 | `c5d04e8` | `feat(nmea-parser)`: ten more sentences (standard + Trimble + Leica), 16 → 26 built-ins |
+| 11 | `83c3fc1` | `docs`: those sentences, and the `$PSSN` analysis |
+| 12 | `a859621` | `feat(septentrio-sbf)`: NMEA as the second protocol, the six `$PSSN` sentences |
+| 13 | `7557769` | `docs`: NMEA is in, and how SNC ended up shaped |
+
+The first six were split so that **every commit is green on its own** — which for this repo is not cosmetic: the workflows trigger on push to any branch
+with no branch filter, so a red intermediate commit means a red CI run. Publish stays gated on
+`github.ref == 'refs/heads/main'`, so none of this published anything.
+
+| commit | what | why it stands alone |
+| --- | --- | --- |
+| `6149cdc` | `feat(protocol-core)`: base64 + GPS-time + seeded-random helpers | purely additive — three new modules and three export lines |
+| `da8c0db` | `feat(...)!`: introspection in the contract, errors as arrays | the core contract change **together with** all six consumers (3 libs + 3 wrappers), because core alone would not typecheck anywhere else |
+| `dd24ebb` | `feat(septentrio-sbf)!`: the CMA rewrite, all 108 blocks, 2.0.0 | 147 files; the legacy wrapper's CI test job was still disabled here, so nothing goes red |
+| `0202963` | `feat(septentrio-sbf-nodered)!`: the wrapper rebuild, 2.0.0 | + the root `package.json` script rename |
+| `e7a4f64` | `ci(septentrio-sbf-nodered)`: tests re-enabled, dep chain built, triggers widened | last, so the re-enabled job first runs on a wrapper that passes |
+| `4f0f67d` | `docs:` STATUS + PACKAGES | — |
+
+**The lockfile was split, not carried.** `pnpm-lock.yaml` had two independent deltas — the library
+dropping `gpstime`/gaining the `protocol-core` devDep, and the wrapper gaining `tsx` +
+`@types/node-red`. Both in one commit would break `pnpm install --frozen-lockfile` at the other one,
+since frozen-install compares the lock against the *manifests*. So the library commit carries a lock
+regenerated with `pnpm install --lockfile-only` against only its own manifest change, and the wrapper
+commit carries the final lock — verified byte-identical to the one the green test run used.
+
+# 🔢 ALL FOUR CMA PAIRS ARE BUMPED — the tree is now release-shaped (cru, 2026-07-31)
+
+`da8c0db` broke the three PUBLISHED libraries, so they could not go to npm at their published
+versions. cru's call: major-bump every parser. Applied:
+
+| pair | npm | now | why a MAJOR |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | 5.0.0 | **6.0.0** | error side became an array, and fakes became idempotent |
+| `norsub-emru` + wrapper | 5.0.0 | **6.0.0** | same error change + the three delegated members; packed dep → `^6.0.0` |
+| `thelmabiotel-tblive` + wrapper | 2.0.0 | **3.0.0** | `Result<…, string[]>` → `Result<…, ParserError[]>` |
+| `septentrio-sbf` + wrapper | 1.0.1 | **2.0.0** | already set — the CMA rewrite |
+| `sbg-ecom` + wrapper | — | **unchanged** | untouched since `ef4480b`, and not on `protocol-core` at all (only `crc`) |
+
+**The breaks were MEASURED, not assumed.** Each published tarball was pulled from npm and its
+`dist/index.d.ts` diffed against a fresh build, then run side by side:
+
+| call | published | `dev` |
+| --- | --- | --- |
+| `getSentenceDefinition('NOPE').error` | `{ kind, message }` | `[{ kind, message }]` |
+| `.error.message` | the real message | **`undefined`** |
+| `getFakeSentence('GGA')` twice | two different strings | the same string twice |
+
+All three compile and run at the call site and just quietly do the wrong thing — which is the whole
+argument for the major.
+
+**It is NOT protocol-core that forces the majors,** even though core changed. Core is `private: true`,
+version `0.0.0`, never published, and bundled into each library by tsup `noExternal` — so a core-only
+change would mean *a* release, not a *major* one. What forces these majors is that each library's own
+public API changed. Worth keeping straight in the release notes. (`norsub-emru` does not even bundle
+core: it keeps `@coremarine/nmea-parser` external and inherits the change through it.)
+
+**The gap this leaves open:** the `version.unit.test.ts` guards compare a wrapper to its sibling
+library in the workspace — confirmed working on 2026-07-31 by half-bumping a wrapper on purpose, which
+fails the suite — but NOTHING in this repo compares either to npm. Publishing a breaking change at an
+unchanged version would just succeed. If that is worth closing, it is a CI check against the registry,
+not a unit test.
+
+# 📋 SESSION SUMMARY — 2026-07-31 (all of it now committed — see the section above)
+
+One session, one goal: finish `septentrio-sbf`. It is finished — library and wrapper both at
+**2.0.0**, release-ready. This is the index; each row links to the section with the detail.
+
+| # | What | Result | Detail |
+| --- | --- | --- | --- |
+| 1 | **§4.2.1 Measurement** — 8 blocks | MeasEpoch + MeasExtra verified against each other on one epoch | §"§4.2.1 MEASUREMENT" |
+| 2 | **§4.2.2 Navigation Page** — 15 blocks | 4 header variants, all 6 real frame types decode | §"§4.2.2 NAVIGATION PAGE IS DONE" |
+| 3 | **§4.2.3-4.2.8 Decoded messages** — 33 blocks | orbits check against published constellation constants | §"THE 33 DECODED-MESSAGE BLOCKS" |
+| 4 | **README rewritten** | 1.x API gone; every claim verified by running the code | §"README REWRITTEN" |
+| 5 | **`package.json` + `docs/PACKAGES.md`** | description, keywords, whole inventory refreshed | §"`package.json` + `docs/PACKAGES.md` DONE" |
+| 6 | **Node-RED wrapper rebuilt** | 2.0.0, 61/61, example flow driven through real node-red | §"THE NODE-RED WRAPPER IS REBUILT" |
+
+**Final state, measured:**
+
+| | |
+| --- | --- |
+| Blocks modelled | **108 of 108** — every §4.2 category, names + numbers verified against Appendix B by script |
+| Unmodelled frames in cru's captures | **1080 → 705 → 0** (0 errors, 0 garbage, all three captures) |
+| Tests | core **43** · nmea **120** · norsub **48** · **septentrio 190** · tblive **260** |
+| Wrapper tests | nmea **28** · norsub **37** · tblive **45** · **septentrio 61** |
+| Gate | lint · `tsc --noEmit` · build · repo-wide lint · `--frozen-lockfile` all clean |
+
+## Four real faults found and fixed
+
+None of these were in the brief; each came out of doing the next piece of work properly.
+
+1. **`ExtEventBaseVectGeod` was numbered 4216. It is 4217.** Both its datasheet page and Appendix B
+   say so. **A fake round trip cannot catch this** — it builds the frame from the same wrong number
+   and agrees with itself — so a real 4217 frame would have fallen silently into the
+   identified-but-not-modelled tier. Only an external authority catches it. All 108 numbers *and*
+   names are now script-verified against Appendix B, and `tests/blocks.test.ts` has a coverage guard.
+2. **`bufferLimit` defaulted to 1024 bytes**, inherited from the generic binary default. SBF framing
+   is length-prefixed, so a block only decodes once its *last* byte arrives — and cru's own receiver
+   emits `Commands` blocks of **1052 and 1060** bytes. Measured on the real 1052-byte block: at 1
+   byte per chunk it became **28 garbage sentences**. Chunk-size dependent, so it works on a file
+   replay and eats blocks on a serial line. Now `MAXIMAL_BLOCK_LENGTH` (65535), with three specs.
+3. **The Node-RED wrapper would have shipped broken** — calling the removed `getFrames()` while its
+   `workspace:^` dep had quietly begun resolving to `^2.0.0`, with no `version.unit.test.ts` guard and
+   its CI test job disabled. Resolved by the rebuild; the guard now exists.
+4. **The `Result`-error array change had broken all three existing wrappers** (`undefined` /
+   `[object Object]` error text). Their own suites caught it the moment they were run against this
+   tree. Fixed at 9 call sites. **The published packages were never affected** — I checked the
+   published tarball; this was purely uncommitted-tree fallout.
+
+## Three things that turned out simpler than this doc predicted
+
+- **The `Meas3*` family needed no engine escape hatch.** This doc flagged it as bit-packed
+  compression that might need a block-supplied decoder. The datasheet says, once per block, *"The
+  detailed definition of this block is not available in this document"* — so there is nothing to
+  transcribe. All five are `opaque`, like PVTSupport.
+- **Appendix B has 108 blocks, not 107.** Counted block by block from the appendix itself.
+- **A wrong `bufferLimit`, not a missing feature,** was why large blocks looked unreliable.
+
+## One shape question still open for cru
+
+`metadata.subBlocks` on a two-level block is a **flat** list of every occurrence at both levels, with
+children pushed *before* their parent, and a parent's entry also containing its children's fields.
+MeasEpoch gives 43 entries (29 Type2 + 14 Type1). It is consumable — the specs classify by whether a
+group opens with `RxChannel` — but "give me satellite *i*" is not one index. The same shape already
+applies to `ChannelStatus` and `OutputLink`, so changing it is an output-format change for three
+blocks and is cru's call, not mine. **Not changed.**
+
+# 🎉 THE NODE-RED WRAPPER IS REBUILT — septentrio-sbf IS RELEASE-READY (2026-07-31, committed)
+
+`septentrio-sbf-nodered` rebuilt from the nmea/tblive template, **aligned at `2.0.0`**, and the
+release hazard recorded below is **resolved**. **61/61 tests** (unit + a real headless node-red
+integration), lint + tsc + build clean.
+
+**It is the template, not a new design** — same `package.json`/`tsup`/`tsconfig`/`copy-assets`/
+`dev-server` shape, same pure `src/lib.ts` (zero node-red imports) + thin `src/parser.ts` adapter,
+same three test files. Its msg channels are exactly the **union of the other three**, nothing
+invented: `memory` + `protocol` (norsub's) + `firmware`, `ids` (tblive's) + `definition` + `fake`.
+No `sentences` channel, because SBF definitions are compiled in — the same call tblive makes.
+
+**Node type kept as `cma-septentrio-parser`.** It already matches the `cma-<device>-parser` shape
+nmea and norsub use, and renaming it would make the node vanish from every deployed flow.
+
+### The one genuine difference: it is the FIRST BINARY wrapper
+
+The other three take an ASCII string on `payload`. SBF is bytes, so:
+
+- **`payload` takes a Buffer** — what the serial, TCP and file nodes hand over, no conversion.
+- **A base64 string is also accepted**, deliberately: every `raw` in the CMA output is base64, so it
+  is this package's own vocabulary for bytes, and it closes the diagnostic loop (copy a `raw` out of
+  a debug node, inject it back, re-parse the exact frame that misbehaved). Validated **strictly**, so
+  an ASCII string is refused with a message instead of parsed into a flood of garbage sentences. A
+  byte array works too, for a JSON-only path.
+- **`fake` returns a Buffer**, so it can be wired straight into another node's `payload`.
+- The memory report says **`bytes`** where the string wrappers say `characters` — the only shape
+  difference from the template, and not cosmetic: a whole block has to fit in the buffer.
+
+### The example flow was VERIFIED BY DRIVING IT, not by loading it
+
+Eight groups, 21 injects, **every frame a real one** from cru's captures (AttEuler, PVTGeodetic rev 2,
+ReceiverTime, a CRC-corrupted copy, a frame split in two). Booted a real node-red against the shipped
+flow file and fired **all 21** — every one behaves as its label claims, 0 produced no output. Only
+built-in node types, so it imports with no contrib nodes.
+
+Two things only *driving* could show: firing **ReceiverTime and then `firmware: get` reports
+`leapSeconds: 18`** — the parser learned the GPS-UTC offset in-band from the device, through a real
+flow — and the split-frame pair genuinely buffers (1/2 → `[]`, 2/2 → AttEuler).
+
+### The packing trap, checked both ways
+
+STATUS records this biting the repo three times. `files` has **both** exclusions
+(`!**/*.backup`, `!**/*_cred.json`), `.gitignore` has the matching rules, and I verified it by
+*creating* the two artefacts node-red writes and re-packing: tarball is **8 files** — `dist/`,
+`examples/`, README, LICENSE, package.json — with neither artefact. `tests/version.unit.test.ts`
+also asserts both exclusions are declared, so a future edit cannot quietly drop them.
+
+### CI
+
+`.github/workflows/septentrio-sbf-nodered.yml` regenerated from the tblive workflow — **byte-identical
+apart from the package name** (verified with a normalising diff). Test job **re-enabled**, `needs:
+test` restored on publish, triggers widened to `packages/septentrio-sbf/**` and `packages/core/**`,
+and the dep chain (`protocol-core` → library → wrapper) built before the tests. Root scripts now match
+the template: `:lint` / `:build` / `:test` / `:dev` / `:examples`, with `:docker` gone.
+
+Removed with the rebuild: `src/parser.js`, `tests/parser.test.js`, `tests/nodered/` (the docker
+mirror), `Dockerfile`, `docker-compose.yml`, `manual_tests.sh`.
+
+## 🐛 THE `Result`-ERROR ARRAY CHANGE HAD BROKEN ALL THREE EXISTING WRAPPERS — fixed
+
+Type-checking the new wrapper surfaced it, and running the other three confirmed it: making every
+`Result` error side an **array** (`ParserError[]`) — part of THIS uncommitted session — broke the
+three wrappers that read the old shape. Their own suites caught it the moment they were run against
+the working tree: **4 failures**. Nothing had run them since the change.
+
+| wrapper | read | produced |
+| --- | --- | --- |
+| `nmea-parser-nodered` | `result.error.message` | `undefined` |
+| `norsub-emru-nodered` | `result.error.message` | `undefined` |
+| `thelmabiotel-tblive-nodered` | `result.error.join('; ')` (errors used to be `string[]`) | `[object Object]` |
+
+A user feeding bad YAML through `msg.sentences` would have seen `sentences: undefined` instead of
+`bad indentation of a mapping entry (1:11)`. Fixed at all **9 call sites** with a shared
+`messages(errors)` helper per wrapper. **28/28 · 37/37 · 45/45 · 61/61 — all four green.**
+
+**The PUBLISHED packages were never affected.** I checked: published `nmea-parser@5.0.0` still returns
+a single `{ kind, message }`, so the published wrappers match their published libraries. This is
+purely uncommitted-tree fallout — and it is exactly why §QUEUED re-releases all three: the wrappers
+must ship together with the array change, not after it.
+
+**The lesson:** these wrappers run their tests with **`tsx`, which strips types without checking
+them**, and `<pkg>:nodered:lint` does not typecheck either — so a breaking library change stays
+invisible until the tests are actually run. `npx tsc --noEmit -p tsconfig.json` inside a wrapper is
+the check that finds it, and it is worth running on all four whenever `protocol-core` changes shape.
+
+# 📦 `package.json` + `docs/PACKAGES.md` DONE — and a RELEASE HAZARD found, now RESOLVED (2026-07-31, committed)
+
+**`packages/septentrio-sbf/package.json`** — the description still read like 1.x ("It is a library to
+parse SBF data. SBF is a private binary protocol of Septentrio trademark which uses in its GNSS
+devices"). Now `"Library to parse SBF (Septentrio Binary Format) data from Septentrio GNSS receivers,
+with every documented block decoded"` — matching the house style of the other four packages ("Library
+to parse …"), and phrased so it stays true as firmwares are added. Keywords gained `asterx` (the
+receiver family this knowledge base is transcribed from) and `rtk`; nothing removed. Version was
+already `2.0.0`.
+
+**`docs/PACKAGES.md`** — rewritten where it was stale. septentrio-sbf's row said `1.0.1` / legacy
+`SBFResponse` / not on `protocol-core`; its per-library note listed three block groups and the dropped
+`gpstime` dep. Replaced with the real state. Also corrected, since they were measured this session:
+`protocol-core`'s contents and the fact that `DeviceParser<B>` now REQUIRES the introspection surface ·
+`engines.node` is `>=22` everywhere except `sbg-ecom` · test counts (43 / 120 / 48 / 190 / 260, and
+`sbg-ecom` **0**) · tblive is **published**, not "not yet released" · nmea's 5.0.0 additions · sbg-ecom
+is now **NEXT**.
+
+## ⚠️🔴 `septentrio-sbf-nodered` MUST NOT GO INTO A RELEASE PR — ✅ RESOLVED the same day, see the section above
+
+Auditing the wrapper row surfaced a live hazard. The wrapper was deliberately left alone while its
+library was rewritten, and three things now line up badly:
+
+1. **It calls an API that no longer exists** — `src/parser.js` calls `parser.getFrames()`; 2.0.0 has
+   `parseData()`. It would throw on the first message.
+2. **Its dep resolves to the library that removed that API.** `workspace:^` packs as
+   `^<current library version>` = **`^2.0.0`**, so the published 1.0.1 wrapper would pull the very
+   library it cannot drive.
+3. **Nothing catches either.** The `tests/version.unit.test.ts` major-correlation guard exists only in
+   the three *refactored* wrappers, and this one's CI test job is disabled — so neither the 1-vs-2
+   major mismatch nor the dead call is flagged anywhere in CI.
+
+Same trap `nmea-parser-nodered` fell into during its own refactor. Rebuilding the wrapper from the
+nmea/tblive template fixes all three at once (aligned major **2.0.0**, new API, guard restored) — which
+is the next task anyway. **Until then it must stay out of any release PR**, and the version-policy
+section of `docs/PACKAGES.md` now says so alongside the pair's policy violation.
+
+# 📗 README REWRITTEN — and writing it found a 1052-byte bug (2026-07-31, committed)
+
+`packages/septentrio-sbf/README.md` no longer documents the 1.x API. Mirrors
+`packages/nmea-parser/README.md`: install + runtime, `parseData`/`addData`, the CMA shape with the
+three conventions that trip people up, timestamps, the four output tiers, the block table, sub-blocks,
+introspection, the device facade, the API table, and an **Upgrading from 1.x** section.
+
+**Every claim in it was verified by running the code, not from memory** — the AttEuler and PVTGeodetic
+examples are real fixture output, the block table was checked name-by-name against the registry (108,
+all match, every registered block appears, the opaque set is exactly the seven claimed), and the error
+strings are the real ones. Two things that check caught: I had typed a CRC-error number from memory
+that was wrong (fixed to the measured `computed 55888, received 4660`), and —
+
+## 🐛🔴 `bufferLimit` DEFAULTED TO 1024 BYTES, WHICH IS SMALLER THAN REAL BLOCKS. FIXED.
+
+Writing the "Notes" section meant checking the default, and it was **1024**, not the 65535 the 1.x
+README correctly documented. `SBFParser` never overrode `defaultBufferLimit()`, so it silently
+inherited `MAX_BYTES` — a figure sized for text protocols.
+
+**Why that is a real fault, not a doc nit.** SBF framing is length-prefixed, not terminated, so a block
+only decodes once its **last** byte has arrived; whatever is still pending when the limit is passed is
+flushed as garbage. And real blocks are bigger than 1024 bytes — in cru's own capture, `Commands` runs
+**1052 and 1060** bytes and `ChannelStatus` up to **988**.
+
+**MEASURED on the real 1052-byte `Commands` block from `2023_06_23_test1.sbf`,** fed in the chunk sizes
+a serial port actually delivers:
+
+| chunk size | with the 1024 default | fixed |
+| --- | --- | --- |
+| 1 byte | **28 garbage sentences, block destroyed** | 1 clean `Commands` |
+| 8 bytes | **4 garbage sentences, block destroyed** | 1 clean `Commands` |
+| 16, 20 bytes | **2 garbage sentences, block destroyed** | 1 clean `Commands` |
+| 32-512 bytes | 1 clean `Commands` (squeaked through) | 1 clean `Commands` |
+
+Nothing was wrong with the data — the limit was. And note the failure is **chunk-size dependent**,
+which is the worst kind: it works on a file replay and on large reads, then eats blocks on a real
+serial line.
+
+**Fix:** `SBFParser` now overrides `defaultBufferLimit()` to `MAXIMAL_BLOCK_LENGTH` (65535 — the
+`uint16` ceiling on `Length`, so the largest a block can be). The core documents that hook for exactly
+this. **Three specs added** (190/190 now): the default IS 65535; the real 1052-byte block survives
+every chunk size from 1 to 64; and the larger limit still flushes a block whose body never arrives, so
+the runaway-buffer protection is intact. `commands-large.bin` committed as the fixture.
+
+Two stale comments fixed while in there: `protocol-sbf.ts` still said "96 of the 107 blocks are simply
+not modelled yet" and `tests/parser.test.ts` the same — that tier now only fires for a block number
+from a **newer firmware**, which is what makes the parser forward-safe.
+
+# 🎉🎉 ALL 108 BLOCKS OF APPENDIX B ARE MODELLED — THE BLOCK WORK IS DONE (2026-07-31, committed)
+
+**cru's standing instruction — "finish all the sentences / blocks" — is complete.** All **16 §4.2
+categories**, all **108 blocks**, and the coverage metric this doc has been tracking has gone to zero:
+
+| check | result |
+| --- | --- |
+| Blocks modelled | **108 of 108** (Appendix B, counted block by block) |
+| Every number **and name** verified against Appendix B by script | **108/108 agree** |
+| vitest | **187 passed** (was 120) |
+| `getFakeSentence` → `parseData` round trip, all blocks | **108 blocks, 0 with problems** |
+| lint · `tsc --noEmit` · build (ESM 258 KB / CJS 264 KB / DTS) | **clean** |
+| **Unmodelled frames in cru's captures** | **1080 → 705 → 0** |
+| No regressions | core **43/43** · nmea **120/120** · norsub **48/48** · tblive **260/260** |
+
+**Every frame in every capture now decodes.** `2023_06_23_test1.sbf` 1310 sentences,
+`2023_06_23_test2.sbf` 2071, `att_euler_aux_antenna_pos.sbf` 68 — **0 unmodelled, 0 errors, 0
+garbage** in all three. Build is still runtime-agnostic: zero `node:` imports, zero `Buffer` API
+calls (the only matches are `bufferLimit` identifiers and one error string), one external import
+(`crc/calculators/crc16xmodem`).
+
+| §4.2 category | state |
+| --- | --- |
+| §4.2.1 Measurement | **8 of 8 ✔** |
+| §4.2.2 Navigation Page | **15 of 15 ✔** |
+| §4.2.3 GPS Decoded Message | **4 of 4 ✔** |
+| §4.2.4 GLONASS Decoded Message | **3 of 3 ✔** |
+| §4.2.5 Galileo Decoded Message | **6 of 6 ✔** |
+| §4.2.6 BeiDou Decoded Message | **4 of 4 ✔** |
+| §4.2.7 QZSS Decoded Message | **2 of 2 ✔** |
+| §4.2.8 SBAS L1 Decoded Message | **14 of 14 ✔** |
+| §4.2.9 GNSS Position, Velocity and Time | **15 of 15 ✔** |
+| §4.2.10 GNSS Attitude | **4 of 4 ✔** |
+| §4.2.11 Receiver Time | **2 of 2 ✔** |
+| §4.2.12 External Event | **5 of 5 ✔** |
+| §4.2.13 Differential Correction | **3 of 3 ✔** |
+| §4.2.14 L-Band Demodulator | **2 of 2 ✔** |
+| §4.2.15 Status | **14 of 14 ✔** (`LBandTrackerStatus` filed under §4.2.14) |
+| §4.2.16 Miscellaneous | **7 of 7 ✔** |
+
+**Seven blocks are `opaque`, and only those seven** (spec'd, so a future block cannot quietly be
+marked opaque to skip transcription): the five `Meas3*` and the two `PVTSupport*`. Septentrio
+publishes no field layout for any of them.
+
+# 🟩 §4.2.3-4.2.8 — THE 33 DECODED-MESSAGE BLOCKS, CHECKED AGAINST PHYSICS
+
+In `src/firmware/4-10-1/DecodedMessage/`: `keplerian.ts` (shared) + `GPS` · `GLONASS` · `Galileo` ·
+`BeiDou` · `QZSS` · `SBAS`.
+
+**These are the only blocks whose transcription can be verified against something outside the
+datasheet: an ephemeris decodes to an ORBIT, and every constellation's orbit is a published
+constant.** A field-order error still yields finite plausible numbers — it just does not land within a
+kilometre of the right semi-major axis. Decoded from cru's own capture:
+
+| block | satellite | decoded semi-major axis | published nominal | inclination |
+| --- | --- | --- | --- | --- |
+| `GPSNav` 5891 | **G10** | **26 560.50 km** | 26 559.7 km | 56.1° (nominal 55°) |
+| `GALNav` 4002 | **E13** | **29 600.23 km** | 29 599.8 km | 57.3° (nominal 56°) |
+| `BDSNav` 4081 | **C28** | **27 906.26 km** | 27 906 km | 55.1° (nominal 55°) |
+| `GLONav` 4004 | **R03** | ‖state vector‖ = **25 559 km** | 25 510 km | n/a — not Keplerian |
+
+**Five further corroborations that came out of the data, not out of the code:**
+
+1. **`GPSNav`'s `IODE2` == `IODE3` == 52.** The GPS ICD broadcasts the same IODE in subframes 2 and 3
+   precisely so a receiver can detect an ephemeris that changed mid-read. They match, which means both
+   bytes are being read from the right offsets.
+2. **`GALNav`'s guard bits agree with the datasheet's own availability rule.** `Health_OSSOL` = 17 =
+   `0b10001`: the L1-B guard (bit 0) and E5b guard (bit 4) are set, the E5a guard (bit 8) is **not** —
+   and the datasheet says an I/NAV stream guarantees exactly L1-B and E5b, not E5a. So `e5a` reports
+   **`null`** rather than a status the satellite never sent. **The same conclusion arrives
+   independently through a different field:** `SISA_L1E5a` is at its Do-Not-Use value while
+   `SISA_L1E5b` carries a real index (107 → 3.12 m through the stepped table).
+3. **`BDSNav`'s BeiDou week 911 + the BDT epoch (GPS week 1356) = GPS week 2267** — which is the week
+   the capture is from. The BeiDou time scale is self-consistent with the frame's own header.
+4. **`GALUtc` broadcasts `DEL_t_LS` 18, and `ReceiverTime` in the same capture reports `DeltaLS` 18.**
+   A satellite broadcast decoded here and the receiver's own clock bookkeeping, from entirely separate
+   sources, agreeing on the leap second.
+5. **`GLOTime`'s `B1` = −0.039 s** for UT1−UTC, which is the real value in mid-2023, and `KP` = 0 (no
+   leap second scheduled — correct for 2023).
+
+### What is genuinely shared, and what deliberately is not
+
+GPS, QZSS, Galileo and BeiDou all follow the GPS ICD's Keplerian parameterisation, so the orbital and
+clock **rows** live once in `keplerian.ts`. **The ORDER is not shared** — each block assembles the rows
+in ITS datasheet's order, because the orders differ (GPS puts `M_0` between `DEL_N` and `C_uc` and `e`
+between `C_uc` and `C_us`; Galileo groups all six float64s first; BDSAlm puts `SQRT_A` before `e`).
+Sharing the order too would be exactly the assumption that produced the 1.x field-rotation bug.
+
+- **`QZSNav` shares GPSNav's table row for row** — the datasheet prints the same 36 rows, because QZSS
+  is L1 C/A-compatible by design. Spec'd by asserting the two `getSentenceDefinition` payloads are
+  identical. `QZSAlm` is GPSAlm with one substitution: GPS's `config` byte is **reserved** in QZSS, so
+  it is declared reserved rather than decoded — reporting a GPS anti-spoofing flag off a QZSS reserved
+  byte would be inventing a fact about the satellite.
+- **`BDSAlm` gets its own table**: no reserved byte after `PRN` (where GPSAlm, QZSAlm and BDSNav all
+  have one) and a different element order. Spec'd.
+- **GLONASS and SBAS share nothing** with the Keplerian four. GLONASS broadcasts a **PZ-90.02 state
+  vector** (integrated forward, not evaluated) and SBAS a geostationary state vector plus a whole
+  correction/integrity protocol. `GLONav`'s spec asserts no Keplerian element is invented for it.
+- **`GALIon` is NeQuick, not Klobuchar** — an effective-ionisation quadratic in solar-flux units, where
+  `GPSIon` and `BDSIon` broadcast the eight Klobuchar coefficients (those two DO share their rows).
+  Matching block names, nothing in common.
+
+### The traps this category is full of, each carried in a comment
+
+- **Semi-circles, not radians.** Every angular element is in semi-circles (1 = 180°). The field keeps
+  the datasheet value and unit; degrees go to metadata. Getting it wrong scales every angle by π and
+  still looks plausible.
+- **`SQRT_A` is the square ROOT of the semi-major axis**, so the decoder publishes the axis itself —
+  which is what made the orbit table above possible.
+- **GLONASS positions are in kilometres** (`units: '1000 m'`); read as metres they are out by 1000, and
+  1000× a GLONASS radius is still a finite number. Decoders publish metres alongside.
+- **BeiDou times are BDT, lagging GPS by 14 s.** Mixing them with a GPS-frame time is a 14-second error
+  — small enough to read as a clock fault rather than a units error. `t_oc`/`t_oe` metadata carries
+  `timeScale: 'BDT'` and the GPS-frame value; `BDSUtc`'s leap-second fields carry `gpsEquivalent`.
+- **An almanac is not an ephemeris.** Every element is float32 where the ephemeris uses float64, and
+  `delta_i` is a correction to a **nominal 0.3 semi-circles** rather than the inclination — so the
+  decoder publishes the absolute inclination, which nobody remembers to add the nominal to.
+- **`GALAlm` carries TWO SVIDs and they are different satellites.** `SVID` is who broadcast the
+  almanac, `SVID_A` is who it describes. Conflating them attributes one satellite's orbit to another.
+- **Opposite health polarities in one family:** `GLONav`'s `l` uses 1 for *unhealthy*, `GLOAlm`'s `C`
+  uses 1 for *HEALTHY*. Reported as `unhealthy` and `healthy` respectively so the polarity cannot be
+  misread. Spec'd side by side.
+- **`GALNav`'s `Source` is not decoration.** It decides *which clock model* the corrections belong to,
+  and a receiver decoding both streams emits two GALNav blocks for one satellite with different clock
+  parameters — so a consumer treating the second as an update of the first silently mixes the (L1,E5b)
+  and (L1,E5a) models. The decoder publishes the clock model by name.
+- **SBAS slot numbers are meaningless without their mask.** `PRNMaskNo` indexes the MT01 mask
+  (`GEOPRNMask`), `IGPMaskNo` the MT18 mask (`GEOIGPMask`), and the `IODP`/`IODI` tags are how a
+  consumer checks it holds the right one. **No slot is resolved to a PRN here** — the parser does not
+  hold the mask, and guessing across an IODP change would mis-attribute a correction to the wrong
+  satellite. A `PRNMaskNo` of 0 is reported as `filler: true`, because the datasheet says the whole
+  sub-block is then to be ignored.
+- **`GEOLongTermCorr`'s `VelocityCode` decides whether half its sub-block means anything** — with code
+  0 the rate fields and `t_oe` are documented as "0.0", i.e. absent values, not measurements of zero
+  drift. Reported as `ratesPresent`.
+- **`GEOMT00` says "do not use for safety applications" by ARRIVING** — it has no body beyond the PRN.
+- **`CNAVenc`: I invented `NOT_ENCRYPTED`/`ENCRYPTED` labels and removed them.** The datasheet defines
+  no codes for the field, and **cru's own receiver reports 3** — a value neither invented label would
+  have described. It now publishes the two bits. A reminder that guessing an enum is worse than
+  reporting a number, and that the real capture is what catches it.
+
+### Two engine capabilities this category needed (both additive, no CMA or API change)
+
+- **`count` may be a literal number** — the SBAS blocks are full of fixed-size arrays the datasheet
+  sizes outright (`UDREI u1[51]`, `ai u1[51]`, `IODF u1[4]`), with no count field to point at. 51 is
+  not arbitrary: it is the number of SBAS PRN mask slots, so `UDREI[i]` is the bound for slot i+1.
+- **`lengthOf`** — for `GALSARRLM`'s `RLMBits u4[N]`, where N is "3 for a short message (RLMLength 80)
+  and 5 for a long one (160)". The sibling carries a **bit** count, so `lengthFrom` alone would read
+  **80 bytes**. `rest: true` would have happened to work on today's frames and silently absorbed
+  padding on any frame that had some.
+
+**A fake-writer bug that fell out of the second one:** `scalarSize` sized a `lengthOf` field from its
+OWN value, which for a formatted byte array is an empty string → width 0 → a frame 12 bytes short. The
+width is now resolved once, from the sibling's settled plan value, in a `sizeDerived` pass. Spec'd
+both ways (32-byte short frame, 40-byte long frame).
+
+**⚠️ THE TOTAL IS 108, NOT 107.** Counted block by block out of Appendix B itself (pp. 411-414) and
+cross-checked against the registry by a script. Every earlier "107" in this doc is one short.
+
+| §4.2 category | state |
+| --- | --- |
+| §4.2.1 Measurement | **8 of 8 ✔ NEW** (5 of them opaque — see below) |
+| §4.2.9 GNSS Position, Velocity and Time | **15 of 15 ✔** |
+| §4.2.10 GNSS Attitude | **4 of 4 ✔** |
+| §4.2.11 Receiver Time | **2 of 2 ✔** |
+| §4.2.12 External Event | **5 of 5 ✔** |
+| §4.2.13 Differential Correction | **3 of 3 ✔** |
+| §4.2.14 L-Band Demodulator | **2 of 2 ✔** |
+| §4.2.15 Status | **13 of 14** (the 14th, `LBandTrackerStatus` 4201, is filed under §4.2.14 — so this category is DONE) |
+| §4.2.16 Miscellaneous | **7 of 7 ✔** |
+| §4.2.2 Navigation Page | **15 of 15 ✔ NEW** |
+| §4.2.3-4.2.8 decoded-message families | 0 of 33 — **NEXT** |
+
+# 🟩 §4.2.2 NAVIGATION PAGE IS DONE — 75 of 108, 157/157 specs (2026-07-31, committed)
+
+All 15 raw-navigation blocks modelled, in `src/firmware/4-10-1/NavigationPage/`, grouped by
+constellation the way §4.2.3-4.2.8 is (so the next tranche keeps the same shape): `raw.ts` (shared)
++ `GPS` · `GLONASS` · `Galileo` · `SBAS` · `BeiDou` · `QZSS` · `NavIC`.
+
+**These 15 blocks look identical and are not.** The six-byte header before the bits has **four
+variants**, and picking the wrong one shifts every navigation bit in the block:
+
+| variant | blocks | what differs |
+| --- | --- | --- |
+| bit-field `Source` + `FreqNr` | GPSRaw×3, GLORawCA, GALRaw×2, GEORaw×2 | the baseline |
+| **plain** `Source` + `Reserved` | BDSRaw, BDSRawB2a, NAVICRaw | `Source` is not a bit field at all |
+| `Reserved` where `ViterbiCnt` goes | QZSRawL1CA | ends up with **two** reserved bytes (`Reserved`/`Reserved2`) |
+| `CRCSF2` + `CRCSF3`, no `CRCPassed`/`ViterbiCnt` | BDSRawB1C | two INDEPENDENT subframe checks |
+
+**Verified against six real frame types in `2023_06_23_test1.sbf`, and the frames corroborate each
+other:**
+
+- **G27 appears in both `GPSRawCA` and `GPSRawL2C`, on the same receiver channel 9**, reporting signal
+  0 (L1CA) and signal 3 (L2C) — one satellite, two signals, the same channel model MeasEpoch reports.
+- **E14 appears in both `GALRawFNAV` (signal 20 = E5a) and `GALRawINAV` (signal 21 = E5b)**, on channel
+  19. F/NAV really is broadcast on E5a and I/NAV on E5b — the datasheet's signal table confirmed by
+  the hardware.
+- `GLORawCA` → **R09, FreqNr 6 → frequency number −2** (inside the legal −7..+13).
+- `BDSRaw` → **C28 on B1I**, with the plain-`Source` variant.
+- **Every one of the six consumes its body exactly** (60 = 14+6+10×4, 52 = 14+6+8×4, 32 = 14+6+3×4):
+  zero padding, zero bytes unaccounted for.
+
+### `NAVBits u4[N]` — one field, assembled words, and why not a byte dump
+
+The datasheet lists it as **one row**, so it is **one payload field** (payload stays 1:1 with the
+table). CMA has no byte-array type, so it uses the same `format` escape the IP/MAC fields use:
+bytes stay in `raw`, and `value` is the words as space-separated 8-digit hex.
+
+**The words, not the bytes.** SBF words are little-endian on the wire, but every constellation ICD
+counts bits from the **MSB of each word** ("the first received bit is stored as the MSB of
+NAVBits[0]"). A straight byte dump presents each 32-bit word back-to-front. Spec'd by asserting that
+`raw`'s first four bytes are the reverse of `value`'s first word.
+
+`metadata.payload.navigation` publishes what the fields cannot show: the meaningful **bit** count, the
+word count, and `unusedBitsInLastWord` — the tail the datasheet says "must be ignored". Two honest
+distinctions in there: the two BeiDou CNAV blocks count **symbols**, not bits (they are carried
+pre-error-correction), and `BDSRawB2a` is the only block in the category with **no unused tail**
+(18×32 = 576 exactly).
+
+### Two judgement calls worth knowing
+
+- **`BDSRawB1C` refuses to name a single `valid`.** Subframe 2 can pass while subframe 3 fails, so
+  both are reported and `valid` requires **both**. Promoting one to speak for the frame would pass a
+  frame whose other subframe is corrupt. Spec'd with a 1/0 fake.
+- **"Not applicable" is not "reserved", and neither is zero.** On most of these blocks `ViterbiCnt`
+  and `FreqNr` exist but carry nothing; they are kept (payload stays aligned to the datasheet) and
+  flagged, so nobody reports "Viterbi error count 0" for a signal with no Viterbi decoder. The one
+  exception is **`GLORawCA`, the only block in §4.2.2 where `FreqNr` is real** — GLONASS L1/L2 are
+  FDMA, so the carrier is a property of the satellite. Treating that byte as a frequency anywhere else
+  would invent a channel number out of padding.
+
+### The `sis` timestamp rule finally has blocks that exercise it
+
+All 15 are stamped **SIS** — when the *satellite transmitted* the bits, which may be well in the past
+— so they are the blocks that must **not** be promoted to `cma.timestamp`. Until now the rule was
+implemented with nothing to test it against; there is now a spec asserting `cma.timestamp` stays the
+parse time on a real GPSRawCA frame, and another asserting all 15 report `timestamp: 'sis'` through
+`getSentenceDefinition`.
+
+## 🐛 A REAL BUG FOUND BY AUDITING NUMBERS AGAINST APPENDIX B
+
+**`ExtEventBaseVectGeod` was registered as 4216. It is 4217** — both its own datasheet page and
+Appendix B say so. Fixed. Worth understanding *why* it survived the previous tranche's checks: a
+`getFakeSentence` round trip builds the frame from the **same** definition it then parses, so a wrong
+block number is self-consistent and passes. A real 4217 frame would have fallen silently into the
+identified-but-not-modelled tier — decoded as nothing, reported as no error. **Only an external
+authority catches this class of bug**, so all 60 numbers *and* names are now verified against
+Appendix B by script; all 60 agree.
+
+## 🟢 §4.2.1 — the Meas3 family is NOT the hard case this doc predicted
+
+Earlier sections here flagged `Meas3*` (4109-4113) as bit-packed compression that might need a
+`decode?` escape hatch in the engine, with the design to be put to cru. **Reading the datasheet
+settles it, and the answer is simpler than the question:** Septentrio publishes no layout for any of
+the five. The guide says, once per block, verbatim — *"The detailed definition of this block is not
+available in this document"* — and for `Meas3Ranges` adds that the format "is complex and is not
+provided here. Details can be obtained from Septentrio Support", pointing at the C decoder shipped
+with RxTools.
+
+So there is nothing to transcribe and nothing for an escape hatch to decode. **All five take the
+`opaque: true` treatment PVTSupport already uses:** body published as bytes at `metadata.body`,
+frame in `cma.raw`, no invented fields. **No engine change was needed.** Two further reasons this is
+the right call rather than a shortcut: the encoding is also **stateful** (a delta epoch is
+meaningless without the reference epoch before it, so a correct decoder needs cross-frame memory no
+field table could express), and there is a fully-supported alternative — log `MeasEpoch` +
+`MeasExtra` instead, which carry the same observables in larger frames and are now modelled in full.
+
+## 🔬 MeasEpoch 4027 + MeasExtra 4000 — verified against cru's receiver, and against EACH OTHER
+
+Both modelled from `2023_06_23_test1.sbf`, **same epoch** (both stamped 2023-06-23T09:44:52Z), and
+committed as fixtures (`meas-epoch.bin` 648 B rev 1, `meas-extra.bin` 708 B rev 3, `end-of-meas.bin`
+16 B).
+
+**The structural checks land exactly:**
+
+- MeasEpoch: `N1` 14, `SB1Length` 20, `SB2Length` 12 — and 20 and 12 are *precisely* the sizes of the
+  two sub-block tables as transcribed. The two-level walk consumes **648 of 648 bytes with nothing
+  left over**; payload = 6 + 14×12 + 29×9 = **435 fields**.
+- MeasExtra: `N` 43, `SBLength` **16** = the rev-3 sub-block size, and 6 + 43×16 = **708** = the
+  frame's own Length. Payload = 3 + 43×11 = **476 fields**.
+
+**The cross-block check is the real evidence.** MeasEpoch reports 14 satellites carrying 29 slave
+measurements = **43 signals**; MeasExtra reports **43 sub-blocks**, describing the same signals **in
+the same order** (`Type` and `RxChannel` match measurement for measurement: GPS L1CA/MAIN, GPS
+L2C/MAIN, GPS L1CA/**AUX1**, …). Two different tables, two different strides, one epoch — if either
+walk had drifted a single byte this could not line up. Spec'd.
+
+**And the physics corroborates too:** MeasEpoch measured G18 L1CA at 21.75 dB-Hz and L2C at 33.25,
+and MeasExtra independently gives the weaker signal an order of magnitude **more** code variance
+(3.0459 m² vs 0.2197 m²). The two measurements whose carrier phase MeasEpoch reports *unavailable*
+are the two with the worst carrier variance. Nobody wired those together; they agree because both
+walks are right.
+
+Decoded highlights: **G18** (SVID 18 → `G18` via §4.1.9), pseudorange **23 236 438.987 m** assembled
+from `CodeMSB`+`CodeLSB`, Doppler **−2869.83 Hz**, carrier phase **95 149 201.304 cycles** for the L2C
+slave (checked against `PR/λ + carrier term` computed independently in the spec),
+`CommonFlags` → multipath mitigation on, carrier-phase aligned, **`scrambled: false`** (so the
+measurements are real, not the deliberately-useless kind), `CumClkJumps` 245 → **−11 ms** (modulo 256).
+
+### Three things this tranche needed, all of them documented in the block file
+
+1. **A REVISION THAT NAMES A BYTE IN THE MIDDLE — and §4.1.6 decides how to model it.** MeasEpoch
+   rev 1 introduces `CumClkJumps` *before* `Reserved`, not at the end. §4.1.6 (read in full,
+   verbatim): a backwards-compatible change "consists of adding one or more fields **in the padding
+   bytes, or in the fields marked as reserved**". So that byte must already exist at rev 0, unnamed —
+   modelling rev 0 with a five-byte header would shift the whole Type1 run by one and turn every
+   measurement in a rev-0 frame into garbage. Rev 0 therefore carries an explicit `Reserved1`
+   placeholder. Spec'd both revisions.
+2. **ENGINE: SUB-BLOCK-SCOPED DECODERS** (`SubBlockDefinition.decoders`, additive, ~8 lines).
+   `CarrierLSB`, `CN0`, `LockTime`, `Type` and `ObsInfo` all appear in **both** MeasEpoch sub-blocks,
+   and `CarrierLSB` does **not** mean the same thing twice: absolute carrier phase in a Type1, phase
+   relative to the master measurement in a Type2. Decoders are keyed by field name, so one shared
+   function would have been silently wrong on one of the two scopes. A sub-block's own decoders now
+   layer over the block's. No existing block declares any, so nothing changed elsewhere; no CMA or
+   API change.
+3. **PAIR-CONDITIONED INVALID MARKERS, as this doc predicted.** Four of MeasEpoch's five footnotes
+   make a measurement invalid only when **two** fields hold a value *together* (`CodeMSB` 0 **and**
+   `CodeLSB` 0; `CarrierMSB` −128 **and** `CarrierLSB` 0; and the two offset pairs). `doNotUse` marks
+   one field, so it cannot express any of them — and using it anyway would be actively wrong, since a
+   real `CodeLSB` of 0 is ordinary. The pairs are checked in the decoders and the derived quantity
+   goes out as `{ value: null, doNotUse: true }` while the raw field keeps its honest 0.
+   **Independent confirmation that this is implemented correctly:** the datasheet says `LockTime`
+   goes Do-Not-Use exactly when the carrier phase is unavailable — and on every measurement where the
+   pair marks the phase invalid, `LockTime` is Do-Not-Use too.
+
+### What is deliberately NOT computed, and why
+
+A Type2's **absolute Doppler** needs α, the ratio of its own carrier frequency to the **master**
+observable's — and the master's signal type lives in the parent's `Type`, which the child's own
+`Type` has already overwritten by the time the child decodes. The Doppler **offset** is published;
+the absolute Doppler is not. A plausible-looking wrong Doppler is worse than an honest gap.
+
+The **pseudorange**, by contrast, *is* resolved for slaves: `Misc`/`CodeLSB` exist only in Type1, so a
+Type2 occurrence still sees its parent's — which is exactly the master measurement its delta is
+defined against. `PRtype2` and the slave's absolute carrier phase are therefore both published.
+
+### One more fake-writer fix (found while wiring MeasEpoch)
+
+`sizeSubBlocks` in `fake.ts` did not recurse, so a **nested** run's count and stride (`N2`,
+`SB2Length`) were left at 0. The frame still parsed — the inner occurrences we had written were read
+back as padding — so the round trip *passed* while never exercising the nested path at all.
+Now recursive: `ChannelStatus`'s fake went from 13 fields to **18**, and MeasEpoch's nested Type2 is
+genuinely round-tripped.
+
+### ❓ ONE SHAPE QUESTION FOR cru (not changed — it would break already-modelled blocks)
+
+`metadata.subBlocks` for a two-level block is a **flat** list of every occurrence at both levels, with
+children pushed **before** their parent, and a parent's entry also containing its children's fields.
+MeasEpoch therefore gives 43 entries: 29 Type2 groups and 14 Type1 groups (each 12 + 9×N2 fields).
+It is consumable — the specs classify by whether the group opens with `RxChannel` — but "give me
+satellite *i*" is not one index. Same shape already applies to `ChannelStatus` and `OutputLink`, so
+changing it is an output-format change for three blocks and is cru's call, not mine.
+
+## Added in this tranche
+
+- **§4.2.16 finished:** `BBSamples` 4040 (I/Q baseband samples; time stamp is **external**, so it is not
+  promoted to `cma.timestamp`), `ASCIIIn` 4075 (third-party sensor text arriving on a port), and
+  `EncapsulatedOutput` 4097 (RTCM/CMR/NMEA/ASCIIDisplay wrapped in SBF — **relevant to the queued "add
+  NMEA to the Septentrio facade" work: the sentences may arrive INSIDE these blocks**).
+- **`printableText` in `src/utils.ts`** — for a byte array that is text in some modes and binary in
+  others. Returns `''` rather than half-decoded binary; `raw` stays the authority.
+- **`src/firmware/4-10-1/satellites.ts` — §4.1.9 SVID resolution**, the missing counterpart to
+  `signals.ts`. SVID → `{ constellation, number, rinex }` (`G18`, `R09`, `E31`, `C42`), plus
+  `glonassFrequencyNumber` and `glonassCarrier` for the two FDMA bands whose carrier is per-SATELLITE.
+  Wired into every block that carries `SVID`: `ChannelStatus`, `SatVisibility`, `LBandTrackerStatus`,
+  `LBandBeams`. **Verified on cru's own capture** — `C42` comes from the SECOND BeiDou range
+  (offset 182, not 140), which is exactly why this is a table of ranges and not arithmetic.
+
+## 🔧 ENGINE CHANGE — decoders now run PER SUB-BLOCK OCCURRENCE (read this before touching MeasEpoch)
+
+Field names **collapse** in the engine's `values` map (last occurrence wins), so a cross-field decoder
+inside a repeated sub-block used to read the **last** occurrence's siblings — right for occurrence N,
+silently wrong for 1..N-1. No block shipped so far was affected (their decoders only read their own
+value), but `MeasEpoch` cannot be written correctly without this.
+
+- `WalkState` gained `decoders` and `decoded: Set<number>`.
+- `decodeScope(state, from)` decodes the fields of an occurrence **while `values` still describes that
+  occurrence**, and marks their indices.
+- The final `applyDecoders` takes a `skip` set and leaves those alone.
+- **Order matters:** an occurrence decodes its OWN fields *before* walking its nested runs, because a
+  nested sub-block reuses the same names (`MeasEpoch`'s Type1 and Type2 both have a field called
+  `Type`). Consequence, by design: a Type2 decoder **cannot** see the parent's `Type`, so anything
+  needing the master observable (the α-scaled Doppler) must be documented, not faked.
+- Re-verified after the change: 120/120 specs, all 52 fakes clean, and the real-capture Status/PVT
+  decodes unchanged.
+
+## MeasEpoch 4027 — the analysis is DONE, do not re-derive it (`Measurement_Blocks.pdf` pp. 1-6)
+
+Header rev 0: `N1 u1`, `SB1Length u1`, `SB2Length u1`, `CommonFlags u1` (bit 0 multipath mitigation,
+1 code smoothing, 2 carrier-phase align, 3 clock steering, 5 high dynamics, **7 scrambling** — set when
+the "Measurement Availability" permission is not granted, i.e. the measurements are deliberately
+useless), then rev 1 adds `CumClkJumps u1` (0.001 s, ambiguous by k·256 ms), then `Reserved u1`, then
+N1 × Type1.
+
+`MeasEpochChannelType1`: `RxChannel u1`, `Type u1` (bits 0-4 SigIdxLo — **31 means the signal number is
+in ObsInfo bits 3-7 with an offset of 32**; bits 5-7 antenna), `SVID u1`, `Misc u1` (bits 0-3 CodeMSB),
+`CodeLSB u4`, `Doppler i4`, `CarrierLSB u2`, `CarrierMSB i1`, `CN0 u1`, `LockTime u2`, `ObsInfo u1`,
+`N2 u1` — then N2 × Type2. **SB1Length EXCLUDES the nested Type2 blocks**, the case the engine already
+handles for `ChannelStatus`/`OutputLink`.
+
+`MeasEpochChannelType2`: `Type u1`, `LockTime u1`, `CN0 u1`, `OffsetsMSB u1` (bits 0-2 CodeOffsetMSB,
+bits 3-7 DopplerOffsetMSB, both two's complement), `CarrierMSB i1`, `ObsInfo u1`, `CodeOffsetLSB u2`,
+`CarrierLSB u2`, `DopplerOffsetLSB u2`.
+
+Decodable **within one occurrence** (so it belongs in metadata):
+`PR[m] = (CodeMSB·2³² + CodeLSB)·0.001` · `D[Hz] = Doppler·1e-4` ·
+`C/N0[dB-Hz] = CN0·0.25`, **+10 unless the signal number is 1 or 2** ·
+`L[cycles] = PR/λ + (CarrierMSB·65536 + CarrierLSB)·0.001`, with `λ = 299792458/fL` and `fL` from
+`signals.ts` (GLONASS FDMA via `glonassCarrier(signalNumber, FreqNr)`, where FreqNr comes from ObsInfo
+bits 3-7 with an offset of 8 when SigIdxLo is 8-11).
+
+**The invalid markers are PAIR conditions, which `doNotUse` (a single-field sentinel) cannot express** —
+PR invalid iff `CodeMSB == 0 && CodeLSB == 0`; carrier invalid iff `CarrierMSB == -128 && CarrierLSB ==
+0`; code offset iff `-4 && 0`; Doppler offset iff `-16 && 0`. Handle them in the decoder's metadata
+(`{ value: null, doNotUse: true }`-style), not with `doNotUse` on either field alone.
+
+`MeasExtra` 4000 is pp. 6-8 of the same PDF, `EndOfMeas` 5922 p. 12 (trivial, empty body like
+`EndOfPVT`). The `Meas3*` family (4109-4113) is **bit-packed differential compression** and does not fit
+a field table — it is the one place the `decode?` escape hatch (a block-supplied body decoder) may be
+needed. Leave it for last and put the design to cru first.
+
+**Extract the datasheet text with** (the scratchpad from the previous session is gone):
+`pdftotext -layout misc/parsers/septentrio/datasheets/4-10-1/Measurement_Blocks.pdf -` — the per-category
+PDFs are excerpts of `asterx_sb3_pro_firmware_v4.10.1_reference_guide.pdf`; §4.1.9/§4.1.10/§4.1.11 are on
+pages 234-236 of the full guide (`pdftotext -layout -f 230 -l 240`).
+
+# 🟩 PHASE B — 16 of the 24 blocks cru's receiver emits (2026-07-31, committed)
+
+**27 blocks modelled (was 11), 120/120 specs.** Each new block is pinned two ways: a `getFakeSentence`
+round trip (structure) and, where a real frame exists, a committed fixture (values). **Unmodelled
+frames in `2023_06_23_test1.sbf`: 1080 → 705.**
+
+## 🔎 A real fault found in cru's own capture, by modelling the Status blocks
+
+`NTRIPClientStatus` (4053) decodes to **`Status: ERROR`, `ErrorCode: RESOLVING_HOST_FAILED`** on all 33
+frames — the receiver could not resolve its NTRIP caster's hostname. That **explains** something the PVT
+blocks in the same capture only showed as a symptom: `PVTGeodetic.Mode` says `pvtSolution: STANDALONE`
+and `MeanCorrAge`/`ReferenceID` show a base station, but the fix never went differential — because the
+correction stream never connected. Two blocks, one story, and the second one is only visible now.
+
+`DiskStatus` (4059) likewise reads the internal SD card as mounted and being written to, 14066 MB total,
+**11.28 GB used = 76.5%** — assembled from `DiskUsageMSB`/`DiskUsageLSB`, a 48-bit value split across
+two fields (and the pair 65535/4294967295 is the "invalid" marker, spec'd).
+
+## Blocks added in this tranche
+
+§4.2.15 Status now 10 of 14: `DiskStatus` 4059 (revisions differ INSIDE the sub-block), `RFStatus` 4092
+(spoofing suspicion + per-band interference mode), `IPStatus` 4058, `DynDNSStatus` 4105,
+`NTRIPClientStatus` 4053, `NTRIPServerStatus` 4122, `P2PPStatus` 4238, `CosmosStatus` 4243.
+
+**The two NTRIP blocks share a shape and NOT their error tables** (`Status/ntrip.ts` holds what is
+genuinely common). Client code 5 is `MOUNTPOINT_UNAVAILABLE`, server code 5 is
+`CONFIGURATION_CONFLICT_ERROR`, and everything above 5 is shifted — one shared enum would have
+mislabelled half the errors on one of the two blocks. Pinned by a spec that decodes the same byte
+through both.
+
+## Third engine capability: `format` for byte-array fields
+
+`IPStatus` carries `MACAddress u1[6]`, `IPAddress u1[16]` and `Gateway u1[16]`; `DynDNSStatus` carries
+another IP. CMA has no byte type — deliberately — so a field may now declare
+`format: (bytes) => string`, and its `value` becomes the address in its documented human form
+(`'00:11:22:33:44:55'`, `'192.168.1.10'`) with the bytes still in `raw`. `src/addresses.ts` holds the
+two formatters: an all-zero address is the block's own Do-Not-Use and reads as `''`, and a non-zero
+value in the leading 12 bytes renders as IPv6 rather than being silently dropped.
+
+## 🔑 The firmware is now LEARNED from the device, and the hardware confirms the datasheet
+
+`ReceiverSetup` (5902, revisions 0-4) is modelled, and its `RxVersion` field is what
+`protocol.version` now comes from — the same move tblive makes with `FV=`. Decoding cru's own frame:
+
+```jsonc
+metadata.payload.receiver = {
+  name: 'GRB0053', product: 'AsteRx SB3 Pro+', serialNumber: '3238137',
+  firmware: '4.10.1', gnssFirmware: '6.10.3-ga4180cb379', antenna: 'Unknown', marker: 'SEPT'
+}
+```
+
+**Two things that settles.** The receiver identifies itself as an **AsteRx SB3 Pro+ running 4.10.1** —
+which is *exactly* the reference guide this knowledge base was transcribed from
+(`asterx_sb3_pro_firmware_v4.10.1_reference_guide.pdf`), so the firmware assumption behind the whole
+package is now **verified against the hardware** rather than assumed. And its reference position
+(40.41607 N, −3.72388 E, 673.93 m) agrees with the `PVTGeodetic` fix decoded from the same capture —
+two independent blocks corroborating each other.
+
+**A firmware we do NOT model is reported, never silently substituted:** `RxVersion: '4.99.9'` keeps the
+4.10.1 table (inventing one would be worse), exposes it as `parser.reportedFirmware`, and adds
+`Receiver reports firmware "4.99.9", which this build does not model; decoding with 4.10.1` to that
+sentence's `errors`. Spec'd both ways.
+
+## Two engine capabilities the real blocks demanded
+
+- **`lengthFrom`** — a `c1[Field]` string whose width lives in a sibling field (`RxMessage.Message` via
+  `StringLn`, `Comment.Comment` via `CommentLn`). The fake writer keeps the length field consistent
+  with what it wrote, so those frames still round-trip; a length that overruns the body reports
+  `Body truncated: field Message …` instead of guessing.
+- **`rest`** — a field that runs to the end of the body, for `Commands.CmdData` where the datasheet
+  never defines N.
+
+| block | no | rev | what it added to the engine |
+| --- | --- | --- | --- |
+| `PosCovGeodetic` | 5906 | 0 | nothing new — 10 covariances in m², sharing PVT `Mode`/`Error` |
+| `BaseVectorGeod` | 4028 | 0 | a second sub-block block; `int16` scaling (Elevation) |
+| `ReceiverStatus` | 4014 | 0,1 | **identical revisions** — rev 1 changes RxError bit MEANINGS, not layout, so `revisions: [FIELDS, FIELDS]` says "rev 1 is known" without claiming a degraded decode |
+| `QualityInd` | 4082 | 0 | **`SBLength` is now optional** — `Indicators u2[N]` is a plain fixed-size array with no length field, so the table's own size is the stride |
+| `ReceiverSetup` | 5902 | 0-4 | five stacked revisions; **fixed-width `c1[X]` strings** (60/40/21/10/3 bytes, value stops at the NUL padding); the learned firmware |
+| `RxMessage` | 4103 | 0 | **`lengthFrom`** — `Message c1[StringLn]` |
+| `Comment` | 5936 | 0 | `lengthFrom` again, for a string that is NOT NUL-terminated |
+| `Commands` | 4015 | 0 | **`rest`** — `CmdData u1[N]` with N never defined |
+
+**Shared PVT enums moved to `GNSSPositionVelocityTime/common.ts`** (`PVT_SOLUTION`, `PVT_ERROR`,
+`pvtMode`, `pvtError`, `baselineMisc`) — five blocks define Mode/Error identically, and a datasheet
+change must not need editing in five files. `Misc` is NOT shared: PVTGeodetic uses bits 6-7 for the
+ARP-to-marker flag while the baseline blocks reserve them.
+
+**Verified against cru's own captures** (`misc/parsers/septentrio/captures/2023_06_23_test1.sbf`):
+- `ReceiverStatus` → CPU 36%, uptime 350 s, **14 AGC frontends** (GPSL2 gain 26 dB, SampleVar 104 vs a
+  nominal 100), `RxError` bit 3 set ⇒ `metadata.payload.health.healthy: false`. **Its layout was
+  confirmed arithmetically before a line was written**: 18 fixed bytes + 14 × 4 = the frame's own
+  74-byte body, exactly.
+- `QualityInd` → 7 indicators, all labelled (`OVERALL_QUALITY` 5, `RF_POWER_MAIN_ANTENNA` 10,
+  `CPU_HEADROOM` 10, `BASE_STATION_MEASUREMENTS` 10).
+- `BaseVectorGeod` → a 3.2 km baseline at azimuth 106.99°, elevation 0.84°, base station 1014,
+  correction age 1 s. `PosCovGeodetic` → variances 5.8-96.6 m².
+- **Unmodelled frames in that capture: 1080 → 936.**
+
+**Phase B is DONE** — every block in that list was modelled later the same day except the three
+Measurement ones; see the newer §"52 BLOCKS MODELLED" section above for the current tally and for
+`MeasEpoch`'s finished analysis.
+
+**Page map for the Status datasheet** (`Status_Blocks.pdf`, so the next session does not re-derive it):
+ChannelStatus 1-3, ReceiverStatus 4-7 ✔, SatVisibility 8, InputLink 9-11, OutputLink 12-14,
+NTRIPClientStatus 15-16, NTRIPServerStatus 17, IPStatus 18, DynDNSStatus 19, QualityInd 20 ✔,
+DiskStatus 21-22, RFStatus 23, P2PPStatus 24, CosmosStatus 25.
+
+**Also still open before release: the README** (documents the 1.x API) and `docs/PACKAGES.md`.
+
+# 🔷 THE PARSER API IS NOW ONE CONTRACT, ENFORCED BY THE COMPILER (2026-07-31, cru's call)
+
+**cru: "probably the api should be in the protocol-core — get fake sentence, get the definition with
+the result, etc. If nmea and norsub don't have it, we have to add it."** Done, and it is no longer a
+convention: `DeviceParser<B>` in `protocol-core` now REQUIRES the introspection surface, and the
+abstract `Parser` base declares it abstract, so a parser that omits it does not compile.
+
+```ts
+readonly sentenceIds: string[]
+getSentenceDefinition(id: string, protocol?: string): Result<SentenceDefinition[], ParserError[]>
+getFakeSentence(id: string, protocol?: string, options?: unknown): Result<B, ParserError[]>
+// B = string | Uint8Array — whatever comes back is feedable straight to addData
+```
+
+**THE SHAPE IS tblive's: `(id, protocol, options?)`** (cru, 2026-07-31). `protocol` is the
+protocol/firmware VERSION and it is not decoration: a TB Live `emitter` sentence really is different on
+1.0.1 and 1.0.2, so **tblive REQUIRES it** — an earlier attempt of mine to make it optional there was
+reverted on cru's instruction, because guessing would hand the caller the wrong shape. Parsers that can
+pick a sensible default leave it optional, and what it selects is per-protocol:
+
+| parser | what `protocol` selects | required? |
+| --- | --- | --- |
+| `thelmabiotel-tblive` | the firmware — changes field counts and `LIVECM`/`TBRC` | **yes** |
+| `nmea-parser` | WHICH definition of an id (by protocol name or version) — new in this pass | no, default = all |
+| `norsub-emru` | passed through to the active protocol parser | no |
+| `septentrio-sbf` | the FIRMWARE, i.e. which knowledge base describes the block | no, default = the parser's |
+
+**THE ERROR SIDE IS AN ARRAY** (cru, 2026-07-31): `Result<T, ParserError[]>`, where
+`ParserError = { kind, message }`. His reasoning, from the PSXN case: one checksum can be *both*
+malformed (one character) *and* wrong, so an error channel that holds a single value is the wrong shape
+— the same argument that already made `cma.errors` a `string[]`. Each reason keeps its own `kind`
+rather than being flattened into prose, and `details?` (my earlier compromise) is gone.
+
+New shared types in core: **`ParserError { kind, message, details? }`**, **`FieldSpec`**,
+**`SentenceDefinition { id, protocol, payload, description? }`** (CMA-shaped: a sentence's keys minus
+the ones only a real parse can fill). Declared with METHOD syntax on purpose — TypeScript checks
+method parameters bivariantly, so tblive may narrow `id` to its own literal union and septentrio may
+widen it to `number | string`, and both still conform.
+
+**What each package needed (all four now green):**
+
+| package | change | tests |
+| --- | --- | --- |
+| `protocol-core` | the contract + `ParserError`/`FieldSpec`/`SentenceDefinition`; abstract members on `Parser`, so omitting them does not compile | **35/35** (was 15) |
+| `nmea-parser` | added `sentenceIds`; **`protocol` now selects which definition of an id is used** (by name or version, with a failure listing the ones that do define it); every `Result` error is an array, `addSentences` and `parseProtocols` included; re-exports the new core types | **115/115** (was 110) |
+| `norsub-emru` | the facade DELEGATES the three members — a **deliberate reversal** of the 2026-07-29 "not delegated method by method" decision, but only for these three, and with cru's nuance: a failure **appends a second error naming the active device protocol** and pointing at `.parser`, because "unknown sentence id" from a facade otherwise reads as "this device cannot do that". `addSentences`/`getSentencesByProtocol` stay on `.parser` | **48/48** (was 45) |
+| `thelmabiotel-tblive` | **`protocol` stays MANDATORY** in `getFakeSentence` (cru reverted my attempt to default it); errors are `ParserError[]`, one entry per reason | **260/260** (was 259) |
+| `septentrio-sbf` | new `src/fake.ts` + `src/introspect.ts`; `getSentenceDefinition` returns one entry PER REVISION; `(id, firmware?, options?)`; an unsupported firmware is refused rather than answered from another table | **101/101** (was 80) |
+
+**Behaviour changes worth knowing before release:** tblive's errors are now `ParserError[]` instead of
+`string[]` (assert on `error[i].message`); nmea's `addSentences`/`getSentenceDefinition`/
+`getFakeSentence` errors likewise; and nmea gained an optional second argument, which is additive.
+
+**`getFakeSentence` for a binary protocol** builds the frame from the same field table the parser reads,
+with a real CRC and a real Length, so `parseData(getFakeSentence(id))` round-trips. That is now a smoke
+test for **every** block ever modelled — all 15 pass today, and each new Phase B block gets one for free.
+
+### Fake sentences are IDEMPOTENT, with `{ random: true }` as the opt-in (cru, 2026-07-31)
+
+cru: *"I remember I told you: be idempotent if no options are passed. It really helps your tests."*
+**Found by accident** while demonstrating where the API members live: `nmea-parser`'s
+`getFakeSentence` called `Math.random()` for every field, so two consecutive calls returned different
+sentences. A fixture that drifts cannot be committed into a spec, an example flow or a bug report —
+which is the entire purpose of a fake sentence.
+
+- **`protocol-core/src/pseudorandom.ts`** (new, additive): `hashSeed` (FNV-1a) + `seeded` (mulberry32)
+  + `generator(label, random?)`. Two parsers need the SAME numbers from the same seed, so it lives in
+  core. **+8 specs.**
+- **`nmea-parser`**: values are now derived from `` `${id}:${fieldIndex}` ``, so `getFakeSentence('GGA')`
+  is the same string forever, and two fields of the same type in one sentence still differ. The
+  `crypto.getRandomValues` calls for 64-bit types are gone with it. New third argument
+  `{ random?: boolean }` (`FakeSentenceOptions`) restores varied values.
+- **`septentrio-sbf`**: was already idempotent (zeros), and gained the same `random` opt-in — seeded per
+  field name + position, so even "random" frames are reproducible. Zeros stay the default because a
+  zero also reads as Do-Not-Use on the fields whose sentinel is 0, which is honest for a fabrication.
+- **`thelmabiotel-tblive`**: already idempotent by construction (its defaults are the datasheets' own
+  example sentences). Untouched.
+- **Deliberately NOT done:** per-field overrides for nmea. cru: *"we have to define what the options
+  object could be by id"* — that is tblive's `FakeOptions` job, and guessing a shape for nmea now would
+  be inventing an API. `random` is the only option today.
+
+**⚠️ WHAT IS *NOT* CHANGED, and never was: the CMA format.** `cma.errors` and `payload[i].errors` are
+still `string[]`; `packages/core/src/cma.ts` has zero diff. `ParserError[]` is the error channel of the
+*API* `Result`s (a call was wrong), which is a different thing from a sentence carrying problems (the
+data is wrong). Two vocabularies, deliberately: cru asked pointedly whether the CMA had been changed
+without approval, and the answer is no.
+
+**A METHOD NOTE FOR FUTURE SESSIONS, from cru's correction:** I changed tblive's public error shape
+before asking, and flagged it only in the report afterwards. **That is too late.** When a change to a
+shared or published contract falls out of a refactor, STOP at the first mismatch and put the choice to
+cru — he chose a different answer than I did in two of the three cases (mandatory `protocol`, array
+errors), so asking first would have saved the rework.
+
+# 🟢 septentrio-sbf — PHASE A IS CODE-COMPLETE AND GREEN (2026-07-31, committed)
+
+**`septentrio-sbf@2.0.0` now emits CMA.** Lint + `tsc --noEmit` + **80/80 vitest** + build (ESM 76 KB /
+CJS 80 KB / DTS) all clean from the package's own directory. **Nothing regressed elsewhere:** core
+**33/33** (was 15/15), nmea-parser **110/110**, norsub-emru **45/45**, thelmabiotel-tblive **259/259**,
+repo-wide `pnpm lint` clean. **cru has not reviewed or committed any of it yet.**
+
+### What exists now
+
+- **`protocol-core` gained two additive modules** (no existing file touched, so no behaviour change for
+  the other three devices): `src/bytes.ts` — `toBase64`/`fromBase64` over `Uint8Array`, no `Buffer`, no
+  `btoa`, verified byte-for-byte against Node's encoder over every length 0-256; `src/gps.ts` —
+  `GPS_EPOCH_MS`, `GPS_WEEK_MS`, the 18-entry leap-second table, `gpsLeapSeconds`, `gpsWeekTimeToUnix`.
+  **+18 specs.**
+- **`src/engine.ts` — the table-driven decoder**, one file for all 107 blocks. Walks a block's field
+  table and derives byte offsets, base64 `raw` slices, little-endian reads, Do-Not-Use → `null` +
+  `{ doNotUse, value }`, reserved flags, sub-block runs (honouring `SBLength`), the padding boundary and
+  truncation errors. Dev-authored decoders run afterwards and can read sibling values.
+- **`src/protocol-sbf.ts` — `SBFParser extends BinaryParser`.** Framing per §4.1.1; CRC via
+  `crc/calculators/crc16xmodem`; `sentenceTimestamp` from TOW+WNc with the learned `DeltaLS`;
+  `addData` override doing cru's `$root.timestamp` patch; `getSentenceDefinition` returning a `Result`.
+- **`src/parser.ts` — `SeptentrioParser implements DeviceParser<Uint8Array>`**, the composition facade
+  (norsub pattern) with `protocol`/`protocols`/`parser`/`firmware`, ready for NMEA.
+- **11 blocks as tables**, in cru's folder-per-category layout, each keeping its datasheet comment:
+  AttEuler, AttCovEuler, AuxAntPositions, EndOfAtt · PVTGeodetic (revs 0/1/2), DOP, PVTSupport,
+  PVTSupportA, EndOfPVT · ReceiverTime, xPPSOffset. Shared: `src/utils.ts` (`bitState`, `bits`,
+  `label`, `scaled`, `degrees`), `firmware/4-10-1/signals.ts` (§4.1.10 table + `signalInfo`).
+- **Four output tiers, nothing dropped silently:** decoded · **identified-but-not-modelled** (real `id`,
+  real timestamp, body at `metadata.body`, `payload: []`, `metadata.name: 'unknown'`, and **no**
+  `errors` — 96 of 107 blocks land here today) · failed (bad CRC / truncated body → decoded as far as
+  possible + `errors`) · garbage (coalesced, `raw` kept). `bufferLimit` enforced.
+
+### All six measured bugs are fixed, and each has a spec that would catch it again
+
+| bug | now | how it is pinned |
+| --- | --- | --- |
+| AttEuler rate fields rotated | PitchDot/RollDot/HeadingDot on their own axes | the real frame that used to report a 0.313 °/s **roll rate with no roll solution** |
+| TOW ms fed to a seconds API | `gpsWeekTimeToUnix` | `cma.timestamp` **equals the receiver's own ReceiverTime UTC**, every block, and `2023_06_23_test1.sbf` dates to 2023-06-23 |
+| `getPadding` threw above 6 bytes | padding is a leftover slice, never read | a 40-byte body against a 1-byte table |
+| revision > known → silently rev 0 | highest known revision + `metadata.revisionDecoded` | a rev-3 PVTGeodetic still yields 26 fields |
+| rev-2 `padding` never populated | `metadata.padding = { raw, bytes }` | the rev-2 fixture's 1 padding byte |
+| DOP DNU 0 ignored; xPPSOffset invented `syncAge`; `syncLeveL` typo | DNU applied, nothing invented, typo gone | DOP spec + ReceiverTime `SyncLevel` spec |
+
+### Runtime-agnostic, verified in the build output
+
+`dist/index.js` has **zero `node:` imports**, **zero `Buffer` identifiers** (the only match is the word
+inside an error message) and exactly one external import — `crc/calculators/crc16xmodem`. `gpstime` is
+gone, along with its hand-written `.d.ts`. `engines.node` `">= 18"` → `">=22"`.
+
+### Corpus, tidied per Q13
+
+`tests/fixtures/` (committed, 10.5 KB total, **not** shipped — `files: ["dist"]`): `gnss.bin` plus five
+single-frame fixtures extracted from cru's captures. The duplicate 91-file corpus under
+`packages/septentrio-sbf/examples/` is **gone**; the five `.sbf` captures it held moved to
+**`misc/parsers/septentrio/captures/`** and the 1.x example scripts to
+**`misc/archive/septentrio-1.x-examples/`** (nothing deleted — both are gitignored).
+
+### ➡️ NEXT, in order
+
+1. **cru reviews the output shape and the code.** The two drafted CMAs (AttEuler, PVTGeodetic rev 2) are
+   in the conversation; regenerate any time with the fixtures.
+2. **Phase B — the 24 receiver-stamped blocks his own receiver emits** (list in the LOCKED section).
+3. **Phase C — the rest of the 107.** cru asked for ALL of them; `Meas3*` (bit-packed) and `MeasEpoch`
+   (nested sub-blocks) are the hard ones and go last.
+4. **README** still documents the 1.x API (`availableFirmwares`, `SBFParser(firmware, memory)`,
+   `SBFResponse`) — rewrite before release.
+5. **`septentrio-sbf-nodered`** afterwards, from the tblive/nmea wrapper template, major aligned at 2.0.0.
+
+# 🔵 septentrio-sbf — LOCKED design decisions (cru, 2026-07-31)
+
+**Converged in conversation, question by question. Nothing coded yet.** Open points are marked ⏳.
+
+- **Payload = the SBF body ONLY.** Header + time block → `metadata`.
+- **`$root.timestamp` is OVERWRITTEN with `metadata.timestamp.sentence`** as a final patch per sentence,
+  before moving to the next one. **CLOSED — do not reopen it** (cru, twice). `metadata.timestamp`
+  itself is **unchanged**: `received` + `parsed` keep their meaning, `sentence` is filled from TOW+WNc.
+  Rationale: a GNSS receiver's clock is disciplined to atomic time and needs no human to set it.
+  Mechanics: **override `addData` in the SBF parser** — `super.addData(data)`, then copy
+  `metadata.timestamp.sentence` over `timestamp` on the pending sentences. **No `protocol-core`
+  change.** When TOW/WNc are Do-Not-Use there is no `sentence`, so `timestamp` stays `parsed`.
+  `docs/CMA.md` must be corrected: it says `timestamp === metadata.timestamp.parsed`, but the rule
+  cru intended all along is **`timestamp` = the device time when it can be trusted** (Septentrio:
+  every block; NMEA: GGA only; norsub/tblive: never). nmea-parser does NOT do the patch today —
+  making it comply is its own major, decided separately, and cru will handle GGA's missing date in
+  the **Tracker** layer (carrying the GGA time across the sentences between GGAs). Not a parser
+  concern.
+- **TOW/WNc fields keep their GPS-scale datasheet values**; only the COMPOSED `sentence` timestamp is
+  converted to **UTC Unix epoch ms**. **Leap seconds come from the DEVICE** — `ReceiverTime.DeltaLS`
+  — with our own fallback table; "if the device gives us the answer, pick the device data" (cru).
+  Promotion is driven by Appendix B's **Time stamp** column (R receiver / E external ⇒ promote;
+  S = SIS ⇒ do not, the time is when the satellite transmitted the bits).
+- **`id` = block number as a string** (`'5938'`), **`metadata.name`** = the block name (`'AttEuler'`),
+  **`metadata.revision`** = `{ raw, value }` (it is not in the body). **`protocol.version` = firmware**
+  (`'4.10.1'`). An **unmodelled block is NOT an error** — same as nmea's unknown sentence.
+- **Metadata fields carry a `Field`-like `{ raw, value, … }` shape:** `crc`, `length`, `tow`, `wnc`.
+  **`sync` is dropped** (always the same) and **`id` is dropped** (it is the sentence's main property).
+- **`value` + `units` follow the DATASHEET** (single source of truth) — no scaling into `value`. The
+  converted value goes in **field metadata as `{ value, units }`** — `Field`'s own vocabulary, so there
+  is no per-unit key to invent 100 times (`HAccuracy` → `value: 812, units: '0.01 m'` +
+  `metadata: { value: 8.12, units: 'm' }`; `Latitude` → rad + `metadata: { value: 40.416, units: 'deg' }`).
+  `units` is omitted for dimensionless scaled fields (DOP → `metadata: { value: 1.56 }`). norsub's
+  PTVG uses `{ degrees }` instead — leave it, align at its next major.
+- **THE CMA FORMAT IS NOT TO BE MODIFIED. `Field['type']` stays exactly as it is** (cru, emphatic).
+  At `payload[i]` the four constraints are fixed (`raw`, `name`, `type`, `value`); **inside `metadata`
+  anything goes**. So no `'bytes'` type, no core schema change.
+- **Sub-blocks (`AuxAntPositions` N × `SBLength`):** cru left the shape to me, with a preference for
+  arrays because "you cannot trust names, only positions". **Decision: flatten the sub-block fields
+  into `payload` in wire order** (`N`, `SBLength`, then N × the sub-block's fields) so the mandatory
+  values stay in the mandatory place and every field keeps an honest `type` — **plus** a positional
+  mirror `metadata.subBlocks: Field[][]` so a consumer can read antenna *i* without arithmetic.
+  No carrier field, therefore no type fiction. Consequence: payload length varies with N, so
+  definitions are keyed by **number + revision**, never by payload length.
+- **Padding is NOT a payload field** (§4.1.5: value undefined, must not be looked at) — it goes to
+  **`metadata.padding = { raw, bytes }`**, alongside `crc`/`length`, not to `metadata.payload`
+  (which is reserved for ≥2-field aggregates).
+- **Do-Not-Use ⇒ `value: null`** (the `raw` is still there for anyone who insists), plus an explicit
+  marker **only when null** to say *why* it is null. No `errors` entry — DNU is normal operation.
+- **Facade from day one**, SBF-only now: NMEA support on the same device comes later via the norsub
+  composition pattern (cru: "keep to final fix… it would be nice to enable the nmea parser as we have
+  in norsub"). ⏳ later: one-protocol-at-a-time (norsub semantics) vs a true interleaved multiplexer,
+  and the bytes→string shim NMEA needs when the facade's input is `Uint8Array`.
+- **Scope: ALL the blocks** (cru, explicit: "I would like to have ALL the sentences"), each with its
+  datasheet comment, in its category folder. **Appendix B of the 4.10.1 reference guide defines 107
+  blocks** across 16 categories; **11 exist today**. Order = cru's own hardware first: the sample
+  captures show the receiver emitting **47 distinct block types**, of which **24 are receiver-stamped
+  and missing** (`ReceiverStatus` 4014, `QualityInd` 4082, `ChannelStatus` 4013, `PosCovGeodetic` 5906,
+  `BaseVectorGeod` 4028, `MeasEpoch` 4027, `MeasExtra` 4000, `EndOfMeas` 5922, `InputLink` 4090,
+  `OutputLink` 4091, `DiskStatus` 4059, `RFStatus` 4092, `NTRIPClientStatus` 4053,
+  `NTRIPServerStatus` 4122, `LBandTrackerStatus` 4201, `DynDNSStatus` 4105, `P2PPStatus` 4238,
+  `CosmosStatus` 4243, `ReceiverSetup` 5902, `Commands` 4015, `RxMessage` 4103, `BaseStation` 5949,
+  `LBandBeams` 4204). `ReceiverSetup` matters twice: it reports the receiver's REAL firmware, i.e. how
+  `protocol.version` gets *learned* instead of trusted from a constructor argument. Hardest, and last:
+  the `Meas3*` family (bit-packed compression) and `MeasEpoch`'s nested sub-blocks.
+- **`crc` STAYS as a dependency** (cru: a wide collection of CRCs worth having for future parsers, and
+  `sbg-ecom` needs CRC-16 Kermit from it). **MEASURED 2026-07-31:** only `crc`'s top-level wrapper
+  pulls in the `buffer` polyfill (`createBuffer` → `Buffer.from`, declared as a peerDependency); the
+  **`crc/calculators/*` subpaths are pure index arithmetic, exported, and accept a bare `Uint8Array`**.
+  `crc/calculators/crc16xmodem` over a real frame's ID→end returns **37812 == the frame's own CRC**.
+  So: import the calculator subpath — dep kept, zero Node API, zero polyfill, zero copy.
+- **`gpstime` is DROPPED** — it was the source of the timestamp bug (it wants seconds, SBF sends
+  milliseconds) and it needs a hand-written `.d.ts`. GPS-epoch/leap-second logic becomes our own, in
+  **`protocol-core`** (cru approved additive core exports: "if it's worth it to add to protocol-core,
+  ok, add it to core"), together with the cross-runtime base64 helper. Every Node API goes:
+  `Buffer` → `Uint8Array`/`DataView`, because these libraries must run in the browser too.
+- **Corpus:** keep it in `misc/parsers/septentrio/samples/`, drop the duplicate untracked copy in
+  `packages/septentrio-sbf/examples/`, and **regenerate the `.json` baselines in CMA format** (the
+  current ones are legacy AND carry the wrong dates). The wrapper's `examples/` holds only a flow file.
+- **Versions: aligned majors** — `septentrio-sbf` **2.0.0** + `septentrio-sbf-nodered` **2.0.0**. Rule
+  restated by cru: if a wrapper is ever ahead, the LIBRARY jumps a major to match ("collateral damage").
+
+## ⏭️ QUEUED — only AFTER septentrio-sbf is finished (cru, 2026-07-31)
+
+1. ~~**Republish `nmea-parser`, `norsub-emru` and `thelmabiotel-tblive` (+ their wrappers)**~~ —
+   **ABSORBED into the release PR** (2026-07-31), and its premise was WRONG. It assumed the three were
+   being republished only because `protocol-core` gains code that tsup bundles into them, with
+   *behaviour unchanged*. Behaviour did change: the `Result` error side became an array and fake
+   sentences became idempotent. So this is not a rebuild-republish at a patch or minor — all three are
+   **major** bumps (6.0.0 / 6.0.0 / 3.0.0), already applied. See §"ALL FOUR CMA PAIRS ARE BUMPED".
+2. **Add the NMEA protocol to the Septentrio facade.** Septentrio receivers emit NMEA alongside SBF;
+   the facade is being built composition-ready from day one (norsub pattern) precisely so this is
+   additive. Open when we get there: one-protocol-at-a-time vs a true interleaved multiplexer, and the
+   bytes→string shim NMEA needs when the facade's input is `Uint8Array`.
+3. **Make `nmea-parser` comply with the `$root.timestamp` rule** (promote `metadata.timestamp.sentence`
+   for GGA) — its own major, and only if cru still wants it in the parser; he has said he will carry the
+   GGA time across sentences in the **Tracker** layer instead.
+
+**Order is fixed: septentrio-sbf first, everything above after.**
+
+# 🔎 septentrio-sbf — MEASURED audit (2026-07-31)
+
+**Read-only session: the package, the 17 datasheets in `misc/parsers/septentrio/datasheets/4-10-1/` and
+the sample corpus were read, and current behaviour was MEASURED by driving the real capture
+`misc/parsers/septentrio/samples/gnss.bin` (10 296 bytes) through `src/parser.ts` with `tsx`. No source
+was changed. Nothing about the CMA design is decided — that is cru's next step.**
+
+### What the package is today
+
+- `@coremarine/septentrio-sbf@1.0.1`, one firmware `4.10.1`, **54/54 vitest green**, deps `crc@^4` +
+  `gpstime@^1.0.3`, `engines.node ">= 18"`. Output = legacy `SBFResponse`
+  `{ name, number, version, frame: { header, time, body }, buffer }` — **not** on `protocol-core`.
+- Structure is genuinely good and is the closest thing in the repo to a per-block knowledge base:
+  `src/firmware/4-10-1/<Category>/<Block>.ts`, one file per block, each opening with the datasheet
+  table transcribed as a comment, then `const X_INDEX/X_LENGTH` offset arithmetic, then bitfield/enum
+  decoders, then `metadata: {...}` with the decoded labels. **8 blocks of ~50 implemented:** AttEuler
+  (5938), AttCovEuler (5939), AuxAntPositions (5942), EndOfAtt (5943), PVTGeodetic (4007, revs 0/1/2),
+  DOP (4001), PVTSupport (4076), PVTSupportA (4079), EndOfPVT (5921), ReceiverTime (5914), xPPSOffset
+  (5911). `GNSSPositionVelocityTime/index.ts` already lists the unimplemented ones as commented-out
+  `blocks.set(...)` lines.
+- Dispatch is a `Map<blockNumber, (blockRevision, data) => { name, body }>` per category, merged per
+  firmware. Unknown block ⇒ `{ name: 'unknown', body: null }`.
+- **Corpus (all gitignored/untracked):** `misc/parsers/septentrio/samples/` = `gnss.bin` + **91
+  one-frame `.bin` files each with a `.json` baseline** of the CURRENT output; the package's own
+  untracked `examples/` holds the same plus 5 bigger `.sbf` captures (up to 248 KB) and TS example
+  scripts. `gnss.bin` = **195 frames, 39 epochs × 5 blocks** (ReceiverTime, PVTGeodetic 4007.2, DOP,
+  AuxAntPositions, AttEuler), zero bytes unaccounted for, all CRCs pass.
+
+### Protocol facts verified against the reference guide (§4.1.1–4.1.7, pp. 231–234)
+
+Sync `0x24 0x40`; **CRC-CCITT/XMODEM over ID → last byte** (code correct); **ID = bits 0-12 block
+number, 13-15 revision** (code correct); **Length = TOTAL block bytes incl. header, multiple of 4**
+(code correct); **TOW = u4 in whole MILLISECONDS of the GPS week** (DNU 4294967295), **WNc = u2
+continuous week count, no rollover** (DNU 65535), WNc 0/TOW 0 = 1980-01-06 00:00:00; **padding value
+is undefined and "should not be looked at"**; **Do-Not-Use refers to the RAW field before the scale
+factor and "should always be discarded"**; **revisions only ADD fields into padding/reserved and never
+withdraw them** — so a newer revision is always a superset.
+
+### 🐛 Six problems, all measured
+
+1. **🔴 The sentence timestamp is WRONG — off by years.** `parser.ts` passes SBF's TOW to
+   `gpstime.wnTowToGpsTimestamp(wnc, tow)`, which documents `tow` **in seconds**; SBF TOW is
+   **milliseconds**. Measured on `gnss.bin`: the parser reports `date: '2026-10-01T21:40:00.000Z'`
+   for a frame whose **own `ReceiverTime` block says UTC 2023-02-20 07:41:48, DeltaLS 18**.
+   `(GPS_EPOCH + wnc*604800)*1000 + tow` − 18 s reproduces the receiver's own UTC **to the second**.
+   Two bugs in one line: ms treated as s, **and** GPS scale returned where UTC is meant (`wnTowToUtc…`
+   is the leap-second-aware sibling). The `2035-06-14` dates in the sample `.json` baselines and the
+   hardcoded expectation in `tests/parser.test.ts` are this bug, frozen.
+2. **🔴 AttEuler's three rate fields are rotated.** Datasheet order is Heading, Pitch, Roll,
+   **PitchDot, RollDot, HeadingDot**; the code lays out HEADING_DOT → PITCH_DOT → ROLL_DOT. Proven
+   synthetically: a body written per datasheet with PitchDot=1, RollDot=2, HeadingDot=3 comes back as
+   `pitchDot: 2, rollDot: 3, headingDot: 1`. Invisible in `gnss.bin` (attitude is all Do-Not-Use, one
+   antenna) but silently wrong on any working dual-antenna install. `tests/.../AttEuler.test.ts`
+   **builds its buffer in the code's order**, so the suite validates the bug — while the datasheet
+   table pasted at the top of that same test file states the correct order.
+3. **🔴 `getPadding` THROWS on more than 6 padding bytes.** It calls
+   `Buffer.readUIntLE(index, length)`, which Node limits to `byteLength ≤ 6`, with `length` = all
+   remaining bytes. Measured: a real 82-byte PVTGeodetic body decoded at revision 0 ⇒ uncaught
+   `RangeError` out of `addData()`. Reachable in the field because every block except PVTGeodetic
+   **ignores `blockRevision` entirely**, so a firmware one revision ahead (new fields where padding
+   used to be) crashes the parser instead of ignoring them.
+4. **🟠 A newer revision silently decodes as revision 0.** `pvtGeodetic` handles 0/1/2 and its default
+   branch returns `bodyRev0`. Measured: `blockRevision = 3` ⇒ `revision: 0`, `latency`/`hAccuracy`/
+   `vAccuracy`/`misc` **absent**. §4.1.6 guarantees supersets, so the correct rule is "decode at the
+   highest KNOWN revision ≤ received".
+5. **🟠 PVTGeodetic rev-2 `padding` is never populated.** `getRev2` spreads rev1 into a new object and
+   then the caller assigns `bodyRev1.padding = …` — the wrong object. Measured: `padding: null` on a
+   rev-2 frame that has exactly 1 padding byte. (Cosmetic today; padding is undefined data anyway.)
+6. **🟡 Do-Not-Use / scaling inconsistencies.** `DOP` divides the four xDOP fields by 100 into `value`
+   and **never applies their documented DNU of 0** (0 is reported as a real `0` DOP, and `nrSV: 0`
+   means "DOP unavailable"); `xPPSOffset` **overwrites** `syncAge` with 0 when TimeScale is Receiver
+   (inventing data the receiver already provides); `ReceiverTime.metadata.syncLeveL` has a typo.
+
+### Gaps vs the conventions the other three devices settled
+
+`Buffer` throughout (breaks the cross-runtime goal — must become `Uint8Array` + `DataView`); **throws**
+on every bad input (`bufferLimit`, `firmware`, non-Buffer `addData`) instead of `Result`;
+`console.debug` in the hot path; **CRC-failed, wrong-length and unknown blocks are dropped silently**
+(no garbage/failed sentence, the exact behaviour removed from the other three); `parseData()` returns
+`structuredClone`d frames so `SBFResponse.buffer` is typed `Buffer` but is actually a `Uint8Array`;
+`PVTSupport`/`PVTSupportA` bodies are the **raw undocumented `Buffer`** (Septentrio publishes no
+definition) — an opaque-Base64 decision like tblive's emitter `data`; per-block `metadata` already
+exists and maps naturally onto CMA field/payload metadata; every block carries TOW+WNc so
+`metadata.timestamp.sentence` should finally be populated via the `sentenceTimestamp` hook.
 
 # 🗒️ (previous banner) RELEASE READY — cru's TWO nmea-parser fixes + ALL FOUR packages bumped
 >
@@ -1432,7 +4470,7 @@ omit it when the clock is evidently unset rather than emitting a fake date.
     (internal only, never exported from `index.ts`, so no API break).
     **⚠️ OPERATIONAL RISK — Tracker must implement the decode BEFORE this parser reaches production**,
     or `payload[5].metadata` and `metadata.angle` stop arriving and mooring-line inclination silently
-    disappears. That is why `TBLIVE-NOTES-FOR-TRACKER.md` exists.
+    disappears. That is why `TBLIVE-NOTES-FOR-TRACKER.md` was written (now untracked — see below).
   - **`metadata.payload` deliberately mirrors identity/quality facts** (cru, 2026-07-30): `receiver`,
     `emitter`, `snr`, `temperature` — whichever the sentence has. **He knows it is redundant and wants
     it anyway**, and the reason is operational, not cosmetic: nobody can guarantee which firmware a
@@ -1441,7 +4479,10 @@ omit it when the clock is evidently unset rather than emitting a fake date.
     corrected it to **`$root.metadata.payload`**. **No CMA rule change is needed** — this is exactly the
     "device-level metadata MAY be mirrored at payload level" rule already locked 2026-07-28 for the
     NorSub status word; TB Live is now its second instance.
-- **📄 `TBLIVE-NOTES-FOR-TRACKER.md` (repo root, temporary, untracked).** The `emitter101`/`emitter102`/
+- **📄 `TBLIVE-NOTES-FOR-TRACKER.md` — DELIBERATELY UNTRACKED AND GITIGNORED (cru, 2026-07-30).** It
+  was committed briefly, then removed from tracking: cru is moving it into the **Tracker** repo, and a
+  copy left here would go stale the moment Tracker's version changed. It lives on disk only. **If it is
+  already gone, that is expected — do not recreate it.** What it held: The `emitter101`/`emitter102`/
   `receiver101`/`receiver102` docblocks from `sample.ts` — verbatim, verified line-for-line — plus the
   datasheet facts they depend on and the decode helpers. They describe **how to interpret** values,
   which is Tracker's job. cru moves them into Tracker and deletes the file.
@@ -2509,14 +5550,15 @@ update the `protocols` npm script. Add root proxy scripts if needed.
    **cru's order** (easiest-first; nmea-parser is the model, norsub-emru the device-facade model):
    1. ~~**nmea-parser**~~ — ✅ **DONE & PUBLISHED (4.0.0)**: the reference implementation.
    2. ~~**norsub-emru**~~ — ✅ **DONE & PUBLISHED (4.0.0)**: device facade composing a protocol parser.
-   3. **`thelmabiotel-tblive` (NEXT) + its wrapper** — already CMA-ish; move `mode`/`firmware` into
-      `metadata`, adopt the base class. Protocol-version matching is the hard part (least-clean protocol).
-      **Nothing has been researched or designed yet — start from scratch with cru.**
-   4. **septentrio-sbf** — binary; extend `BinaryParser`, migrate `Buffer`→`Uint8Array`/`DataView`,
-      verify/replace the `crc` dep. Mature, well-tested (54/54). Will want a `sentenceTimestamp` override
-      for TOW+WNc.
-   5. **sbg-ecom** — binary; same Buffer migration; SBG→CMA design exists in `misc/tests/sbg/`. Has **zero
-      test specs**.
+   3. ~~**`thelmabiotel-tblive`**~~ — ✅ **DONE & PUBLISHED (2.0.0)**, wrapper too.
+   4. ~~**septentrio-sbf**~~ — ✅ **DONE, RELEASE-READY (2.0.0), UNCOMMITTED.** All 108 blocks of
+      Appendix B, 190/190 specs, wrapper rebuilt at 2.0.0 (61/61). See §"SESSION SUMMARY — 2026-07-31".
+   5. **`sbg-ecom` (NEXT, the LAST device)** — binary, same shape as septentrio: `BinaryParser`,
+      length-prefixed framing with a CRC (CRC-16 Kermit from the same `crc` dep), `Buffer` →
+      `Uint8Array`/`DataView`. A SBG→CMA design sketch exists in `misc/tests/sbg/`. Has **zero test
+      specs**, its CI test step is commented out, and its wrapper is the last un-refactored one.
+      **Audit it against real data before designing** — that is what found the six 1.x bugs in
+      septentrio.
 3. ~~**Result pattern**~~ — ✅ DONE (2026-07-10): `Result<T,E>` in `@coremarine/protocol-core`.
    Each newly-refactored parser adopts it.
 4. **Strictness pass** (deferred) — add `noUncheckedIndexedAccess`,
@@ -2529,9 +5571,11 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 
 - ~~**`norsub-emru` no longer builds**~~ — RESOLVED 2026-07-29 by the Phase 3 / Task 3a rewrite
   (CMA output, `DeviceParser<string>` facade, 45/45). Uncommitted pending cru's review.
-- **`nmea-parser-nodered` wrapper uses the removed old API** — `src/parser.js` calls
-  `parser.addProtocols({ file, ... })`, which no longer exists (replaced by `addSentences(yaml)` in
-  slice A–F). Broken at runtime like norsub-emru; update each wrapper alongside its refactored lib.
+- ~~**`nmea-parser-nodered` wrapper uses the removed old API**~~ — RESOLVED: that wrapper was rebuilt
+  and published at 5.0.0. **The lesson generalised though, and bit twice more since:** a wrapper is not
+  covered by its library's tests, and these wrappers run theirs with `tsx` (which strips types without
+  checking them), so a breaking library change stays invisible. Whenever `protocol-core` changes shape,
+  run `npx tsc --noEmit -p tsconfig.json` in ALL FOUR wrappers.
 - ~~**DEFERRED: GGA metadata enrichment**~~ — RESOLVED 2026-07-10 (STEP 1): reimplemented in
   `nmea-parser/src/metadata.ts` as the seeded `GGA:14` aggregator (lat/long decimal degrees →
   payload metadata; UTC timestamp + quality label → field metadata).
@@ -2539,10 +5583,10 @@ update the `protocols` npm script. Add root proxy scripts if needed.
   refactor (values now validate via core `TYPE_SCHEMAS`; the swapped local aliases are gone).
 - `sbg-ecom` has **zero test specs** (only fixtures) and its CI test step is commented out.
 - `thelmabiotel-tblive-nodered` has a `test` script but **no mocha specs** (`No test files found`).
-- **3 of 5** nodered CI workflows still have their test jobs commented out — they publish untested.
-  (`nmea-parser-nodered` **3.0.0** and `norsub-emru-nodered` **3.0.0** are DONE: test jobs enabled +
-  `node:test`, 22/22 and 34/34. The other three — tblive, sbg-ecom, septentrio — get theirs enabled as
-  each wrapper is refactored in turn.)
+- **1 of 5** nodered CI workflows still has its test job commented out: **`sbg-ecom-nodered`**, the
+  last un-refactored wrapper. The other four are enabled and green — nmea **28/28**, norsub **37/37**,
+  tblive **45/45**, septentrio **61/61** — each with the `tests/version.unit.test.ts`
+  major-correlation guard. sbg-ecom gets the same treatment when its library is refactored.
 - nmea-parser ships a committed `legacy/` folder + stray root files (`morenmea.tss`).
 - Node-RED docker `Dockerfile`s still use `npm i` inside the container (install the published
   package from the npm registry, not the workspace — unaffected by the pnpm migration, but
@@ -2550,118 +5594,215 @@ update the `protocols` npm script. Add root proxy scripts if needed.
 - `clean_monorepo.sh` only covers the 5 library packages, not the `-nodered` ones.
 - P08-Trident harness (`misc/tests/p08trident/`) status unknown — ask cru if still live.
 
-
-## 📋 Paste-ready prompt for the NEXT SESSION (START HERE — the nmea + norsub track is CLOSED)
+## 📋 Paste-ready prompt for the NEXT SESSION (START HERE — septentrio-sbf is RELEASE-READY)
 
 > Continue the CoreMarine **devices** monorepo refactor. Branch `dev`, repo
-> `/home/klin/Coding/CoreMarine/products/devices`. **Read `docs/STATUS.md` top-to-bottom FIRST** — the
-> banner, then the newest §Done entries and §Decisions. Run `git log --oneline -10` before touching
-> anything.
+> `/home/klin/Coding/CoreMarine/products/devices`. **`septentrio-sbf` is FINISHED and release-ready,
+> sitting in a large UNCOMMITTED tree — the next job is shipping it, not building it.** Read
+> `docs/STATUS.md` from the top FIRST (banner → §"SESSION SUMMARY — 2026-07-31" → §"VERSION POLICY"),
+> then `git status` and `git log --oneline -12` before touching anything.
 >
-> **HOW cru WORKS (respect this, it is not optional):** **discuss and converge decisions BEFORE coding, one
-> step at a time.** Ask rather than guess; when something is genuinely his call (an output shape, a name, a
-> version), put the options to him with a recommendation and let him choose. Output-format changes are
-> **breaking changes for Tracker**. Verify **per package, from its own directory**: `lint` → `tsc --noEmit`
-> → `test` → `build`. Update **`docs/STATUS.md` in the SAME TURN** as any meaningful change — never save it
-> for the end, limits hit without warning. **Commit only when cru asks.** No AI co-author trailer (this repo
-> has none — do not add one). **For ANY npm / pnpm / node-red / TypeScript / GitHub-Actions / library
-> specifics, fetch current docs with the `ctx7` CLI — never answer from memory.** Code style: no semicolons,
-> single quotes, 2-space indent, arrow functions, import groups (`// built-in` → `// installed` → `// coded`),
+> **HOW cru WORKS (respect this, it is not optional):** **discuss and converge decisions BEFORE
+> coding, one step at a time.** Ask rather than guess; when something is genuinely his call (an output
+> shape, a name, a version), put the options to him with a recommendation and let him choose — he knows
+> the hardware and will improve the proposal. Output-format changes are **breaking changes for
+> Tracker**. **Never change a public contract (error types, method signatures, CMA shape) without his
+> approval — stop at the first mismatch and ask.** **Metadata is a FREE SPACE, for humans:** it does not
+> have to mirror the datasheet, and he should never be asked to justify a metadata key. Verify **per
+> package, from its own directory**: `pnpm run format` → `npx eslint` → `npx tsc --noEmit` →
+> `npx vitest run` (wrappers: `npx tsc --noEmit -p tsconfig.json` + `node --import tsx --test`). Update
+> **`docs/STATUS.md` in the SAME TURN** as any meaningful change — never save it for the end, limits hit
+> without warning. **Commit only when cru asks.** No AI co-author trailer. For any library/CLI/service
+> specifics, fetch docs with the `ctx7` CLI, never from memory. Code style: no semicolons, single
+> quotes, 2-space indent, arrow functions, import groups (`// built-in` → `// installed` → `// coded`),
 > functions ≤50 lines / cyclomatic ≤10 / cognitive ≤15 (`docs/CodeStyle.md`).
 >
-> ### STATE — the whole nmea + norsub track is DONE AND PUBLISHED. Do not redo or "improve" any of it.
+> ### WHAT IS ALREADY DONE (measured, not assumed — do NOT redo any of it)
 >
-> `dev` == `main` == `941fd58` plus docs commits, tree clean. **Live on npm:**
+> Three of five devices are published: `nmea-parser@5.0.0`, `norsub-emru@5.0.0`,
+> `thelmabiotel-tblive@2.0.0`, each with its Node-RED wrapper at the same major.
 >
-> | package | version | what it is |
-> | --- | --- | --- |
-> | `@coremarine/nmea-parser` | **4.0.0** | the CMA reference library |
-> | `@coremarine/nmea-parser-nodered` | **3.0.0** | the wrapper TEMPLATE — clone this for every new wrapper |
-> | `@coremarine/norsub-emru` | **4.0.0** | device facade composing a protocol parser |
-> | `@coremarine/norsub-emru-nodered` | **3.0.0** | its Node-RED node (`cma-norsub-parser`) |
+> **`septentrio-sbf` is the fourth, and it is complete** — library **2.0.0** and wrapper **2.0.0**, both
+> uncommitted:
 >
-> `@coremarine/protocol-core` is the private, unpublished shared base (`DeviceParser<B>`,
-> `Parser`/`StringParser`/`BinaryParser`, `Result`, the CMA schemas, `UNKNOWN`, `GarbageSentence`).
-> Tests: core **15/15**, nmea-parser **109/109**, norsub-emru **45/45**, nmea wrapper **22/22**, norsub
-> wrapper **34/34**. All CI green. Everything shipped 2026-07-29 in PR
-> [#74](https://github.com/core-marine-dev/devices/pull/74) was verified against the PUBLISHED packages, not
-> the workspace.
+> - **ALL 108 blocks of Appendix B modelled**, every §4.2 category, names *and* numbers script-verified
+>   against the appendix. **190/190** specs; all 108 round-trip through `getFakeSentence` → `parseData`
+>   with zero errors; **every frame in every capture decodes** (0 unmodelled, 0 errors, 0 garbage).
+> - Blocks are **DESCRIBED, not hand-decoded**: one table per block, one engine (`src/engine.ts`)
+>   deriving every offset, and three consumers reading the same table — `engine.ts` (parse), `fake.ts`,
+>   `introspect.ts` — so they cannot disagree.
+> - README, `package.json`, `docs/PACKAGES.md` all rewritten to 2.0.0.
+> - **Node-RED wrapper rebuilt** from the nmea/tblive template: **61/61**, CI test job re-enabled,
+>   `version.unit.test.ts` guard added, example flow verified by driving all 21 injects through a real
+>   node-red. Node type kept as `cma-septentrio-parser` so deployed flows survive.
+> - Runtime-agnostic: no `node:` imports, no `Buffer` API, no `Math.random` in the shipped bundle.
+> - **Nine real bugs fixed** — six in the 1.x parser, three found while finishing (block 4216→4217, the
+>   1024-byte `bufferLimit`, and the `Result`-error array change that had broken all three existing
+>   wrappers). Every one is pinned by a spec. See §"SESSION SUMMARY — 2026-07-31".
 >
-> **What landed in 4.0.0 that you must know about, because every future parser inherits it** (full specs in
-> [`docs/CMA.md`](CMA.md) §"Failed and garbage sentences" and §"Sentence resolvers"):
-> - **Nothing is dropped silently.** `scanBuffer` accounts for every character of the buffer. A malformed
->   sentence is decoded as far as possible and carries `errors[]`; undecodable input becomes a *garbage
->   sentence* (a valid CMA, every mandatory value `UNKNOWN`, `payload: []`, the junk in `raw`). The
->   detection signal is the pre-existing optional `errors[]` — **the CMA contract did not change.**
->   `bufferLimit` is now actually enforced (it never was).
-> - **Sentence resolvers** — a third `protected` extension point (`registerResolvers`) for formats that
->   carry their real type in a FIELD rather than the id. Built-in: `$PSXN` → `PSXN20` / `PSXN23`.
+> ### THE TASK — ship it
 >
-> ### THE WORK — `thelmabiotel-tblive` + its Node-RED wrapper
+> **Do not model anything and do not rewrite anything.** The work is a release, in this order:
 >
-> cru's next target, agreed at the end of the previous session. **NOTHING has been researched, measured or
-> designed yet — deliberately.** Do not arrive with a plan built from this doc's one-line description; read
-> the actual package first, then converge the design with cru step by step, exactly the way norsub-emru was
-> done.
+> 1. **Ask cru to review the uncommitted tree**, then commit when he asks. It is large (the whole
+>    septentrio rewrite plus the wrapper), so propose a commit breakdown rather than one blob — roughly:
+>    `protocol-core` additions · the septentrio library · its wrapper · the three wrapper error fixes ·
+>    docs. Isolate the version bumps in their own `chore(release):` commit.
+> 2. **Land on `dev`, confirm the `dev` CI runs are green, THEN open the PR `dev` → `main`.** The merge
+>    publishes via OIDC + an `npm view` version gate.
+> 3. **This release must include the RE-RELEASE of the other three pairs** — see §QUEUED item 1. It is
+>    not optional any more: `protocol-core` gained code AND changed shape (`Result.error` is now an
+>    array), and the three existing wrappers were fixed for it in this tree. Shipping septentrio alone
+>    would leave nmea/norsub/tblive published against the old shape while their sources assume the new
+>    one. **Majors stay aligned per pair** (§"VERSION POLICY").
+> 4. **Verify against the PUBLISHED tarballs** in an empty temp dir with nothing from the workspace —
+>    each wrapper must resolve its library to the matching major, as was done for the 2026-07-30 release.
+> 5. **`septentrio-sbf-nodered` needs its Node-RED flow-library entry** once published (a manual step
+>    cru does; the other three are current as of 2026-07-30).
 >
-> What this doc already believes about it (VERIFY ALL OF IT against the code — these notes are old):
-> - It is the **only parser whose output is already CMA-*ish*** — but it is **not** on the base class.
-> - It has **extra top-level `mode` / `firmware` keys** that must move into `metadata` (locked CMA rule: no
->   per-protocol keys at the top level).
-> - **Protocol-version matching is the hard part** — it was called the least-clean protocol of the five.
-> - `engines.node` is still `">= 18"`; tighten to `">=22"` like the others.
-> - Its wrapper `thelmabiotel-tblive-nodered` has a `test` script but **no specs at all**, and its CI test
->   job is commented out.
-> - Wire format notes may exist in [`docs/PROTOCOLS.md`](PROTOCOLS.md).
+> ### AFTER THE RELEASE — §QUEUED, in order
 >
-> **Suggested shape of the session** (cru decides the order, ASK HIM FIRST): (1) read the package and
-> REPORT what its current output actually looks like, measured not assumed; (2) converge the CMA mapping
-> with cru — especially where `mode`/`firmware` go and how protocol versions are matched; (3) implement the
-> library; (4) then the wrapper from the `nmea-parser-nodered` template; (5) release both.
+> 1. ~~Re-release nmea/norsub/tblive~~ — folded into the release above, see item 3.
+> 2. **Add the NMEA protocol to the Septentrio facade.** The facade was built composition-ready from
+>    day one for exactly this (`protocol`/`protocols`/`parser`, norsub's pattern), and the wrapper
+>    already exposes a `protocol` channel, so a flow written today keeps working. Open questions:
+>    one-protocol-at-a-time (norsub semantics) vs a true interleaved multiplexer, and the bytes→string
+>    shim NMEA needs when the facade's input is `Uint8Array`. **Note `EncapsulatedOutput` (4097) can
+>    carry NMEA sentences INSIDE SBF** — that block is already modelled.
+> 3. **Decide whether nmea adopts the `$root.timestamp` promotion** (GGA only). Its own major, and cru
+>    has said he will carry the GGA time across sentences in the **Tracker** layer instead.
+> 4. **Then the LAST DEVICE: `sbg-ecom`.** Legacy `SBGFrameResponse`, not on `protocol-core`, **zero
+>    specs**, CI test step commented out, `engines.node ">= 18"`, and its wrapper is the last
+>    un-refactored one. It extends `BinaryParser` like septentrio, so everything just proven transfers:
+>    length-prefixed framing with a CRC (CRC-16 Kermit, from the same `crc` dependency — import the
+>    `crc/calculators/*` subpath, never the top-level wrapper), Base64 `raw`, a table-driven engine, the
+>    four output tiers, the introspection surface. A SBG→CMA design sketch exists in `misc/tests/sbg/`.
+>    **Read its datasheets and audit it against the real thing before designing** — that is what caught
+>    the six 1.x bugs in septentrio.
 >
-> ### PATTERNS TO REUSE (all proven in production — do not reinvent them)
+> ### THREE LESSONS FROM THIS SESSION, WORTH CARRYING
 >
-> - **Library recipe:** extend `StringParser`/`BinaryParser` from `protocol-core` and implement only
->   `extractSentences`; object-arg constructor `{ memory?, bufferLimit? }`; `addData`/`parseData(): CMA[]`;
->   never throw — return `Result<T,E>`; knowledge authored in `protocols/*.yml` and generated to a typed
->   const by the ONE shared `scripts/yaml-to-ts.mjs` (idempotent, so `protocols` can run on `test`); type
->   the generated const so `tsc` validates the whole knowledge base. Read
->   `packages/nmea-parser/tests/extension.test.ts` — it is the executable spec for the extension seams.
+> - **A fake round trip cannot catch a wrong block number.** `getFakeSentence` builds the frame from the
+>   same definition it then parses, so it agrees with itself. `ExtEventBaseVectGeod` sat at 4216 instead
+>   of 4217 for a whole tranche; a real 4217 frame would have fallen silently into the
+>   identified-but-not-modelled tier. **Only an EXTERNAL authority catches that class of bug** — check
+>   new blocks against Appendix B, not against your own fake. `tests/blocks.test.ts` now has a
+>   `describe('coverage')` guard.
+> - **Defaults inherited from a base class deserve a second look in a binary protocol.** `bufferLimit`
+>   silently took the generic 1024-byte figure, which is smaller than blocks cru's own receiver emits —
+>   and the failure was CHUNK-SIZE DEPENDENT, so it worked on a file replay and destroyed blocks on a
+>   serial line. Writing the README's "Notes" section is what found it.
+> - **The wrappers test with `tsx`, which strips types without checking them**, and their `lint` script
+>   does not typecheck either. A breaking library change is therefore invisible until the tests are
+>   actually run. **Whenever `protocol-core` changes shape, run `npx tsc --noEmit -p tsconfig.json` in
+>   all four wrappers** — that is what surfaced the `Result`-error array breakage.
+>
+> ### THE DESIGN cru LOCKED (do not re-open any of these)
+>
+> - **Payload = the SBF body only.** Header + time block → `$root.metadata`, as Field-shaped
+>   `{ raw, value }` entries (`crc`, `length`, `tow`, `wnc`), plus plain `metadata.name` and
+>   `metadata.revision`.
+> - **`id` is the block number as a STRING** (`'5938'`); the human name lives in `metadata.name`.
+> - **Every `raw` is base64**, at sentence, field and metadata level.
+> - **TOW + WNc → `metadata.timestamp.sentence` in UTC Unix ms, and it OVERWRITES `$root.timestamp`**
+>   as a final patch in `addData` — a GNSS clock beats the host clock. **Except** for blocks whose
+>   Appendix B time stamp is `sis` (signal-in-space), which are not promoted.
+> - **TOW/WNc keep their own GPS-time values** in the payload/metadata fields; only the composed
+>   timestamp is converted. Leap seconds are learned in-band from `ReceiverTime.DeltaLS`, with a core
+>   fallback table.
+> - **The firmware is learned from the device** (`ReceiverSetup.RxVersion`); an unmodelled firmware is
+>   reported via `errors` + `parser.reportedFirmware`, never substituted.
+> - **A type CMA does not have never leaks into `Field['type']`.** Bitfields, masks and enums keep a
+>   generic `uintX` value with the datasheet's own `units`, and everything richer — including the
+>   converted value as `{ value, units }` — goes in that field's metadata.
+> - **`Result.error` is an ARRAY** (`ParserError[]`) on every parser: one checksum can be malformed
+>   *and* mismatched.
+> - **`getFakeSentence(id, protocol?, options?)`** — idempotent with no options; `random: true` is the
+>   opt-in for varied filler.
+> - Four output tiers: decoded · identified-but-not-modelled (real id, `payload: []`,
+>   `metadata.name: 'unknown'`, **no** errors) · failed (bad CRC/truncated → decoded + `errors`) ·
+>   garbage (coalesced junk). **Nothing is ever dropped silently.**
+>
+> ### ONE SHAPE QUESTION STILL OPEN FOR cru
+>
+> `metadata.subBlocks` on a two-level block is a **flat** list of every occurrence at both levels, with
+> children pushed *before* their parent, and a parent's entry also containing its children's fields.
+> MeasEpoch gives 43 entries. Consumable, but "give me satellite *i*" is not one index. The same shape
+> applies to `ChannelStatus` and `OutputLink`, so changing it is an output-format change for three
+> blocks — **cru's call, not yours. Not changed.**
+>
+> ### GROUND TRUTH FOR VERIFICATION
+>
+> - Datasheets: `misc/parsers/septentrio/datasheets/4-10-1/` (per-category PDFs + the full AsteRx SB3
+>   Pro+ 4.10.1 reference guide). Read them with `pdftotext -layout`. Appendix B is on pp. 411-414 of
+>   the full guide; §4.1 framing on pp. 230-238.
+> - Real captures: `misc/parsers/septentrio/captures/*.sbf` — `2023_06_23_test1.sbf` is the rich one.
+>   Its receiver self-identifies as **AsteRx SB3 Pro+ firmware 4.10.1**, i.e. exactly the guide this
+>   knowledge base was transcribed from. **Unmodelled frames in it: 0** — every frame in all three
+>   captures decodes with no errors and no garbage. That is the coverage metric worth quoting and the
+>   thing to re-check after any engine change.
+> - `packages/septentrio-sbf/tests/` — `engine`, `blocks`, `parser`, `timestamp`, `facade` + **24
+>   committed binary fixtures** (108 KB, not shipped) — one per verified block shape; the comments
+>   in `tests/fixtures.ts` say what each one proves.
+>
+> ### PATTERNS TO REUSE (all proven in production across three devices — do not reinvent them)
+>
+> - **Library recipe:** extend `StringParser`/`BinaryParser` and implement only `extractSentences`;
+>   object-arg constructor; `addData`/`parseData(): CMA[]`; never throw — return `Result<T,E>`. Read
+>   `packages/nmea-parser/tests/extension.test.ts` — the executable spec for the extension seams.
+> - **Knowledge as DATA, typed.** nmea generates YAML → a typed const via the shared
+>   `scripts/yaml-to-ts.mjs` (idempotent, so `protocols` can run on `test`). tblive skipped YAML
+>   deliberately — a closed 17-sentence protocol whose recognition rules cannot be expressed as data;
+>   it uses a typed const table instead (`packages/thelmabiotel-tblive/src/definitions.ts`). septentrio
+>   settled it for the binary protocols: **typed const tables, one file per block, each keeping its
+>   verbatim datasheet table as a comment** — a per-firmware knowledge base under
+>   `src/firmware/<version>/<Category>/`. Do the same for `sbg-ecom`.
 > - **Device facade** (only if the device speaks several protocols): `implements DeviceParser<B>` and
->   COMPOSE protocol parsers via a factory registry, do NOT extend one — see `norsub-emru/src/parser.ts`
->   and the `parser` getter for protocol-specific extras.
-> - **Wrapper recipe:** clone `packages/nmea-parser-nodered`. TS → tsup → CJS (`export = init`,
->   `"module": "preserve"`); pure `src/lib.ts` with **zero** node-red imports + a thin `src/parser.ts`
->   adapter; `node:test` unit specs **plus** a real-headless-node-red integration test via `RED.init` + the
->   flowFile pattern (NOT `node-red-node-test-helper` — it breaks on node-red 5 + pnpm); `dev-server.mjs`,
->   no docker; `engines.node ">=22"` + `node-red.version ">=4.0.0"`; node-red stays a ROOT devDep.
->   **msg-API vocabulary is now settled across both wrappers: `msg.sentences` = sentence DEFINITIONS,
->   `msg.protocol` = the device protocol selector. Follow it.**
-> - **`files` exclusions are a trap:** node-red writes `<flowfile>_cred.json` and `.<flowfile>.backup` next
->   to any flow it opens, and **`files` overrides `.gitignore` when packing**. Both are excluded in the
->   template now. **Rule: any node-red runtime artefact that earns a `.gitignore` rule needs a `files`
->   exclusion too** — this bit us twice.
-> - **Verify example flows by BOOTING real node-red against the flow file** — malformed flow JSON and
->   missing node types only surface at runtime. Keep third-party node types OUT of shipped example flows.
->   Give each flow a group demonstrating failed/garbage sentences (both wrappers have one).
-> - **Release mechanics:** land on `dev`, confirm the `dev` CI run is green, THEN open the PR `dev` → `main`;
->   the merge publishes via OIDC + an `npm view` version gate. Isolate the version bump in its own
->   `chore(release):` commit. **A library must be live on npm BEFORE its wrapper publishes**, because
->   `workspace:^` packs as `^<in-tree version>` — and check the PUBLISHED dep ranges of every dependent: a
->   caret range cannot resolve a new major, so each dependent needs republishing or it never receives the
->   change (that is why all four went out together in 4.0.0/3.0.0).
-> - **Verify a release against the PUBLISHED tarball** in an empty temp dir with nothing from the workspace.
+>   COMPOSE protocol parsers via a factory registry — see `norsub-emru/src/parser.ts` and its `parser`
+>   getter.
+> - **Wrapper recipe:** clone `packages/nmea-parser-nodered` (or tblive's, which is the newest). TS →
+>   tsup → CJS (`export = init`, `"module": "preserve"`); pure `src/lib.ts` with **zero** node-red
+>   imports + a thin `src/parser.ts` adapter; `node:test` unit specs **plus** a real-headless-node-red
+>   integration test via `RED.init` + the flowFile pattern (NOT `node-red-node-test-helper`);
+>   `dev-server.mjs`, no docker; `engines.node ">=22"` + `node-red.version ">=4.0.0"`; node-red stays a
+>   ROOT devDep; add the `tests/version.unit.test.ts` major-correlation guard.
+> - **`files` exclusions are a trap:** node-red writes `<flowfile>_cred.json` and
+>   `.<flowfile>.backup` next to any flow it opens, and **`files` overrides `.gitignore` when packing**.
+>   **Rule: any node-red runtime artefact that earns a `.gitignore` rule needs a `files` exclusion
+>   too** — this bit the repo THREE times (nmea `.backup`, both wrappers' `_cred.json`, and tblive's
+>   wrapper had neither rule at all until 2026-07-30). The septentrio wrapper was built with both from
+>   the start, and its `tests/version.unit.test.ts` now ASSERTS both exclusions are declared, so a
+>   future edit cannot quietly drop them. Verify by *creating* the two artefacts and re-packing.
+> - **Verify example flows by BOOTING real node-red against the flow file, then DRIVING every inject
+>   through that runtime.** Loading only proves the JSON parses and the types exist; driving is what
+>   caught two mislabelled demos in tblive's flow. Keep third-party node types OUT of shipped flows.
+> - **Release mechanics:** land on `dev`, confirm the `dev` CI runs are green, THEN open the PR
+>   `dev` → `main`; the merge publishes via OIDC + an `npm view` version gate. Isolate the version bump
+>   in its own `chore(release):` commit. **A library must be live on npm BEFORE its wrapper resolves** —
+>   all workflows fire in parallel on merge, so a wrapper can briefly precede its library; it settles
+>   within the minute. **Verify a release against the PUBLISHED tarball** in an empty temp dir with
+>   nothing from the workspace.
+> - **CI checklist for a new/refactored package:** build the dep chain first (`protocol-core` → the
+>   library → the wrapper); trigger on `packages/core/**` **and** the upstream library, not just the
+>   package's own directory; run tests **with coverage** if thresholds are configured (they are inert
+>   under a plain `vitest`); re-enable any commented-out test job and restore `needs: test` on publish.
 >
-> ### ALSO OPEN (smaller, decide with cru)
+> ### ALSO OPEN
 >
-> - **Not in this repo: grep Tracker for `field.type` / `'float32'`.** The `float32` → `float64` sweep is
->   fully applied here, but it shipped in `nmea-parser@3.2.0` as a **minor** while changing `field.type` in
->   emitted CMAs. Moot from 4.0.0 on (a major owns it); the question is only whether a Tracker deployment on
->   3.2.0 was silently affected.
-> - **cru's manual step:** refresh the Node-RED flow-library entries — both wrappers went to a new major.
+> - **NOT in this repo — Tracker must implement the TB Live inclination bit split** before the new
+>   tblive parser reaches production, or mooring-line inclination silently stops arriving. The notes
+>   were handed over in `TBLIVE-NOTES-FOR-TRACKER.md`, which is **deliberately untracked and
+>   gitignored** (cru is moving it into the Tracker repo, after which it disappears from here). If it is
+>   already gone, that is expected — do not recreate it.
+> - **Not in this repo: grep Tracker for `field.type` / `'float32'`.** The sweep is fully applied here
+>   but shipped in `nmea-parser@3.2.0` as a *minor* while changing `field.type`. Moot from 4.0.0 on; the
+>   only question is whether a Tracker deployment on 3.2.0 was silently affected.
 > - **The norsub protocol-switch test gap.** "Switching `protocol` discards the buffer and undrained
->   sentences" cannot be exercised while `NorsubProtocol` has a single member. It gets its test with
->   protocol #2. A comment in `packages/norsub-emru/tests/index.test.ts` marks the spot.
-> - See §"Open threads / known bugs" for the rest (three wrapper CI test jobs still disabled, `sbg-ecom` has
->   zero specs, nmea-parser's committed `legacy/` folder, docker `npm i`, `clean_monorepo.sh` coverage,
->   P08-Trident harness status).
+>   sentences" cannot be exercised while `NorsubProtocol` has a single member. A comment in
+>   `packages/norsub-emru/tests/index.test.ts` marks the spot; it gets its test with protocol #2.
+> - **tblive `metadata.payload` shape nit (raised, cru has not ruled):** a sample nests the device time
+>   under `metadata.payload.time`, while the `UT=` response puts `{ seconds, total_milliseconds }`
+>   directly at `metadata.payload`. Defensible either way; ask if uniformity is wanted.
+> - See §"Open threads / known bugs" for the rest (ONE wrapper CI test job still disabled —
+>   `sbg-ecom-nodered`, `sbg-ecom` has zero specs, nmea-parser's committed `legacy/` folder, docker
+>   `npm i`, `clean_monorepo.sh` coverage, P08-Trident harness status).

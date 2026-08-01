@@ -23,7 +23,12 @@ protocols:
             units: deg
           - name: roll_direction
             type: string
-            description: M bow up, P bow down
+            # ⚠️ CORRECTED 2026-08-01: this read "M bow up, P bow down", copy-pasted from
+            # pitch_direction. The ROLL letters are B and T, not M and P — confirmed against
+            # SBG's rendering of the same Ixblue sentence (SBGFWM.2.3 §3.3.9: "'B' for port
+            # down and 'T' for port up") and its example $PHTRO,0.03,P,0.22,T*56, whose roll
+            # sign is T. Description only: no field, type or order changed.
+            description: B port down, T port up
       - id: PHINF
         payload:
           - name: status
@@ -436,7 +441,11 @@ protocols:
           - name: roll
             type: float64
             units: deg
-            description: "s if [+] is bow up / s is [-] if bow down, leading zeros"
+            # ⚠️ CORRECTED 2026-08-01: this read "bow up / bow down", copy-pasted from the
+            # pitch field above. Roll is about the PORT side, not the bow — confirmed against
+            # SBG's rendering of the same Teledyne RDI sentence (SBGFWM.2.3 §3.3.3: "Signed
+            # vessel roll in degrees, positive port up"). Description only.
+            description: "s is [+] if port up / s is [-] if port down, leading zeros"
           - name: heading
             type: float64
             units: deg

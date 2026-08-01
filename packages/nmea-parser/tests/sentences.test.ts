@@ -42,7 +42,7 @@ const TEST_STORED_SENTENCE: StoredSentence = {
 
 const HDT: StoredSentence = {
   id: 'HDT',
-  protocol: { name: 'NMEA', standard: true, version: '3.1' },
+  protocol: { name: 'NMEA', standard: true, version: '4.11' },
   description: 'Heading - True',
   payload: [
     { name: 'heading', type: 'float32', description: 'Heading, degrees True' },
@@ -263,7 +263,7 @@ describe('parseSentence', () => {
   test('known sentence -> upgraded CMA', () => {
     const result = parseSentence('$HDT,123.456,T*25\r\n' as never, HDT_DEFINITIONS)
     expect(result.id).toBe('HDT')
-    expect(result.protocol).toEqual({ name: 'NMEA', version: '3.1' })
+    expect(result.protocol).toEqual({ name: 'NMEA', version: '4.11' })
     expect(result.metadata?.standard).toBe(true)
     expect(result.metadata?.checksum).toBe('25')
     expect(result.description).toBe('Heading - True')

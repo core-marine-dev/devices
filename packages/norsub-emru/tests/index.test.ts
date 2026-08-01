@@ -102,10 +102,56 @@ describe('NorsubParser — device facade', () => {
   test('protocol-specific extras are reached through .parser, not delegated', () => {
     const parser = new NorsubParser()
     expect(parser.parser).toBeInstanceOf(NorsubNMEAParser)
-    const found = parser.parser.getSentenceDefinition('PNORSUB8')
+    // Knowledge FEEDING and the protocol-shaped lookups stay on `.parser`: they
+    // are meaningless for a protocol that is not active.
+    expect(parser).not.toHaveProperty('addSentences')
+    expect(parser).not.toHaveProperty('getSentencesByProtocol')
+    expect(typeof parser.parser.getSentencesByProtocol).toBe('function')
+  })
+
+  // The three introspection members ARE delegated, because they are part of the
+  // shared DeviceParser contract in @coremarine/protocol-core — every parser can
+  // be asked what it knows and can fabricate a sentence, device-level or not.
+  test('the shared introspection surface is delegated to the active protocol', () => {
+    const parser = new NorsubParser()
+    expect(parser.sentenceIds).toContain('PNORSUB8')
+    const found = parser.getSentenceDefinition('PNORSUB8')
     expect(found.success).toBe(true)
     expect(found.success ? found.value[0].protocol.name : '').toBe('NORSUB8')
-    expect(parser).not.toHaveProperty('getSentenceDefinition')
+    const fake = parser.getFakeSentence('PNORSUB8')
+    expect(fake.success).toBe(true)
+    if (!fake.success) return
+    // A fabricated sentence has to parse back through the facade itself.
+    const [sentence] = parser.parseData(fake.value)
+    expect(sentence.id).toBe('PNORSUB8')
+  })
+
+  test('an unknown id fails with a reason, and says which protocol was asked', () => {
+    const parser = new NorsubParser()
+    const result = parser.getFakeSentence('NOT_A_SENTENCE')
+    expect(result.success).toBe(false)
+    if (result.success) return
+    // Two reasons: the protocol parser's own, plus the facade's context. A
+    // facade answering only for the ACTIVE protocol must say so, or "unknown
+    // sentence id" reads as "this device cannot do that".
+    expect(result.error).toHaveLength(2)
+    expect(result.error[0].kind).toBe('unknown-id')
+    expect(result.error[1].kind).toBe('inactive-protocol')
+    expect(result.error[1].message).toContain(String.raw`'nmea'`)
+    expect(result.error[1].message).toContain('.parser')
+  })
+
+  test('a definition lookup can be pinned to the protocol that defines it', () => {
+    const parser = new NorsubParser()
+    const found = parser.getSentenceDefinition('PNORSUB8', 'NORSUB8')
+    expect(found.success).toBe(true)
+    if (!found.success) return
+    expect(found.value[0].protocol.name).toBe('NORSUB8')
+    // ...and a protocol that does not define it fails, through the same path.
+    const wrong = parser.getSentenceDefinition('PNORSUB8', 'GYROCOMPAS1')
+    expect(wrong.success).toBe(false)
+    if (wrong.success) return
+    expect(wrong.error.map((entry) => entry.kind)).toStrictEqual(['unknown-protocol', 'inactive-protocol'])
   })
 })
 
@@ -183,6 +229,45 @@ describe('status metadata placement', () => {
     expect(sentence.payload.at(-1)?.metadata).toBeUndefined()
     expect(sentence.payload.at(-2)?.metadata).toBeUndefined()
     expect(payloadMetadata(sentence).status).toBeDefined()
+  })
+
+  /* THE GUARDS, not just the happy path. A real device sends empty fields, and an
+     empty `status` decodes to `null` — which must produce NO status metadata rather
+     than a confidently wrong word of all-clear flags, the same class of bug as
+     reading an empty `data` field as a real 0.0° inclination in tblive. */
+  test.each(SINGLE_STATUS)('%s with an EMPTY status field gets no status metadata', (id, fields) => {
+    const parser = new NorsubParser()
+    // Same shape as `pnorsub`, but the trailing status slot is left empty.
+    const body = [id, ...Array<string>(fields - 1).fill('0'), ''].join(',')
+    const [sentence] = parser.parseData(nmea(body))
+    expect(sentence.id).toBe(id)
+    expect(sentence.payload).toHaveLength(fields)
+    expect(sentence.payload.at(-1)?.value).toBeNull()
+    expect(fieldStatus(sentence)).toBeUndefined()
+    expect(sentence.metadata.payload).toBeUndefined()
+  })
+
+  test('a status value too large for uint32 is refused, not truncated', () => {
+    // 99999999999 does not fit a uint32. Decoding it to `null` and skipping the
+    // status is right; wrapping it into 32 bits would invent a device state.
+    const parser = new NorsubParser()
+    const [sentence] = parser.parseData(nmea('PNORSUB,0,0,0,0,0,0,99999999999'))
+    expect(sentence.id).toBe('PNORSUB')
+    expect(sentence.payload.at(-1)?.value).toBeNull()
+    expect(fieldStatus(sentence)).toBeUndefined()
+    expect(sentence.metadata.payload).toBeUndefined()
+  })
+
+  test('PNORSUB7b with EMPTY halves gets no status at all', () => {
+    // Neither half decodes alone, so a missing half means the whole word is unknown.
+    const parser = new NorsubParser()
+    const body = ['PNORSUB7b', ...Array<string>(23).fill('0'), '', ''].join(',')
+    const [sentence] = parser.parseData(nmea(body))
+    expect(sentence.id).toBe('PNORSUB7b')
+    expect(sentence.payload).toHaveLength(25)
+    expect(sentence.payload.at(-1)?.value).toBeNull()
+    expect(sentence.payload.at(-2)?.value).toBeNull()
+    expect(sentence.metadata.payload).toBeUndefined()
   })
 
   test('a split status decodes to the same value as the combined one', () => {

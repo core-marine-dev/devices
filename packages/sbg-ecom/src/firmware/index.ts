@@ -1,33 +1,33 @@
-import { getSBGFrame as getSBGFrame2_3 } from './2.3'
+// coded
+import { classes as classes_2_3 } from './2-3'
 
-import type { SBGFrameParser, SBGParser } from '../types'
+import { DEFAULT_FIRMWARE } from '../constants'
+import type { ClassRegistry, LogRegistry } from '../types'
 
-// Firmwares
-const firmwareParsers = new Map<string, SBGFrameParser>()
-// Add Firmwares
-firmwareParsers.set('2.3', getSBGFrame2_3)
+/* One knowledge base per supported firmware. §2.4 states the compatibility rule
+   the device itself relies on: "SBG Systems reserves the right to add at the end of
+   logs new fields in future revision of the sbgECom protocol for upward
+   compatibility. Therefore, user must consider the DATA sizes defined in this
+   document as a minimum size."
 
-const getFirmwares = (): string[] => Array.from(firmwareParsers.keys())
+   So a log only ever GROWS at the tail, and this parser is forward-safe by
+   construction: a longer body decodes every field it knows and publishes the extra
+   bytes at metadata.trailing instead of failing. A newer firmware needs a registry
+   here only when it ADDS a log or changes a meaning. */
+const registries = new Map<string, ClassRegistry>([
+  ['2.3', classes_2_3],
+])
 
-const getFirmareParser = (firmare: string): SBGParser => {
-  const parser = firmwareParsers.get(firmare)
-  if (parser == null) throwFirmwareError()
-  return parser as SBGParser
-}
+export const firmwares = (): string[] => [...registries.keys()]
 
-const isAvailableFirmware = (firmware: any): boolean => firmwareParsers.has(firmware)
+export const isFirmware = (firmware: unknown): firmware is string =>
+  typeof firmware === 'string' && registries.has(firmware)
 
-const throwFirmwareError = (): never => {
-  // const fmws = new Intl.ListFormat('en', { type: 'unit' }).format(getFirmwares())
-  const fmws = Array.from(getFirmwares()).join(', ')
-  const error = `Supported firmwares are -> ${fmws}`
-  throw new Error(error)
-}
+// Never throws (the 0.0.x parser threw from its setter): an unknown firmware falls
+// back to the default, which is always registered.
+export const classesFor = (firmware: string): ClassRegistry =>
+  registries.get(firmware) ?? (registries.get(DEFAULT_FIRMWARE) as ClassRegistry)
 
-// Export
-export {
-  getFirmwares,
-  getFirmareParser,
-  isAvailableFirmware,
-  throwFirmwareError,
-}
+// The logs of one class, or undefined when this firmware models no log of it.
+export const logsFor = (firmware: string, messageClass: number): LogRegistry | undefined =>
+  classesFor(firmware).get(messageClass)

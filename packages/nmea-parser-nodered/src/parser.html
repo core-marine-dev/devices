@@ -82,7 +82,7 @@ Parser of NMEA 0183 protocol sentences [check @coremarine/nmea-parser package do
 
 : *sentences* (object) : Object to get or set the sentence definitions the parser knows (look details below).
 
-: *sentence* (string): Sentence ID to get if it is supported and its info (look details below).
+: *definition* (string): Sentence ID, to read every stored definition of it (look details below).
 
 : *fake* (string): Sentence ID to get, if it is supported, a fake nmea sentence (look details below).
 
@@ -94,7 +94,7 @@ Parser of NMEA 0183 protocol sentences [check @coremarine/nmea-parser package do
 
 : *sentences* (object) : Response to the *sentences* input (look details below).
 
-: *sentence* (string): Response to the *sentence* input (look details below).
+: *definition* (array): Response to the *definition* input (look details below).
 
 : *fake* (string): Response to the *fake* input (look details below).
 
@@ -105,10 +105,10 @@ NMEA 0183 sentence). Each time it receives data from payload input, it gives the
 
 It just a wrapper of the npm library [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (take a look on it).
 
-To interact with the *memory* | *sentences* | *sentence* API is through the `memory` | `sentences` | `sentence` property:
+To interact with the *memory* | *sentences* | *definition* API is through the `memory` | `sentences` | `definition` property:
 
-- If you request something in `msg.memory` | `msg.sentences` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.sentences` | `msg.sentence` output
+- If you request something in `msg.memory` | `msg.sentences` | `msg.definition` input
+- The response will be in `msg.memory` | `msg.sentences` | `msg.definition` output
 
 #### Memory
 
@@ -143,23 +143,28 @@ response is the known definitions **grouped by protocol name**.
 |  `sentences`: { `command`: `"set"`, `file`: **string** }   | `sentences`: **object** |
 |            `sentences`: { `command`: `"get"` }             | `sentences`: **object** |
 
-#### Sentence
+#### Definition
 
-If you want to know if a sentence is known / supported, you need to send the sentence id.
-Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
+If you want to know what the parser knows about a sentence, send the sentence id. The response is an
+**array** — one entry per version of that id, because the knowledge base holds a definition per
+revision of the standard and several sentences changed between them.
 
-|         Input          |              Output              |
-| :--------------------: | :------------------------------: |
-| `sentence`: **string** | `sentence`: **object** \| `null` |
+An unknown or malformed id answers with an **error string** saying why, not `null`.
+
+|          Input           |                  Output                  |
+| :----------------------: | :--------------------------------------: |
+| `definition`: **string** | `definition`: **array** \| **string** (error) |
 
 #### Fake
 
 If you want to get a NMEA-like sentence, maybe just to do some tests, you need to send the sentence id.
-Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
-This fake sentence is correct in terms of NMEA requirements but each field has garbage.
+Response will be a `string` with the whole ASCII sentence, or an **error string** if the id is unknown.
+This fake sentence is valid NMEA — correct framing and checksum — but the field values are filler.
 
-|       Input        |            Output            |
-| :----------------: | :--------------------------: |
-| `fake`: **string** | `fake`: **string** \| `null` |
+The same id always produces the same sentence, so it is safe to use as a fixture.
+
+|       Input        |                Output                |
+| :----------------: | :----------------------------------: |
+| `fake`: **string** | `fake`: **string** (sentence or error) |
 
 </script>

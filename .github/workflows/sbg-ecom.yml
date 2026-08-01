@@ -5,6 +5,17 @@ on:
   push:
     paths:
       - packages/sbg-ecom/**
+      # Since 1.0.0 this package COMPOSES nmea-parser: the device interleaves plain
+      # NMEA with its binary frames on one wire, so the NMEA half is the real
+      # upstream library and its tests run against it.
+      - packages/nmea-parser/**
+      # It BUNDLES the private @coremarine/protocol-core into its dist (tsup
+      # noExternal), so a core change alters what it publishes and can break its
+      # tests. The version gate keeps the extra trigger harmless: tests run,
+      # publish no-ops unless the version changed.
+      - packages/core/**
+      # the shared protocols generator is a build input for nmea-parser
+      - scripts/**
 
 jobs:
   test:
@@ -23,13 +34,21 @@ jobs:
         uses: pnpm/action-setup@v6
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      # ⚠️ THIS STEP DID NOT EXIST AND THE JOB COULD NEVER HAVE PASSED WITHOUT IT.
+      # sbg-ecom now depends on nmea-parser, which depends on protocol-core, and both
+      # `exports` point only at `dist/` — which is gitignored. On a fresh checkout
+      # there is nothing to resolve, so every test file failed to import before a
+      # single test ran. Verified by moving the dists aside and replaying these steps.
+      - name: 🛠️ Build monorepo deps
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build"
 
       - name: 🧑‍🔬 Tests
         run: "pnpm run sbg-ecom:test"
@@ -53,7 +72,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -78,6 +97,12 @@ jobs:
       - name: 📥 Install Dependencies
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
+
+      # The dep chain again: the published dist BUNDLES protocol-core, so publishing
+      # without building it first would ship a broken tarball.
+      - name: 🛠️ Build monorepo deps
+        if: steps.check.outputs.publish == 'true'
+        run: "pnpm run protocol-core:build && pnpm run nmea-parser:build"
 
       - name: 🛠️ Build
         if: steps.check.outputs.publish == 'true'

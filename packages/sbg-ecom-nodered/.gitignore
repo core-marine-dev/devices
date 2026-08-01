@@ -10,7 +10,12 @@
 .config.*.json.backup
 .flows*
 flows_cred.json
-tests/nodered/data/package.json
+# node-red writes <flowfile>_cred.json next to any flow file it opens (dev/examples)
+*_cred.json
+# node-red writes a hidden .<flowfile>.backup next to any flow file it opens
+*.backup
+# the dev-server's scratch flow — the SHIPPED example flow in examples/ is tracked
+tests/dev.flows.json
 
 # Logs
 logs

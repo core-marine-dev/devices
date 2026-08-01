@@ -60,22 +60,41 @@ src/firmware/<v>/  (binary protocols) one folder per supported firmware, one fil
 tests/             Vitest specs
 ```
 
-Parser API convention (not yet uniform — see [PACKAGES.md](PACKAGES.md)):
-`addData(raw)` feeds bytes/text into an internal buffer; `parseData()` drains parsed frames.
+Parser API convention, now **enforced by the compiler** through the `DeviceParser<B>` contract in
+`@coremarine/protocol-core`: `addData(raw)` feeds bytes/text into an internal buffer and
+`parseData()` drains parsed sentences, plus the introspection surface every parser must expose —
+`sentenceIds`, `getSentenceDefinition(id, protocol?)` and `getFakeSentence(id, protocol?, options?)`.
+A parser that omits any of them does not compile. See [PACKAGES.md](PACKAGES.md) for per-package
+detail.
 
 ## Node-RED component structure
 
+All five wrappers now share this shape (TypeScript, built with tsup to CJS):
+
 ```text
-src/parser.js               node implementation
-src/parser.html             editor UI
+src/lib.ts                  the pure logic — one function per msg channel, no node-red imports
+src/parser.ts               the thin node: registers the type and wires msg keys to src/lib.ts
+src/parser.html             editor UI + the help panel
 src/icons/                  node icons
-tests/*.test.js             Mocha + node-red-node-test-helper specs
-tests/nodered/              Docker-based manual/integration env (mirrors src/ — duplicated on purpose)
-docker-compose.yml + Dockerfile + manual_tests.sh
+copy-assets.mjs             copies parser.html and icons into dist/ after tsup
+dev-server.mjs              a local Node-RED on :1880 (`:nodered:dev` / `:nodered:examples`)
+examples/*.json             the SHIPPED example flow, published in the tarball
+tests/lib.unit.test.ts      node:test specs for src/lib.ts
+tests/wrapper.integration.test.ts   boots a REAL headless node-red against the built dist
+tests/version.unit.test.ts  the guard that the wrapper and its library share a major
 ```
+
+Two things that are gone, because older notes still describe them: there is **no Mocha** (all five use
+`node:test`) and **no Docker** manual-test environment (`dev-server.mjs` replaced it; the
+`tests/nodered/` mirror of `src/` was deleted with the sbg-ecom 1.0.0 rewrite).
+
+⚠️ The suites run through `tsx`, which strips types **without checking them**, and against the
+library's built `dist` — so build the library first, and run `tsc --noEmit` in the wrapper when its
+library changes.
 
 ## Output format
 
-Goal of the ongoing deep refactor: **every parser emits the same CMA format** regardless of
-protocol. See [CMA.md](CMA.md). Today only `thelmabiotel-tblive` conforms; the rest emit
-legacy per-protocol shapes ([PACKAGES.md](PACKAGES.md) has the per-package state).
+**Every parser emits the same CMA format**, regardless of protocol. See [CMA.md](CMA.md).
+The refactor that got there is **complete as of 2026-08-01 — all five devices** are on the shared
+`@coremarine/protocol-core` base and emit CMA ([PACKAGES.md](PACKAGES.md) has the per-package
+detail). Output shapes are contracts for the Tracker product, so changing one is a breaking change.

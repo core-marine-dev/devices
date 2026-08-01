@@ -12,6 +12,9 @@ on:
       # their tests. The version gate keeps the extra trigger harmless: tests run,
       # publish no-ops unless the version changed.
       - packages/core/**
+      # norsub-emru is a facade over nmea-parser, so a change there reaches this
+      # wrapper's output too — and this job already builds it.
+      - packages/nmea-parser/**
 
 jobs:
   test:
@@ -30,7 +33,7 @@ jobs:
         uses: pnpm/action-setup@v6
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
@@ -49,6 +52,10 @@ jobs:
       - name: 🛠️ Build wrapper
         run: "pnpm run norsub-emru:nodered:build"
 
+      # tsx strips types WITHOUT checking them, and eslint does not typecheck either, so a
+      # green suite says nothing about the types. This step is the only thing that does.
+      - name: 🔍 Typecheck
+        run: "pnpm --filter @coremarine/norsub-emru-nodered exec tsc --noEmit -p tsconfig.json"
       - name: 🧑‍🔬 Tests
         run: "pnpm run norsub-emru:nodered:test"
 
@@ -68,7 +75,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'

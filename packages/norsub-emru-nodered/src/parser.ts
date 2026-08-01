@@ -7,7 +7,7 @@ import { NorsubParser } from '@coremarine/norsub-emru'
 import type { Node, NodeAPI, NodeDef } from 'node-red'
 
 // coded
-import { applyMemory, applyProtocol, applySentences, cleanUndefined, getFakeSentence, getDefinition, parsePayload } from './lib'
+import { applyMemory, applyProtocol, applySentences, cleanUndefined, getDefinition, getFakeSentence, messages, parsePayload } from './lib'
 
 interface ParserConfig extends NodeDef {
   protocol?: NorsubProtocol
@@ -29,7 +29,7 @@ const init = (RED: NodeAPI): void => {
     if (config.file) {
       try {
         const result = parser.parser.addSentences(readFile(config.file))
-        if (!result.success) node.error(`problem loading sentences file: ${result.error.message}`)
+        if (!result.success) node.error(`problem loading sentences file: ${messages(result.error)}`)
       } catch (err) {
         node.error(err as Error, {})
       }

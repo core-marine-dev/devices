@@ -12,7 +12,9 @@
         "z": "norsub-examples-tab",
         "name": "Flow Errors",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
             "err-catch",
@@ -20,20 +22,20 @@
         ],
         "x": 34,
         "y": 39,
-        "w": 412,
+        "w": 352,
         "h": 82
     },
     {
         "id": "g-parse",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Examples \u2014 parse to CMA[]",
+        "name": "Examples — parse to CMA[]",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
-            "parse-parser",
-            "parse-debug",
             "in-n8",
             "in-n7b",
             "in-ptvg",
@@ -43,12 +45,13 @@
             "fn-split",
             "in-split",
             "fn-batch",
-            "in-batch"
+            "in-batch",
+            "86d1f4af36b94819"
         ],
         "x": 34,
         "y": 139,
-        "w": 652,
-        "h": 442
+        "w": 592,
+        "h": 362
     },
     {
         "id": "g-memory",
@@ -56,111 +59,116 @@
         "z": "norsub-examples-tab",
         "name": "Memory API",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
-            "mem-parser",
-            "mem-debug",
             "in-mem-get",
             "in-mem-on",
             "in-mem-off",
-            "in-mem-bad"
+            "in-mem-bad",
+            "8ae481a9cca40956"
         ],
         "x": 34,
-        "y": 599,
-        "w": 672,
+        "y": 519,
+        "w": 422,
         "h": 202
     },
     {
         "id": "g-protocol",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Protocol API \u2014 which protocol the device emits",
+        "name": "Protocol API — which protocol the device emits",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
-            "proto-parser",
-            "proto-debug",
             "in-proto-get",
             "in-proto-set",
-            "in-proto-bad"
+            "in-proto-bad",
+            "2492ac6b0255b62b"
         ],
-        "x": 34,
-        "y": 819,
-        "w": 672,
+        "x": 534,
+        "y": 519,
+        "w": 412,
         "h": 162
     },
     {
         "id": "g-sentences",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Sentences API \u2014 hot-expand the parser",
+        "name": "Sentences API — hot-expand the parser",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
-            "sent-parser",
-            "sent-debug",
             "in-sent-get",
             "in-pcmex-before",
             "fn-yaml",
             "in-sent-content",
             "in-sent-file",
             "in-pcmex-after",
-            "in-sent-bad"
+            "in-sent-bad",
+            "f56f5397eedaa208"
         ],
         "x": 34,
-        "y": 999,
-        "w": 712,
+        "y": 739,
+        "w": 462,
         "h": 322
     },
     {
         "id": "g-sentence",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Sentence API \u2014 is this id known?",
+        "name": "Sentence API — is this id known?",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
-            "one-parser",
-            "one-debug",
             "in-one-n8",
             "in-one-hehdt",
             "in-one-gga",
-            "in-one-none"
+            "in-one-none",
+            "c78456f929c84434"
         ],
-        "x": 34,
-        "y": 1339,
-        "w": 652,
+        "x": 534,
+        "y": 739,
+        "w": 382,
         "h": 202
     },
     {
         "id": "g-fake",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Fake API \u2014 a valid sample sentence",
+        "name": "Fake API — a valid sample sentence",
         "style": {
-            "label": true
+            "label": true,
+            "stroke": "#000000",
+            "color": "#000000"
         },
         "nodes": [
-            "fake-parser",
-            "fake-debug",
             "in-fake-n8",
             "in-fake-n7b",
-            "in-fake-none"
+            "in-fake-none",
+            "adc91e94ba59d92e"
         ],
-        "x": 34,
-        "y": 1559,
-        "w": 592,
+        "x": 534,
+        "y": 959,
+        "w": 342,
         "h": 162
     },
     {
         "id": "g-failed",
         "type": "group",
         "z": "norsub-examples-tab",
-        "name": "Failed & garbage sentences \u2014 nothing is dropped silently",
+        "name": "Failed & garbage sentences — nothing is dropped silently",
         "style": {
             "stroke": "#000000",
             "label": true,
@@ -176,16 +184,36 @@
             "failed-debug-bad"
         ],
         "x": 34,
-        "y": 1739,
+        "y": 1139,
         "w": 1072,
         "h": 162
+    },
+    {
+        "id": "2bbc050922b63f9e",
+        "type": "group",
+        "z": "norsub-examples-tab",
+        "name": "NORSUB",
+        "style": {
+            "stroke": "#000000",
+            "label": true,
+            "color": "#000000"
+        },
+        "nodes": [
+            "66c42fbc493a57f8",
+            "b30808fecaa89477",
+            "af21dc053538fc94"
+        ],
+        "x": 434,
+        "y": 39,
+        "w": 432,
+        "h": 82
     },
     {
         "id": "err-catch",
         "type": "catch",
         "z": "norsub-examples-tab",
         "g": "g-errors",
-        "name": "catch all",
+        "name": "ERRORS",
         "scope": null,
         "uncaught": false,
         "x": 120,
@@ -201,38 +229,7 @@
         "type": "debug",
         "z": "norsub-examples-tab",
         "g": "g-errors",
-        "name": "flow error",
-        "active": true,
-        "tosidebar": true,
-        "complete": "true",
-        "targetType": "full",
-        "x": 340,
-        "y": 80,
-        "wires": []
-    },
-    {
-        "id": "parse-parser",
-        "type": "cma-norsub-parser",
-        "z": "norsub-examples-tab",
-        "g": "g-parse",
-        "name": "",
-        "protocol": "nmea",
-        "memory": true,
-        "file": "",
-        "x": 440,
-        "y": 260,
-        "wires": [
-            [
-                "parse-debug"
-            ]
-        ]
-    },
-    {
-        "id": "parse-debug",
-        "type": "debug",
-        "z": "norsub-examples-tab",
-        "g": "g-parse",
-        "name": "output",
+        "name": "ERRORS",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -241,8 +238,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 590,
-        "y": 260,
+        "x": 280,
+        "y": 80,
         "wires": []
     },
     {
@@ -267,7 +264,7 @@
         "y": 180,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -293,7 +290,7 @@
         "y": 220,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -319,7 +316,7 @@
         "y": 260,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -345,7 +342,7 @@
         "y": 300,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -371,7 +368,7 @@
         "y": 340,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -397,7 +394,7 @@
         "y": 380,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -414,11 +411,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 200,
+        "x": 480,
         "y": 420,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -441,7 +438,7 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 210,
-        "y": 460,
+        "y": 420,
         "wires": [
             [
                 "fn-split"
@@ -461,11 +458,11 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 210,
-        "y": 500,
+        "x": 490,
+        "y": 460,
         "wires": [
             [
-                "parse-parser"
+                "86d1f4af36b94819"
             ]
         ]
     },
@@ -488,47 +485,12 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 260,
-        "y": 540,
+        "y": 460,
         "wires": [
             [
                 "fn-batch"
             ]
         ]
-    },
-    {
-        "id": "mem-parser",
-        "type": "cma-norsub-parser",
-        "z": "norsub-examples-tab",
-        "g": "g-memory",
-        "name": "",
-        "protocol": "nmea",
-        "memory": true,
-        "file": "",
-        "x": 460,
-        "y": 680,
-        "wires": [
-            [
-                "mem-debug"
-            ]
-        ]
-    },
-    {
-        "id": "mem-debug",
-        "type": "debug",
-        "z": "norsub-examples-tab",
-        "g": "g-memory",
-        "name": "output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 610,
-        "y": 680,
-        "wires": []
     },
     {
         "id": "in-mem-get",
@@ -549,10 +511,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 270,
-        "y": 640,
+        "y": 560,
         "wires": [
             [
-                "mem-parser"
+                "8ae481a9cca40956"
             ]
         ]
     },
@@ -575,10 +537,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 260,
-        "y": 680,
+        "y": 600,
         "wires": [
             [
-                "mem-parser"
+                "8ae481a9cca40956"
             ]
         ]
     },
@@ -601,10 +563,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 250,
-        "y": 720,
+        "y": 640,
         "wires": [
             [
-                "mem-parser"
+                "8ae481a9cca40956"
             ]
         ]
     },
@@ -627,47 +589,12 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 210,
-        "y": 760,
+        "y": 680,
         "wires": [
             [
-                "mem-parser"
+                "8ae481a9cca40956"
             ]
         ]
-    },
-    {
-        "id": "proto-parser",
-        "type": "cma-norsub-parser",
-        "z": "norsub-examples-tab",
-        "g": "g-protocol",
-        "name": "",
-        "protocol": "nmea",
-        "memory": true,
-        "file": "",
-        "x": 460,
-        "y": 900,
-        "wires": [
-            [
-                "proto-debug"
-            ]
-        ]
-    },
-    {
-        "id": "proto-debug",
-        "type": "debug",
-        "z": "norsub-examples-tab",
-        "g": "g-protocol",
-        "name": "output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 610,
-        "y": 900,
-        "wires": []
     },
     {
         "id": "in-proto-get",
@@ -687,11 +614,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 270,
-        "y": 860,
+        "x": 770,
+        "y": 560,
         "wires": [
             [
-                "proto-parser"
+                "2492ac6b0255b62b"
             ]
         ]
     },
@@ -713,11 +640,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 250,
-        "y": 900,
+        "x": 750,
+        "y": 600,
         "wires": [
             [
-                "proto-parser"
+                "2492ac6b0255b62b"
             ]
         ]
     },
@@ -739,48 +666,13 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 210,
-        "y": 940,
+        "x": 710,
+        "y": 640,
         "wires": [
             [
-                "proto-parser"
+                "2492ac6b0255b62b"
             ]
         ]
-    },
-    {
-        "id": "sent-parser",
-        "type": "cma-norsub-parser",
-        "z": "norsub-examples-tab",
-        "g": "g-sentences",
-        "name": "",
-        "protocol": "nmea",
-        "memory": true,
-        "file": "",
-        "x": 500,
-        "y": 1100,
-        "wires": [
-            [
-                "sent-debug"
-            ]
-        ]
-    },
-    {
-        "id": "sent-debug",
-        "type": "debug",
-        "z": "norsub-examples-tab",
-        "g": "g-sentences",
-        "name": "output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 650,
-        "y": 1100,
-        "wires": []
     },
     {
         "id": "in-sent-get",
@@ -801,10 +693,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 270,
-        "y": 1040,
+        "y": 780,
         "wires": [
             [
-                "sent-parser"
+                "f56f5397eedaa208"
             ]
         ]
     },
@@ -827,10 +719,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 260,
-        "y": 1080,
+        "y": 820,
         "wires": [
             [
-                "sent-parser"
+                "f56f5397eedaa208"
             ]
         ]
     },
@@ -848,10 +740,10 @@
         "finalize": "",
         "libs": [],
         "x": 290,
-        "y": 1120,
+        "y": 900,
         "wires": [
             [
-                "sent-parser"
+                "f56f5397eedaa208"
             ]
         ]
     },
@@ -874,7 +766,7 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 260,
-        "y": 1160,
+        "y": 860,
         "wires": [
             [
                 "fn-yaml"
@@ -900,10 +792,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 270,
-        "y": 1200,
+        "y": 940,
         "wires": [
             [
-                "sent-parser"
+                "f56f5397eedaa208"
             ]
         ]
     },
@@ -926,10 +818,10 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 260,
-        "y": 1240,
+        "y": 980,
         "wires": [
             [
-                "sent-parser"
+                "f56f5397eedaa208"
             ]
         ]
     },
@@ -952,47 +844,12 @@
         "onceDelay": 0.1,
         "topic": "",
         "x": 230,
-        "y": 1280,
+        "y": 1020,
         "wires": [
             [
-                "sent-parser"
+                "f56f5397eedaa208"
             ]
         ]
-    },
-    {
-        "id": "one-parser",
-        "type": "cma-norsub-parser",
-        "z": "norsub-examples-tab",
-        "g": "g-sentence",
-        "name": "",
-        "protocol": "nmea",
-        "memory": true,
-        "file": "",
-        "x": 440,
-        "y": 1420,
-        "wires": [
-            [
-                "one-debug"
-            ]
-        ]
-    },
-    {
-        "id": "one-debug",
-        "type": "debug",
-        "z": "norsub-examples-tab",
-        "g": "g-sentence",
-        "name": "output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 590,
-        "y": 1420,
-        "wires": []
     },
     {
         "id": "in-one-n8",
@@ -1012,11 +869,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 210,
-        "y": 1380,
+        "x": 710,
+        "y": 780,
         "wires": [
             [
-                "one-parser"
+                "c78456f929c84434"
             ]
         ]
     },
@@ -1038,11 +895,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 220,
-        "y": 1420,
+        "x": 720,
+        "y": 820,
         "wires": [
             [
-                "one-parser"
+                "c78456f929c84434"
             ]
         ]
     },
@@ -1064,11 +921,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 200,
-        "y": 1460,
+        "x": 700,
+        "y": 860,
         "wires": [
             [
-                "one-parser"
+                "c78456f929c84434"
             ]
         ]
     },
@@ -1090,48 +947,13 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 200,
-        "y": 1500,
+        "x": 700,
+        "y": 900,
         "wires": [
             [
-                "one-parser"
+                "c78456f929c84434"
             ]
         ]
-    },
-    {
-        "id": "fake-parser",
-        "type": "cma-norsub-parser",
-        "z": "norsub-examples-tab",
-        "g": "g-fake",
-        "name": "",
-        "protocol": "nmea",
-        "memory": true,
-        "file": "",
-        "x": 380,
-        "y": 1640,
-        "wires": [
-            [
-                "fake-debug"
-            ]
-        ]
-    },
-    {
-        "id": "fake-debug",
-        "type": "debug",
-        "z": "norsub-examples-tab",
-        "g": "g-fake",
-        "name": "output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 530,
-        "y": 1640,
-        "wires": []
     },
     {
         "id": "in-fake-n8",
@@ -1151,11 +973,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 180,
-        "y": 1600,
+        "x": 680,
+        "y": 1000,
         "wires": [
             [
-                "fake-parser"
+                "adc91e94ba59d92e"
             ]
         ]
     },
@@ -1177,11 +999,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 170,
-        "y": 1640,
+        "x": 670,
+        "y": 1040,
         "wires": [
             [
-                "fake-parser"
+                "adc91e94ba59d92e"
             ]
         ]
     },
@@ -1203,11 +1025,11 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 170,
-        "y": 1680,
+        "x": 670,
+        "y": 1080,
         "wires": [
             [
-                "fake-parser"
+                "adc91e94ba59d92e"
             ]
         ]
     },
@@ -1230,7 +1052,7 @@
         "payload": "$PHTRO,1.05,M,2.13,M*5\r\n",
         "payloadType": "str",
         "x": 240,
-        "y": 1780,
+        "y": 1180,
         "wires": [
             [
                 "failed-parser"
@@ -1256,7 +1078,7 @@
         "payload": "$HEHDT,123.456,T*28$HEHDT,123.456,T*28\r\n",
         "payloadType": "str",
         "x": 250,
-        "y": 1820,
+        "y": 1220,
         "wires": [
             [
                 "failed-parser"
@@ -1282,7 +1104,7 @@
         "payload": "\u0000\u0001binary protocol data\u0002",
         "payloadType": "str",
         "x": 290,
-        "y": 1860,
+        "y": 1260,
         "wires": [
             [
                 "failed-parser"
@@ -1299,7 +1121,7 @@
         "memory": true,
         "file": "",
         "x": 520,
-        "y": 1820,
+        "y": 1220,
         "wires": [
             [
                 "failed-split"
@@ -1312,7 +1134,7 @@
         "z": "norsub-examples-tab",
         "g": "g-failed",
         "name": "split clean / flagged",
-        "func": "// 4.0.0 \u2014 msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
+        "func": "// 4.0.0 — msg.payload contains EVERY piece of input: nothing is dropped\n// silently any more. A problem is signalled by the optional errors[] on the CMA,\n// so route the flagged ones instead of logging the same message forever.\nconst clean = msg.payload.filter((cma) => cma.errors === undefined)\nconst flagged = msg.payload.filter((cma) => cma.errors !== undefined)\n\n// A \"garbage\" sentence is a flagged one that could not be decoded at all:\n// id === 'unknown' and an empty payload, with the discarded input in `raw`.\nreturn [\n  clean.length ? { payload: clean } : null,\n  flagged.length ? { payload: flagged } : null,\n]\n",
         "outputs": 2,
         "timeout": 0,
         "noerr": 0,
@@ -1320,7 +1142,7 @@
         "finalize": "",
         "libs": [],
         "x": 710,
-        "y": 1820,
+        "y": 1220,
         "wires": [
             [
                 "failed-debug-ok"
@@ -1345,7 +1167,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 920,
-        "y": 1800,
+        "y": 1200,
         "wires": []
     },
     {
@@ -1353,7 +1175,7 @@
         "type": "debug",
         "z": "norsub-examples-tab",
         "g": "g-failed",
-        "name": "FLAGGED \u2014 see errors[]",
+        "name": "FLAGGED — see errors[]",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -1363,7 +1185,145 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 950,
-        "y": 1840,
+        "y": 1240,
+        "wires": []
+    },
+    {
+        "id": "66c42fbc493a57f8",
+        "type": "debug",
+        "z": "norsub-examples-tab",
+        "g": "2bbc050922b63f9e",
+        "name": "NorSub",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 760,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "b30808fecaa89477",
+        "type": "cma-norsub-parser",
+        "z": "norsub-examples-tab",
+        "g": "2bbc050922b63f9e",
+        "name": "",
+        "protocol": "nmea",
+        "memory": true,
+        "file": "",
+        "x": 600,
+        "y": 80,
+        "wires": [
+            [
+                "66c42fbc493a57f8"
+            ]
+        ]
+    },
+    {
+        "id": "af21dc053538fc94",
+        "type": "link in",
+        "z": "norsub-examples-tab",
+        "g": "2bbc050922b63f9e",
+        "name": "link in 1",
+        "links": [
+            "86d1f4af36b94819",
+            "8ae481a9cca40956",
+            "f56f5397eedaa208",
+            "2492ac6b0255b62b",
+            "c78456f929c84434"
+        ],
+        "x": 475,
+        "y": 80,
+        "wires": [
+            [
+                "b30808fecaa89477"
+            ]
+        ]
+    },
+    {
+        "id": "86d1f4af36b94819",
+        "type": "link out",
+        "z": "norsub-examples-tab",
+        "g": "g-parse",
+        "name": "link out 1",
+        "mode": "link",
+        "links": [
+            "af21dc053538fc94"
+        ],
+        "x": 575,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "8ae481a9cca40956",
+        "type": "link out",
+        "z": "norsub-examples-tab",
+        "g": "g-memory",
+        "name": "link out 2",
+        "mode": "link",
+        "links": [
+            "af21dc053538fc94"
+        ],
+        "x": 415,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "2492ac6b0255b62b",
+        "type": "link out",
+        "z": "norsub-examples-tab",
+        "g": "g-protocol",
+        "name": "link out 3",
+        "mode": "link",
+        "links": [
+            "af21dc053538fc94"
+        ],
+        "x": 905,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "f56f5397eedaa208",
+        "type": "link out",
+        "z": "norsub-examples-tab",
+        "g": "g-sentences",
+        "name": "link out 4",
+        "mode": "link",
+        "links": [
+            "af21dc053538fc94"
+        ],
+        "x": 455,
+        "y": 900,
+        "wires": []
+    },
+    {
+        "id": "c78456f929c84434",
+        "type": "link out",
+        "z": "norsub-examples-tab",
+        "g": "g-sentence",
+        "name": "link out 5",
+        "mode": "link",
+        "links": [
+            "af21dc053538fc94"
+        ],
+        "x": 875,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "adc91e94ba59d92e",
+        "type": "link out",
+        "z": "norsub-examples-tab",
+        "g": "g-fake",
+        "name": "link out 6",
+        "mode": "link",
+        "links": [],
+        "x": 835,
+        "y": 1040,
         "wires": []
     }
 ]

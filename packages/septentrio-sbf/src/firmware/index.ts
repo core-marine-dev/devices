@@ -1,28 +1,23 @@
-import { getSBFFrame as getSBFFrame_4_10_1 } from './4-10-1'
+// coded
+import { blocks as blocks_4_10_1 } from './4-10-1'
 
-import type { Firmware, SBFBodyDataParser } from '../types'
+import { DEFAULT_FIRMWARE } from '../constants'
+import type { BlockRegistry } from '../types'
 
-// Firmwares
-const firmwareParsers = new Map<Firmware, SBFBodyDataParser>()
-// Add Firmwares
-firmwareParsers.set('4.10.1', getSBFFrame_4_10_1)
+// One knowledge base per supported firmware. SBF block definitions only ever
+// grow (§4.1.6: a revision adds fields, never removes them), so a newer
+// firmware is a superset — but the mapping stays explicit rather than assumed,
+// because Septentrio also ADDS blocks between firmwares.
+const registries = new Map<string, BlockRegistry>([
+  ['4.10.1', blocks_4_10_1],
+])
 
-const getFirmwares = (): Firmware[] => Array.from(firmwareParsers.keys())
+export const firmwares = (): string[] => [...registries.keys()]
 
-const getFirmareParser = (firmare: Firmware): SBFBodyDataParser | undefined => firmwareParsers.get(firmare)
+export const isFirmware = (firmware: unknown): firmware is string =>
+  typeof firmware === 'string' && registries.has(firmware)
 
-const isAvailableFirmware = (firmware: any): boolean => firmwareParsers.has(firmware)
-
-const throwFirmwareError = (fw: string): never => {
-  // const fmws = new Intl.ListFormat('en', { type: 'unit' }).format(getFirmwares())
-  const fmws = Array.from(getFirmwares()).join(', ')
-  const error = `Supported firmwares are -> ${fmws} not ${fw}`
-  throw new Error(error)
-}
-// Export
-export {
-  getFirmwares,
-  getFirmareParser,
-  isAvailableFirmware,
-  throwFirmwareError,
-}
+// Never throws (the 1.x parser threw from its setter): an unknown firmware
+// falls back to the default, which is always registered.
+export const blocksFor = (firmware: string): BlockRegistry =>
+  registries.get(firmware) ?? (registries.get(DEFAULT_FIRMWARE) as BlockRegistry)

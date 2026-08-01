@@ -1,6 +1,10 @@
 // installed
 import type { Result } from '@coremarine/protocol-core'
-import yaml from 'js-yaml'
+// NAMED import: js-yaml 5 removed the default export. It also defaults `load` to the
+// YAML 1.2 CORE schema, which drops the YAML 1.1 types and `!!merge` — verified safe
+// here, because the protocol files use only plain strings and booleans, and every
+// generated knowledge base is byte-identical across the 4.x -> 5.x bump.
+import { load } from 'js-yaml'
 
 // coded
 import { ProtocolsFileContentSchema } from './schemas'
@@ -9,16 +13,16 @@ import type { MapStoredSentences, NMEAError, Protocol, ProtocolsFileContent, Sto
 // Parse a protocols YAML string into the validated knowledge model. Web-safe:
 // callers pass the file's text (read it yourself on the server; `await file.text()` on the web).
 // Never throws — malformed YAML or an invalid schema come back as a Result error.
-export const parseProtocols = (content: string): Result<ProtocolsFileContent, NMEAError> => {
+export const parseProtocols = (content: string): Result<ProtocolsFileContent, NMEAError[]> => {
   let data: unknown
   try {
-    data = yaml.load(content)
+    data = load(content)
   } catch (error) {
-    return { success: false, error: { kind: 'invalid-yaml', message: (error as Error).message } }
+    return { success: false, error: [{ kind: 'invalid-yaml', message: (error as Error).message }] }
   }
   const parsed = ProtocolsFileContentSchema.safeParse(data)
   if (!parsed.success) {
-    return { success: false, error: { kind: 'invalid-schema', message: parsed.errors?.toString() ?? 'invalid protocols schema' } }
+    return { success: false, error: [{ kind: 'invalid-schema', message: parsed.errors?.toString() ?? 'invalid protocols schema' }] }
   }
   return { success: true, value: parsed.value }
 }

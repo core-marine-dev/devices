@@ -8,46 +8,31 @@
     icon: "cma-logo-blue.png",
     label: function () {
       const { name } = this;
-      return name || "sbgECom";
+      return name || "SBG sbgECom";
     },
-    paletteLabel: "sbgECom",
+    paletteLabel: "SBG sbgECom parser",
     labelStyle: function () { return this.name ? "node_label_italic" : "" },
-    align: "left", // 'right'
-    // button: {
-    //   // toggle: "buttonState",
-    //   enabled: function() {
-    //     return !this.changed
-    //   },
-    //   visible: function() {
-    //     return this.hasButton
-    //   },
-    //   onclick: function() {}
-    // },
+    align: "left",
     // Input - Outputs
     inputs: 1,
     outputs: 1,
-    inputLabels: "SBG data",
-    outputLabels: "Parsed data",
+    inputLabels: "sbgECom bytes / NMEA text",
+    outputLabels: "Parsed CMA data",
     // Logic
     defaults: {
       name: { value: "" },
+      // Which knowledge base decodes the logs. Leave empty for the library default:
+      // §2.4 of the manual guarantees a log only ever GAINS fields, so 2.3 decodes a
+      // newer device correctly and publishes the extra bytes at metadata.trailing.
+      firmware: {
+        value: "",
+        required: false,
+      },
       memory: {
         value: true,
         required: true,
-      },
-      firmware: {
-        value: "2.3",
-        required: false
       }
     },
-    // credentials: {},
-    // oneditprepare: function () {},
-    // oneditsave: function() {},
-    // oneditcancel: function() {},
-    // oneditdelete: function() {},
-    // oneditresize: function() {},
-    // onpaletteadd: function() {},
-    // onpaletteremove: function() {},
   });
 </script>
 
@@ -56,111 +41,145 @@
   <!-- Name -->
   <div class="form-row">
     <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="sbgECom" />
-  </div>
-  <!-- Memory -->
-  <div class="form-row">
-    <label for="node-input-memory"><i class="fa fa-tag"></i> Memory</label>
-    <input type="checkbox" id="node-input-memory" checked/>
+    <input type="text" id="node-input-name" placeholder="SBG sbgECom parser" />
   </div>
   <!-- Firmware -->
   <div class="form-row">
-    <label for="node-input-firmware"><i class="fa fa-tag"></i> Firmware</label>
-    <input type="text" id="node-input-firmware" placeholder="2.3" />
+    <label for="node-input-firmware"><i class="fa fa-microchip"></i> Firmware</label>
+    <input type="text" id="node-input-firmware" placeholder="2.3 (default)" />
+  </div>
+  <!-- Memory -->
+  <div class="form-row">
+    <label for="node-input-memory"><i class="fa fa-database"></i> Memory</label>
+    <input type="checkbox" id="node-input-memory" style="width:auto; vertical-align:top;" />
+    <span>keep the buffer between messages</span>
+  </div>
+  <div class="form-tips">
+    <b>Memory</b> on (the default) lets a frame split across two serial reads still decode.
+    Turn it off only if each message is guaranteed to be self-contained.
   </div>
 </script>
 
-<!-- Help text -->
-<script type="text/markdown" data-help-name="cma-sbg-ecom">
-Parser of NMEA 0183 protocol sentences [check @coremarine/nmea-parser package docs](https://www.npmjs.com/package/@coremarine/nmea-parser)
+<!-- Help -->
+<script type="text/html" data-help-name="cma-sbg-ecom">
+  <p>
+    Parses the <b>sbgECom</b> binary protocol of SBG Systems inertial systems — ELLIPSE,
+    EKINOX and APOGEE — into the unified CoreMarine <b>CMA</b> format.
+  </p>
+  <p>
+    <b>One stream, two protocols.</b> An SBG device does not wrap its NMEA output in an
+    eCom frame: the sentences arrive as plain ASCII interleaved with the binary frames on
+    the same wire. This node reads both, with nothing to configure — a batch can contain
+    eCom logs and NMEA sentences side by side, and both come out as CMA.
+  </p>
 
-### Input
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">Buffer | string | array</span></dt>
+    <dd>
+      The data to parse. A <b>Buffer</b> is the normal case — wire it straight from a
+      serial, TCP or file node. A <b>string starting with <code>$</code></b> is treated as
+      an NMEA sentence; any other string must be <b>base64</b>. An <b>array of byte
+      numbers</b> also works, for JSON-only paths such as an inject node.
+      <br /><br />
+      Base64 is accepted because every <code>raw</code> in the output is base64: copy one
+      out of a debug node, inject it back, and you re-parse the exact frame that
+      misbehaved.
+    </dd>
 
-: payload (string) : NMEA ASCII content (important, it is an *ASCII* string, not other encoding).
+    <dt class="optional">memory <span class="property-type">object</span></dt>
+    <dd>
+      <code>{ "command": "get" }</code> or
+      <code>{ "command": "set", "payload": true|false }</code>.
+      Replies with <code>{ memory, bytes }</code> — <b>bytes</b>, because this is a binary
+      protocol and a whole frame must fit in the buffer.
+    </dd>
 
-: *memory* (object): Object to check or enabled / disabled parser memory state (look details below).
+    <dt class="optional">firmware <span class="property-type">object</span></dt>
+    <dd>
+      <code>{ "command": "get" }</code> or
+      <code>{ "command": "set", "payload": "2.3" }</code>.
+      Replies with <code>{ firmware, firmwares }</code>, plus <code>clock</code> once the
+      device has published a valid time (see <b>Timestamps</b>). An unsupported version is
+      refused with a message rather than substituted.
+    </dd>
 
-: *protocols* (object) : Object to get or set the protocols supported and their sentences (look details below).
+    <dt class="optional">ids <span class="property-type">any truthy</span></dt>
+    <dd>
+      Replies with every sentence this build can describe or fabricate: the 34 eCom logs
+      as <code>"&lt;class&gt;:&lt;message&gt;"</code> plus every NMEA sentence id.
+    </dd>
 
-: *sentence* (string): Sentence ID to get if it is supported and its info (look details below).
+    <dt class="optional">definition <span class="property-type">string | object</span></dt>
+    <dd>
+      <code>"0:6"</code>, <code>"GGA"</code>, or
+      <code>{ "id": "0:6", "protocol": "2.3" }</code>.
+      Replies with the field table — names, types, units and descriptions — from whichever
+      knowledge base the id belongs to. <code>protocol</code> is the <i>firmware</i>.
+    </dd>
 
-: *fake* (string): Sentence ID to get, if it is supported, a fake nmea sentence (look details below).
+    <dt class="optional">fake <span class="property-type">string | object</span></dt>
+    <dd>
+      <code>"0:6"</code> or
+      <code>{ "id": "0:6", "options": { "fields": { "ROLL": 0.5 } } }</code>.
+      Replies with a real wire frame as a <b>Buffer</b> — real CRC, real length — so
+      wiring <code>fake</code> back into <code>payload</code> round-trips. Deterministic:
+      the same request returns the same bytes forever. <code>options</code> takes
+      <code>{ timestamp, fields, large, random }</code>.
+    </dd>
+  </dl>
 
-### Output
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">CMA[]</span></dt>
+    <dd>
+      One object per sentence decoded from this message. See
+      <a href="https://github.com/core-marine-dev/devices/blob/main/docs/CMA.md">docs/CMA.md</a>.
+      An eCom sentence has <code>id</code> <code>"&lt;class&gt;:&lt;message&gt;"</code> and
+      <code>protocol.name</code> <code>"SBG ECOM"</code>; an NMEA one keeps its own id and
+      protocol.
+    </dd>
+  </dl>
+  <p>
+    Every reply channel returns either its value or an <b>error string</b> explaining what
+    was wrong with the request. The library never throws.
+  </p>
 
-: payload (array) : It gives you the same parsing output that the CoreMarine NMEA Parser (an array of object with the info of each NMEA sentence).
+  <h3>Nothing is dropped silently</h3>
+  <p>
+    A bad CRC, a wrong end flag, a log this build does not know, or bytes that are not
+    sbgECom at all — each comes back as a sentence saying so, never as an empty array.
+    <b>The signal is the presence of <code>errors</code></b> on a sentence.
+  </p>
+  <p>
+    A log the knowledge base does not model is <i>not</i> an error: it arrives with its
+    real <code>id</code>, its bytes at <code>metadata.body</code> and
+    <code>metadata.name: "unknown"</code>. §2.4 of the manual reserves the right to add
+    fields to a log, so a newer device is a normal event — such a log decodes every field
+    this build knows and publishes the extra bytes at <code>metadata.trailing</code>.
+  </p>
 
-: *memory* (object) : Response to the *memory* input (look details below).
+  <h3>Timestamps</h3>
+  <p>
+    The first field of almost every log is <code>TIME_STAMP</code>, and <b>it is not a
+    clock</b> — the manual calls it time since power-up. It becomes one through
+    <code>SBG_ECOM_LOG_UTC_TIME</code>, which publishes that counter <i>and</i> the
+    matching UTC. Once such a log arrives with a valid clock status, every later sentence
+    carries an absolute <code>metadata.timestamp.sentence</code> and
+    <code>timestamp</code>.
+  </p>
+  <p>
+    Until then there is no absolute time, and that is deliberate: a guessed clock is worse
+    than an honest absence. Send <code>firmware: { "command": "get" }</code> to see whether
+    the device has published one yet.
+  </p>
 
-: *protocols* (object) : Response to the *protocols* input (look details below).
-
-: *sentence* (string): Response to the *sentence* input (look details below).
-
-: *fake* (string): Response to the *fake* input (look details below).
-
-### Details
-
-NMEA parser translate NMEA ASCII string data into a JavaScript objects (one for each
-NMEA 0183 sentence). Each time it receives data from payload input, it gives the parsed sentences to payload output.
-
-It just a wrapper of the npm library [@coremarine/nmea-parser](https://www.npmjs.com/package/@coremarine/nmea-parser) (take a look on it).
-
-To interact with the *memory* | *protocols* | *sentence* API is through the `memory` | `protocols` | `sentence` property:
-
-- If you request something in `msg.memory` | `msg.protocols` | `msg.sentence` input
-- The response will be in `msg.memory` | `msg.protocols` | `msg.sentence` output
-
-#### Memory
-
-It is enabled by default:
-
-- memory enabled: Every time you inject data, it's attached to the internal data.
-- memory disabled: Every time you inject data, it clears internal data and add new one.
-
-Internally it has a buffer with a max number of characters
-
-|                          Input                           |                            Output                             |
-| :------------------------------------------------------: | :-----------------------------------------------------------: |
-| `memory`: { `command`: `"set"`, `payload`: **boolean** } | `memory`: { `memory`: **boolean**, `characters`: **number** } |
-|             `memory`: { `command`: `"get"` }             | `memory`: { `memory`: **boolean**, `characters`: **number** } |
-
-#### Protocols
-
-The parser can be feeded or expanded to understand more nmea sentences, standard or propietary.
-To do that it should be passed an object with the property `command` equal to `"set"` and one this three properties:
-
-1. `file`: It's the string file path to the protocols YAML file.
-2. `content`: It's the string content of the protocols YAML file.
-3. `protocols`: It's the JS object after parsing the protocols YAML file.
-
-If you send more of them, parser only will read one (`file` upper other, `content` upper `protocols`)
-
-If you just want to know what are the known or supported sentences, you just need the command `get`.
-
-|                            Input                             |         Output         |
-| :----------------------------------------------------------: | :--------------------: |
-|   `protocols`: { `command`: `"set"`, `file`: **string** }    | `protocols`: **array** |
-|  `protocols`: { `command`: `"set"`, `content`: **string** }  | `protocols`: **array** |
-| `protocols`: { `command`: `"set"`, `protocols`: **object** } | `protocols`: **array** |
-|             `protocols`: { `command`: `"get"` }              | `protocols`: **array** |
-
-#### Sentence
-
-If you want to know if a sentence is known / supported, you need to send the sentence id.
-Response will be an `object` with the whole info or `null` if it's unknown / not supported yet.
-
-|         Input          |              Output              |
-| :--------------------: | :------------------------------: |
-| `sentence`: **string** | `sentence`: **object** \| `null` |
-
-#### Fake
-
-If you want to get a NMEA-like sentence, maybe just to do some tests, you need to send the sentence id.
-Response will be a `string` with the whole ASCII sentence or `null` if it's unknown / not supported yet.
-This fake sentence is correct in terms of NMEA requirements but each field has garbage.
-
-|       Input        |            Output            |
-| :----------------: | :--------------------------: |
-| `fake`: **string** | `fake`: **string** \| `null` |
-
+  <h3>Large frames</h3>
+  <p>
+    A frame with bit 7 of its class set is a <i>large frame</i> — one page of a paginated
+    payload. Each page is emitted as its own sentence with the pagination at
+    <code>metadata.large</code> and the fragment as a single base64 field; pages are
+    <b>not reassembled</b>, because a lost page would leave a transmission buffered
+    forever. ELLIPSE units do not emit them.
+  </p>
 </script>
