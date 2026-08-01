@@ -130,16 +130,16 @@ apply — one buffer carries two framings simultaneously.
 
 ## DECISIONS — ✅ ALL NINE LOCKED by cru, 2026-08-01. Phase 0 can start.
 
-### ✅ D1 · Version — LOCKED
+### ✅ D1 · Version — LOCKED: **1.0.0**, library and wrapper
 
-**1.0.0** for library and wrapper. cru: "yes, new major (and stable) version". Both at the same major,
-per the version policy.
+cru's requirement is **a new major, stable** — and, in his words, *"1 or 2 or whatever should be the new
+major"*: the number is not the point, so **it is settled at `1.0.0` and is not to be relitigated.**
+Library `0.0.1` → **1.0.0**, wrapper `0.0.2` → **1.0.0**, same major, per the version policy.
 
 ⚠️ **Correction from phase 0:** the original reasoning here said neither package had ever been published.
 **It was wrong** — npm has `@coremarine/sbg-ecom@0.0.1` and `@coremarine/sbg-ecom-nodered@0.0.1` and
-`0.0.2`. The decision is unaffected (`0.0.x` carries no semver guarantee, so `1.0.0` is the right first
-stable release rather than `2.0.0`), but a consumer could be on `0.0.1` today, so the against-npm
-verification after publishing is not a formality.
+`0.0.2`. Someone could be on `0.0.1` today, so the against-npm verification after publishing is not a
+formality.
 
 ### ✅ D2 · Scope — LOCKED
 
@@ -475,15 +475,64 @@ that file is the template and its comments explain every decision.
   Re-enable both as soon as the wrapper has tests, and do not merge wrapper work to `main` before that.
 - Add the missing `tests/version.unit.test.ts` guard — sbg is the only pair without one.
 
-### Phase 4 — the wrapper rebuild
+### Phase 4 — the wrapper rebuild — A FULL REWRITE, NOT A PATCH (cru, explicit)
 
-From scratch on the septentrio wrapper as template (`src/parser.ts` + `src/lib.ts` + `tsup.config.ts` +
-`copy-assets.mjs` + `dev-server.mjs`, `node --import tsx --test`, three test files). Delete the plain-JS
-`src/parser.js`, the duplicated `tests/nodered/components/` copy, the mocha setup and `main: index.js`.
-An example flow in the house convention, and the docker manual-test env kept.
+cru: *"the nodered wrapper is legacy too, so you have to make an effort to move to the new major, update
+its API, document everything, update the examples."* Treat it as a package being written for the first
+time. `packages/septentrio-sbf-nodered` is the template — it is finished, published and binary, so the
+shape transfers directly.
 
-**Trap:** the wrapper suites run with `tsx`, which strips types **without checking them**. Run
-`npx tsc --noEmit -p tsconfig.json` inside the wrapper whenever the library changes shape.
+**What the legacy wrapper is today** (`src/parser.js`, 153 lines of plain JS): `require`s the removed
+`SBGParser`, calls **`getFrames()`**, wraps `parser.firmware = …` in `try/catch` because the old library
+**threw**, exposes only `memory` / `firmware` / `firmwares` / `payload`, accepts **only a `Buffer`**, and
+prints to `console.error`. `main: index.js` **does not exist**. There is a duplicated copy of the whole
+source under `tests/nodered/components/`, and the test runner is mocha with zero test files.
+
+**Structure to build** (mirroring septentrio's):
+
+| file | what |
+| --- | --- |
+| `src/lib.ts` | **pure logic, no node-red import** — one handler per `msg` channel, unit-testable |
+| `src/parser.ts` | the thin RED adapter: `msg` → handlers → `msg`, `RED.nodes.registerType('cma-sbg-ecom', …)` |
+| `src/parser.html` | editor UI **and the help panel — rewritten, it documents the whole msg API** |
+| `tsup.config.ts` + `copy-assets.mjs` | build to `dist/parser.js`; `main` points there |
+| `dev-server.mjs` | `pnpm run dev` / `pnpm run examples`, the house convention |
+| `tests/lib.unit.test.ts` · `wrapper.integration.test.ts` · `version.unit.test.ts` | `node --import tsx --test` |
+| `examples/sbg-ecom-examples.json` | rewritten flow, one group per channel |
+
+**Deleted:** `src/parser.js`, `tests/nodered/components/` (the duplicated source), the mocha dependency,
+`main: index.js`. **Kept:** the docker manual-test env (`docker-compose.yml`, `Dockerfile`,
+`manual_tests.sh`) and `src/icons/`.
+
+**The `msg` API, per the locked decisions:**
+
+- `memory` — `{command:'get'|'set', payload?:boolean}` → `{ memory, bytes }`. **`bytes`, not
+  `characters`**: this is a binary protocol and a whole frame must fit in the buffer.
+- `firmware` — `{command:'get'|'set', payload?:string}` → `{ firmware, firmwares }`. The old separate
+  `msg.firmwares` channel folds in here. Never throws now; an unmodelled version is refused with a message.
+- `ids` / `definition` / `fake` — **all three are new**; the legacy wrapper has no introspection at all.
+  Per **D9 there is no `protocol` channel**: eCom ids carry a colon, NMEA ids do not, so the handlers
+  dispatch on the id. `fake` returns a `Buffer` so node-red routes it as binary.
+- `payload` — a `Buffer` (the normal case: serial/TCP/file), a **byte array** (JSON paths), or a
+  **string**. A string is ambiguous here in a way it is not for septentrio, and D3 resolves it cleanly:
+  **starts with `$` ⇒ a plain NMEA sentence** (the device really does emit those, and base64's alphabet
+  has no `$`); **otherwise base64**, validated strictly and round-trip-checked so ASCII cannot be
+  misread. Both go into the one mixed-stream `addData`.
+
+**Documentation is part of this phase, not after it:** README rewritten against the emitted types (that
+exercise found a real bug on septentrio), the node's help panel rewritten, and every example group
+carrying a comment node. The example flow must include **a mixed-stream group** — that is this device's
+distinguishing feature and the flow is where a user meets it. Verify every payload through the wrapper's
+own handlers before writing it into the flow, and run the structural validator (unique ids, group
+membership both ways, wire and link symmetry, no group overlap) as was done for the other four.
+
+**Re-enable the CI, both jobs** — see phase 0 finding 2. The wrapper workflow currently publishes with
+**no gate at all**; uncomment `test:` and `needs: test`, and build the dependency chain
+(`protocol-core` → `nmea-parser` → `sbg-ecom`) as `norsub-emru-nodered.yml` does.
+
+**Trap:** the wrapper suites run with `tsx`, which strips types **without checking them**, and
+`:nodered:lint` does not typecheck either. Run `npx tsc --noEmit -p tsconfig.json` inside the wrapper
+whenever the library changes shape. And build the library first — these suites run against `dist`.
 
 ### Phase 5 — release
 
@@ -494,14 +543,15 @@ in §"⛔ THE RELEASE PR IS FROZEN", plus a flow-library entry for the new sbg w
 
 | phase | estimate |
 | --- | --- |
-| 0 — verify, fixtures, manual | ~0.25 session |
+| 0 — verify, fixtures | ✅ **done**, ~0.25 session |
 | 1 — skeleton + framing + mixed stream | ~0.5 session |
 | 2 — engine + 33 log tables | ~0.75–1 session |
 | 3 — introspection, tests, docs, CI | ~0.5 session |
-| 4 — wrapper | ~1 session |
+| 4 — wrapper: **full rewrite** + docs + examples + CI | ~1–1.5 sessions |
 
-**~3–3.5 sessions total.** Septentrio was 108 blocks / 10,745 src lines / 221 specs; sbg is ~33 logs with
-the field tables already transcribed, so phase 2 is the only one that could run long.
+**~3.5–4 sessions total.** Septentrio was 108 blocks / 10,745 src lines / 221 specs; sbg is ~33 logs with
+the field tables already transcribed, so phase 2 is the only library phase that could run long. Phase 4
+is a rewrite from a plain-JS legacy node with zero tests, not a port — cru asked for it explicitly.
 
 ## Paste-ready prompt for the next session
 
