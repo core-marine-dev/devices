@@ -105,6 +105,46 @@ describe('parsePayload', () => {
     assert.deepEqual(result[0].payload, [])
     assert.ok(result[0].errors?.[0].includes('Unparseable data'))
   })
+
+  // What a STRING means depends on the active protocol: the sentence itself on
+  // `nmea`, base64 on `sbf`. A Buffer means bytes on both.
+  describe('on the nmea protocol', () => {
+    const HRP = '$PSSN,HRP,104751.00,230324,23.455,1.954,0.0125,0.123,0.0234,0.03765,11,0,4.56453,W*20\r\n'
+    const GGA = '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n'
+
+    const nmeaParser = (): SeptentrioParser => {
+      const instance = parser()
+      instance.protocol = 'nmea'
+      return instance
+    }
+
+    test('a plain sentence string is the sentence, not base64', () => {
+      const result = parsePayload(nmeaParser(), HRP) as CMA[]
+      assert.equal(result.length, 1)
+      assert.equal(result[0].id, 'PSSNHRP')
+      assert.equal(result[0].protocol.name, 'SEPTENTRIO NMEA')
+      assert.equal(result[0].errors, undefined)
+    })
+
+    test('several sentences in one string all come back', () => {
+      const result = parsePayload(nmeaParser(), HRP + GGA) as CMA[]
+      assert.equal(result.length, 2)
+      assert.deepEqual(result.map((cma) => cma.protocol.name), ['SEPTENTRIO NMEA', 'NMEA'])
+    })
+
+    // The reason bytes stay accepted here: a serial node emits Buffers whichever
+    // protocol the receiver is configured for, so switching must not break a flow.
+    test('a Buffer of the same ASCII gives the same result', () => {
+      const fromString = parsePayload(nmeaParser(), HRP) as CMA[]
+      const fromBuffer = parsePayload(nmeaParser(), Buffer.from(HRP, 'ascii')) as CMA[]
+      assert.equal(fromBuffer[0].id, fromString[0].id)
+      assert.equal(fromBuffer[0].raw, fromString[0].raw)
+    })
+
+    test('the error message asks for a sentence, not for base64', () => {
+      assert.match(parsePayload(nmeaParser(), 42) as string, /^payload should be the NMEA sentence/)
+    })
+  })
 })
 
 describe('applyMemory', () => {

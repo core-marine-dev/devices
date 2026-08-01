@@ -8,6 +8,7 @@ import { DEFAULT_FIRMWARE } from './constants'
 import { isFirmware } from './firmware'
 import { SEPTENTRIO_SENTENCES } from './septentrio-nmea'
 import type { SBFParserOptions } from './types'
+import { asText, toBytes } from './utils'
 
 // The NMEA protocol layer of a Septentrio receiver. A box configured for NMEA
 // output emits the standard sentences (already built into nmea-parser) plus the
@@ -24,10 +25,12 @@ import type { SBFParserOptions } from './types'
 //     changes from message to message while definitions are matched by EXACT field
 //     count. It is decoded here instead.
 //
-// The device facade takes BYTES (a Septentrio port is a byte stream), while
-// NMEAParser is a StringParser — so this class adapts rather than extends, and the
-// conversion is byte-per-character: NMEA 0183 is ASCII, so there is no multi-byte
-// sequence that could be split across chunks.
+// NMEAParser is a StringParser, so this class adapts rather than extends. TEXT is
+// the natural input here and is what the README and the examples use; bytes are
+// accepted as well, because a Septentrio port is a byte stream and a serial node
+// hands you a Buffer whichever protocol the receiver is emitting. The conversion is
+// byte-per-character: NMEA 0183 is ASCII, so there is no multi-byte sequence that
+// could be split across chunks.
 
 // $PSSN resolvers. Keyed `${id}:${payloadLength}` on the id AS RECEIVED, so the
 // key is the field count INCLUDING the subtype field. Counted from Appendix C.1:
@@ -221,10 +224,16 @@ export class SeptentrioNMEAParser implements DeviceParser<Uint8Array> {
   // SBF one at the facade.
   get buffer(): Uint8Array { return toBytes(this._parser.buffer) }
 
-  addData(data: Uint8Array): void { this._parser.addData(toText(data)) }
+  // TEXT is the natural form here — this class composes nmea-parser, a
+  // StringParser, and NMEA 0183 is ASCII. Bytes are accepted too and converted at
+  // the door, because that is what a serial port delivers whichever protocol the
+  // receiver is emitting. Declared wider than `DeviceParser<Uint8Array>` asks for,
+  // which still satisfies it: a function taking more is usable where one taking
+  // less is expected.
+  addData(data: string | Uint8Array): void { this._parser.addData(asText(data)) }
 
-  parseData(data?: Uint8Array): CMA[] {
-    const sentences = (data === undefined) ? this._parser.parseData() : this._parser.parseData(toText(data))
+  parseData(data?: string | Uint8Array): CMA[] {
+    const sentences = (data === undefined) ? this._parser.parseData() : this._parser.parseData(asText(data))
     // SNC is finished HERE, inside the protocol parser, never in the facade: the
     // base has already stamped the timestamps, and derived data belongs to the
     // layer that understands the protocol.
@@ -248,17 +257,3 @@ export class SeptentrioNMEAParser implements DeviceParser<Uint8Array> {
 // firmware documented a fixed-length SNC that the resolver could rename.
 const isSNC = (sentence: CMA): boolean =>
   sentence.raw.startsWith(`$${PSSN_ID},`) && sentence.payload[0]?.raw.trim().toUpperCase() === SNC_ID
-
-// NMEA 0183 is ASCII, so a byte IS a character: no TextEncoder/TextDecoder, which
-// keeps this runtime-agnostic (node, deno, bun, web) like the rest of the package.
-const toText = (bytes: Uint8Array): string => {
-  let text = ''
-  for (const byte of bytes) text += String.fromCharCode(byte)
-  return text
-}
-
-const toBytes = (text: string): Uint8Array => {
-  const bytes = new Uint8Array(text.length)
-  for (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index) & 0xFF
-  return bytes
-}

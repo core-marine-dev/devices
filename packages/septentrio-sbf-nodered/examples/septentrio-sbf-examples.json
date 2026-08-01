@@ -1185,7 +1185,7 @@
         "z": "sbf-tab",
         "g": "g-protocols",
         "name": "One node, three protocol names",
-        "info": "A Septentrio receiver can be configured to emit SBF **or** NMEA on the same port, so the node parses both — one at a time. Fire the two `protocol: set` injects to switch it, then feed it.\n\n`protocol.name` in the output says which wire format the sentence came from:\n\n- `SEPTENTRIO SBF` — the binary blocks\n- `SEPTENTRIO NMEA` — the six proprietary `$PSSN` sentences\n- `NMEA` — standard sentences, straight from @coremarine/nmea-parser\n\nSo `startsWith('SEPTENTRIO')` means \"proprietary to this device, either wire format\".\n\nTwo things worth knowing:\n\n- **The payload is bytes in BOTH protocols** — a plain `$PSSN,…` string is refused. The NMEA inject here carries the same ASCII, base64-encoded, exactly as a serial-in node would deliver it.\n- **Switching discards the buffer**, and this node is shared with the other groups on this tab, so leave it on `sbf` when you are done.",
+        "info": "A Septentrio receiver can be configured to emit SBF **or** NMEA on the same port, so the node parses both — one at a time. Fire the two `protocol: set` injects to switch it, then feed it.\n\n`protocol.name` in the output says which wire format the sentence came from:\n\n- `SEPTENTRIO SBF` — the binary blocks\n- `SEPTENTRIO NMEA` — the six proprietary `$PSSN` sentences\n- `NMEA` — standard sentences, straight from @coremarine/nmea-parser\n\nSo `startsWith('SEPTENTRIO')` means \"proprietary to this device, either wire format\".\n\nTwo things worth knowing:\n\n- **A string means different things per protocol.** On `nmea` it IS the sentence, which is what the inject below sends. On `sbf` it must be base64, because SBF is binary. A Buffer works on both, so a serial-in flow survives the switch.\n- **Switching discards the buffer**, and this node is shared with the other groups on this tab, so leave it on `sbf` when you are done.",
         "x": 210,
         "y": 1240,
         "wires": []
@@ -1277,7 +1277,7 @@
         "type": "inject",
         "z": "sbf-tab",
         "g": "g-protocols",
-        "name": "NMEA bytes — $PSSN,TFM then $GPGGA",
+        "name": "NMEA text — $PSSN,TFM then $GPGGA",
         "props": [
             {
                 "p": "payload"
@@ -1288,7 +1288,7 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "JFBTU04sVEZNLDEwNDc1MS4wMCwyLDEwMjEsMTAyMywxMDI1KjVGDQokR1BHR0EsMTIzNTE5LDQ4MDcuMDM4LE4sMDExMzEuMDAwLEUsMSwwOCwwLjksNTQ1LjQsTSw0Ni45LE0sLCo0Nw0K",
+        "payload": "$PSSN,TFM,104751.00,2,1021,1023,1025*5F\r\n$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n",
         "payloadType": "str",
         "x": 270,
         "y": 1400,

@@ -79,9 +79,10 @@ emitting the unified **CMA** format. Wrapper of
 
 ### Input
 
-: payload (buffer) : Raw SBF bytes. A **Buffer** is the normal case — that is what the
-  serial, TCP and file nodes give you. A base64 **string** or an array of byte numbers is
-  also accepted (details below).
+: payload (buffer|string) : The data to parse, and a string means different things per
+  protocol: on **nmea** it is the sentence itself (`$PSSN,HRP,…`), on **sbf** it must be
+  base64, because SBF is binary and has no text form. A **Buffer** — what the serial, TCP
+  and file nodes give you — and an array of byte numbers work on both (details below).
 
 : *memory* (object) : Check or enable / disable the parser's memory (details below).
 
@@ -271,16 +272,23 @@ varied (still reproducible) values instead of zeros.
 |                          `fake`: **number**                              | `fake`: **buffer** |
 | `fake`: { `id`: **number**, `options`: { `revision`, `fields`, … } } | `fake`: **buffer** |
 
-#### Binary input
+#### Input — a string means different things per protocol
 
-SBF is binary, so `payload` is normally a **Buffer** and needs no conversion from the
-serial, TCP or file nodes.
+On **nmea**, `payload` is the **sentence as a string**: NMEA 0183 is an ASCII text protocol,
+so that is its natural form and it is what the example flow uses.
 
-Two other forms are accepted. An array of byte numbers, for a JSON-only path. And a
-**base64 string** — every `raw` in the CMA output is base64, so it is this package's own
-vocabulary for bytes, and it closes the diagnostic loop: copy a `raw` out of a debug node,
-inject it back, and you are re-parsing the exact frame that misbehaved. Base64 is validated
-strictly, so an ASCII string is rejected with a message rather than parsed as garbage.
+    msg.payload = '$PSSN,HRP,104751.00,230324,23.455,1.954,0.0125,0.123,0.0234,0.03765,11,0,4.56453,W*20\r\n'
+
+On **sbf**, `payload` is normally a **Buffer** and needs no conversion from the serial, TCP
+or file nodes. A string there must be **base64** — every `raw` in the CMA output is base64,
+so it is this package's own vocabulary for bytes, and it closes the diagnostic loop: copy a
+`raw` out of a debug node, inject it back, and you are re-parsing the exact frame that
+misbehaved. Base64 is validated strictly, so an ASCII string is rejected with a message
+rather than parsed as garbage.
+
+A **Buffer** or an **array of byte numbers** works on BOTH protocols. That is not an
+afterthought: a serial port emits bytes whichever protocol the receiver is configured for,
+so a byte-fed flow keeps working when you switch the protocol mid-flow.
 
 ### Upgrading from 1.x
 

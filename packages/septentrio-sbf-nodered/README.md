@@ -45,7 +45,7 @@ output too**, and on a bad request the corresponding output key holds an error *
 
 | Key | In | Out |
 | --- | --- | --- |
-| `payload` | SBF bytes — a **Buffer**, a base64 string, or a byte array | `CMA[]` |
+| `payload` | on `sbf`: a **Buffer**, a base64 string or a byte array · on `nmea`: the **sentence as a string** | `CMA[]` |
 | `memory` | `{ command: 'get' }` / `{ command: 'set', payload: boolean }` | `{ memory, bytes }` |
 | `protocol` | `{ command: 'get' }` / `{ command: 'set', payload: 'sbf' }` | `{ protocol, protocols }` |
 | `firmware` | `{ command: 'get' }` / `{ command: 'set', payload: '4.10.1' }` | `{ firmware, firmwares, reported?, leapSeconds? }` |
@@ -55,16 +55,25 @@ output too**, and on a bad request the corresponding output key holds an error *
 
 Full details, tables and warnings are in the node's **help panel** inside Node-RED.
 
-### Binary input
+### Input — what a string means depends on the protocol
 
-SBF is binary, so `payload` is normally a **Buffer** — that is what the serial, TCP and file nodes
-give you, and it needs no conversion.
+**On `nmea`, `payload` is the sentence as a string.** NMEA 0183 is an ASCII text protocol, so that is
+its natural form and it is what the examples use:
 
-A **base64 string** is also accepted, and that is deliberate rather than generous: every `raw` in
-the CMA output is base64, so it is this package's own vocabulary for bytes. It closes the diagnostic
-loop — copy a `raw` out of a debug node, inject it back, and you are re-parsing the exact frame that
-misbehaved. Base64 is validated strictly, so an ASCII string is rejected with a message rather than
-silently parsed as garbage. An array of byte numbers works too, for a JSON-only path.
+```javascript
+msg.payload = '$PSSN,HRP,104751.00,230324,23.455,1.954,0.0125,0.123,0.0234,0.03765,11,0,4.56453,W*20\r\n'
+```
+
+**On `sbf`, `payload` is normally a Buffer** — SBF is binary and has no text form. A **base64 string**
+is also accepted, and that is deliberate rather than generous: every `raw` in the CMA output is
+base64, so it is this package's own vocabulary for bytes. It closes the diagnostic loop — copy a `raw`
+out of a debug node, inject it back, and you are re-parsing the exact frame that misbehaved. Base64 is
+validated strictly, so an ASCII string is rejected with a message rather than silently parsed as
+garbage.
+
+**A Buffer or a byte array works on both**, and that matters: a serial, TCP or file node emits bytes
+whichever protocol the receiver was configured for, so a byte-fed flow keeps working when you switch
+the protocol. A byte array covers the JSON-only paths (an HTTP body, a stored fixture).
 
 ### Three conventions worth knowing
 

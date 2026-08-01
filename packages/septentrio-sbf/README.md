@@ -416,13 +416,20 @@ under different framing rules, so keeping them would be worse than dropping them
 
 ### NMEA — the second protocol
 
-A Septentrio box can be configured to emit NMEA 0183 instead of SBF. Select it and feed the same
-**bytes**; the conversion is internal, so both protocols look identical from the outside:
+A Septentrio box can be configured to emit NMEA 0183 instead of SBF. Select the protocol and feed it:
 
 ```typescript
 const parser = new SeptentrioParser({ protocol: 'nmea' })
-parser.parseData(chunk)   // -> CMA[], same shape as SBF
+parser.parseData('$PSSN,HRP,104751.00,230324,23.455,1.954,0.0125,0.123,0.0234,0.03765,11,0,4.56453,W*20\r\n')
+// -> CMA[], same shape as SBF
 ```
+
+**On `nmea` the input is the sentence as a string** — NMEA 0183 is ASCII text, this layer composes
+`@coremarine/nmea-parser`, and text is the natural form. **Bytes are accepted too**, on both
+protocols, and that is deliberate: a serial port emits bytes whichever protocol the receiver was
+configured for, so a byte-fed pipeline keeps working when you switch. On `sbf` bytes are the only
+form that means anything — a string there is encoded byte-per-character, which is only useful if
+you already had bytes in a string.
 
 You get every sentence `@coremarine/nmea-parser` knows (`GGA`, `RMC`, `GNS`, `GSA`, `GST`, `GSV`, `HDT`,
 `VTG`, `ZDA`, `GBS`, `GRS`, `GLL`, `ROT`, `TXT`, …) plus the **six proprietary `$PSSN` sentences** from

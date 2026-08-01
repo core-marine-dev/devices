@@ -285,13 +285,27 @@ export const getFakeSentence = (parser: SeptentrioParser, fake: unknown): Uint8A
   return result.success ? Buffer.from(result.value) : result.error.map((entry) => entry.message).join('; ')
 }
 
-// payload: SBF bytes -> CMA[]
+/* payload -> CMA[]. What a string MEANS depends on the active protocol.
+
+  On `nmea` a string IS the sentence — NMEA 0183 is an ASCII text protocol, so
+  `$PSSN,HRP,…` goes straight in, which is what the examples and the README use.
+  On `sbf` there is no text form, so a string has to be base64 (see `toBytes`).
+
+  A Buffer or a byte array works on BOTH, and that is not an afterthought: a serial,
+  TCP or file node emits bytes whichever protocol the receiver was configured for,
+  and the same flow has to keep working when the protocol is switched.
+*/
 export const parsePayload = (parser: SeptentrioParser, payload: unknown): ReturnType<SeptentrioParser['parseData']> | string | undefined => {
   if (isNil(payload)) return undefined
+  if (parser.protocol === 'nmea' && isString(payload)) return parser.parseData(payload)
   const bytes = toBytes(payload)
-  if (isString(bytes)) return bytes
+  if (isString(bytes)) return (parser.protocol === 'nmea') ? NMEA_PAYLOAD : bytes
   return parser.parseData(bytes)
 }
+
+// The SBF-flavoured messages in `toBytes` are wrong for a text protocol: on `nmea`
+// the fix is "send the sentence", not "send base64".
+const NMEA_PAYLOAD = 'payload should be the NMEA sentence as a string (a Buffer or byte array of ASCII also works)'
 
 // Drop keys whose value came back undefined (input not present).
 export const cleanUndefined = (msg: Record<string, unknown>): void => {

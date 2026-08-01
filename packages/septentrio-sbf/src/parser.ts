@@ -6,6 +6,7 @@ import { SeptentrioNMEAParser } from './protocol-nmea'
 import { SBFParser } from './protocol-sbf'
 import { SEPTENTRIO_PROTOCOLS } from './types'
 import type { FakeOptions, SeptentrioParserOptions, SeptentrioProtocol } from './types'
+import { asBytes } from './utils'
 
 // The DEVICE parser. A Septentrio receiver can be configured to emit SBF, NMEA
 // or RTCM on the same port, so the device is not the same thing as the protocol:
@@ -71,9 +72,22 @@ export class SeptentrioParser implements DeviceParser<Uint8Array> {
 
   get buffer(): Uint8Array { return this._parser.buffer }
 
-  addData(data: Uint8Array): void { this._parser.addData(data) }
+  // Input is accepted in EITHER form and normalised for the active protocol: SBF is
+  // binary and can only be bytes, so a string is encoded byte-per-character; NMEA is
+  // text and takes the string as it stands. That keeps a byte-fed flow working when
+  // the protocol is switched — a serial port emits bytes whatever the receiver is
+  // configured for — while letting an NMEA sentence be passed as the string it is.
+  addData(data: string | Uint8Array): void {
+    if (this._parser instanceof SBFParser) this._parser.addData(asBytes(data))
+    else this._parser.addData(data)
+  }
 
-  parseData(data?: Uint8Array): CMA[] { return this._parser.parseData(data) }
+  parseData(data?: string | Uint8Array): CMA[] {
+    if (this._parser instanceof SBFParser) {
+      return this._parser.parseData((data === undefined) ? undefined : asBytes(data))
+    }
+    return this._parser.parseData(data)
+  }
 
   // The introspection surface every CoreMarine parser exposes, delegated to the
   // active protocol parser.

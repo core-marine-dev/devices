@@ -65,3 +65,28 @@ export const printableText = (bytes: Uint8Array): string => {
   }
   return text
 }
+
+// ASCII <-> bytes. NMEA 0183 is ASCII, so a byte IS a character: no
+// TextEncoder/TextDecoder, which keeps this runtime-agnostic (node, deno, bun,
+// web) like the rest of the package.
+export const toText = (bytes: Uint8Array): string => {
+  let text = ''
+  for (const byte of bytes) text += String.fromCharCode(byte)
+  return text
+}
+
+export const toBytes = (text: string): Uint8Array => {
+  const bytes = new Uint8Array(text.length)
+  for (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index) & 0xFF
+  return bytes
+}
+
+// The device accepts input in EITHER form and normalises at the door, because the
+// two protocols disagree about what the natural form is: NMEA is text and its
+// parser is a StringParser, while SBF is binary and can only be bytes. A serial
+// port hands you bytes whatever the protocol is, so refusing them would break the
+// real wire path; a person testing an NMEA sentence has a string, so refusing that
+// would be pedantic. Both are accepted and converted here.
+export const asText = (data: string | Uint8Array): string => (typeof data === 'string') ? data : toText(data)
+
+export const asBytes = (data: string | Uint8Array): Uint8Array => (typeof data === 'string') ? toBytes(data) : data

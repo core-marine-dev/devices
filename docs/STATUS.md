@@ -64,6 +64,8 @@
 | `1dda019` | this section |
 | `196d7fa` | cru's editor nudge aligning the new group |
 | `ec15198` | HEAD/counts correction in this file |
+| `9513a93` | ahead-count correction |
+| `698bf08` | **PSSNHRP verified against real receiver captures** |
 
 `nmea-parser`'s example flow was not touched. **No version bumps:** every change lands inside the
 already-bumped, still-unpublished `nmea-parser@6.0.0` and `septentrio-sbf@2.0.0`.
@@ -158,6 +160,40 @@ label at load time, so it cannot be done offline). A structural validator (uniqu
 both ways, wire and link-in/link-out symmetry, members inside the group box, no group overlap) was run
 over all four wrapper example flows: **all clean**.
 
+### 6. NMEA input is a STRING now (cru's call, 2026-08-01)
+
+`SeptentrioNMEAParser` composes `nmea-parser`, a StringParser, and NMEA 0183 is ASCII — but the facade
+demanded `Uint8Array` on both protocols and converted to text internally, so a plain `'$PSSN,…'` was
+refused at the wrapper and produced garbage at the library. That is backwards for a text protocol.
+
+**Both forms are accepted; text is the documented one.** cru's words: "document it accepts just ascii
+string, or the examples only with ascii strings, because it is not the purpose to have bytes as input".
+So the READMEs, the node's help panel and the example flow all use a string, and bytes are stated as
+the serial-path escape hatch rather than advertised.
+
+**Why bytes stay accepted at all:** a serial/TCP/file node emits bytes whichever protocol the receiver
+is configured for, and a Septentrio box can emit SBF and NMEA on the same port. If the accepted type
+flipped with the setting, a working flow would break the moment you switch protocol — which is the
+thing the uniform interface existed to prevent.
+
+| protocol | string means | bytes |
+| --- | --- | --- |
+| `nmea` | **the sentence** | accepted, converted at the door |
+| `sbf` | base64 at the WRAPPER; encoded byte-per-character at the LIBRARY | the normal form |
+
+Mechanics: `addData`/`parseData` widen to `string | Uint8Array` on `SeptentrioNMEAParser` and on the
+facade, which still satisfies `DeviceParser<Uint8Array>` — a function taking MORE is usable where one
+taking less is expected — so `buffer` stays `Uint8Array` and the contract in `protocol-core` did not
+move. The ASCII conversions moved from private helpers in `protocol-nmea.ts` to `src/utils.ts`
+(`toText`/`toBytes`/`asText`/`asBytes`) because the facade needs them too. In the wrapper,
+`parsePayload` branches on `parser.protocol` before `toBytes`, and a bad payload on `nmea` now gets a
+message asking for a sentence instead of for base64.
+
+The example flow's NMEA inject carries the two plain sentences instead of base64. Its label changed
+`NMEA bytes` → `NMEA text`, one character shorter, so cru's alignment survives without a re-nudge.
+
+Counts: septentrio **221** (was 216, +5), its wrapper **66** (was 62, +4).
+
 ### Trap this paid for — read before touching a library
 
 **The Node-RED wrapper suites run against the library's BUILT `dist`, not its source.** All four
@@ -174,8 +210,8 @@ wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean · `tsc --noEmit` clean
 `thelmabiotel-tblive`, `sbg-ecom`) so every wrapper suite ran against fresh `dist`. `dist` is gitignored,
 so this dirties nothing.
 
-**Still open:** the four unverified `$PSSN` sentences (see below), whether the wrapper should accept a
-plain NMEA string as payload (§5), and the release PR itself.
+**Still open:** `RBD`/`RBP`/`RBV` field order, which no public capture can close (see below), and the
+release PR — **frozen by cru until there is nothing left to discuss**.
 
 # ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
 

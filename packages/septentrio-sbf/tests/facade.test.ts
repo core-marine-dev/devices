@@ -350,3 +350,57 @@ describe('fake frames are idempotent, with random as an opt-in', () => {
     expect(a.value).toStrictEqual(b.value)
   })
 })
+
+// Input is accepted as TEXT or as BYTES and normalised for whichever protocol is
+// active. The two protocols disagree about the natural form — NMEA 0183 is ASCII
+// and this layer wraps a StringParser, SBF is binary — and the facade absorbs that
+// so a caller does not have to change what it feeds when the protocol is switched.
+describe('string and byte input', () => {
+  const HRP = '$PSSN,HRP,104751.00,230324,23.455,1.954,0.0125,0.123,0.0234,0.03765,11,0,4.56453,W*20\r\n'
+  const GGA = '$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47\r\n'
+  const ascii = (text: string): Uint8Array => {
+    const bytes = new Uint8Array(text.length)
+    for (let index = 0; index < text.length; index++) bytes[index] = text.charCodeAt(index)
+    return bytes
+  }
+
+  test('nmea takes the sentence as a string — the natural form for a text protocol', () => {
+    const parser = new SeptentrioParser({ protocol: 'nmea' })
+    const [pssn, gga] = parser.parseData(HRP + GGA)
+    expect(pssn.id).toBe('PSSNHRP')
+    expect(pssn.protocol.name).toBe('SEPTENTRIO NMEA')
+    expect(gga.id).toBe('GGA')
+    expect(pssn.errors).toBeUndefined()
+  })
+
+  test('nmea takes the same ASCII as bytes, identically', () => {
+    const [fromText] = new SeptentrioParser({ protocol: 'nmea' }).parseData(HRP)
+    const [fromBytes] = new SeptentrioParser({ protocol: 'nmea' }).parseData(ascii(HRP))
+    expect(fromBytes.raw).toBe(fromText.raw)
+    expect(fromBytes.payload).toStrictEqual(fromText.payload)
+  })
+
+  test('a string split across chunks is carried by memory like bytes are', () => {
+    const parser = new SeptentrioParser({ protocol: 'nmea' })
+    parser.addData(HRP.slice(0, 20))
+    expect(parser.parseData(HRP.slice(20))[0].id).toBe('PSSNHRP')
+  })
+
+  // SBF has no text form, so a string is encoded byte-per-character rather than
+  // refused: the same frame, whichever container it arrived in.
+  test('sbf encodes a string byte-per-character', () => {
+    const frame = attEulerFrame()
+    let text = ''
+    for (const byte of frame) text += String.fromCharCode(byte)
+    const [fromBytes] = new SeptentrioParser().parseData(frame)
+    const [fromText] = new SeptentrioParser().parseData(text)
+    expect(fromText.id).toBe('5938')
+    expect(fromText.raw).toBe(fromBytes.raw)
+  })
+
+  test('the protocol parser accepts both directly, not only through the facade', () => {
+    const parser = new SeptentrioNMEAParser()
+    expect(parser.parseData(HRP)[0].id).toBe('PSSNHRP')
+    expect(parser.parseData(ascii(HRP))[0].id).toBe('PSSNHRP')
+  })
+})
