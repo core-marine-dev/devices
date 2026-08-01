@@ -434,6 +434,40 @@ cru must confirm on npmjs.com before merging.
 | 9 | wrapper package.json | ⚠️ one description, missing `cma` keywords → fixed; everything else already uniform |
 | 10 | example flows match the API | ⚠️ one stale key in nmea's flow → fixed; sbg's flow gained the §3.3 sentences |
 
+## 🧹 A DEPENDENCY AUDIT — 46 packages and one published runtime dep removed (cru's ask)
+
+cru asked whether `chai`, `mocha`, `sinon` and friends are still needed. Audited by walking every
+source/config file in the repo (never `node_modules`, `dist` or the lockfile) and checking each
+declared dependency for a real reference, then confirming each candidate individually.
+
+**Removed — zero references anywhere:**
+
+| package | where | why it was there |
+| --- | --- | --- |
+| `chai` | root devDep | the wrappers used Mocha + chai before `node:test` |
+| `mocha` | root devDep | same |
+| `deep-equal-in-any-order` | root devDep | same (a chai plugin) |
+| `@valibot/to-json-schema` | **`nmea-parser` RUNTIME dep** | added in `3d656bf` during a 2.2.0 schemas refactor, never imported |
+
+The install is **46 packages lighter**. The `@valibot/to-json-schema` one matters most: it was in the
+**published** dependency list, so every consumer of `@coremarine/nmea-parser` was installing it for
+nothing. It is not in the built `dist` either.
+
+**`serialize-javascript` was dropped from `overrides` too** — `pnpm why` showed mocha was its only
+route into the tree, so the override had nothing left to override. **`diff` was kept**: mocha was one
+source, but `node-red-node-test-helper` still reaches it through `sinon`.
+
+**`sinon` is NOT ours.** It is not declared anywhere; it arrives transitively under
+`node-red-node-test-helper`, which the wrapper integration tests need. It cannot be removed from here.
+
+⚠️ **Four things look unused and are REQUIRED** — none of them appears in an import, which is why a
+text search alone cannot justify a removal: `@types/node` (`tsconfig.json` sets `types: ["node"]`),
+`@types/node-red` (node-red ships no types, and all five wrappers import types from it),
+`@types/js-yaml` (js-yaml ships no types either) and `@vitest/coverage-v8` (the `--coverage` provider).
+
+Verified after removal: full gate exit 0, all 11 workflows replayed from a wiped `dist/`, and every
+remaining override still has a live route into the tree.
+
 ## The findings worth remembering
 
 - **`TOOLING.md` claimed "all 5 nodered workflows have the test job commented out — they publish

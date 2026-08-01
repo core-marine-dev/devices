@@ -16,10 +16,14 @@ patchedDependencies:
   tsup@8.5.1: patches/tsup@8.5.1.patch
 
 # Security overrides — force patched versions of transitive deps that carry
-# CVEs but can't be bumped directly (they're subdeps of mocha, node-red,
+# CVEs but can't be bumped directly (they're subdeps of node-red,
 # node-red-node-test-helper, tsup). These are all dev-only.
+#
+# `serialize-javascript` was dropped with mocha on 2026-08-01: `pnpm why` showed
+# mocha was its ONLY route into the tree, so the override had nothing left to
+# override. `diff` stays — mocha was one source, but node-red-node-test-helper
+# still reaches it through sinon.
 overrides:
-  serialize-javascript: '>=7.0.5'
   diff: '>=8.0.3'
   js-yaml: '>=4.1.1'
   jsonata: '>=2.2.0'

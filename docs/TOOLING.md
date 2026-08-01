@@ -90,6 +90,32 @@ Mirrors the Tracker repo decision — defense-in-depth for dependency lifecycle 
   the install (`ERR_PNPM_IGNORED_BUILDS`). `allowBuilds` explicitly lists reviewed packages:
   `esbuild: true` (tsup's bundler; trusted, dev-only).
 - **`.npmrc`** — `engine-strict=true` fails fast on Node version mismatches.
+- **`overrides`** — patched versions of transitive deps carrying CVEs that cannot be bumped
+  directly: `diff`, `js-yaml`, `jsonata`, `form-data`, `esbuild`. All dev-only.
+  **An override is only worth keeping while something still pulls the package** — check with
+  `pnpm why <dep> -r`. `serialize-javascript` was dropped on 2026-08-01 because mocha was its only
+  route into the tree; `diff` was kept, because `node-red-node-test-helper` still reaches it through
+  `sinon` even though mocha is gone.
+
+### Dependencies deliberately NOT here (audited 2026-08-01)
+
+`chai`, `mocha` and `deep-equal-in-any-order` were removed: **zero references anywhere in the repo**,
+left over from when the wrappers ran Mocha + chai, before they moved to `node:test`. Together with
+their subtrees that is **46 packages** gone from the install.
+
+`sinon` is **not** ours and cannot be removed — it arrives transitively under
+`node-red-node-test-helper`, which the wrapper integration tests genuinely need.
+
+`@valibot/to-json-schema` was also removed, and it mattered more than the dev deps: it was a
+**runtime** dependency of the published `@coremarine/nmea-parser`, added during a 2.2.0 schemas
+refactor, never imported, and absent from the built `dist` — so every consumer was installing it for
+nothing.
+
+What looks unused but is **required**, so nobody removes it on a second pass: `@types/node`
+(`tsconfig.json` sets `types: ["node"]`), `@types/node-red` (node-red ships no types and all five
+wrappers `import type … from 'node-red'`), `@types/js-yaml` (js-yaml ships no types either), and
+`@vitest/coverage-v8` (the provider `--coverage` needs). None appears in an import statement, which is
+exactly why a text search alone is not enough to justify a removal.
 
 ## Linting (`eslint.config.js`)
 
