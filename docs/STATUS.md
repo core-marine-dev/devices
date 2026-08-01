@@ -20,7 +20,9 @@
 > **⛔ cru's standing rule, set this session: DO NOT PUBLISH ANYTHING until he says "publish" — and
 > that includes `git push` and OPENING the PR, not just the merge.** Local work is fine.
 >
-> **`dev` @ `13cbff1` + uncommitted §3.3 work, 18 commits ahead of `origin/dev` — NOTHING IS PUSHED.**
+> **`dev` is CLEAN and 22 commits ahead of `origin/dev` — NOTHING IS PUSHED.** The §3.3 work is
+> committed: `13fac20` (the norsub near-miss), `3d60da2` (the nine sentences), `2c1b61e` + this one
+> (docs).
 >
 > Gate re-run from scratch this session (builds first — the wrapper suites run against `dist`):
 > **45 steps, exit 0.** core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · **sbg 112**
@@ -44,9 +46,9 @@
 
 ## Where the tree is
 
-`dev` @ **`13cbff1`**, **18 commits ahead of `origin/dev`**, **nothing pushed**, and the §3.3 work of the
-later 2026-08-01 session is **uncommitted** in the tree (`sbg-ecom` src/tests/README, norsub's shipped
-`norsub.yml` + regenerated `src/norsub.ts`, and these docs).
+**Tree CLEAN**, **22 commits ahead of `origin/dev`**, **nothing pushed**. The later 2026-08-01 session
+added three: `13fac20` (norsub's roll fixes, which had gone into a test fixture), `3d60da2` (the nine
+§3.3 sentences + the PHINF decoder) and `2c1b61e` (docs), plus the docs commit carrying this line.
 
 ⛔ **cru's standing rule: NOTHING is published until he says "publish"** — and that covers `git push` and
 opening the PR, not only the merge.
@@ -179,8 +181,8 @@ what is left, which is now ONLY the release.
 ⛔ FIRST RULE, cru's standing order: PUBLISH NOTHING until he says the word "publish". That covers
 git push and OPENING the PR, not just merging. Local builds, tests and commits are fine.
 
-State: dev @ 13cbff1, 18 commits ahead of origin/dev, NOTHING PUSHED, and the §3.3 work is
-UNCOMMITTED in the tree. The CMA refactor is COMPLETE — all five devices are on protocol-core and emit
+State: dev is clean, 22 commits ahead of origin/dev, NOTHING PUSHED. The CMA refactor is COMPLETE —
+all five devices are on protocol-core and emit
 CMA, sbg-ecom and its wrapper are at 1.0.0, and protocol-core was never modified (the question that
 froze the release). The gate was re-run from scratch on 2026-08-01: 45 steps, exit 0, sbg-ecom 112
 specs. Re-run it rather than trusting numbers, and BUILD EVERY LIBRARY FIRST — the wrapper suites run
