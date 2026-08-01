@@ -10,10 +10,10 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01 — **THE SBG-ECOM PLAN IS WRITTEN: §"🗺️ SBG-ECOM — THE PLAN".** Read
-> that first; it is the plan of record for the last device, it corrects two wrong data claims in the
-> older scoping section, and it ends with a paste-ready prompt. **No code written yet — decisions D1–D8
-> are open and must be locked with cru before phase 1.**
+> **Last updated:** 2026-08-01 — **THE SBG-ECOM PLAN IS WRITTEN AND ALL NINE DECISIONS ARE LOCKED:**
+> §"🗺️ SBG-ECOM — THE PLAN". Read it first; it is the plan of record for the last device, it corrects
+> two wrong data claims in the older scoping section, and it ends with a paste-ready prompt. **No code
+> written yet — PHASE 0 IS THE NEXT ACTION.**
 >
 > **Previously (2026-08-01, earlier):** **`dev` is PUSHED and clean.** The protocol-naming +
 > NMEA-version overhaul is done (§"🏷️ PROTOCOL NAMES AND NMEA VERSIONS"), septentrio's CI break is
@@ -126,7 +126,7 @@ apply — one buffer carries two framings simultaneously.
 | wrapper | plain JS, `main: index.js` **that does not exist**, mocha | TS + tsup + `node --test`, like septentrio's |
 | version | `0.0.1` / `0.0.2`, never published | **1.0.0** for both (D1) |
 
-## DECISIONS — D1–D8 LOCKED by cru 2026-08-01; D9 raised and open
+## DECISIONS — ✅ ALL NINE LOCKED by cru, 2026-08-01. Phase 0 can start.
 
 ### ✅ D1 · Version — LOCKED
 
@@ -186,11 +186,34 @@ lossless, while eCom payloads are arbitrary bytes and text→bytes only round-tr
 latin1/byte-per-character — a consumer who UTF-8-decoded the stream has already destroyed it before we
 see it. Documented the same way septentrio documents its own string input.
 
-**⚠️ THE FACADE IS THE ONLY BUFFER OWNER — sub-parsers must never keep a tail.** This is the one trap in
-the design. `nmea-parser` has its own buffer; if the facade holds a partial sentence AND hands the
-partial to nmea-parser, the continuation gets parsed twice when the next chunk arrives. So: the facade
-feeds `nmea-parser` **complete sentences only**, with `memory: false`, and keeps every incomplete tail
-itself. `bufferLimit` belongs to the facade too.
+**⚠️ THERE IS EXACTLY ONE BUFFER.** cru asked how to manage a global buffer alongside each internal
+parser's own buffer. The answer is that the second buffer should not exist:
+
+- **The eCom side is NOT a `Parser` subclass** — it is a pure `decodeFrame(bytes): DraftCMA`, no state,
+  nothing to buffer. That is the whole reason the problem disappears; septentrio needed two buffered
+  parsers because they were alternatives, here they are two decoders behind one scan.
+- **`nmea-parser` is used statelessly**: `memory: false`, and it is only ever handed a **complete**
+  sentence, so it drains fully and its buffer is `''` when it returns. **Invariant to assert in the
+  tests:** after every `extractSentences`, `nmeaParser.buffer === ''`. If it ever is not, our slice was
+  wrong — emit the leftover as garbage rather than dropping it silently.
+- **The facade extends `BinaryParser`** and therefore gets the one real buffer, `_sentences`, `addData`
+  and `parseData` from `protocol-core` for free. `bufferLimit` is its own.
+
+```
+SBGParser extends BinaryParser            // protocol-core owns _buffer / _sentences / addData / parseData
+  ├─ extractSentences(buffer)             // THE scan: FF 5A -> eCom, $ -> NMEA, else junk
+  ├─ decodeFrame(bytes): DraftCMA         // pure, stateless          (src/protocol-ecom.ts)
+  └─ _nmea: NMEAParser { memory: false }  // fed COMPLETE sentences   (src/protocol-nmea.ts)
+```
+
+**Timestamps fall out of this correctly, with one catch.** `nmea-parser` stamps its own
+`received`/`parsed` when we delegate — microseconds after the facade received the chunk. Because its
+output goes back through `extractSentences` as a draft, the core's `stampTimestamp` **overwrites** that
+block with the facade's, so every CMA in a batch shares one `received`. The catch: that overwrite would
+also discard the `sentence` time nmea-parser derived from GGA. So the facade's `sentenceTimestamp` hook
+must return `draft.metadata?.timestamp?.sentence` when it is already present, and only compute the
+UTC_TIME mapping (D6) otherwise. **Open sub-question for phase 1:** whether an NMEA sentence arriving on
+this wire also gets its time promoted to `cma.timestamp`, as D6 does for eCom logs. Consistency says yes.
 
 The scan loop is SBF's, plus one branch — at position `i`:
 
@@ -258,17 +281,27 @@ for lack of effort: it is ill-defined. A page cuts at a fixed byte boundary (408
 field in half, and page 1 starts mid-field. There is no field list to publish for a fragment. Since the
 only large-frame users are `SBG_ECOM_CMD_API_GET`/`POST`, whose payload is REST-API **JSON text**, there
 would be no field table even after reassembly — so "a longer payload with more fields" has nothing
-behind it on this protocol. Per page, then:
+behind it on this protocol.
+
+**cru's second reason for refusing reassembly, and it is the stronger one:** a page can be lost on the
+wire. An in-parser reassembly buffer would then hold a transmission that never completes — a zombie that
+is never emitted and never freed. On a device streaming for months that is a memory leak with no
+symptom. **Reassembly, if anyone ever wants it, belongs to a higher layer (Tracker), which can time it
+out and see the gap.** Do not add it here; this paragraph is why.
+
+**The emitted shape, cru's call:** one CMA per page, and the payload carries **exactly one field, type
+`string`, whose value is the Base64 of that page's fragment**.
 
 ```
 id       '0:6'          <- CLASS with bit 7 MASKED OFF, so page frames share the id of a standard frame
-payload  []
-metadata { name, large: { transmissionId, pageIndex, pages },
-           body: { raw: <base64 fragment>, bytes: n }, timestamp: {…} }
+payload  [ { raw: <base64 fragment>, name: 'DATA', type: 'string', value: <the same base64>,
+             description: 'One page of a paginated payload. Pages are NOT reassembled here…' } ]
+metadata { name, large: { transmissionId, pageIndex, pages }, timestamp: {…} }
 ```
 
-i.e. septentrio's "identified but not modelled" tier plus the pagination block. If the CMD class ever
-comes into scope, the fragment becoming a `string` field is additive and breaks nothing.
+`raw` and `value` holding the same base64 is **deliberate, not a slip** — `raw` is the byte slice as the
+CMA contract requires, and the honest "decoded value" of a fragment we cannot decode is that same text.
+Do not "fix" it later.
 
 **Practical stakes: this is forward-safety code only.** Ellipse gen 1–3 cannot emit a large frame
 (§2.1.2.1) and there are **0 in 4,594 captured frames**, so it will be tested against synthetic frames
@@ -307,32 +340,19 @@ committed; plus the healthy `sbg-raw.bin` as a full-stream fixture. **Delete
 Do not commit 580 KB of CSV; carve a trimmed binary corpus covering all 13 captured log types. Requires
 narrowing `*.bin` in `packages/sbg-ecom/.gitignore`.
 
-### ⏳ D9 · Does a `protocol` selector still earn its place? — OPEN, raised by D3
+### ✅ D9 · No `protocol` selector — LOCKED, dropped
 
-cru's D3 sketch keeps a septentrio-style `protocol` selector, scoped to introspection only:
-*"we can still select parser… but it only applies to get definitions, fake sentences, etc., not for the
-input data."* Worth one round of thought before it is built, because **the name would no longer be
-honest.** In septentrio `parser.protocol = 'nmea'` genuinely changes how bytes are read; here it would
-not change parsing at all — a property called `protocol` that has no effect on parsing is the kind of
-API that costs someone an afternoon.
+`SBGParser` has **no `protocol` property**. `sentenceIds` returns both sets merged, and
+`getSentenceDefinition` / `getFakeSentence` dispatch on the id itself — eCom ids contain a colon
+(D4-A), NMEA ids never do. The reasoning, kept so it is not re-litigated:
+**The name would not be honest.** In septentrio `parser.protocol = 'nmea'` genuinely changes how bytes
+are read. Here the input path never branches (D3), so a property called `protocol` would control nothing
+about parsing — the kind of API that costs someone an afternoon.
 
-And under D4-A it may be unnecessary: **eCom ids always contain a colon, NMEA ids never do**, so
-`getSentenceDefinition` / `getFakeSentence` can dispatch on the id itself and `sentenceIds` can return
-both sets merged. No mode, no ambiguity, nothing to document.
-
-| | keep the selector | drop it, dispatch on the id |
-| --- | --- | --- |
-| `sentenceIds` | the selected side only | both sets, merged |
-| `getFakeSentence('0:6')` | needs the mode set right | always works |
-| `getFakeSentence('GGA')` | needs the mode set right | always works |
-| risk | a property that looks like it controls parsing but does not | none found |
-
-Careful, one wrinkle either way: in this repo the `protocol` **parameter** of
-`getSentenceDefinition(id, protocol?)` means the FIRMWARE/VERSION (see the `DeviceParser` contract
-comment in `packages/core/src/types.ts`), NOT the wire protocol. A `protocol` *property* meaning the wire
-protocol next to a `protocol` *parameter* meaning the firmware is a second reason to think twice.
-
-**Recommend dropping it.** cru's call.
+**And in this repo `protocol` already means something else.** The `protocol` **parameter** of
+`getSentenceDefinition(id, protocol?)` is the FIRMWARE/VERSION — see the `DeviceParser` contract comment
+in [`packages/core/src/types.ts`](../packages/core/src/types.ts). A `protocol` property meaning the wire
+protocol sitting beside a `protocol` parameter meaning the firmware is a trap on its own.
 
 ## The plan, in order
 
@@ -440,9 +460,9 @@ Node-RED wrapper. packages/septentrio-sbf is the template for the library and
 packages/septentrio-sbf-nodered for the wrapper — both are finished and their comments explain the
 decisions.
 
-BEFORE CODING: decisions D1-D8 in the plan must be locked with cru. Check which ones he has already
-answered (they will be written into that section) and ask about the rest one at a time. He wants
-decisions converged before code, and he pushes back — when he says something is wrong, measure it
+ALL NINE DECISIONS (D1-D9) ARE LOCKED — they are written into that section with their reasoning. Do
+not reopen them; build what they say. Anything they do not cover, raise with cru before coding: he
+wants decisions converged first, and he pushes back — when he says something is wrong, measure it
 again rather than re-running the same grep.
 
 Then work phase by phase, ending each one green and committed, and update docs/STATUS.md in the SAME
