@@ -10,11 +10,16 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-07-31 (end of session) — **`dev` @ `7557769`, tree clean, 13 commits this
-> session. `septentrio-sbf` IS DONE: all 108 SBF blocks + NMEA as a second protocol. ALL FOUR CMA PAIRS
+> **Last updated:** 2026-08-01 — **`dev` @ `503637c`, work UNCOMMITTED in the tree: the protocol-naming
+> + NMEA-version overhaul (cru's call, this session) plus cru's own example-flow edits.** See
+> §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" immediately below. Everything is green (nmea-parser is now
+> **135**, not 133). The release PR is still the only thing after it.
+>
+> **Previously (2026-07-31, end of session):** `dev` @ `7557769`, tree clean, 13 commits that session.
+> `septentrio-sbf` IS DONE: all 108 SBF blocks + NMEA as a second protocol. ALL FOUR CMA PAIRS
 > ARE VERSION-BUMPED. NOTHING IS LEFT BUT THE RELEASE PR (`dev` → `main`), which publishes EIGHT
-> packages.** Start at §"⏭️ NEXT SESSION — START HERE" (immediately below this banner) — it has a
-> paste-ready prompt. Everything else in this file is the account of how we got here.
+> packages. Start at §"⏭️ NEXT SESSION — START HERE" — it has a paste-ready prompt. Everything else in
+> this file is the account of how we got here.
 >
 > **The older banner text below is still accurate for the SBF half of the work.** All 108 blocks of
 > Appendix B modelled (190/190 specs, 0 unmodelled frames left in cru's captures), README +
@@ -45,10 +50,127 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> # ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
+> # 🏷️ PROTOCOL NAMES AND NMEA VERSIONS (2026-08-01, cru's call — UNCOMMITTED)
 
-**State:** `dev` @ `7557769`, **tree clean**, 13 commits ahead of the published `main` (`ef4480b`).
-Everything is committed, every gate is green, and **the only thing left is the release PR.**
+**Not committed yet.** The tree also carries cru's own visual rework of three example flows
+(`norsub-emru`, `septentrio-sbf`, `thelmabiotel-tblive` examples JSON) — his, deliberate, to be
+committed separately. `nmea-parser`'s example flow was not touched.
+
+**Why this happened before the release PR, not after:** all four pairs are version-bumped but **not yet
+published**, so `protocol.name` and `protocol.version` could still be changed for free. After the PR
+each of these would cost another major.
+
+### 1. `septentrio-sbf` emits THREE protocol names, and they now say which wire format
+
+It is the only package parsing two wire formats, so a bare vendor name was ambiguous.
+
+| `protocol.name` | labels | was |
+| --- | --- | --- |
+| `SEPTENTRIO SBF` | every binary SBF block | `SBF` |
+| `SEPTENTRIO NMEA` | the six proprietary `$PSSN` sentences | `SEPTENTRIO` |
+| `NMEA` / `TRIMBLE` / `LEICA` | standard sentences, straight from nmea-parser | unchanged |
+
+`name.startsWith('SEPTENTRIO')` now means "proprietary to this device, either wire format". The name is
+ALSO the lookup key for `getSentenceDefinition`/`getFakeSentence`, so `protocols/septentrio.yml` and
+`PSSN_PROTOCOL` in `src/protocol-nmea.ts` have to move together — there are comments on both saying so.
+
+### 2. Miros moved out of `NMEA` into its own `MIROS` block
+
+`PMIRWM`/`PMIRCV`/`PMIRLD` are Miros SM-050 wave-radar sentences and were labelled `protocol: 'NMEA'`,
+`standard: false` — so the output claimed a vendor sentence was standard NMEA. Now `MIROS` version `1`,
+matching how Kongsberg/Trimble/Leica were already handled (`1` = OUR knowledge-base revision when the
+vendor publishes none). That they are NMEA-framed is still in the output: `metadata.standard` is false
+and the talker/checksum metadata is unchanged.
+
+### 3. Every NMEA version is now a REAL revision
+
+**There has never been an NMEA 0183 "3.1"** — the published revisions are 2.00, 2.01, 2.10, 2.20, 2.30,
+3.00, 3.01, 4.00, 4.10, 4.11. cru had picked `3.1` arbitrarily years ago from PDFs a teammate sent.
+
+**The convention, locked:** `version` = **the newest published revision whose table for that sentence
+matches EXACTLY those fields**. An unchanged sentence reads `4.11`; a superseded form carries the last
+revision where it was current. cru's original ask was "just put the latest everywhere", but that would
+have made an 8-field GBS claim to be `4.11`, which 4.11 does not define — and would have thrown away the
+only signal telling a consumer the device speaks an older form.
+
+| block | sentences |
+| --- | --- |
+| `4.11` | AAM DTM GBS(10) GGA GLL(7) GNS(13) GRS(16) **GSA(18)** GST **GSV(20)** HDT MWV RMC(13) ROT THS TXT VTG ZDA |
+| `4.00` | GBS(8) GNS(12) GRS(14) GSA(17) GSV(19) RMC(12) — superseded by the 4.10 GNSS update |
+| `2.20` | GLL(6) RMC(11) — superseded by the 2.30 FAA mode indicator |
+
+The two deltas, from [gpsd's NMEA Revealed](https://gpsd.gitlab.io/gpsd/NMEA.html), a v4 vendor field
+dictionary and the trade coverage of the 4.10/4.11 releases: **2.30** added the FAA mode indicator to
+GLL/RMC/VTG; **4.10** added System ID to GSA, Signal ID to GSV, both to GBS and GRS, and navigational
+status to RMC and GNS. **The standard itself is paid and non-public — these are secondary sources.**
+GST is the softest row (listed as "updated" in 4.10, but no field change found in any source).
+
+**`GSA` with 18 fields and `GSV` with 20 are NEW definitions** — they were sitting in `nmea.yml`
+**commented out**, so any multi-constellation receiver emitting System/Signal ID matched nothing and
+fell through as a generic sentence with unnamed fields. Septentrio boxes emit exactly those.
+
+### 4. Ordering, as cru asked
+
+`nmea.yml` is now: NMEA blocks first (newest revision first), then the proprietary ones. The file has a
+banner at the top stating the version convention so nobody has to rediscover it.
+
+### How this was done safely
+
+`protocols/*.yml` is the SOURCE OF TRUTH — `src/nmea.ts` and `src/septentrio-nmea.ts` are GENERATED by
+`scripts/yaml-to-ts.mjs` (`pnpm run <pkg>:protocols`, idempotent). The YAML was restructured by
+line-span surgery and verified by loading it before and after: every sentence's serialised payload is
+**byte-identical**, except the two intentionally new ones. Do not hand-edit the generated `.ts`.
+
+### 5. A ninth example group in the septentrio wrapper (cru's ask)
+
+`examples/septentrio-sbf-examples.json` gained **"Two protocols on one node — switch, then feed"**:
+four injects — `protocol: set sbf`, an SBF AttEuler frame, `protocol: set nmea`, and one NMEA payload
+carrying `$PSSN,TFM` + `$GPGGA` — so all three protocol names show up in one run. Both payloads were
+verified through the wrapper's OWN `applyProtocol`/`parsePayload` before being written into the flow.
+
+Two things the group's comment node says, because both surprise people:
+
+- **The payload is bytes in BOTH protocols.** `toBytes` accepts a Buffer, a byte array or a base64
+  string; a plain `$PSSN,…` ASCII string is REFUSED. The NMEA inject therefore carries base64, which is
+  what a serial-in node would deliver anyway. **Worth deciding separately:** whether the wrapper should
+  accept a plain NMEA string when `protocol === 'nmea'`. It is a wrapper contract change, so it is cru's
+  call, and it is free only while 2.0.0 is unpublished.
+- **The parser node is SHARED with the other groups on the tab**, and switching discards the buffer, so
+  the group tells you to leave it on `sbf`.
+
+The file is exactly `JSON.stringify(flow, null, 4)` with no trailing newline, so it can be edited
+programmatically with zero formatting churn — which is how this was added on top of cru's own layout
+work without touching a single one of his nodes. **The new injects are left-aligned at one x**; cru does
+the right-edge nudge in the editor, as with the other groups (Node-RED computes node width from the
+label at load time, so it cannot be done offline). A structural validator (unique ids, group membership
+both ways, wire and link-in/link-out symmetry, members inside the group box, no group overlap) was run
+over all four wrapper example flows: **all clean**.
+
+### Trap this paid for — read before touching a library
+
+**The Node-RED wrapper suites run against the library's BUILT `dist`, not its source.** All four
+wrappers passed while `septentrio-sbf`'s dist was stale; rebuilding it turned up a real assertion break
+in `septentrio-sbf-nodered`. **Build the libraries before believing a wrapper suite**, exactly as the
+CI workflows do.
+
+### Gate, re-measured after all of the above
+
+core 43 · nmea **135** (was 133, +2 for GSA/GSV) · norsub 48 · septentrio 211 · tblive 260 ·
+wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean · `tsc --noEmit` clean in every package.
+
+**All six libraries were rebuilt** (`protocol-core`, `nmea-parser`, `norsub-emru`, `septentrio-sbf`,
+`thelmabiotel-tblive`, `sbg-ecom`) so every wrapper suite ran against fresh `dist`. `dist` is gitignored,
+so this dirties nothing.
+
+**Still open:** the four unverified `$PSSN` sentences (see below), whether the wrapper should accept a
+plain NMEA string as payload (§5), and the release PR itself.
+
+# ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
+
+**State:** `dev` @ `503637c`, 14 commits ahead of the published `main` (`ef4480b`) and **not yet pushed**
+(`origin/dev` is `2f32d57`; the push is a clean fast-forward). The tree is **no longer clean** — see the
+2026-08-01 section above. Every gate is green, and **the only thing left after that work is the release
+PR.**
 
 | package | version in tree | on npm | note |
 | --- | --- | --- | --- |
@@ -58,7 +180,8 @@ Everything is committed, every gate is green, and **the only thing left is the r
 | `septentrio-sbf` + wrapper | **2.0.0** | 1.0.1 | the CMA rewrite + NMEA protocol |
 | `sbg-ecom` + wrapper | 0.0.1 / 0.0.2 | — | UNTOUCHED, deliberately: not on `protocol-core` |
 
-**Gate as of this commit** (re-run it, do not trust it): core 43 · nmea **133** · norsub 48 ·
+**Gate as of that commit** (superseded — see §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" above, where nmea
+is now **135**): core 43 · nmea **133** · norsub 48 ·
 septentrio **211** · tblive 260 · wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean ·
 `tsc --noEmit` clean in every package · `pnpm install --frozen-lockfile` clean.
 
