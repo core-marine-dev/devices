@@ -126,7 +126,7 @@ apply — one buffer carries two framings simultaneously.
 | wrapper | plain JS, `main: index.js` **that does not exist**, mocha | TS + tsup + `node --test`, like septentrio's |
 | version | `0.0.1` / `0.0.2`, never published | **1.0.0** for both (D1) |
 
-## DECISIONS — D1, D2, D5, D6, D8 LOCKED by cru 2026-08-01; D3, D4, D7 still open
+## DECISIONS — D1–D8 LOCKED by cru 2026-08-01; D9 raised and open
 
 ### ✅ D1 · Version — LOCKED
 
@@ -141,7 +141,7 @@ plus the missing ones — and **the large-frame path, which he never implemented
 only; see D7, where his model of what that means turns out to be wrong). CMD, HIGH_FREQ and THIRD_PARTY
 stay out for 1.0.0. Whether other protocols ride inside is D3.
 
-### ⏳ D3 · The mixed stream — OPEN, but the evidence is now conclusive
+### ✅ D3 · The mixed stream — LOCKED: ONE buffer, both framings, always
 
 cru asked whether the Ellipse really interleaves binary and NMEA, and recalled that both might start
 with `$`. **They do not: sbgECom syncs on `FF 5A`, NMEA on `$` (0x24)** — there is no shared start flag
@@ -167,11 +167,47 @@ available on output and will not comply with this protocol format… It belongs 
 different formats if several protocols are used at the same time."* The datasheet is telling the
 integrator the stream is mixed.
 
-**Recommendation unchanged, now with proof:** compose `nmea-parser`, emit NMEA CMAs interleaved with
-eCom CMAs from ONE buffer, no protocol switch. The logic cost is small — the frame walker already skips
-bytes that are not `FF 5A`; instead of calling them garbage, offer them to the NMEA scanner first.
+**cru's architecture, locked:**
 
-### ⏳ D4 · `id` — OPEN, cru asked for the difference from septentrio
+- **The input path never branches on a setting.** Both framings are looked for on every chunk,
+  whatever the parser is "set" to. (Whether a setting survives at all for introspection is **D9**.)
+- **`addData` accepts `string | Uint8Array` always** — not, as in septentrio, "whichever the active
+  protocol wants".
+- **The facade owns ONE buffer**, scans it, and delegates each identified slice to the eCom decoder or
+  to `nmea-parser`, converting the slice to that parser's input type.
+- **Output is always CMA**, so a mixed batch needs no special handling downstream.
+
+Two mechanics settled on top of that shape:
+
+**The canonical buffer is BYTES.** A string input is converted at the door byte-per-character
+(`asBytes`, the septentrio precedent), and only the slices identified as NMEA are decoded back to text.
+The asymmetry is real and decides it: NMEA 0183 is a strict ASCII subset, so bytes→text is always
+lossless, while eCom payloads are arbitrary bytes and text→bytes only round-trips under
+latin1/byte-per-character — a consumer who UTF-8-decoded the stream has already destroyed it before we
+see it. Documented the same way septentrio documents its own string input.
+
+**⚠️ THE FACADE IS THE ONLY BUFFER OWNER — sub-parsers must never keep a tail.** This is the one trap in
+the design. `nmea-parser` has its own buffer; if the facade holds a partial sentence AND hands the
+partial to nmea-parser, the continuation gets parsed twice when the next chunk arrives. So: the facade
+feeds `nmea-parser` **complete sentences only**, with `memory: false`, and keeps every incomplete tail
+itself. `bufferLimit` belongs to the facade too.
+
+The scan loop is SBF's, plus one branch — at position `i`:
+
+1. `FF 5A` → frame it (LEN, ETX, CRC). Complete → decode; incomplete → PENDING, stop.
+2. `$` (0x24) → find the terminator. Found → slice, decode to text, hand to `nmea-parser`. Not found and
+   at the tail → PENDING, stop. Not found but another `$` or `FF 5A` follows → hand it over anyway;
+   nmea-parser reports `Missing end flag`, which is its existing behaviour.
+3. Neither → junk byte, coalesced into one garbage sentence as SBF already does.
+
+**Frames are resolved FIRST, then NMEA on what is left over** — that ordering is what makes the two
+framings unambiguous, because a `$` byte inside an eCom payload is never scanned (the walker skips whole
+frames), and `0xFF` can never appear inside ASCII NMEA text.
+
+### ✅ D4 · `id` — LOCKED: option A, `'<class>:<msg>'`
+
+cru chose **A**. `id = '0:6'`, `metadata.name = 'SBG_ECOM_LOG_EKF_EULER'`. The reasoning he asked about,
+kept because it is the thing a future reader will re-derive otherwise:
 
 **Septentrio and sbg are not the same shape.** SBF has ONE 16-bit ID field that packs block number
 (13 bits) + revision (3 bits) — one identity plus a version of that same block. **sbgECom §2.1.1 has TWO
@@ -185,17 +221,13 @@ part of the identity, not a variant of it.
 | revision | yes, 3 bits | none |
 | `id` today | `'5938'`, revision in metadata | — |
 
-Three options:
+The rejected options, for the record: `'6'` alone (collides the day class `0x01` or `0x10` is added, and
+that would be a breaking change), and `'SBG_ECOM_LOG_EKF_EULER'` (matches the example in `docs/CMA.md`,
+but the id then changes shape between known and unknown logs, and the names are OUR transcription rather
+than wire truth).
 
-- **A · `'0:6'`** (class:msg) — unambiguous forever, survives adding CMD (`0x10`) or HIGH_FREQ (`0x01`).
-- **B · `'6'`** — msg only, class in metadata. Simplest and fine while class 0 is all we parse, but
-  collides the day class 1 or 0x10 is added, and that would be a breaking change.
-- **C · `'SBG_ECOM_LOG_EKF_EULER'`** — the log name, falling back to `'0:6'` when unknown. Matches the
-  example in `docs/CMA.md`, but the id then changes shape between known and unknown logs, and the names
-  are OUR transcription rather than wire truth.
-
-**Recommend A.** Note that under D3 the NMEA sentences arrive as ordinary nmea-parser CMAs with ids like
-`'GGA'`, so they never collide with the numeric ones either way.
+A useful side effect of A: **an eCom id always contains a colon and an NMEA id never does**, so under D3
+the two knowledge bases can be told apart from the id alone. That is what makes D9 askable.
 
 ### ✅ D5 · `protocol.name` — LOCKED
 
@@ -213,7 +245,36 @@ log's µs stamp then converts to a true epoch at `metadata.timestamp.sentence`, 
 promoted to `cma.timestamp`**, as with NMEA GGA and SBF. With no UTC_TIME frame seen, no sentence
 timestamp is emitted — the raw µs value stays visible in metadata, never dressed up as a clock.
 
-### ⏳ D7 · Large frames — OPEN: cru's model does not match the datasheet
+### ✅ D7 · Large frames — LOCKED: one CMA per page, pagination in metadata, NO reassembly
+
+cru, after reading the datasheet findings below: *"We are not going to reassemble large frames inside
+the parser into one large frame. A large frame should be parsed as a sentence, with its pagination props
+inside `cma.metadata`."* **That is exactly right and it is what gets built** — one CMA per page, never
+held, never joined, `transmissionId` / `pageIndex` / `pages` in `metadata`. It is the same
+"expose, don't hide" rule the rest of CMA follows; the consumer reassembles if it cares.
+
+**The one part that is not doable is decoding a page's DATA into the message's field table** — and not
+for lack of effort: it is ill-defined. A page cuts at a fixed byte boundary (4081), so it can split a
+field in half, and page 1 starts mid-field. There is no field list to publish for a fragment. Since the
+only large-frame users are `SBG_ECOM_CMD_API_GET`/`POST`, whose payload is REST-API **JSON text**, there
+would be no field table even after reassembly — so "a longer payload with more fields" has nothing
+behind it on this protocol. Per page, then:
+
+```
+id       '0:6'          <- CLASS with bit 7 MASKED OFF, so page frames share the id of a standard frame
+payload  []
+metadata { name, large: { transmissionId, pageIndex, pages },
+           body: { raw: <base64 fragment>, bytes: n }, timestamp: {…} }
+```
+
+i.e. septentrio's "identified but not modelled" tier plus the pagination block. If the CMD class ever
+comes into scope, the fragment becoming a `string` field is additive and breaks nothing.
+
+**Practical stakes: this is forward-safety code only.** Ellipse gen 1–3 cannot emit a large frame
+(§2.1.2.1) and there are **0 in 4,594 captured frames**, so it will be tested against synthetic frames
+built by `getFakeSentence`. Worth building correctly, not worth gold-plating.
+
+#### Why cru's original model needed correcting — §2.1.2, quoted
 
 cru: *"large frames are like standard sentences but with a longer payload (more fields) and extra props
 in `cma.metadata` (page id, all pages / count)"*. **§2.1.2 says otherwise on both halves.**
@@ -235,12 +296,8 @@ in `cma.metadata` (page id, all pages / count)"*. **§2.1.2 says otherwise on bo
 Header layout, for the record: `SYNC1 SYNC2 MSG CLASS|0x80 LEN(2) TXID(1) PAGEIDX(2) NRPAGES(2)
 DATA(0..4081) CRC(2) ETX`, and `LEN` **includes** TX ID + PAGE IDX + NR PAGES.
 
-**Revised recommendation:** implement **detection and framing** (class bit 7, the 5-byte page header,
-correct `LEN` accounting) so the parser never mis-frames one, publish `transmissionId` / `pageIndex` /
-`pages` plus the fragment as opaque bytes in `metadata`, and **decode no fields from a page**. Emit it as
-the "identified but not modelled" tier. Reassembly keyed by TX ID is parser-local state and can be added
-later without any shape change — but it buys nothing until the CMD class is in scope, on hardware that
-does not exist in this fleet.
+So the work is **detection and framing** — class bit 7, the 5-byte page header, `LEN` accounting that
+includes it — so the parser never mis-frames one. The legacy `isLargeFrame` must go.
 
 ### ✅ D8 · Fixtures — LOCKED
 
@@ -249,6 +306,33 @@ committed; plus the healthy `sbg-raw.bin` as a full-stream fixture. **Delete
 `packages/sbg-ecom/tests/sbg.bin`** — 320 well-framed frames, 0 CRC-valid; it is not data, it is a trap.
 Do not commit 580 KB of CSV; carve a trimmed binary corpus covering all 13 captured log types. Requires
 narrowing `*.bin` in `packages/sbg-ecom/.gitignore`.
+
+### ⏳ D9 · Does a `protocol` selector still earn its place? — OPEN, raised by D3
+
+cru's D3 sketch keeps a septentrio-style `protocol` selector, scoped to introspection only:
+*"we can still select parser… but it only applies to get definitions, fake sentences, etc., not for the
+input data."* Worth one round of thought before it is built, because **the name would no longer be
+honest.** In septentrio `parser.protocol = 'nmea'` genuinely changes how bytes are read; here it would
+not change parsing at all — a property called `protocol` that has no effect on parsing is the kind of
+API that costs someone an afternoon.
+
+And under D4-A it may be unnecessary: **eCom ids always contain a colon, NMEA ids never do**, so
+`getSentenceDefinition` / `getFakeSentence` can dispatch on the id itself and `sentenceIds` can return
+both sets merged. No mode, no ambiguity, nothing to document.
+
+| | keep the selector | drop it, dispatch on the id |
+| --- | --- | --- |
+| `sentenceIds` | the selected side only | both sets, merged |
+| `getFakeSentence('0:6')` | needs the mode set right | always works |
+| `getFakeSentence('GGA')` | needs the mode set right | always works |
+| risk | a property that looks like it controls parsing but does not | none found |
+
+Careful, one wrinkle either way: in this repo the `protocol` **parameter** of
+`getSentenceDefinition(id, protocol?)` means the FIRMWARE/VERSION (see the `DeviceParser` contract
+comment in `packages/core/src/types.ts`), NOT the wire protocol. A `protocol` *property* meaning the wire
+protocol next to a `protocol` *parameter* meaning the firmware is a second reason to think twice.
+
+**Recommend dropping it.** cru's call.
 
 ## The plan, in order
 
