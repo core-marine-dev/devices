@@ -10,11 +10,12 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01 — **`dev` @ `ec15198`, tree clean, 7 commits this session and NOT
-> pushed** (`origin/dev` is `2f32d57`; the push is a clean fast-forward). The protocol-naming +
-> NMEA-version overhaul is done and committed — see §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" immediately
-> below. Everything is green (nmea-parser is now **135**, not 133). **The release PR is the only thing
-> left.**
+> **Last updated:** 2026-08-01 (end of session) — **`dev` is PUSHED and clean.** The protocol-naming +
+> NMEA-version overhaul is done (§"🏷️ PROTOCOL NAMES AND NMEA VERSIONS"), septentrio's CI break is
+> fixed, and every README was re-verified against the emitted types. **THE RELEASE PR IS FROZEN by cru
+> until `sbg-ecom` is refactored** — the reasoning, the measured scoping and Claude's recorded
+> disagreement are in §"🔬 SBG-ECOM — SCOPING ANALYSIS". **The job is now sbg.** Work continues in a
+> NEW CHAT: start from §"🔬 SBG-ECOM" and the paste-ready prompt at the end of the handoff section.
 >
 > **Previously (2026-07-31, end of session):** `dev` @ `7557769`, tree clean, 13 commits that session.
 > `septentrio-sbf` IS DONE: all 108 SBF blocks + NMEA as a second protocol. ALL FOUR CMA PAIRS
@@ -240,6 +241,95 @@ so this dirties nothing.
 **Still open:** `RBD`/`RBP`/`RBV` field order, which no public capture can close (see below), and the
 release PR — **frozen by cru until there is nothing left to discuss**.
 
+# 🔬 SBG-ECOM — SCOPING ANALYSIS (2026-08-01, no code written)
+
+cru asked what a CMA refactor of the last device would cost, and specifically whether leaving it for
+later risks discovering something that forces a `protocol-core` change — and therefore a SECOND round
+of majors across all four published parsers. Everything below is measured, not recalled.
+
+## The verdict on the fear: no core change found
+
+| eCom feature | needs a core change? | why not |
+| --- | --- | --- |
+| sync + length + CRC + ETX framing | **no** | `BinaryParser`, whose own comment already reads *"Binary protocols (Septentrio SBF, SBG sbgECom)"* |
+| CRC-16, poly `0x8408` | **no** | `crc16kermit` from the same `crc` dep — verified against the datasheet's own C code, **1365/1365** |
+| identity is a PAIR (class + id) | **no** | CMA `id` is a string: `'0:14'`, or the log name |
+| device time is µs since power-up, not a wall clock | **no** | precedent: norsub deliberately emits no `metadata.timestamp.sentence` for exactly this reason |
+| large frames (TX id / page idx / nr pages) | **no** | today's code does NOT reassemble — it exposes page metadata per frame, which is ordinary CMA `metadata`. Reassembly, if ever wanted, is parser-local state |
+| NMEA + third-party logs | **no** | septentrio already proved composing `nmea-parser` |
+
+**A `protocol-core` change only forces new majors if it changes the CMA OUTPUT SHAPE.** Adding a
+capability is additive and invisible to consumers. Nothing in eCom was found that CMA cannot express.
+
+**The one genuinely new shape** — found only by scanning the captures, not from the manual —
+is that septentrio's "pick one protocol" model does NOT apply. `sbg_2000.csv` carries **81 plain-ASCII
+`$GPGGA` sentences interleaved with binary eCom frames on the same stream**:
+
+```
+$GPGGA,093721.00,4024.87314846,N,00343.50344998,W,1,19,2.8,600.668,M,50.238,M,,*7B
+```
+
+The manual explains it (§2.1.4): the NMEA classes are *"only used for identification purpose and does
+not contain any sbgECom message"* — the device emits NMEA as raw text ALONGSIDE eCom. So the extract
+step has to split two framings out of one buffer. That belongs in the package, not the core.
+
+## Two findings about the test data — act on these even if sbg is deferred
+
+- ⚠️ **THE COMMITTED CAPTURE IS CORRUPT AND THE GOOD ONE IS NOT IN GIT.** `packages/sbg-ecom/tests/sbg.bin`
+  — and the identical `sbg-raw.bin` shipped in the wrapper's `examples/` and `tests/`, both **tracked** —
+  has **0 of 955** well-framed frames passing CRC. Framing is intact (ETX lands correctly every time),
+  so the payload bytes were mangled by whatever produced the file. The four CSVs are pristine:
+  **4,442 frames, 100% CRC-valid, zero bad.** But `packages/sbg-ecom/.gitignore` ignores `*.csv` and
+  `*.bin`, and **`misc/` is untracked entirely** — so the only verified capture of this device that
+  exists is on cru's disk alone, while the broken one is committed. **Get the CSVs into git.**
+- **The legacy parser is better than its reputation.** Fed clean bytes it parsed **1365/1365** frames
+  and named every one. It looks broken only because its own fixture is broken.
+
+Corpus coverage (all four CSVs): class 0 ids **9** ×1297, **6** ×1289, **13** ×669, **15** ×505,
+**14** ×410, **1** ×136, **2** ×136 — seven log types. The other modelled logs would ship
+datasheet-verified but not capture-verified, the same position `RBD`/`RBP`/`RBV` are in on septentrio.
+
+## What the packages actually are today
+
+| | library | wrapper |
+| --- | --- | --- |
+| code | 2,180 lines, 33 files, TS | **`src/parser.js` — plain JS**, no tsup, `main: index.js` does not exist |
+| tests | **zero** (only fixtures) | docker + `manual_tests.sh`, plus a duplicated copy of the source under `tests/nodered/components/` |
+| shape | `SBGFrameResponse`, `Buffer` throughout (not cross-runtime) | node-red `>=3`, node `>=18` |
+
+Scope against the 164-page manual (SBGFWM 2.3, which matches the implemented firmware): **LOG class 0**
+has ~33 logs documented, **24 implemented**, 9 missing (events A–E, out A/B, DIAG, RTCM raw). **Class 1**
+(fast IMU), **CMD** (~40 config commands), **NMEA_0** (9 sentences), **NMEA_1** (11 proprietary) and
+**THIRD_PARTY** (~12, incl. TSS1, Teledyne PD0, Simrad EM3000, Kongsberg KMB) are all empty stubs.
+§5 input protocols and §6 CAN are a different transport — out of scope for a parser.
+
+## Cost
+
+Septentrio is the yardstick: 108 blocks, 10,745 src lines, 2,811 test lines, 221 specs. sbg is far
+smaller, and the expensive part — transcribing datasheet field tables — is **already done for 24 logs**.
+Porting those to CMA field tables is mechanical, not archaeological.
+
+| tier | work | estimate |
+| --- | --- | --- |
+| **1. library to CMA parity** | port 24 logs, `Buffer`→`Uint8Array`, mixed-stream extraction, +9 missing logs, tests off the 4,442-frame corpus, README, 1.0.0 | **~1–1.5 sessions** |
+| **2. wrapper rebuild** | from scratch (TS + tsup + `node:test` + example flow) with three finished templates to copy | **~1 session** |
+| **3. optional** | NMEA classes — mostly free, `nmea-parser` already has GGA/RMC/VTG/ZDA/HDT/GST/ROT and norsub has PHTRO/PHINF; only VBW/DPT and the proprietary set are new — plus third-party binaries and the CMD class | open-ended, skip |
+
+**Claude's recommendation, for the record:** tiers 1+2, but AFTER the release PR rather than before it.
+Holding eight finished packages hostage to the device cru has least time for is a high premium for thin
+cover. The cheap insurance is a **SPIKE**: one session putting sbg on `BinaryParser` + CMA with two or
+three log types and proving the mixed binary/ASCII extraction against the real corpus. That turns "the
+analysis says it fits" into running code. **cru's call was to hold the PR until sbg is done** — recorded
+here as his decision, not a forgotten step.
+
+## How to reproduce any of the above
+
+The scratch scripts are gone, but each check is a few lines: read a CSV, take the `data` column
+(PostgreSQL `\x` bytea hex), concatenate, then walk the bytes for `FF 5A`, read `LEN` at +4 (LE),
+require `ETX 0x33` at `+6+LEN+2`, and compare `crc16kermit(bytes[i+2 .. i+6+LEN])` against the
+uint16LE at `+6+LEN`. That is the whole protocol, and it is what proved the CSVs clean and the
+`.bin` corrupt.
+
 # ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
 
 **State:** `dev` @ `ec15198`, **21 commits ahead of `origin/dev`** (`2f32d57`) and **24 ahead of the
@@ -261,15 +351,20 @@ is now **135**): core 43 · nmea **133** · norsub 48 ·
 septentrio **211** · tblive 260 · wrappers 28 / 37 / 62 / 45 · repo-wide `eslint .` clean ·
 `tsc --noEmit` clean in every package · `pnpm install --frozen-lockfile` clean.
 
-## THE job: the release PR
+## ⛔ THE RELEASE PR IS FROZEN — cru's decision, 2026-08-01
 
-`dev` → `main`. **Merging `main` publishes**; every publish job is gated on
-`github.ref == 'refs/heads/main'` and no-ops unless the version changed, so pushing `dev` is safe.
-**Eight packages publish**: the four libraries and their four wrappers.
+**Do not open it.** cru's call: `sbg-ecom` and its wrapper get refactored FIRST, so that if the last
+device turns out to need anything structural, it lands in the SAME round of majors instead of forcing a
+second one. Claude's recorded disagreement and the cheaper alternative (a spike) are in
+§"🔬 SBG-ECOM — SCOPING ANALYSIS" above — cru read it and chose to hold. **The job is now sbg.**
 
-Do it in this order, and verify rather than assume:
+`dev` IS pushed (that part is safe and was agreed: every publish job is gated on
+`github.ref == 'refs/heads/main'` and no-ops unless the version changed).
 
-1. `git push origin dev` and watch the five workflows go green.
+When the freeze lifts, the release PR is `dev` → `main` and **eight packages publish** — the four
+libraries and their four wrappers. Do it in this order, and verify rather than assume:
+
+1. `git push origin dev` and watch the workflows go green.
 2. Open the PR `dev` → `main`. The body should say what breaks for a consumer:
    `.error.message` on a failed `Result` now reads `undefined` because the error side became an array;
    tblive's `error.join('; ')` now yields `[object Object]`; `getFakeSentence` returns the same string
@@ -347,31 +442,39 @@ Do it in this order, and verify rather than assume:
 ## Paste-ready prompt for the next session
 
 ```
-Read docs/STATUS.md first — start at §"NEXT SESSION — START HERE", which is right under the banner.
-Short version: dev @ 7557769, tree clean, everything committed and green. septentrio-sbf is DONE (all
-108 SBF blocks + NMEA as a second protocol with the six $PSSN sentences), and all four CMA pairs are
-version-bumped: nmea-parser 6.0.0, norsub-emru 6.0.0, thelmabiotel-tblive 3.0.0, septentrio-sbf 2.0.0,
-each with its wrapper at the same major. sbg-ecom is deliberately untouched.
+Read docs/STATUS.md first. Start at §"🔬 SBG-ECOM — SCOPING ANALYSIS" and then §"NEXT SESSION —
+START HERE". Do not skim them: this session's job was scoped in detail there, with measurements.
 
-The job is the RELEASE PR, dev -> main, which publishes eight packages. Merging main is what publishes;
-pushing dev is safe (publish jobs are gated on refs/heads/main).
+Where things stand: dev is pushed and clean, four CMA pairs are version-bumped but NOT published
+(nmea-parser 6.0.0, norsub-emru 6.0.0, thelmabiotel-tblive 3.0.0, septentrio-sbf 2.0.0, each with its
+wrapper at the same major). THE RELEASE PR IS FROZEN by cru until sbg-ecom is refactored, so that
+anything structural the last device needs lands in the same round of majors. Do not open the PR.
+
+THE JOB IS sbg-ecom: the last device, and the only pair still on the legacy shape. Refactor the
+library onto protocol-core's BinaryParser + CMA, then rebuild its Node-RED wrapper. The analysis says
+this costs ~1-1.5 sessions for the library and ~1 for the wrapper, and that NOTHING in the protocol
+needs a protocol-core change — read the evidence before trusting that sentence.
+
+Two things to do early, before any refactor, because they are cheap and both are traps:
+
+  1. THE COMMITTED CAPTURE IS CORRUPT. packages/sbg-ecom/tests/sbg.bin and the wrapper's
+     examples/sbg-raw.bin (both tracked) fail CRC on every one of their 955 well-framed frames. The
+     four CSVs next to them are pristine — 4,442 frames, 100% valid — but *.csv and *.bin are
+     GITIGNORED and misc/ is untracked, so the only good capture of this device lives on cru's disk.
+     Get the CSVs into git and delete or regenerate the .bin. Verify, do not assume: walk for FF 5A,
+     read LEN at +4 LE, require ETX 0x33 at +6+LEN+2, compare crc16kermit(bytes[i+2 .. i+6+LEN]).
+  2. THE STREAM IS MIXED. sbg_2000.csv carries 81 plain-ASCII $GPGGA sentences INTERLEAVED with the
+     binary frames — the device emits NMEA as raw text alongside eCom (manual §2.1.4). Septentrio's
+     "select one protocol" model does not apply; the extract step must split both from one buffer.
 
 Before anything else, re-run the gate rather than trusting the doc: the five vitest suites, the four
-node-red suites, repo-wide eslint, and tsc --noEmit in each package (that last one matters — the
-wrappers run tests with tsx, which strips types without checking them, and it hid three real breaks
-last session).
-
-Then propose the PR body: it must state the breaking changes in consumer terms — a failed Result's
-.error.message now reads undefined because the error side became an array, tblive's error.join('; ')
-now yields [object Object], and getFakeSentence returns the same string every call.
+node-red suites, repo-wide eslint, and tsc --noEmit in each package. And BUILD THE LIBRARIES FIRST —
+the wrapper suites run against dist, not src, and a stale dist has hidden real breaks twice.
 
 Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
 Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
-turn as any meaningful change.
-
-One thing to ask cru early: a Septentrio capture with NMEA output enabled (setNMEAOutput including
-HRP). Four of the six $PSSN sentences rest on the datasheet tables alone, and a wrong field order
-parses cleanly, so only a real capture can confirm them.
+turn as any meaningful change. He reads carefully and pushes back — when he says a checklist item is
+wrong, check it properly rather than re-running the same grep.
 ```
 
 > # 🎉 SHIPPED 2026-07-30 — SIX PACKAGES LIVE ON npm; nmea + norsub + thelmabiotel are DONE
