@@ -70,6 +70,135 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 
+# 🔍 NMEA CROSS-CHECK — the two device datasheets against nmea-parser (2026-08-01, cru's ask)
+
+cru asked, before adding SBG's proprietary sentences: do the Septentrio and SBG datasheets define
+STANDARD NMEA sentences, are they already in nmea-parser, and do the definitions DIFFER?
+
+**Answer: 7 of the 9 standard sentences SBG emits already matched exactly. Two were missing and are
+now added. And the comparison found two real bugs in norsub-emru's published tables.**
+
+## Septentrio: no field tables to compare, but it CONFIRMS our version convention
+
+Appendix C lists 30-odd sentence identifiers and then says: *"For a full description of the NMEA
+messages, please refer to the NMEA 0183 standard."* So there is nothing to diff — it defers to the
+standard for every non-proprietary sentence. Its six proprietary ones (HRP, RBD, RBP, RBV, SNC, TFM) are
+already modelled in `septentrio-sbf`.
+
+**What it does give us is independent corroboration of the version convention cru locked on
+2026-08-01.** `setNMEAVersion` (§3.2.14): *"If v3x is selected, the NMEA sentences are formatted
+according to the 3.01 version of the standard. If v4x is selected, **system ID, signal ID and
+navigational status fields are added in some sentences** according to version 4.11 of the standard."*
+
+That is exactly the `4.11` / `4.00` split in `protocols/nmea.yml`, arrived at from different sources —
+`4.11` holds the forms WITH system/signal/nav-status (GSA 18, GSV 20, GBS 10, GRS 16, RMC 13, GNS 13)
+and `4.00` the forms without (17, 19, 8, 14, 12, 12).
+
+Two consequences worth knowing:
+
+- **A Septentrio set to `v3x` reports `version: '4.00'`, not `'3.01'`** — and that is CORRECT by the
+  convention (the newest revision whose table matches those exact fields), because nothing in those
+  sentences changed between 3.01 and 4.00. It will still read oddly to someone who set `v3x`, so it is
+  written down here rather than left to be rediscovered.
+- Septentrio's own doc is internally inconsistent about its own version: §1.2.2 says it supports "3.01
+  and 4.10", the command doc says `v4x` follows "4.11". Both map to our `4.11` block.
+
+Sentences a Septentrio can emit that nmea-parser still does not model: **GFA, GMP, GGQ, LLK** — all four
+already recorded as open items (no field table with a verified example could be found; Leica's two are
+skipped unless Tracker talks to Leica gear). `GGAaux1` and `TXTbase` are NOT extra ids — they are the
+ordinary GGA and TXT formatters with different content, so they already parse.
+
+## SBG: 9 standard sentences, 7 matched exactly
+
+Measured field-by-field against §3.2.5-§3.2.13. Payload field counts, excluding the id and checksum:
+
+| sentence | SBG says | nmea-parser had | verdict |
+| --- | --- | --- | --- |
+| GGA | 14 | 14 (`4.11`) | ✅ same order, same semantics |
+| RMC | 13 | 13 (`4.11`) + 12 (`4.00`) | ✅ SBG emits the 4.11 form |
+| VTG | 9 | 9 (`4.11`) | ✅ |
+| ZDA | 6 | 6 (`4.11`) | ✅ |
+| HDT | 2 | 2 (`4.11`) | ✅ |
+| GST | 8 | 8 (`4.11`) | ✅ SBG's field 2 is always NULL, but it is the same slot |
+| ROT | 2 | 2 (`4.11`) | ✅ |
+| **VBW** | **6** | **— missing** | ➕ added, as `2.30` |
+| **DPT** | **3** | **— missing** | ➕ added, as `4.11` |
+
+**VBW and DPT went into `nmea-parser`, not into `sbg-ecom`** — they are standard sentences, and the next
+device emitting DPT would otherwise duplicate it. nmea-parser already hosts the vendor blocks (MIROS,
+Kongsberg, Trimble, Leica), so this is the established home. Free to do: 6.0.0 is unpublished.
+
+Their versions follow cru's convention, sourced from gpsd's NMEA Revealed as the rest of the file is:
+**DPT's third field (maximum range scale) arrived in 3.00**, so a 3-field DPT is current ⇒ `4.11`.
+**VBW's four stern-speed fields arrived in 3.00**, so the 6-field form SBG emits is pre-3.00 ⇒ a NEW
+`2.30` block, and the full 10-field form is `4.11`. Both verified against SBG's own printed examples.
+
+## 🐛 Two real bugs in norsub-emru's tables, found only by reading two vendors side by side
+
+Both are copy-paste of a PITCH description onto a ROLL field, and both are wrong in the **published**
+`norsub-emru@5.0.0`. Fixed in the unreleased 6.0.0. Descriptions only — no field, type or order moved,
+so nothing breaks.
+
+| where | said | should say | authority |
+| --- | --- | --- | --- |
+| `GYROCOMPAS1` `PHTRO.roll_direction` | "M bow up, P bow down" | **"B port down, T port up"** | SBG §3.3.9, and its own example `$PHTRO,0.03,P,0.22,T*56` ends in `T` |
+| `RDI ADCP` `PRDID.roll` | "…bow up / …bow down" | **"…port up / …port down"** | SBG §3.3.3: "Signed vessel roll in degrees, positive port up" |
+
+The lesson is the method, not the bugs: **the same vendor sentence documented by two different
+manufacturers is a free cross-check, and it is the only thing that catches a description that is
+plausible but attached to the wrong axis.** A round trip cannot; a field count cannot.
+
+## ⚠️ Three errors in SBG's own §3.2 examples, all verified by computation
+
+Recorded because a future reader will hit them and should know they were checked, not missed:
+
+- **ROT: both printed examples carry `*55`, and neither computes to it.** `$GPROT,,V*55` computes `*08`
+  and `$GPROT,31.61,A*55` computes `*34` — one checksum copy-pasted onto two different payloads. Same
+  class as Septentrio's Appendix C.1.5 `SNC` printing `68` where it computes `4C`.
+- **GGA: the populated example has 15 fields where its own table says 14** (`…,0.0,M,,,*63` — one
+  comma too many), while the empty example has 14. The checksum verifies over the 15-field string, so
+  the sentence is self-consistent as printed and the TABLE is the thing to trust — two of three sources
+  say 14. nmea-parser correctly refuses the 15-field one as an unrecognised generic sentence.
+- **RMC: the populated example has 12 fields where the table says 13** (no `navStatus`). Both forms are
+  modelled, so both parse — the 12-field one as `4.00`, which is what it is.
+
+Their §3.3 tables are sloppier still: PHTRO and PHLIN number their fields 1, 3, 4, 5 (there is no field
+2), and PHLIN's "Message format" example prints `$PHTRO,…` instead of `$PHLIN,…`.
+
+## ⏭️ STILL TO DO — the 11 proprietary sentences (cru: "add it for this version 1.x")
+
+Cleared to go into **1.0.0**, since it is unpublished. They belong in `sbg-ecom`, not in nmea-parser:
+each is that DEVICE's rendering of a vendor sentence, and the two renderings can legitimately differ —
+which is exactly what the PHTRO comparison above demonstrates.
+
+From §3.3, with their SBG message ids. Field counts are payload only:
+
+| id | msg | vendor | fields | notes |
+| --- | --- | --- | --- | --- |
+| `PRDID` | 00 | Teledyne RDI | 3 | pitch, roll, heading. Same 3 fields as norsub's `RDI ADCP` block |
+| `PSBGI` | 01 | SBG | 7 | UTC time, gyro XYZ, accel XYZ |
+| `PASHR` | 02 | Ashtech-style | 11 | time, heading, T, roll, pitch, heave, 3 std devs, posStatus, imuStatus |
+| `PSBGB` | 04 | SBG | 22 | the big one: version, time, utcStatus, attitude + 3 std + 2 status, heave + std + status, 3 rates, 3 velocities, velocity std + status |
+| `PHINF` | 05 | Ixblue | 1 | an 8-hex-char status word — **and a 32-bit bit table worth decoding into metadata** |
+| `PHTRO` | 06 | Ixblue | 4 | pitch, sign (M/P), roll, sign (**B/T**) |
+| `PHLIN` | 07 | Ixblue | 3 | surge, sway, heave — ⚠️ SBG warns sway AND heave are sign-REVERSED vs its own convention |
+| `PHOCT` | 08 | Ixblue | ~18 | time, attitude, heading, ship motion — table not yet transcribed |
+| `INDYN` | 09 | Ixblue | ? | position, heading, attitude, rate, velocity — not yet transcribed |
+| `GGK` | 10 | Trimble | ? | time, lat, lon, ellipsoidal height — compare with nmea-parser's existing `PTNLGGK` (12 fields) before defining |
+| `WASSP` | 12 | WASSP | 11 | **⚠️ IT IS SENT AS `$PASHR`** — same id as msg 02, same field count, but heave is positive UP instead of down. Two different meanings on one wire id, so it CANNOT be a second definition keyed by id+length. Needs a decision. |
+
+**Two things to settle before writing them:**
+
+1. **`WASSP` vs `PASHR` collide.** Both go out as `$PASHR` with 11 fields; only the heave SIGN differs,
+   and nothing in the sentence says which one it is — it is a device CONFIGURATION choice. A resolver
+   cannot tell them apart either. The honest options are: model `PASHR` once and document the sign
+   ambiguity in its description; or add a parser option naming which the device is configured for.
+   Recommend the former plus the note — inventing a distinction the wire does not carry would be worse.
+2. **`protocol.name` per vendor**, following the MIROS precedent (a vendor sentence gets the vendor, not
+   `NMEA`): `SBG NMEA` for PSBGI/PSBGB, `TELEDYNE RDI` for PRDID, `IXBLUE` for the five PH*/INDYN,
+   `ASHTECH` for PASHR, `TRIMBLE` for GGK — unless GGK turns out to be nmea-parser's `PTNLGGK`, in
+   which case it needs nothing.
+
 # 🗺️ SBG-ECOM — THE PLAN, AND ITS EXECUTION (2026-08-01 — ✅ DONE, phases 0-4)
 
 **Nothing is coded. This section is the plan for the last device**, written so that a new session (or a
