@@ -162,7 +162,45 @@ parser.nmea.addSentences(yourYaml)
 
 Frames are resolved **first**, and only the bytes between them are examined for sentences. That ordering is what makes the two framings unambiguous: a `$` inside an eCom payload is never scanned, and `0xFF` cannot appear in ASCII NMEA text.
 
-> The device's own proprietary sentences (`$PSBGI`, `$PSBGB`, `$PRDID`, `$PASHR`, and the Ixblue and Trimble formats of §3.3) are **not yet in the knowledge base**. They still parse — as generic sentences with unnamed fields — and adding them is additive, not a breaking change.
+### The proprietary sentences of §3.3
+
+All of them are modelled, with the **vendor** as `protocol.name` — a vendor sentence carries the vendor, not `NMEA`:
+
+| id | msg | `protocol.name` | fields |
+| --- | --- | --- | --- |
+| `PSBGI` | 01 | `SBG NMEA` | 8 |
+| `PSBGB` | 04 | `SBG NMEA` | 23 |
+| `PRDID` | 00 | `TELEDYNE RDI` | 3 |
+| `PASHR` | 02 **and 12** | `ASHTECH` | 11 |
+| `PHINF` | 05 | `IXBLUE` | 1 |
+| `PHTRO` | 06 | `IXBLUE` | 4 |
+| `PHLIN` | 07 | `IXBLUE` | 3 |
+| `PHOCT` | 08 | `IXBLUE` | 19 |
+| `INDYN` | 09 | `IXBLUE` | 10 |
+
+`PHINF` is the one worth a closer look: its single field is a 32-bit OCTANS status word, and the 28 named flags of §3.3.8 are decoded into that field's `metadata.status`, mirrored at `metadata.payload.status`. The raw hex stays the field value. SBG's own caveat applies — these are OCTANS definitions, and "some status couldn't be directly translated" to an SBG device.
+
+Two things a consumer should know:
+
+- **`PSBGI` and `PSBGB` carry one more field than the manual's tables list** (8 and 23, not 7 and 22). SBG's own formatter emits a trailing comma before the checksum; the printed checksums only verify *with* it. The extra field is named `reserved` and is always empty.
+- **Several Ixblue sentences use sign conventions that contradict SBG's own**, and each affected field says so in its `description`: `PHLIN` sway and heave are reversed, `PHOCT` sway and heave are reversed and its pitch is positive bow *down*, and `INDYN` pitch is reversed. `PHOCT`'s heading rate is degrees per **minute** where `PSBGB`'s rates are per second.
+
+**§3.3.13 Trimble `GGK` needs nothing** — it is `$PTNL,GGK,...`, which `nmea-parser` already models as `PTNLGGK`, field for field and with the same quality enum, so it parses here today.
+
+#### ⚠️ `$PASHR` carries two messages, and its heave sign is yours to know
+
+`PASHR` (msg 02, §3.3.5) and `WASSP` (msg 12, §3.3.6) are **the same wire id with the same 11 fields**. The only difference is the heave sign: **positive down** for msg 02, **positive up** for msg 12.
+
+Nothing in the sentence records which one you are receiving. The sbgECom message id never reaches the wire — the NMEA half of the stream is not wrapped in eCom frames — and the manual's null example is byte-identical under both sections, checksum included, so no resolver could separate them either.
+
+So it is modelled **once**, and the `heave` field's `description` names both conventions rather than picking one:
+
+```typescript
+sentences[0].payload[5].name         // 'heave'
+sentences[0].payload[5].description  // '⚠️ HEAVE SIGN IS CONFIGURATION-DEPENDENT …'
+```
+
+**If you need the sign, take it from your device configuration**, not from this sentence. Every other field means the same thing in both messages.
 
 ## Failed, unmodelled and garbage frames
 

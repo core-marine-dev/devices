@@ -1,6 +1,11 @@
 // installed
 import { NMEAParser } from '@coremarine/nmea-parser'
+import type { ProtocolsFileContent } from '@coremarine/nmea-parser'
 import type { CMA } from '@coremarine/protocol-core'
+
+// coded
+import { SBG_NMEA_AGGREGATORS } from './nmea-metadata'
+import { SBG_SENTENCES } from './sbg-nmea'
 
 /* The NMEA half of the stream.
 
@@ -26,6 +31,12 @@ class SBGNMEAParser extends NMEAParser {
   constructor() {
     // memory: false — see the note above. The buffer limit is the facade's job.
     super({ memory: false })
+    // The §3.3 proprietary sentences, and the one decoder among them. Standard
+    // sentences (GGA, RMC, VTG, ZDA, HDT, GST, ROT, VBW, DPT) need nothing: all
+    // nine were checked field-by-field against §3.2 and nmea-parser already
+    // matches them — see docs/STATUS.md §"NMEA CROSS-CHECK".
+    this.registerProtocols(SBG_SENTENCES as ProtocolsFileContent)
+    this.registerAggregators(SBG_NMEA_AGGREGATORS)
   }
 }
 
