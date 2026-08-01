@@ -43,7 +43,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
             {
               name: 'roll_direction',
               type: 'string',
-              description: 'M bow up, P bow down',
+              description: 'B port down, T port up',
             },
           ],
         },
@@ -741,7 +741,7 @@ export const NORSUB_SENTENCES: ProtocolsFileContent = {
               name: 'roll',
               type: 'float64',
               units: 'deg',
-              description: 's if [+] is bow up / s is [-] if bow down, leading zeros',
+              description: 's is [+] if port up / s is [-] if port down, leading zeros',
             },
             {
               name: 'heading',
