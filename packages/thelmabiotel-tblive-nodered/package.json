@@ -47,6 +47,7 @@
     "lint": "eslint",
     "format": "eslint --fix",
     "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test:coverage": "node --import tsx --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"tests/**/*.test.ts\"",
     "test:unit": "node --import tsx --test \"tests/*.unit.test.ts\"",
     "test:integration": "node --import tsx --test \"tests/*.integration.test.ts\"",
     "dev": "pnpm run build && node dev-server.mjs dev",

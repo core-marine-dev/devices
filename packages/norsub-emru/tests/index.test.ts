@@ -231,6 +231,45 @@ describe('status metadata placement', () => {
     expect(payloadMetadata(sentence).status).toBeDefined()
   })
 
+  /* THE GUARDS, not just the happy path. A real device sends empty fields, and an
+     empty `status` decodes to `null` — which must produce NO status metadata rather
+     than a confidently wrong word of all-clear flags, the same class of bug as
+     reading an empty `data` field as a real 0.0° inclination in tblive. */
+  test.each(SINGLE_STATUS)('%s with an EMPTY status field gets no status metadata', (id, fields) => {
+    const parser = new NorsubParser()
+    // Same shape as `pnorsub`, but the trailing status slot is left empty.
+    const body = [id, ...Array<string>(fields - 1).fill('0'), ''].join(',')
+    const [sentence] = parser.parseData(nmea(body))
+    expect(sentence.id).toBe(id)
+    expect(sentence.payload).toHaveLength(fields)
+    expect(sentence.payload.at(-1)?.value).toBeNull()
+    expect(fieldStatus(sentence)).toBeUndefined()
+    expect(sentence.metadata.payload).toBeUndefined()
+  })
+
+  test('a status value too large for uint32 is refused, not truncated', () => {
+    // 99999999999 does not fit a uint32. Decoding it to `null` and skipping the
+    // status is right; wrapping it into 32 bits would invent a device state.
+    const parser = new NorsubParser()
+    const [sentence] = parser.parseData(nmea('PNORSUB,0,0,0,0,0,0,99999999999'))
+    expect(sentence.id).toBe('PNORSUB')
+    expect(sentence.payload.at(-1)?.value).toBeNull()
+    expect(fieldStatus(sentence)).toBeUndefined()
+    expect(sentence.metadata.payload).toBeUndefined()
+  })
+
+  test('PNORSUB7b with EMPTY halves gets no status at all', () => {
+    // Neither half decodes alone, so a missing half means the whole word is unknown.
+    const parser = new NorsubParser()
+    const body = ['PNORSUB7b', ...Array<string>(23).fill('0'), '', ''].join(',')
+    const [sentence] = parser.parseData(nmea(body))
+    expect(sentence.id).toBe('PNORSUB7b')
+    expect(sentence.payload).toHaveLength(25)
+    expect(sentence.payload.at(-1)?.value).toBeNull()
+    expect(sentence.payload.at(-2)?.value).toBeNull()
+    expect(sentence.metadata.payload).toBeUndefined()
+  })
+
   test('a split status decodes to the same value as the combined one', () => {
     const parser = new NorsubParser()
     const [split] = parser.parseData(pnorsub('PNORSUB7b', 25, ALL_BITS_LOW, ALL_BITS_HIGH))
