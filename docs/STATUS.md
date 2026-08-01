@@ -126,53 +126,129 @@ apply — one buffer carries two framings simultaneously.
 | wrapper | plain JS, `main: index.js` **that does not exist**, mocha | TS + tsup + `node --test`, like septentrio's |
 | version | `0.0.1` / `0.0.2`, never published | **1.0.0** for both (D1) |
 
-## DECISIONS FOR CRU — the plan cannot be executed until these are locked
+## DECISIONS — D1, D2, D5, D6, D8 LOCKED by cru 2026-08-01; D3, D4, D7 still open
 
-**D1 · Version.** Neither package has ever been published. Recommend **1.0.0** for library and wrapper,
-not 2.0.0 — there is no consumer to break, and 1.0.0 is what "first real release" means. Both at the
-same major, per the version policy.
+### ✅ D1 · Version — LOCKED
 
-**D2 · Scope.** Recommend **all 33 class-0 LOG messages** (the 24 implemented + the 9 missing: events
-A–E, out A/B, DIAG, RTCM raw), datasheet-complete the way septentrio did Appendix B — because "the
-knowledge base is complete for this class" is a much stronger claim than "we did the ones we had bytes
-for". **Skip CMD (~40 config commands), class 1 HIGH_FREQ, and THIRD_PARTY** (TSS1, PD0, EM3000, KMB)
-for 1.0.0. See D3 for the NMEA classes.
+**1.0.0** for library and wrapper. cru: "yes, new major (and stable) version". Neither has ever been
+published, so there is no consumer to break; both at the same major, per the version policy.
 
-**D3 · The mixed stream.** Recommend the sbg parser **composes `nmea-parser` and emits NMEA CMAs
-interleaved with eCom CMAs from ONE buffer** — no `protocol` setting, no switch, because the device
-genuinely sends both at once. This is where sbg differs from septentrio and it is the only part of the
-design with no precedent in the repo. `nmea-parser` already knows GGA/RMC/VTG/ZDA/HDT/GST/ROT and norsub
-contributes PHTRO/PHINF, so most of the NMEA_0/NMEA_1 classes come for free. The alternative — treat
-ASCII as garbage — is cheaper but throws away real data the device is sending.
+### ✅ D2 · Scope — LOCKED
 
-**D4 · `id`.** eCom identity is a PAIR (class + message id). Two options: `id = '0:6'` with
-`metadata.name = 'SBG_ECOM_LOG_EKF_EULER'` (septentrio's convention: the id is the wire identity, the
-name is metadata), or `id = 'SBG_ECOM_LOG_EKF_EULER'` (what `docs/CMA.md`'s own example shows, written
-before septentrio existed). **Recommend `'0:6'`** for consistency with the other binary parser, with the
-name in metadata and `'0:6'` still produced for unmodelled ids. cru's call — it is a permanent contract.
+**The proprietary binary protocol (sbgECom) is the focus.** cru: the same relationship norsub has with
+its proprietary NMEA. Concretely: **all class-0 LOG messages, datasheet-complete** — the 24 implemented
+plus the missing ones — and **the large-frame path, which he never implemented** (he did standard frames
+only; see D7, where his model of what that means turns out to be wrong). CMD, HIGH_FREQ and THIRD_PARTY
+stay out for 1.0.0. Whether other protocols ride inside is D3.
 
-**D5 · `protocol.name`.** Recommend **`SBG ECOM`** for binary frames and, if D3 is yes, whatever
-`nmea-parser` reports for standard sentences (`NMEA`) plus **`SBG NMEA`** for the proprietary ones —
-the exact pattern locked for septentrio on 2026-08-01. `protocol.version` = the firmware, `'2.3'`.
+### ⏳ D3 · The mixed stream — OPEN, but the evidence is now conclusive
 
-**D6 · Timestamps.** Device time is µs since power-up, so by the norsub precedent there would be **no**
-`metadata.timestamp.sentence`. But `SBG_ECOM_LOG_UTC_TIME` (id 2) carries **both** the µs stamp and a
-real UTC clock, and it is in the captures (82 frames in `sbg_2000`). Recommend **learning that mapping**
-— exactly as septentrio learns `DeltaLS` from `ReceiverTime` — and using it to convert every later log's
-µs stamp into a true epoch, gated on the UTC status bits (clock valid / stable). Absent a UTC_TIME frame,
-no sentence timestamp is emitted. Whether that value should also be promoted to `cma.timestamp` (as
-septentrio does with GNSS time) is the second half of this decision; recommend **yes**, same reasoning.
+cru asked whether the Ellipse really interleaves binary and NMEA, and recalled that both might start
+with `$`. **They do not: sbgECom syncs on `FF 5A`, NMEA on `$` (0x24)** — there is no shared start flag
+and therefore no ambiguity to resolve.
 
-**D7 · Large frames.** Recommend **exposing page metadata per frame (transmission id, page index, page
-count) and NOT reassembling** — today's code already works that way, and reassembly is parser-local
-state that can be added later without a shape change.
+**Measured, byte-exact, on `sbg_2000.csv`** (149,498 bytes, 2,869 CRC-valid frames):
 
-**D8 · Fixtures.** Recommend the septentrio pattern: **small per-log `.bin` fixtures under
-`tests/fixtures/`, carved from the corpus, committed**, plus committing the healthy `sbg-raw.bin` as a
-full-stream fixture. **Delete `packages/sbg-ecom/tests/sbg.bin`** (0 valid frames — it is not data, it is
-a trap) and either regenerate it or drop it. Do **not** commit 580 KB of CSV; carve a trimmed binary
-corpus that covers all 13 captured log types instead. Requires narrowing `*.bin` in
-`packages/sbg-ecom/.gitignore`.
+```
+prev frame ends @257   ... 09 12 33        <- ETX 0x33
+GGA            @257..341  $GPGGA,093721.00,4024.87314846,N,...*7B\r\n
+next frame     @341       ff 5a 0d 00 2c 00 f8 71
+```
+
+**Gap before the sentence: 0 bytes. Gap after: 0 bytes.** Not one byte of any of the 81 `$GPGGA`
+sentences falls inside a frame span, and **every frame in the whole capture is class 0** — the device
+never wrapped an NMEA sentence in an eCom frame. Of the 7,103 bytes lying outside valid frames,
+essentially all of them ARE those sentences; there is no other junk in the stream.
+
+The manual agrees twice. §2.1.4 on classes `0x02`/`0x03`/`0x04`: *"This class is only used for
+identification purpose and does not contain any sbgECom message"* — the class ids exist so you can
+configure which sentence goes out, not to carry it. And §2.1.1 Note 4: *"Some third party frames are
+available on output and will not comply with this protocol format… It belongs to the user to decode the
+different formats if several protocols are used at the same time."* The datasheet is telling the
+integrator the stream is mixed.
+
+**Recommendation unchanged, now with proof:** compose `nmea-parser`, emit NMEA CMAs interleaved with
+eCom CMAs from ONE buffer, no protocol switch. The logic cost is small — the frame walker already skips
+bytes that are not `FF 5A`; instead of calling them garbage, offer them to the NMEA scanner first.
+
+### ⏳ D4 · `id` — OPEN, cru asked for the difference from septentrio
+
+**Septentrio and sbg are not the same shape.** SBF has ONE 16-bit ID field that packs block number
+(13 bits) + revision (3 bits) — one identity plus a version of that same block. **sbgECom §2.1.1 has TWO
+independent header bytes: `MSG` (1 byte) and `CLASS` (1 byte)**, and there is no revision concept at all.
+`MSG 6` means EKF_EULER in class `0x00` and something entirely different in class `0x02` — the class is
+part of the identity, not a variant of it.
+
+| | septentrio SBF | sbg eCom |
+| --- | --- | --- |
+| header identity | one uint16: number + revision | two bytes: `MSG` + `CLASS` |
+| revision | yes, 3 bits | none |
+| `id` today | `'5938'`, revision in metadata | — |
+
+Three options:
+
+- **A · `'0:6'`** (class:msg) — unambiguous forever, survives adding CMD (`0x10`) or HIGH_FREQ (`0x01`).
+- **B · `'6'`** — msg only, class in metadata. Simplest and fine while class 0 is all we parse, but
+  collides the day class 1 or 0x10 is added, and that would be a breaking change.
+- **C · `'SBG_ECOM_LOG_EKF_EULER'`** — the log name, falling back to `'0:6'` when unknown. Matches the
+  example in `docs/CMA.md`, but the id then changes shape between known and unknown logs, and the names
+  are OUR transcription rather than wire truth.
+
+**Recommend A.** Note that under D3 the NMEA sentences arrive as ordinary nmea-parser CMAs with ids like
+`'GGA'`, so they never collide with the numeric ones either way.
+
+### ✅ D5 · `protocol.name` — LOCKED
+
+**`SBG ECOM`** for binary frames, **`SBG NMEA`** for proprietary sentences, and whatever `nmea-parser`
+reports (`NMEA`) for standard ones — the pattern locked for septentrio on 2026-08-01.
+`protocol.version` = the firmware, `'2.3'`.
+
+### ✅ D6 · Timestamps — LOCKED
+
+cru: *"uptime is not a timestamp for us (the concept), and if the device can tell us, we trust the
+device."* So: **µs-since-power-up is never a timestamp.** Learn the UTC↔uptime mapping from
+`SBG_ECOM_LOG_UTC_TIME` (id 2, present in the captures — 82 frames in `sbg_2000`), exactly as septentrio
+learns `DeltaLS` from `ReceiverTime`, gated on the UTC status bits (clock valid / stable). Every later
+log's µs stamp then converts to a true epoch at `metadata.timestamp.sentence`, and **that value is
+promoted to `cma.timestamp`**, as with NMEA GGA and SBF. With no UTC_TIME frame seen, no sentence
+timestamp is emitted — the raw µs value stays visible in metadata, never dressed up as a clock.
+
+### ⏳ D7 · Large frames — OPEN: cru's model does not match the datasheet
+
+cru: *"large frames are like standard sentences but with a longer payload (more fields) and extra props
+in `cma.metadata` (page id, all pages / count)"*. **§2.1.2 says otherwise on both halves.**
+
+1. **A large frame is flagged by `CLASS` bit 7 being set (`0b1xxxxxxx`, i.e. `0x80`), not by payload
+   size.** The legacy `isLargeFrame(payload.length) => length > 4096` in `src/utils.ts` is therefore
+   wrong twice: wrong signal, and the standard maximum is **4086**, not 4096.
+2. **The DATA of a large frame is not more fields — it is a FRAGMENT.** The datasheet calls it *"the
+   payload part that has to be reassembled by the host"*. Page 1 of 3 is a slice of a byte stream that
+   cuts wherever 4081 bytes fall, possibly mid-field. It cannot be field-decoded on its own; only the
+   reassembled whole can.
+3. Large frames exist **only** for payloads over 4086 bytes, which today means only
+   `SBG_ECOM_CMD_API_GET` / `SBG_ECOM_CMD_API_POST` — the sbgInsRestApi, in the **CMD** class that D2
+   excludes.
+4. ⚠️ **"ELLIPSE Generation 1, 2 and 3 don't use large frame nor the new sbgInsRestApi."** — §2.1.2.1,
+   verbatim. **cru's hardware cannot emit one.** Consistent with the corpus: 0 large frames in 4,594
+   captured frames.
+
+Header layout, for the record: `SYNC1 SYNC2 MSG CLASS|0x80 LEN(2) TXID(1) PAGEIDX(2) NRPAGES(2)
+DATA(0..4081) CRC(2) ETX`, and `LEN` **includes** TX ID + PAGE IDX + NR PAGES.
+
+**Revised recommendation:** implement **detection and framing** (class bit 7, the 5-byte page header,
+correct `LEN` accounting) so the parser never mis-frames one, publish `transmissionId` / `pageIndex` /
+`pages` plus the fragment as opaque bytes in `metadata`, and **decode no fields from a page**. Emit it as
+the "identified but not modelled" tier. Reassembly keyed by TX ID is parser-local state and can be added
+later without any shape change — but it buys nothing until the CMD class is in scope, on hardware that
+does not exist in this fleet.
+
+### ✅ D8 · Fixtures — LOCKED
+
+Septentrio's pattern: small per-log `.bin` fixtures under `tests/fixtures/`, carved from the corpus,
+committed; plus the healthy `sbg-raw.bin` as a full-stream fixture. **Delete
+`packages/sbg-ecom/tests/sbg.bin`** — 320 well-framed frames, 0 CRC-valid; it is not data, it is a trap.
+Do not commit 580 KB of CSV; carve a trimmed binary corpus covering all 13 captured log types. Requires
+narrowing `*.bin` in `packages/sbg-ecom/.gitignore`.
 
 ## The plan, in order
 
