@@ -10,10 +10,11 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01 — **`dev` @ `503637c`, work UNCOMMITTED in the tree: the protocol-naming
-> + NMEA-version overhaul (cru's call, this session) plus cru's own example-flow edits.** See
-> §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" immediately below. Everything is green (nmea-parser is now
-> **135**, not 133). The release PR is still the only thing after it.
+> **Last updated:** 2026-08-01 — **`dev` @ `196d7fa`, tree clean, 6 commits this session and NOT
+> pushed** (`origin/dev` is `2f32d57`; the push is a clean fast-forward). The protocol-naming +
+> NMEA-version overhaul is done and committed — see §"🏷️ PROTOCOL NAMES AND NMEA VERSIONS" immediately
+> below. Everything is green (nmea-parser is now **135**, not 133). **The release PR is the only thing
+> left.**
 >
 > **Previously (2026-07-31, end of session):** `dev` @ `7557769`, tree clean, 13 commits that session.
 > `septentrio-sbf` IS DONE: all 108 SBF blocks + NMEA as a second protocol. ALL FOUR CMA PAIRS
@@ -50,11 +51,21 @@
 > **✅ Branch sync DONE.** `dev` (`a76856b`) already contains the `290a38f` merge commit — nothing to
 > do (only the stale local `main` ref is behind; harmless).
 >
-> # 🏷️ PROTOCOL NAMES AND NMEA VERSIONS (2026-08-01, cru's call — UNCOMMITTED)
+> # 🏷️ PROTOCOL NAMES AND NMEA VERSIONS (2026-08-01, cru's call)
 
-**Not committed yet.** The tree also carries cru's own visual rework of three example flows
-(`norsub-emru`, `septentrio-sbf`, `thelmabiotel-tblive` examples JSON) — his, deliberate, to be
-committed separately. `nmea-parser`'s example flow was not touched.
+**Six commits, `c3d281d` → `196d7fa`, tree clean, nothing pushed.**
+
+| commit | what |
+| --- | --- |
+| `c3d281d` | cru's visual rework of three example flows (norsub-emru, septentrio-sbf, tblive) — layout only, committed on its own so the rest does not bury it |
+| `9865dc8` | **nmea-parser!** — real NMEA revisions, MIROS as a vendor, the 4.10 GSA/GSV forms |
+| `ec97899` | **septentrio-sbf!** — `SEPTENTRIO SBF` / `SEPTENTRIO NMEA` |
+| `7c86858` | septentrio wrapper — the ninth example group |
+| `1dda019` | this section |
+| `196d7fa` | cru's editor nudge aligning the new group |
+
+`nmea-parser`'s example flow was not touched. **No version bumps:** every change lands inside the
+already-bumped, still-unpublished `nmea-parser@6.0.0` and `septentrio-sbf@2.0.0`.
 
 **Why this happened before the release PR, not after:** all four pairs are version-bumped but **not yet
 published**, so `protocol.name` and `protocol.version` could still be changed for free. After the PR
@@ -167,10 +178,9 @@ plain NMEA string as payload (§5), and the release PR itself.
 
 # ⏭️ NEXT SESSION — START HERE (written 2026-07-31, end of session)
 
-**State:** `dev` @ `503637c`, 14 commits ahead of the published `main` (`ef4480b`) and **not yet pushed**
-(`origin/dev` is `2f32d57`; the push is a clean fast-forward). The tree is **no longer clean** — see the
-2026-08-01 section above. Every gate is green, and **the only thing left after that work is the release
-PR.**
+**State:** `dev` @ `196d7fa`, 20 commits ahead of the published `main` (`ef4480b`) and **not yet pushed**
+(`origin/dev` is `2f32d57`; the push is a clean fast-forward). Tree clean, every gate green, and **the
+only thing left is the release PR** — plus the two open questions in the 2026-08-01 section above.
 
 | package | version in tree | on npm | note |
 | --- | --- | --- | --- |
