@@ -10,10 +10,15 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01 — **🎉 THE CMA REFACTOR IS COMPLETE. ALL FIVE DEVICES EMIT CMA.**
-> `sbg-ecom` and its Node-RED wrapper are rebuilt at **1.0.0** (`0e03b30` → `cacae46`), which was the
-> condition cru set for unfreezing the release. **THE ONLY THING LEFT IS THE RELEASE PR** — start at
-> §"🗺️ SBG-ECOM — THE PLAN" → §"⏭️ Phase 5", which has the ordered checklist and a paste-ready prompt.
+> **Last updated:** 2026-08-01 (session ended at a usage limit) — **🎉 THE CMA REFACTOR IS COMPLETE.
+> ALL FIVE DEVICES EMIT CMA.** `sbg-ecom` and its Node-RED wrapper are rebuilt at **1.0.0**, the
+> condition cru set for unfreezing the release.
+>
+> **➡️ NEW AGENT: read §"🤝 HANDOFF — 2026-08-01" IMMEDIATELY BELOW.** It has the exact state, the ONE
+> open decision, the two remaining jobs and a paste-ready prompt. Nothing else in this file needs
+> reading first.
+>
+> **`dev` @ `c47db77`, tree clean, 17 commits ahead of `origin/dev` — NOTHING IS PUSHED.**
 >
 > Gate, measured after rebuilding every library (the wrapper suites run against `dist`):
 > core 43 · nmea 135 · norsub 48 · septentrio 221 · tblive 260 · **sbg 78** ·
@@ -28,6 +33,158 @@
 > dists aside and replaying the steps: `sbg-ecom.yml` had no dependency build, and
 > `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
 > with **no gate at all**, which is how `0.0.2` reached npm untested.
+
+# 🤝 HANDOFF — 2026-08-01, session ended at a usage limit
+
+## Where the tree is
+
+`dev` @ **`c47db77`**, **tree clean**, **17 commits ahead of `origin/dev`**, **nothing pushed**.
+
+| package | library | wrapper | on npm |
+| --- | --- | --- | --- |
+| `nmea-parser` | 6.0.0 | 6.0.0 | 5.0.0 |
+| `norsub-emru` | 6.0.0 | 6.0.0 | 5.0.0 |
+| `thelmabiotel-tblive` | 3.0.0 | 3.0.0 | 2.0.0 |
+| `septentrio-sbf` | 2.0.0 | 2.0.0 | 1.0.1 |
+| `sbg-ecom` | **1.0.0** | **1.0.0** | 0.0.1 / 0.0.2 |
+
+**Re-run the gate before trusting any of the numbers above** — and **build every library first**, because
+the wrapper suites run against `dist`:
+
+```bash
+for p in protocol-core nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:build"; done
+for p in protocol-core nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:test"; done
+for p in nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:nodered:build" && pnpm run "${p}:nodered:test"; done
+pnpm run lint
+for d in packages/*/; do (cd "$d" && npx tsc --noEmit -p tsconfig.json); done
+```
+
+## ⛔ THE ONE OPEN DECISION — ask cru before writing `PASHR`
+
+**`WASSP` (msg 12) is emitted as `$PASHR`, the same wire id as `PASHR` (msg 02)** — same 11 fields, and
+the ONLY difference is the heave SIGN (msg 02 positive down, msg 12 positive up). Nothing in the sentence
+distinguishes them; it is a device CONFIGURATION choice, so a `SentenceResolver` cannot tell them apart
+either — a resolver reads the payload, and the payload is identical in shape.
+
+Two honest options, and cru has not chosen:
+
+- **A (recommended):** model `PASHR` ONCE and state the sign ambiguity in its `description`. Inventing a
+  distinction the wire does not carry would be worse than documenting it.
+- **B:** add a parser option naming which the device is configured for, e.g.
+  `new SBGParser({ heaveSign: 'up' | 'down' })`, and set the field description from it.
+
+Claude put option A to cru and the session ended before he answered. **Do not guess — ask.**
+
+## JOB 1 — the 11 proprietary NMEA sentences (cru: "add it for this version 1.x")
+
+Cleared for **1.0.0**, since it is unpublished. They go in **`sbg-ecom`**, not nmea-parser: each is that
+DEVICE's rendering of a vendor sentence, and the two renderings can legitimately differ — which the
+PHTRO comparison in §"🔍 NMEA CROSS-CHECK" proves.
+
+**Everything you need is in that section's final table**, including field counts already transcribed from
+§3.3 of the manual. Three tables were NOT yet transcribed and must be read from the PDF: **PHOCT (08),
+INDYN (09), GGK (10)**.
+
+`misc/parsers/sbg/datasheets/Ellipse+Ekinox+Apogee+Series+-+Firmware+Manual.pdf`, and the fastest way in:
+
+```bash
+pdftotext -layout "misc/parsers/sbg/datasheets/Ellipse+Ekinox+Apogee+Series+-+Firmware+Manual.pdf" /tmp/sbg.txt
+grep -n '^3\.3\.' /tmp/sbg.txt        # §3.3.11 PHOCT, §3.3.12 INDYN, §3.3.13 GGK
+```
+
+**How to wire them in.** The machinery already exists and is proven — `septentrio-sbf` does exactly this
+for its `$PSSN` family. Copy that shape:
+
+1. Write the definitions as a `ProtocolsFileContent` object in a new
+   `packages/sbg-ecom/src/sbg-nmea.ts`, the way
+   `packages/septentrio-sbf/src/septentrio-nmea.ts` holds `SEPTENTRIO_SENTENCES`.
+2. Register them on the composed parser in `packages/sbg-ecom/src/protocol-nmea.ts` —
+   `SBGNMEAParser` already extends `NMEAParser`, so it is one `this.registerProtocols(...)` call in its
+   constructor. `registerResolvers` is there too if a sentence ever needs one.
+3. `protocol.name` per VENDOR, following the MIROS precedent (a vendor sentence carries the vendor, not
+   `NMEA`): `SBG NMEA` (already a constant — `NMEA_PROTOCOL_NAME` in `src/constants.ts`) for
+   PSBGI/PSBGB, `TELEDYNE RDI` for PRDID, `IXBLUE` for the five PH*/INDYN, `ASHTECH` for PASHR.
+   **Check `GGK` first** — it may simply BE nmea-parser's existing `PTNLGGK` (12 fields), in which case
+   it needs nothing at all.
+4. **`PHINF` deserves a decoder**: its single field is an 8-hex-char 32-bit status word and §3.3.8 gives
+   the full bit table (28 named bits, with 4, 26, 28-30 undefined). Decode it into field metadata the way
+   the eCom status words are decoded — that is the whole value of the sentence. Note SBG's own caveat:
+   the bits are OCTANS definitions and "some status couldn't be directly translated".
+5. **`PHLIN` carries a sign warning worth putting in the descriptions**: §3.3.10 says both sway AND heave
+   are REVERSED relative to SBG's own convention.
+6. Tests: extend `packages/sbg-ecom/tests/nmea.test.ts` (create it — there is no NMEA-specific spec yet;
+   `tests/framing.test.ts` has the one mixed-stream string case). **Use the manual's own printed
+   examples verbatim** — but verify each checksum first, because three of SBG's §3.2 examples are wrong
+   (see the cross-check section). Then update the library README's "not yet in the knowledge base"
+   paragraph, which currently says these are missing.
+
+## JOB 2 — the release PR, which publishes TEN packages
+
+Unchanged and fully written up in §"⏭️ Phase 5" inside §"🗺️ SBG-ECOM — THE PLAN". The freeze condition
+is met. Do **not** open the PR without cru: merging `main` publishes.
+
+Expect one thing on the first push: **`sbg-ecom.yml` and `sbg-ecom-nodered.yml` run with a real test job
+for the first time ever.** Both were broken; both are fixed and were replayed locally from a clean state
+(dists moved aside), but a real runner is a real runner.
+
+## Traps this session paid for — do not rediscover them
+
+- **`tsx` strips types WITHOUT checking them.** A wrapper suite can be 64/64 green with real type errors.
+  `npx tsc --noEmit -p tsconfig.json` inside the wrapper is the only thing that finds them. It caught
+  errors here after the tests passed.
+- **Wrapper suites run against the library's built `dist`.** Build the library first.
+- **A distinct sentinel value matters.** `PENDING = 0` collided with a "nothing here" return of `0` and
+  one byte of binary junk stopped a whole scan dead. The symptom was an 11,776-byte capture arriving as
+  a single buffer-overflow report.
+- **A fake round trip proves the framing, not the field table** — it is built from the same table it is
+  decoded with. Only the datasheet and a real capture catch a wrong table. Physics catches a lot: a
+  stationary IMU reads 1 g, a quaternion is normalised, a geoid undulation near Madrid is ~50 m.
+- **Cross-check a log's field table against the frame LENGTH in a real capture.** Every sbgECom log's
+  `LEN` equals its datasheet "Total size", which is how all 34 tables were validated at once — and how
+  GPS_POS's contradictory offset column was settled.
+- **The same vendor sentence documented by two manufacturers is a free cross-check.** It is what found
+  two wrong roll descriptions in the published `norsub-emru@5.0.0`.
+- **Datasheets are wrong often enough to check by computation**: SBG's ROT examples carry a copy-pasted
+  checksum that matches neither payload; its GGA and RMC examples contradict their own tables; its DIAG
+  field table is self-contradictory. Septentrio's `SNC` example has the same class of error.
+- **`cd` persists between Bash tool calls** — use absolute paths. And in **zsh**, `$p:test` is parsed as
+  the `:t` path modifier: write `"${p}:test"`.
+- **Be surgical with edits to this file.** An over-broad slice deleted three historical sections here
+  today; they were recovered from `HEAD` and verified by diffing the section-header lists. Prefer
+  anchored replacements over line ranges.
+
+## Paste-ready prompt for the next session
+
+```
+Read docs/STATUS.md and start at §"🤝 HANDOFF — 2026-08-01". Do not skim it: it has the exact state,
+one open decision, and two remaining jobs.
+
+State: dev @ c47db77, tree clean, 17 commits ahead of origin/dev, NOTHING PUSHED. The CMA refactor is
+COMPLETE — all five devices are on protocol-core and emit CMA, sbg-ecom and its Node-RED wrapper are
+rebuilt at 1.0.0, and protocol-core was not modified at all (which was the question that froze the
+release). Re-run the gate rather than trusting the numbers, and BUILD EVERY LIBRARY FIRST because the
+wrapper suites run against dist.
+
+JOB 1, and what cru last asked for: add the 11 proprietary NMEA sentences of the SBG manual's §3.3 to
+sbg-ecom, in 1.0.0. §"🔍 NMEA CROSS-CHECK" has the table with field counts already transcribed for 8
+of them; PHOCT, INDYN and GGK still need reading from the PDF. The handoff section says exactly how to
+wire them in — septentrio-sbf/src/septentrio-nmea.ts is the working precedent.
+
+⛔ BEFORE WRITING PASHR, ASK CRU. WASSP (msg 12) goes out as $PASHR, the same id and the same 11
+fields as PASHR (msg 02), differing ONLY in heave sign — a device configuration choice that nothing in
+the sentence records, so no resolver can separate them. Claude recommended modelling PASHR once and
+documenting the ambiguity; cru had not answered when the session ended.
+
+JOB 2: the release PR, which publishes TEN packages. §"⏭️ Phase 5" has the ordered checklist. Do not
+open it or push without cru — merging main publishes.
+
+Working method cru expects: discuss decisions before coding, one step at a time; this repo feeds the
+Tracker product, so output-format changes are breaking changes; and update docs/STATUS.md in the SAME
+turn as any meaningful change, not at the end. He reads carefully and pushes back — when he says
+something is wrong, MEASURE it again rather than re-running the same grep. Several of this session's
+best findings came from him asking for a check Claude had not thought to run.
+```
+
 >
 > **Previously (2026-08-01, earlier):** **`dev` is PUSHED and clean.** The protocol-naming +
 > NMEA-version overhaul is done (§"🏷️ PROTOCOL NAMES AND NMEA VERSIONS"), septentrio's CI break is
