@@ -18,7 +18,7 @@
 npm i @coremarine/septentrio-sbf
 ```
 
-Ships ESM + CJS + types. Runs on node, deno, bun and the web: there are no `node:*` imports and no `Buffer` in the parse path — input is a `Uint8Array` and every `raw` is Base64. Requires Node `>=22`.
+Ships ESM + CJS + types. Runs on node, deno, bun and the web: there are no `node:*` imports and no `Buffer` in the parse path — input is a `Uint8Array` (or, on the `nmea` protocol, the sentence as a `string`) and every `raw` is Base64. Requires Node `>=22`.
 
 ## How to use it
 
