@@ -138,10 +138,12 @@ it directly:
 pnpm run septentrio-sbf:nodered:examples
 ```
 
-Eight groups, **every frame a real one from a Septentrio receiver**: decoded blocks (AttEuler,
+Nine groups, **every frame a real one from a Septentrio receiver**: decoded blocks (AttEuler,
 PVTGeodetic, ReceiverTime), the Do-Not-Use case, failed and garbage input (a corrupted CRC, line
-noise), memory with a frame split in two, firmware and protocol channels, diagnostics, and fake
-frames. It uses **only built-in node types**, so it imports cleanly with no extra contrib nodes.
+noise), memory with a frame split in two, firmware and protocol channels, diagnostics, fake
+frames, and **both protocols on one node** — switch to `nmea`, then feed it a proprietary `$PSSN`
+sentence and a standard one to see `SEPTENTRIO SBF` / `SEPTENTRIO NMEA` / `NMEA` in the output.
+It uses **only built-in node types**, so it imports cleanly with no extra contrib nodes.
 
 Every inject was verified by booting a real Node-RED against the flow file and firing it — fire
 *ReceiverTime* and then *firmware: get* to watch `leapSeconds` appear, learned from the device.
