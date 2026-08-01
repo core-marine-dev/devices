@@ -10,19 +10,19 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01, later session — **🎉 THE CMA REFACTOR IS COMPLETE, AND §3.3 IS IN.**
-> All five devices emit CMA; `sbg-ecom` now also models eight of the proprietary NMEA sentences of the
-> manual's §3.3 (§"✅ §3.3 IS IN").
+> **Last updated:** 2026-08-01, release session — **🚀 THE RELEASE IS GOING OUT.** cru gave the word:
+> push `dev`, open the PR, merge. Merging `main` publishes **TEN packages** to npm.
 >
-> **➡️ NEW AGENT: read §"🤝 HANDOFF — 2026-08-01" IMMEDIATELY BELOW.** It has the exact state and what
-> is left, which is now ONLY the release. Nothing else in this file needs reading first.
+> **➡️ NEW AGENT: read §"🚀 THE RELEASE" and then §"🤝 HANDOFF — 2026-08-01".** Between them they have
+> the whole state. Nothing else in this file needs reading first.
 >
-> **⛔ cru's standing rule, set this session: DO NOT PUBLISH ANYTHING until he says "publish" — and
-> that includes `git push` and OPENING the PR, not just the merge.** Local work is fine.
+> **🎉 THE CMA REFACTOR IS COMPLETE, AND §3.3 IS IN.** All five devices emit CMA; `sbg-ecom` also models
+> all nine modelled proprietary NMEA sentences of the manual's §3.3 (§"✅ §3.3 IS IN").
 >
-> **`dev` is CLEAN and 22 commits ahead of `origin/dev` — NOTHING IS PUSHED.** The §3.3 work is
-> committed: `13fac20` (the norsub near-miss), `3d60da2` (the nine sentences), `2c1b61e` + this one
-> (docs).
+> **⛔ THE STANDING RULE STILL APPLIES TO THE NEXT PIECE OF WORK.** cru authorised THIS release
+> explicitly and in order (comment → commit → push → PR → merge). That consent does not carry forward:
+> the next change waits for him to say "publish" again, and that includes `git push` and OPENING a PR,
+> not just the merge.
 >
 > Gate re-run from scratch this session (builds first — the wrapper suites run against `dist`):
 > **45 steps, exit 0.** core 43 · nmea 135 · norsub **55** · septentrio 221 · tblive 260 · **sbg 112**
@@ -45,6 +45,49 @@
 > dists aside and replaying the steps: `sbg-ecom.yml` had no dependency build, and
 > `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
 > with **no gate at all**, which is how `0.0.2` reached npm untested.
+
+# 🚀 THE RELEASE — TEN PACKAGES (2026-08-01, cru gave the word)
+
+`dev` → `main`. Merging `main` runs the eleven workflows' publish jobs, and each publishes if and only
+if its `name@version` is not already on npm — so exactly these ten go out:
+
+| package | from | to | why the major |
+| --- | --- | --- | --- |
+| `nmea-parser` + wrapper | 5.0.0 | **6.0.0** | `Result` errors became arrays; fakes idempotent; `protocol` selects a definition |
+| `norsub-emru` + wrapper | 5.0.0 | **6.0.0** | the same, plus delegated introspection |
+| `thelmabiotel-tblive` + wrapper | 2.0.0 | **3.0.0** | `string[]` → `ParserError[]` |
+| `septentrio-sbf` + wrapper | 1.0.1 | **2.0.0** | the CMA rewrite + NMEA as a second protocol |
+| `sbg-ecom` + wrapper | 0.0.1 / 0.0.2 | **1.0.0** | the CMA rewrite; first stable release |
+
+`protocol-core` is `private` and stays unpublished; its workflow has no publish job.
+
+**What a consumer has to change** is in each package's README under *Upgrading from …* — written for
+this release, all four that were missing one. The breaks that compile and run silently, which is why the
+majors exist: `.error.message` on a failed `Result` now reads `undefined`; tblive's `error.join('; ')`
+yields `[object Object]`; `getFakeSentence` returns the same string every call; and `sbg-ecom` changed
+completely (CMA output, `parseData()` instead of `getFrames()`, ids like `'0:6'`).
+
+**Verified immediately before the push** — measured, not assumed:
+
+- full gate **exit 0**: core 43 · nmea 135 · norsub 55 · septentrio 221 · tblive 260 · sbg 112 ·
+  wrappers 28 / 37 / 66 / 45 / 64 · repo-wide `eslint` clean · `tsc --noEmit` clean in all eleven
+- all **11 workflows replayed** from a wiped `dist/`, with the commands read out of the workflow files
+- `pnpm audit`: **no known vulnerabilities**
+- all ten tarballs pack README + LICENSE + package.json + `dist/` and nothing else — no `_cred.json`,
+  no `.backup`, no `.env`, no source maps
+- coverage enforced at 80% in all six libraries, and every package clears it
+
+**Trusted publishing:** cru confirmed every package except `protocol-core` has a GitHub trusted
+publisher configured on npmjs.com. That was the one open risk — four packages had never published
+through OIDC (no provenance attestations, last released May 2024) — and it is closed.
+
+**After the merge, verify against npm rather than the workspace:** in an empty temp dir, `npm i` each
+wrapper and check its library resolved to the MATCHING major. That check has caught a real packing leak
+twice.
+
+**Then the flow-library entries, which are cru's manual step** — remind him, do not attempt it:
+`sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are NEW listings; the other three need
+refreshing for their new majors.
 
 # 🤝 HANDOFF — 2026-08-01, session ended at a usage limit
 

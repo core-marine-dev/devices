@@ -6,8 +6,8 @@ details live in small docs under [`docs/`](docs/README.md); add/update those ins
 ## Read first
 
 1. **[`docs/STATUS.md`](docs/STATUS.md)** — living handoff log: where work stands, next steps,
-   uncommitted-work triage. **Read it before touching anything, and keep it updated in the same
-   turn as any meaningful change** (its maintenance rule applies to you).
+   uncommitted-work triage. **Read it first, and update it in the same turn as any meaningful
+   change** (its maintenance rule applies to you).
 2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — what this repo is and how it's laid out.
 3. [`docs/PACKAGES.md`](docs/PACKAGES.md) — per-package state and known issues.
 
@@ -20,11 +20,11 @@ of the Tracker telemetry product, so output shapes are contracts. The deep refac
 is **COMPLETE: ALL FIVE DEVICES emit CMA** (2026-08-01). A library and its wrapper share a major
 (see `docs/STATUS.md` §"VERSION POLICY").
 
-In tree → on npm: `nmea-parser` and `norsub-emru` 6.0.0 → 5.0.0 · `thelmabiotel-tblive` 3.0.0 → 2.0.0 ·
-`septentrio-sbf` 2.0.0 → 1.0.1 · `sbg-ecom` 1.0.0 → 0.0.1. **NOTHING IS LEFT BUT THE RELEASE PR**
-(`dev` → `main`), which publishes TEN packages. The two BINARY parsers (`septentrio-sbf`, `sbg-ecom`)
-work differently from the text ones — `BinaryParser`, Base64 `raw`, length-prefixed framing with a
-CRC — so text-protocol habits do not transfer to them.
+**The 2026-08-01 release shipped TEN packages**: `nmea-parser` + `norsub-emru` 6.0.0, `tblive` 3.0.0,
+`septentrio-sbf` 2.0.0, `sbg-ecom` 1.0.0, each with its wrapper at the same major; `protocol-core` is
+`private`. Verify with `npm view`, don't trust this line. ⛔ **Publishing needs cru's word EACH time** —
+`git push` and opening a PR count, not just the merge. The two BINARY parsers (`septentrio-sbf`,
+`sbg-ecom`) differ from the text ones — `BinaryParser`, Base64 `raw`, length-prefixed framing, CRC.
 
 ## Docs map
 
