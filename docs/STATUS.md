@@ -10,11 +10,16 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01, release session — **🚀 THE RELEASE IS GOING OUT.** cru gave the word:
-> push `dev`, open the PR, merge. Merging `main` publishes **TEN packages** to npm.
+> **Last updated:** 2026-08-01, release session — **🎉 THE RELEASE IS OUT. TEN PACKAGES ARE LIVE ON
+> npm**, verified from a clean `npm i` and not from the workspace. PR
+> [#77](https://github.com/core-marine-dev/devices/pull/77), merge commit `e71f979`.
 >
 > **➡️ NEW AGENT: read §"🚀 THE RELEASE" and then §"🤝 HANDOFF — 2026-08-01".** Between them they have
 > the whole state. Nothing else in this file needs reading first.
+>
+> **⏭️ THE ONE THING STILL OPEN is cru's manual step: the Node-RED flow-library entries.**
+> `sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are NEW listings; nmea, norsub and tblive
+> need refreshing for their new majors. Nothing in this repo can do it.
 >
 > **🎉 THE CMA REFACTOR IS COMPLETE, AND §3.3 IS IN.** All five devices emit CMA; `sbg-ecom` also models
 > all nine modelled proprietary NMEA sentences of the manual's §3.3 (§"✅ §3.3 IS IN").
@@ -46,10 +51,26 @@
 > `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
 > with **no gate at all**, which is how `0.0.2` reached npm untested.
 
-# 🚀 THE RELEASE — TEN PACKAGES (2026-08-01, cru gave the word)
+# 🚀 THE RELEASE — ✅ DONE, TEN PACKAGES LIVE (2026-08-01)
 
-`dev` → `main`. Merging `main` runs the eleven workflows' publish jobs, and each publishes if and only
-if its `name@version` is not already on npm — so exactly these ten go out:
+**Shipped.** PR [#77](https://github.com/core-marine-dev/devices/pull/77) `dev` → `main`, merge commit
+`e71f979`, merged 2026-08-01 16:30 UTC. All 11 workflows green on `dev` at `85b2acb` AND on `main`
+after the merge.
+
+**Verified from npm, not the workspace** — the check that has caught a real packing leak twice. In an
+empty directory, `npm i` of all five wrappers:
+
+- every wrapper resolved its library to the **matching major** (6/6, 6/6, 3/3, 2/2, 1/1)
+- `@coremarine/protocol-core` is **not installed** — only the ten public packages appear
+- **no `_cred.json`, no `.backup`, no `.env`, no source maps** anywhere in the installed tarballs
+- the published `nmea-parser` genuinely works: parses a `$GPGGA` to `protocol NMEA 4.11`, 14 fields,
+  `sentenceIds.length === 28`
+- **`js-yaml` resolved to 5.2.3 for a real consumer** — proof the HIGH advisory fix (GHSA-52cp-r559-cp3m)
+  actually reached consumers, which is the whole point of moving it out of a repo-local override and
+  into the published range
+
+Each workflow's publish job checks npm for its exact `name@version` and no-ops if it is already there,
+so a re-run cannot republish. These ten went out:
 
 | package | from | to | why the major |
 | --- | --- | --- | --- |
@@ -78,14 +99,13 @@ completely (CMA output, `parseData()` instead of `getFrames()`, ids like `'0:6'`
 - coverage enforced at 80% in all six libraries, and every package clears it
 
 **Trusted publishing:** cru confirmed every package except `protocol-core` has a GitHub trusted
-publisher configured on npmjs.com. That was the one open risk — four packages had never published
-through OIDC (no provenance attestations, last released May 2024) — and it is closed.
+publisher configured on npmjs.com — and the release proved it: `septentrio-sbf`, `septentrio-sbf-nodered`,
+`sbg-ecom` and `sbg-ecom-nodered` had never published through OIDC before (no provenance attestations,
+last released May 2024) and all four published cleanly. **`sbg-ecom` and `sbg-ecom-nodered` also ran a
+real test job for the first time ever** — both workflows were previously broken, and the wrapper's
+publish job had its `needs: test` gate commented out, which is how an untested `0.0.2` reached npm.
 
-**After the merge, verify against npm rather than the workspace:** in an empty temp dir, `npm i` each
-wrapper and check its library resolved to the MATCHING major. That check has caught a real packing leak
-twice.
-
-**Then the flow-library entries, which are cru's manual step** — remind him, do not attempt it:
+**⏭️ STILL OPEN — the flow-library entries, cru's manual step.** Remind him, do not attempt it:
 `sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are NEW listings; the other three need
 refreshing for their new majors.
 
