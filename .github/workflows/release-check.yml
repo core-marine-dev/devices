@@ -1,0 +1,48 @@
+name: release-check
+
+# Proves every PUBLIC package works as a consumer gets it — from its packed tarball, in a
+# clean npm AND a clean pnpm folder — before anything can reach npm. Merging to `main` is
+# what publishes, so this runs on every PR into `main`; make it a REQUIRED status check in
+# the branch protection rule for `main` (a GitHub setting — nothing in the repo can force it).
+#
+# It exists because @coremarine/sbg-ecom@1.0.0 shipped a dist that imported the private,
+# unpublished @coremarine/protocol-core: green in every workspace test (pnpm links the core
+# there), broken for every consumer. See scripts/release-check.mjs.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  release-check:
+    name: 📦 Release check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 👍 Checkout
+        uses: actions/checkout@v7
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: ❇️ Setup node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - name: 📥 Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Every tarball is packed from `dist/`, which is gitignored: build the whole chain in
+      # dependency order — the core, then nmea-parser, then the libraries that compose it,
+      # then every wrapper.
+      - name: 🛠️ Build everything
+        run: |
+          for p in protocol-core nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:build"; done
+          for p in nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:nodered:build"; done
+
+      - name: 🔬 Release check
+        run: pnpm run release:check

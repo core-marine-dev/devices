@@ -8,12 +8,14 @@
   "homepage": "https://github.com/core-marine-dev/devices/tree/main/packages/TODO:",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/core-marine-dev/devices.git"
+    "url": "git+https://github.com/core-marine-dev/devices.git",
+    "directory": "packages/TODO:"
   },
   "bugs": {
     "url": "https://github.com/core-marine-dev/devices/issues"
   },
   "keywords": [
+    "cma",
     "TODO:"
   ],
   "type": "module",
@@ -36,32 +38,19 @@
     "dist"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">=22"
   },
   "scripts": {
-    "build": "tsup",
-    "lint": "ts-standard",
-    "format": "ts-standard --fix",
+    "build": "pnpm run format && tsup",
+    "lint": "eslint",
+    "format": "eslint --fix",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-  },
-  "peerDependencies": {
-    "valibot": ">=0.30.0"
+    "valibot": "1.5.0"
   },
   "devDependencies": {
-  },
-  "ts-standard": {
-    "ignore": [
-      "tests",
-      "vitest.config.ts",
-      "tsup.config.ts"
-    ]
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "project": "./tsconfig.json"
-    }
+    "@coremarine/protocol-core": "workspace:*"
   }
 }
