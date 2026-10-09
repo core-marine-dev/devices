@@ -5,7 +5,9 @@ The whole repository it is an opinionated monorepository:
 - [pnpm workspaces](https://pnpm.io/workspaces) to manage monorepo:
     - Fast, disk-efficient, strict node_modules isolation
     - Supply-chain hardened: dependency build scripts denied by default (`strictDepBuilds`
-      + `allowBuilds` in `pnpm-workspace.yaml`)
+      + `allowBuilds` in `pnpm-workspace.yaml`), a 7-day release cooldown (`minimumReleaseAge`)
+    - **EXACT versions only** — never `^`, `~`, `>=` or a peer dependency; internal links are
+      `workspace:*`. See [`docs/TOOLING.md`](docs/TOOLING.md) §"Exact pins".
 - Schema validation to guarantee runtime type checking
     - Type validation in TypeScript is only true at devtime not in runtime so it is necessary a schema validator
     - Before was [Zod](https://zod.dev/), now is [Valibot](https://valibot.dev/), then who knows
@@ -57,6 +59,12 @@ New packages will be publish when a pull request into `main` branch is accepted.
 7. Start with your library by coding in `src` and testing in `tests`
 8. Link your new library in the global / monorepo README
 
+⚠️ **The private `@coremarine/protocol-core` must be a `devDependency` AND bundled** — the template's
+`tsup.config.ts` does both (`noExternal` for the JS, `dts.resolve` for the types). Never move it to
+`dependencies`: that is how `sbg-ecom@1.0.0` reached npm with a dist importing a package that does not
+exist there, while every workspace test stayed green. `pnpm run release:check` catches it. The
+template's example `src/` still predates the CMA format — model a new device on a real package's src.
+
 ### How to create a NodeRED component
 
 The reference implementation is [`packages/nmea-parser-nodered`](packages/nmea-parser-nodered) —
@@ -70,7 +78,7 @@ incompatible with node-red 5).
 2. Look for the keyword `TODO:` throughout that folder — each marks something to set up.
 3. `package.json`: set `name` (`@coremarine/<your-library>-nodered`), `description`, `homepage`,
    `keywords`, `node-red.nodes.cma-<your-component>` (-> `dist/parser.js`), and
-   `dependencies.@coremarine/<your-library>: workspace:^`.
+   `dependencies.@coremarine/<your-library>: workspace:*` (packs as the exact library version).
 4. Add proxy scripts to the monorepo `package.json`: `<your-library>:nodered:build`,
    `<your-library>:nodered:test`, `<your-library>:nodered:dev`, `<your-library>:nodered:examples`,
    `<your-library>:nodered:ci:local`.

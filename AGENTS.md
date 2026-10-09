@@ -20,11 +20,11 @@ of the Tracker telemetry product, so output shapes are contracts. The deep refac
 is **COMPLETE: ALL FIVE DEVICES emit CMA** (2026-08-01). A library and its wrapper share a major
 (see `docs/STATUS.md` §"VERSION POLICY").
 
-**The 2026-08-01 release shipped TEN packages**: `nmea-parser` + `norsub-emru` 6.0.0, `tblive` 3.0.0,
-`septentrio-sbf` 2.0.0, `sbg-ecom` 1.0.0, each with its wrapper at the same major; `protocol-core` is
-`private`. Verify with `npm view`, don't trust this line. ⛔ **Publishing needs cru's word EACH time** —
-`git push` and opening a PR count, not just the merge. The two BINARY parsers (`septentrio-sbf`,
-`sbg-ecom`) differ from the text ones — `BinaryParser`, Base64 `raw`, length-prefixed framing, CRC.
+**Ten packages are on npm** (5 libs + wrappers; `protocol-core` is `private` and BUNDLED into each lib);
+`sbg-ecom@1.0.0` is BROKEN there, fixed in the 1.0.1 round — see `docs/STATUS.md`. **EXACT pins only**:
+no `^`/`~`/peers, internal links `workspace:*`, 7-day cooldown (`docs/TOOLING.md` §"Exact pins"); run
+`pnpm run release:check` before any release. ⛔ **Publishing needs cru's word EACH time** — `git push`
+and opening a PR count. The BINARY parsers (`septentrio-sbf`, `sbg-ecom`) use `BinaryParser` + CRC.
 
 ## Docs map
 

@@ -15,9 +15,12 @@ import { fileURLToPath } from 'node:url'
 // Minors stay independent: an additive library release often needs no wrapper change,
 // and a wrapper-only feature should not drag the library into a pointless release.
 //
-// The MECHANISM is the `workspace:^` dependency, which pnpm packs as `^<library
-// version>` — resolving to that major and never the next one. `latest` or `*` would
-// break exactly this, letting a wrapper at N.x pull a library at (N+1).x.
+// The MECHANISM is the `workspace:*` dependency, which pnpm packs as the EXACT library
+// version (e.g. `6.0.1`) — so a published wrapper runs against precisely the library it
+// was tested with, which also pins the major. (Until 2026-10-09 this was `workspace:^`,
+// packed as `^<version>`; cru moved every dependency to exact pins for supply-chain
+// reasons — see docs/TOOLING.md.) A bare `latest` or `*` range would break exactly
+// this, letting a wrapper at N.x pull a library at (N+1).x.
 //
 // This test is the guard: bump one major without the other and it fails here.
 
@@ -42,9 +45,9 @@ describe('wrapper / library version correlation', () => {
     )
   })
 
-  test('the dependency is declared `workspace:^`, which is what enforces it once packed', () => {
+  test('the dependency is declared `workspace:*`, which packs as the exact library version', () => {
     const dependencies = wrapper.dependencies as Record<string, string>
-    assert.equal(dependencies[LIBRARY], 'workspace:^')
+    assert.equal(dependencies[LIBRARY], 'workspace:*')
   })
 
   test('the library is the one this wrapper claims to wrap', () => {

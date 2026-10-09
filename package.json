@@ -34,7 +34,7 @@
     "typescript"
   ],
   "type": "module",
-  "packageManager": "pnpm@11.18.0",
+  "packageManager": "pnpm@12.8.2",
   "scripts": {
     "protocol-core:lint": "pnpm --filter @coremarine/protocol-core run lint",
     "protocol-core:format": "pnpm --filter @coremarine/protocol-core run format",
@@ -103,24 +103,23 @@
     "thelmabiotel-tblive:nodered:examples": "pnpm --filter @coremarine/thelmabiotel-tblive-nodered run examples",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "act:list": "gh act -l"
+    "act:list": "gh act -l",
+    "release:check": "node scripts/release-check.mjs"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "5.10.0",
-    "@types/node": "26.1.2",
-    "@vitest/coverage-v8": "4.1.10",
-    "eslint": "10.8.0",
-    "eslint-plugin-perfectionist": "5.10.0",
-    "eslint-plugin-sonarjs": "4.2.0",
-    "js-yaml": "^5.2.3",
-    "node-red": "5.0.4",
+    "@types/node": "26.6.4",
+    "@vitest/coverage-v8": "5.0.3",
+    "eslint": "10.11.0",
+    "eslint-plugin-perfectionist": "5.12.1",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "js-yaml": "5.4.2",
+    "node-red": "5.0.7",
     "node-red-node-test-helper": "0.3.6",
     "tsup": "8.5.1",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.65.0",
-    "vitest": "4.1.10"
-  },
-  "peerDependencies": {
-    "valibot": "1.4.2"
+    "typescript-eslint": "8.71.0",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
   }
 }

@@ -10,11 +10,27 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-08-01, release session — **🚀 THE RELEASE IS GOING OUT.** cru gave the word:
-> push `dev`, open the PR, merge. Merging `main` publishes **TEN packages** to npm.
+> **Last updated:** 2026-10-09 — **🔧 THE 1.0.1 ROUND IS BUILT, GATED AND COMMITTED LOCALLY; NOTHING IS
+> PUSHED.** `@coremarine/sbg-ecom@1.0.0` on npm is BROKEN (its dist imports the private, unpublished
+> `protocol-core`). Fixing it grew, on cru's word, into a ten-package patch round: sbg-ecom aligned with
+> its siblings, **every dependency pinned EXACTLY**, valibot 1.5.0, pnpm 12, vitest 5, a 7-day release
+> cooldown, and a release check that installs every package from its packed tarball.
+>
+> **➡️ NEW AGENT: read §"🔧 THE 1.0.1 ROUND" first.** It has the state, the evidence and the publish plan.
+> ⛔ It waits for cru's "publish" — that covers `git push` and opening the PR, not only the merge.
+>
+> *Previous header (2026-08-01) kept below for history.*
+>
+> **Last updated:** 2026-08-01, release session — **🎉 THE RELEASE IS OUT. TEN PACKAGES ARE LIVE ON
+> npm**, verified from a clean `npm i` and not from the workspace. PR
+> [#77](https://github.com/core-marine-dev/devices/pull/77), merge commit `e71f979`.
 >
 > **➡️ NEW AGENT: read §"🚀 THE RELEASE" and then §"🤝 HANDOFF — 2026-08-01".** Between them they have
 > the whole state. Nothing else in this file needs reading first.
+>
+> **⏭️ THE ONE THING STILL OPEN is cru's manual step: the Node-RED flow-library entries.**
+> `sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are NEW listings; nmea, norsub and tblive
+> need refreshing for their new majors. Nothing in this repo can do it.
 >
 > **🎉 THE CMA REFACTOR IS COMPLETE, AND §3.3 IS IN.** All five devices emit CMA; `sbg-ecom` also models
 > all nine modelled proprietary NMEA sentences of the manual's §3.3 (§"✅ §3.3 IS IN").
@@ -46,10 +62,108 @@
 > `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
 > with **no gate at all**, which is how `0.0.2` reached npm untested.
 
-# 🚀 THE RELEASE — TEN PACKAGES (2026-08-01, cru gave the word)
+# 🔧 THE 1.0.1 ROUND — 2026-10-09 — READY, NOT PUBLISHED
 
-`dev` → `main`. Merging `main` runs the eleven workflows' publish jobs, and each publishes if and only
-if its `name@version` is not already on npm — so exactly these ten go out:
+## What broke
+
+Found from Tracker v3: a clean `npm i @coremarine/sbg-ecom@1.0.0` + `import()` fails with
+`ERR_MODULE_NOT_FOUND … @coremarine/protocol-core`. Every library extends a core class (`SBGParser
+extends BinaryParser`), and since the core is private every library must BUNDLE it: tsup
+`noExternal` (JS) + `dts.resolve` (types), core as a `devDependency`. nmea-parser, tblive and
+septentrio-sbf each changed their tsup config during their CMA rewrite; sbg-ecom's rewrite (`d81fb2e`)
+put the core under `dependencies` and never touched `tsup.config.ts` (last changed `c60fa18`,
+2024-05-22) — so tsup left a plain `import` of the core in `dist/`. In the workspace pnpm links the
+core, so all 112 + 64 tests, `tsc` and the August CI replay were green. The August post-publish check
+imported nmea-parser only.
+
+Fixing it surfaced a second bug: once the core's types are inlined, the `.d.ts` imports
+`@schemasjs/validator`, which sbg-ecom never declared — under pnpm the CMA types silently became `any`
+(sbg-ecom-nodered `tsc`: TS7006). septentrio-sbf 2.0.0 ships the same latent gap. Both now declare it.
+
+## What changed (all ten packages get a patch)
+
+| package | library | wrapper |
+| --- | --- | --- |
+| `nmea-parser` | 6.0.0 → **6.0.1** | 6.0.0 → **6.0.1** |
+| `norsub-emru` | 6.0.0 → **6.0.1** | 6.0.0 → **6.0.1** |
+| `thelmabiotel-tblive` | 3.0.0 → **3.0.1** | 3.0.0 → **3.0.1** |
+| `septentrio-sbf` | 2.0.0 → **2.0.1** | 2.0.0 → **2.0.1** |
+| `sbg-ecom` | 1.0.0 → **1.0.1** | 1.0.0 → **1.0.1** |
+
+- **sbg-ecom aligned with septentrio-sbf**: `noExternal` + `dts.resolve` + `platform: 'neutral'`, core
+  as devDependency, `@schemasjs/validator` declared; its tsup config is now identical to septentrio's.
+- **EXACT pins everywhere** (cru's decision; `docs/TOOLING.md` §"Exact pins"): published deps,
+  devDependencies, overrides, `packageManager`. Internal links `workspace:^` → **`workspace:*`** (packs
+  exact → lockstep releases). The five wrapper `version.unit.test.ts` guards now assert `workspace:*`.
+- **No peers in any published package**: norsub-emru's exact `valibot: 1.4.2` peer (a guaranteed
+  `ERESOLVE` for anyone on 1.5.0) is now a regular `valibot: 1.5.0` dep, as in nmea-parser and tblive.
+  The unused root `valibot` peer (2024) is gone; the core's peer became a dep.
+- **valibot 1.5.0** everywhere. `@schemasjs/*` stay 2.0.5 / 1.1.1 — 2.0.6 / 1.1.2 were 6.7 days old.
+- **norsub-emru** gets the same `noExternal`/`dts.resolve`/`platform` settings: no-ops today (it reaches
+  the core only through nmea-parser's exports), a guard for any future direct core import.
+- **Tooling**: pnpm **12.8.2** (Rust rewrite, same settings/lockfile; `action-setup@v6` supports it),
+  vitest **5.0.3** + explicit `vite` 8.3.2 (now a required peer), eslint 10.11.0, typescript-eslint
+  8.71.0 (still caps TS at <6.1 — TS 7 still blocked), node-red 5.0.7, js-yaml 5.4.2, tsx 4.23.15,
+  @types/node 26.6.4, perfectionist 5.12.1, sonarjs 4.2.2. **`minimumReleaseAge: 10080`** (7 days); the
+  js-yaml cooldown exclusion is gone.
+- **Audit 36 → 1**: 36 new advisories since August, ALL dev-only (node-red / eslint / vite paths).
+  Closed with exact overrides chosen as newest same-major fix ≥ 7 days old. The one left,
+  `http-cache-semantics` (HIGH, ← got ← node-red), has a single fix (4.3.0) that clears the cooldown
+  **2026-10-11** — add `http-cache-semantics: '4.3.0'` to the overrides then, or try node-red 5.0.8.
+- **Release check**: `scripts/release-check.mjs` + `pnpm run release:check` + `.github/workflows/
+  release-check.yml` (PR → `main`). Packs every public package, checks each tarball (exact deps, no
+  peers, no private import, file allowlist), installs all ten into clean npm AND pnpm folders, and
+  proves `import()` + `require()` + fake → parse per parser, wrapper node registration, versions under
+  test, and a consumer `tsc --strict` with no `any`. ⚠️ cru: make it a **required status check** on
+  `main` in GitHub's branch protection, or it only reports.
+- **Templates**: workflow templates regenerated from tblive's (they were on Node 18/20); library
+  template `package.json` + `tsup.config.ts` rebuilt (exact pins, core bundled). Its example `src/` still
+  predates CMA — a later job.
+
+## Evidence (2026-10-09, all from scratch)
+
+- **Gate, exit 0:** builds; core 43 · nmea 135 · norsub 55 · septentrio 221 · tblive 260 · sbg 112 ·
+  wrappers 28 / 37 / 66 / 45 / 64 · repo-wide eslint clean · `tsc --noEmit` clean in all eleven ·
+  `pnpm install --frozen-lockfile` clean under pnpm 12.8.2.
+- **`pnpm run release:check` → ✅ 10 packages pass**, npm and pnpm consumers.
+- **Negative proof:** `pnpm run release:check -- --registry @coremarine/sbg-ecom@1.0.0
+  @coremarine/sbg-ecom-nodered@1.0.0` → **19 failures, exit 1** (dist imports, `import()`, `require()`,
+  wrapper load, `any` types — under npm AND pnpm). The check would have stopped 1.0.0.
+- `npm` consumer: the PUBLISHED `sbg-ecom-nodered@1.0.0` (`^1.0.0`) resolves `sbg-ecom@1.0.1`. A pnpm
+  consumer will too once 1.0.1 is on the registry — re-check after publishing.
+- Upstream, not ours: `@schemasjs/validator` 2.0.5 and 2.0.6 `.d.ts` fail `skipLibCheck: false`
+  (TS2307 `zod`, TS2314) with either valibot — invisible to the usual `skipLibCheck: true`.
+
+## Publish plan (waits for cru's "publish", step by step)
+
+1. `git push origin dev` — `dev` carries `f172712` (docs, 2026-08-01) + this round's commits.
+2. PR `dev` → `main`. `release-check.yml` runs on it for the first time.
+3. Merge → the per-package workflows publish all ten (each no-ops if its version already exists).
+4. After publish: `pnpm run release:check -- --registry` with the ten new versions; tell Tracker v3 to
+   move to `@coremarine/sbg-ecom@1.0.1`.
+5. Still cru's manual steps: the Node-RED flow-library entries (pending since August), and the
+   required-status-check setting.
+
+# 🚀 THE RELEASE — ✅ DONE, TEN PACKAGES LIVE (2026-08-01)
+
+**Shipped.** PR [#77](https://github.com/core-marine-dev/devices/pull/77) `dev` → `main`, merge commit
+`e71f979`, merged 2026-08-01 16:30 UTC. All 11 workflows green on `dev` at `85b2acb` AND on `main`
+after the merge.
+
+**Verified from npm, not the workspace** — the check that has caught a real packing leak twice. In an
+empty directory, `npm i` of all five wrappers:
+
+- every wrapper resolved its library to the **matching major** (6/6, 6/6, 3/3, 2/2, 1/1)
+- `@coremarine/protocol-core` is **not installed** — only the ten public packages appear
+- **no `_cred.json`, no `.backup`, no `.env`, no source maps** anywhere in the installed tarballs
+- the published `nmea-parser` genuinely works: parses a `$GPGGA` to `protocol NMEA 4.11`, 14 fields,
+  `sentenceIds.length === 28`
+- **`js-yaml` resolved to 5.2.3 for a real consumer** — proof the HIGH advisory fix (GHSA-52cp-r559-cp3m)
+  actually reached consumers, which is the whole point of moving it out of a repo-local override and
+  into the published range
+
+Each workflow's publish job checks npm for its exact `name@version` and no-ops if it is already there,
+so a re-run cannot republish. These ten went out:
 
 | package | from | to | why the major |
 | --- | --- | --- | --- |
@@ -78,14 +192,13 @@ completely (CMA output, `parseData()` instead of `getFrames()`, ids like `'0:6'`
 - coverage enforced at 80% in all six libraries, and every package clears it
 
 **Trusted publishing:** cru confirmed every package except `protocol-core` has a GitHub trusted
-publisher configured on npmjs.com. That was the one open risk — four packages had never published
-through OIDC (no provenance attestations, last released May 2024) — and it is closed.
+publisher configured on npmjs.com — and the release proved it: `septentrio-sbf`, `septentrio-sbf-nodered`,
+`sbg-ecom` and `sbg-ecom-nodered` had never published through OIDC before (no provenance attestations,
+last released May 2024) and all four published cleanly. **`sbg-ecom` and `sbg-ecom-nodered` also ran a
+real test job for the first time ever** — both workflows were previously broken, and the wrapper's
+publish job had its `needs: test` gate commented out, which is how an untested `0.0.2` reached npm.
 
-**After the merge, verify against npm rather than the workspace:** in an empty temp dir, `npm i` each
-wrapper and check its library resolved to the MATCHING major. That check has caught a real packing leak
-twice.
-
-**Then the flow-library entries, which are cru's manual step** — remind him, do not attempt it:
+**⏭️ STILL OPEN — the flow-library entries, cru's manual step.** Remind him, do not attempt it:
 `sbg-ecom-nodered@1.0.0` and `septentrio-sbf-nodered@2.0.0` are NEW listings; the other three need
 refreshing for their new majors.
 

@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/norsub-emru",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Library to work with eMRU devices of NorSub company",
   "author": "Core Marine",
   "license": "MIT",
@@ -54,11 +54,12 @@
     "test:coverage": "pnpm run protocols && vitest run --coverage"
   },
   "dependencies": {
-    "@coremarine/nmea-parser": "workspace:^",
-    "@schemasjs/valibot-numbers": "^1.1.1",
-    "@schemasjs/validator": "^2.0.5"
+    "@coremarine/nmea-parser": "workspace:*",
+    "@schemasjs/valibot-numbers": "1.1.1",
+    "@schemasjs/validator": "2.0.5",
+    "valibot": "1.5.0"
   },
-  "peerDependencies": {
-    "valibot": "1.4.2"
+  "devDependencies": {
+    "@coremarine/protocol-core": "workspace:*"
   }
 }

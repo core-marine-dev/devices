@@ -7,7 +7,7 @@ Package names: `nmea-parser`, `norsub-emru`, `septentrio-sbf`, `sbg-ecom`, `thel
 
 ```bash
 pnpm run <package>:build           # format (eslint) + tsup transpile to ESM + CJS
-pnpm run <package>:test            # vitest (watch mode)
+pnpm run <package>:test            # vitest (watch mode; runs once under CI=1)
 pnpm run <package>:test:coverage   # vitest coverage — uniform across all six libraries
 pnpm run <package>:lint            # eslint check
 pnpm run <package>:format          # eslint --fix
@@ -18,6 +18,24 @@ pnpm run norsub-emru:protocols     # same, for norsub's own definitions
 pnpm lint                          # eslint — whole monorepo
 pnpm lint:fix                      # eslint --fix — whole monorepo
 ```
+
+## Release check — MANDATORY before any release PR
+
+```bash
+# build everything first: it packs dist/ as it is on disk
+for p in protocol-core nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:build"; done
+for p in nmea-parser norsub-emru septentrio-sbf thelmabiotel-tblive sbg-ecom; do pnpm run "${p}:nodered:build"; done
+pnpm run release:check                                          # every public package, from its packed tarball
+pnpm run release:check -- --registry @coremarine/sbg-ecom@1.0.1 # AFTER publishing: the same, straight from npm
+```
+
+`scripts/release-check.mjs` installs every public package from its packed tarball into a clean npm AND
+a clean pnpm folder (pnpm's strict layout catches undeclared deps that npm hoisting hides) and fails on:
+a range or a peer in a published manifest (exact pins only), an import of a PRIVATE package in `dist/`,
+an unexpected file in a tarball, `import()`/`require()` failing, any parser that cannot fake → parse
+round-trip through the shared `DeviceParser` interface, a wrapper that does not register its nodes, a
+package resolving to a version other than the one under test, or parse output typed `any` in a consumer
+`tsc --strict`. ~20 s. CI runs it on every PR into `main` (`release-check.yml`).
 
 ## Local CI (act) — run workflows locally before pushing
 

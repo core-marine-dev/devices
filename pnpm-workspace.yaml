@@ -33,20 +33,39 @@ patchedDependencies:
 # consumer; only the dependency range in the published package.json can.
 # js-yaml is now `^5.2.3` in nmea-parser itself, so the override is unnecessary.
 overrides:
-  diff: '>=8.0.3'
-  jsonata: '>=2.2.0'
-  form-data: '>=4.0.6'
-  esbuild: '>=0.28.1'
+  diff: '9.0.0'
+  jsonata: '2.2.2'
+  form-data: '4.0.6'
+  esbuild: '0.28.2'
   # Added 2026-08-01 from `pnpm audit`. All four are dev-only transitives and none is
   # reachable from a published package (the tarballs ship `dist/` only), but they are
   # cheap to close: fast-uri <- ajv <- node-red · postcss <- tsup + vitest ·
   # brace-expansion <- minimatch <- eslint/typescript-eslint · body-parser <- express
   # <- node-red. Bumping node-red 5.0.1 -> 5.0.4 already cleared ten axios advisories
   # and one in tar, so check whether a direct bump fixes it before adding an override.
-  fast-uri: '>=3.1.4'
-  postcss: '>=8.5.18'
-  brace-expansion: '>=5.0.8'
-  body-parser: '>=1.20.6'
+  fast-uri: '4.2.1'
+  postcss: '8.5.28'
+  brace-expansion: '5.0.12'
+  body-parser: '1.20.8'
+  # Added 2026-10-09 from `pnpm audit` (36 advisories, ALL dev-only: every path runs
+  # through node-red, eslint or vite — none reaches a published tarball). Each is the
+  # newest same-major release that fixes its advisory AND clears the 7-day cooldown.
+  # node-red 5.0.8 may clear several directly but is itself inside the cooldown; retry
+  # the direct bump first next time. http-cache-semantics (HIGH, <- got <- node-red) is
+  # NOT here on purpose: its only fix, 4.3.0, is 5 days old — it clears 2026-10-11.
+  axios: '1.20.0'
+  ip-address: '10.7.3'
+  moment: '2.31.0'
+  multer: '2.4.0'
+  nanoid: '3.3.19'
+  proxy-addr: '2.0.8'
+  qs: '6.16.0'
+  source-map-js: '1.2.2'
 
-minimumReleaseAgeExclude:
-  - js-yaml@5.2.3
+# Supply-chain hardening — a 7-day release cooldown (cru, 2026-10-09). pnpm refuses
+# any version published less than 10080 minutes ago, so a compromised release has a
+# week to be caught and unpublished before it can reach this repo. Pair it with EXACT
+# versions everywhere (no ^ ~ >= ranges, internal links as workspace:*): see
+# docs/TOOLING.md §"Exact pins". To take an urgent fix sooner, add that one
+# name@version to minimumReleaseAgeExclude — deliberately, with a reason.
+minimumReleaseAge: 10080

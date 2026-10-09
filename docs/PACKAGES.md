@@ -15,11 +15,11 @@ error side is an **array** (`ParserError[]`): one call can be wrong for more tha
 
 | Package | Version | Output | On `protocol-core` | Parser API |
 | --- | --- | --- | --- | --- |
-| `@coremarine/nmea-parser` | **6.0.0** (unreleased; 5.0.0 on npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/norsub-emru` | **6.0.0** (unreleased; 5.0.0 on npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
-| `@coremarine/septentrio-sbf` | **2.0.0** (unreleased) | **CMA** | ✅ | `new X({protocol?,firmware?,memory?,bufferLimit?})` + `addData(u8)` / `parseData(): CMA[]` |
-| `@coremarine/sbg-ecom` | **1.0.0** (unreleased; 0.0.1 on npm) | **CMA** | ✅ + composes nmea-parser | `new X({firmware?,memory?,bufferLimit?})` + `addData(u8\|str)` / `parseData(): CMA[]` |
-| `@coremarine/thelmabiotel-tblive` | **3.0.0** (unreleased; 2.0.0 on npm) | **CMA** | ✅ | `addData(str)` + `parseData(): CMA[]` |
+| `@coremarine/nmea-parser` | **6.0.1** (unreleased; 6.0.0 on npm) | **CMA** | ✅ reference impl | `new X({memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/norsub-emru` | **6.0.1** (unreleased; 6.0.0 on npm) | **CMA** | ✅ via nmea-parser | `new X({protocol?,memory?,bufferLimit?})` + `addData` / `parseData` |
+| `@coremarine/septentrio-sbf` | **2.0.1** (unreleased; 2.0.0 on npm) | **CMA** | ✅ | `new X({protocol?,firmware?,memory?,bufferLimit?})` + `addData(u8)` / `parseData(): CMA[]` |
+| `@coremarine/sbg-ecom` | **1.0.1** (unreleased; 1.0.0 on npm is BROKEN — see STATUS) | **CMA** | ✅ + composes nmea-parser | `new X({firmware?,memory?,bufferLimit?})` + `addData(u8\|str)` / `parseData(): CMA[]` |
+| `@coremarine/thelmabiotel-tblive` | **3.0.1** (unreleased; 3.0.0 on npm) | **CMA** | ✅ | `addData(str)` + `parseData(): CMA[]` |
 
 All: `type: module`, dual ESM/CJS via tsup `exports`, MIT, `engines.node` `>=22`. **ALL FIVE DEVICES
 ARE NOW ON `protocol-core` AND EMIT CMA** — the refactor is complete.
@@ -270,9 +270,12 @@ by `<library>-nodered@N.x`, so the generation is readable off the version. Minor
 an additive library release often needs no wrapper change, and a wrapper-only feature should not force
 a library release.
 
-The mechanism is the `workspace:^` dependency, which pnpm packs as `^<library version>` — inside that
-major and never the next. Each wrapper has a `tests/version.unit.test.ts` that fails if the two majors
-drift apart.
+The mechanism is the `workspace:*` dependency, which pnpm packs as the EXACT library version — so a
+published wrapper runs against precisely the library it was tested with, major included. (Until
+2026-10-09 it was `workspace:^`, packed as `^<version>`; it moved with cru's exact-pins decision, see
+[`TOOLING.md`](TOOLING.md) §"Exact pins". The cost: every library release now needs its wrapper
+republished too.) Each wrapper has a `tests/version.unit.test.ts` that fails if the two majors drift
+apart or the link stops being `workspace:*`.
 
 **The `septentrio-sbf` pair spent this refactor VIOLATING it** — library `2.0.0`, wrapper `1.0.1` —
 and that window is exactly what the guard exists for: a release would have shipped a wrapper calling
@@ -320,11 +323,11 @@ it. Do not "tidy" these. `node-red.version` is `>=4.0.0` on all five wrappers.
 
 | Package | Version | Sibling dep | Tests | Notes |
 | --- | --- | --- | --- | --- |
-| nmea-parser-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
-| norsub-emru-nodered | **6.0.0** (unreleased; 5.0.0 on npm) | `workspace:^` → `^6.0.0` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
-| septentrio-sbf-nodered | **2.0.0** (unreleased) | `workspace:^` → `^2.0.0` | `node:test`, **enabled in CI** (66/66) | Rebuilt from the nmea/tblive template 2026-07-31. Node type kept as `cma-septentrio-parser` so deployed flows survive. **The first BINARY wrapper**: `payload` takes a Buffer (base64 string / byte array also accepted), and `fake` hands back a Buffer. Adds **protocol** (norsub's channel) + **firmware** (tblive's) selectors, plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis |
-| sbg-ecom-nodered | **1.0.0** (unreleased; 0.0.2 on npm) | `workspace:^` → `^1.0.0` | `node:test`, **enabled in CI** (64/64) | **Rewritten from scratch 2026-08-01**, not ported. Node type kept as `cma-sbg-ecom` so deployed flows survive. `payload` takes a Buffer, base64, a byte array **or an NMEA sentence** (any string starting with `$`) — the mixed stream needs no switch, so there is NO protocol channel. Adds **firmware** plus `msg.ids` / `msg.definition` / `msg.fake`. Its `tests/examples.unit.test.ts` validates the SHIPPED example flow and runs every inject through the wrapper's own handlers |
-| thelmabiotel-tblive-nodered | **3.0.0** (unreleased; 2.0.0 on npm) | `workspace:^` → `^3.0.0` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
+| nmea-parser-nodered | **6.0.1** (unreleased; 6.0.0 on npm) | `workspace:*` → `6.0.1` | `node:test`, **enabled in CI** (28/28) | **The template.** `msg.protocols` renamed **`msg.sentences`** in 3.0.0, so both wrappers now agree. TS → tsup → CJS, pure `src/lib.ts` + thin `src/parser.ts`, real-headless-node-red integration test, `dev-server.mjs` (no docker), examples shipped in `examples/` |
+| norsub-emru-nodered | **6.0.1** (unreleased; 6.0.0 on npm) | `workspace:*` → `6.0.1` | `node:test`, **enabled in CI** (37/37) | Rebuilt from the nmea template. Adds a **protocol** selector (config + `msg.protocol`); `msg.protocols` renamed **`msg.sentences`** |
+| septentrio-sbf-nodered | **2.0.1** (unreleased; 2.0.0 on npm) | `workspace:*` → `2.0.1` | `node:test`, **enabled in CI** (66/66) | Rebuilt from the nmea/tblive template 2026-07-31. Node type kept as `cma-septentrio-parser` so deployed flows survive. **The first BINARY wrapper**: `payload` takes a Buffer (base64 string / byte array also accepted), and `fake` hands back a Buffer. Adds **protocol** (norsub's channel) + **firmware** (tblive's) selectors, plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis |
+| sbg-ecom-nodered | **1.0.1** (unreleased; 1.0.0 on npm) | `workspace:*` → `1.0.1` | `node:test`, **enabled in CI** (64/64) | **Rewritten from scratch 2026-08-01**, not ported. Node type kept as `cma-sbg-ecom` so deployed flows survive. `payload` takes a Buffer, base64, a byte array **or an NMEA sentence** (any string starting with `$`) — the mixed stream needs no switch, so there is NO protocol channel. Adds **firmware** plus `msg.ids` / `msg.definition` / `msg.fake`. Its `tests/examples.unit.test.ts` validates the SHIPPED example flow and runs every inject through the wrapper's own handlers |
+| thelmabiotel-tblive-nodered | **3.0.1** (unreleased; 3.0.0 on npm) | `workspace:*` → `3.0.1` | `node:test`, **enabled in CI** (45/45) | Rebuilt from the nmea template 2026-07-30. Node type kept as `cma-thelmabiotel-tblive` so deployed flows survive. Adds a **firmware** selector (config + `msg.firmware`), plus `msg.ids` / `msg.definition` / `msg.fake` for diagnosis; no `msg.sentences` (definitions are compiled in). Stray `peerDependencies: valibot` removed |
 
 **ALL FIVE WRAPPERS ARE NOW REFACTORED.** `sbg-ecom-nodered` was the last, rewritten 2026-08-01.
 

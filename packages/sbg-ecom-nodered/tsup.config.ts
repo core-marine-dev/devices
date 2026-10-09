@@ -12,5 +12,5 @@ export default defineConfig({
   minify: false,
   dts: false,
   splitting: false,
-  outDir: 'dist',
+  outDir: 'dist'
 })

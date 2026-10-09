@@ -1,3 +1,8 @@
+# TEMPLATE — regenerated 2026-10-09 from .github/workflows/thelmabiotel-tblive-nodered.yml (the plainest
+# real package), because the old template had drifted: Node 18/20, no typecheck, older
+# actions. Copy to .github/workflows/<name>-nodered.yml and replace every `TODO:`.
+# TODO: if the package composes nmea-parser (like septentrio-sbf / sbg-ecom), its
+# "Build monorepo deps" steps must build that chain too: protocol-core -> nmea-parser.
 name: TODO:-nodered
 
 on:
@@ -5,6 +10,12 @@ on:
   push:
     paths:
       - packages/TODO:-nodered/**
+      # The wrapper's tests run against the REAL library, which bundles the private
+      # protocol-core — so a change to either can break this package with no job
+      # running. The version gate keeps the extra triggers harmless: tests run,
+      # publish no-ops unless the version changed.
+      - packages/TODO:/**
+      - packages/core/**
 
 jobs:
   test:
@@ -23,7 +34,7 @@ jobs:
         uses: pnpm/action-setup@v6
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
@@ -31,16 +42,20 @@ jobs:
       - name: 📥 Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      # The wrapper's tests import the real wrapped library, so its dist must exist first.
-      # TODO: build the wrapped library (and any private deps it bundles), e.g.:
-      #   pnpm run protocol-core:build && pnpm run TODO::build
+      # The wrapper's tests import the real @coremarine/TODO:, which
+      # bundles the private protocol-core — both dists must exist first.
       - name: 🛠️ Build monorepo deps
-        run: "pnpm run TODO::build"
+        run: "pnpm run protocol-core:build && pnpm run TODO::build"
 
-      # node-red auto-loads the wrapper from dist/parser.js — build it before the integration test.
+      # node-red auto-loads the wrapper from its published entry (dist/parser.js), so the
+      # integration test needs the wrapper built (JS + copied html/icons) before it runs.
       - name: 🛠️ Build wrapper
         run: "pnpm run TODO::nodered:build"
 
+      # tsx strips types WITHOUT checking them, and eslint does not typecheck either, so a
+      # green suite says nothing about the types. This step is the only thing that does.
+      - name: 🔍 Typecheck
+        run: "pnpm --filter @coremarine/TODO:-nodered exec tsc --noEmit -p tsconfig.json"
       - name: 🧑‍🔬 Tests
         run: "pnpm run TODO::nodered:test"
 
@@ -60,7 +75,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: ❇️ Setup node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
@@ -86,6 +101,9 @@ jobs:
         if: steps.check.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
 
+      # `files` ships dist/, so it must be built before packing. The library stays
+      # external in the bundle, so the dep chain is not needed here — only the tests
+      # import it.
       - name: 🛠️ Build wrapper
         if: steps.check.outputs.publish == 'true'
         run: "pnpm run TODO::nodered:build"
