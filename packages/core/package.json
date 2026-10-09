@@ -44,10 +44,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@schemasjs/valibot-numbers": "^1.1.1",
-    "@schemasjs/validator": "^2.0.5"
-  },
-  "peerDependencies": {
-    "valibot": "1.4.2"
+    "@schemasjs/valibot-numbers": "1.1.1",
+    "@schemasjs/validator": "2.0.5",
+    "valibot": "1.5.0"
   }
 }
