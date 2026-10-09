@@ -10,8 +10,11 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-10-09 — **🔧 THE 1.0.1 ROUND IS BUILT, GATED AND COMMITTED LOCALLY; NOTHING IS
-> PUSHED.** `@coremarine/sbg-ecom@1.0.0` on npm is BROKEN (its dist imports the private, unpublished
+> **Last updated:** 2026-10-09 — **✅ THE 1.0.1 ROUND IS LIVE: TEN PACKAGES PUBLISHED AND VERIFIED FROM
+> npm.** PR [#78](https://github.com/core-marine-dev/devices/pull/78) merged as `c1fdc61` (11:48 UTC); all
+> eleven workflows green on `main`; `pnpm run release:check -- --registry` with the ten new versions →
+> ✅ 10 packages pass, npm AND pnpm. ⚠️ pnpm consumers on DEFAULT settings keep getting the broken
+> `sbg-ecom@1.0.0` until 1.0.1 is a day old — see §"🔧 THE 1.0.1 ROUND" → "After the publish". `@coremarine/sbg-ecom@1.0.0` on npm is BROKEN (its dist imports the private, unpublished
 > `protocol-core`). Fixing it grew, on cru's word, into a ten-package patch round: sbg-ecom aligned with
 > its siblings, **every dependency pinned EXACTLY**, valibot 1.5.0, pnpm 12, vitest 5, a 7-day release
 > cooldown, and a release check that installs every package from its packed tarball.
@@ -136,13 +139,39 @@ Fixing it surfaced a second bug: once the core's types are inlined, the `.d.ts` 
 
 ## Publish plan (waits for cru's "publish", step by step)
 
-1. `git push origin dev` — `dev` carries `f172712` (docs, 2026-08-01) + this round's commits.
-2. PR `dev` → `main`. `release-check.yml` runs on it for the first time.
-3. Merge → the per-package workflows publish all ten (each no-ops if its version already exists).
+1. ✅ `git push origin dev` — done by cru, `85b2acb..6376be0`. (Claude Code's auto mode refuses
+   `git push` as a production deploy, so cru runs pushes himself.)
+2. ✅ PR [#78](https://github.com/core-marine-dev/devices/pull/78) `dev` → `main`, opened by cru;
+   `release-check.yml` runs on it for the first time. Every open Dependabot alert on `main` (27) is
+   already fixed on `dev`: js-yaml 5.4.2 / 4.3.2, vitest 5.0.3, and the exact overrides.
+3. ✅ Merged by cru → `c1fdc61`. All eleven workflows green; every publish job logged `✅ Published
+   package …` with a signed provenance statement.
 4. After publish: `pnpm run release:check -- --registry` with the ten new versions; tell Tracker v3 to
    move to `@coremarine/sbg-ecom@1.0.1`.
 5. Still cru's manual steps: the Node-RED flow-library entries (pending since August), and the
    required-status-check setting.
+
+## After the publish — verified 2026-10-09
+
+- **All ten live and tagged `latest`**: nmea-parser, norsub-emru 6.0.1 · tblive 3.0.1 · septentrio-sbf
+  2.0.1 · sbg-ecom 1.0.1 — each wrapper at the same version. npm's CDN took ~5 minutes to serve the
+  last one (norsub-emru-nodered); a 404 straight after a successful publish job is lag, not failure —
+  read the job log for `✅ Published package`.
+- **`pnpm run release:check -- --registry …` (all ten) → ✅ 10 packages pass**, npm and pnpm consumers.
+- **The published `sbg-ecom-nodered@1.0.0` now gets the fix**: a clean npm install resolves
+  `sbg-ecom@1.0.1` and registers `cma-sbg-ecom`.
+- ⚠️ **pnpm's release cooldown delays the fix for pnpm consumers.** Since pnpm 11, `minimumReleaseAge`
+  defaults to 1440 min (1 day), NON-strict: a too-young version is silently skipped for an older one.
+  Measured: a clean pnpm consumer of `sbg-ecom-nodered@1.0.0` on default settings resolved the BROKEN
+  `sbg-ecom@1.0.0`; with `--config.minimum-release-age=0` it resolved 1.0.1. 1.0.1 clears the default
+  on **2026-10-10 ~11:50 UTC**. A project that SETS `minimumReleaseAge` (like this repo, 7 days) is
+  strict: an exact pin to 1.0.1 FAILS to resolve until it is old enough. **For Tracker v3 now: pin
+  `@coremarine/sbg-ecom` to `1.0.1` and add `@coremarine/sbg-ecom@1.0.1` to its
+  `minimumReleaseAgeExclude`** (same for any other 1.0.1-round version it takes early).
+- Release check fixed after its first registry run: an unfetchable version is now a reported failure
+  (it used to crash), and registry mode passes `--prefer-online` to beat npm's local metadata cache.
+- Still cru's: `release-check` as a required status check on `main`; the Node-RED flow-library
+  entries (pending since August). From 2026-10-11: add `http-cache-semantics: '4.3.0'` to the overrides.
 
 # 🚀 THE RELEASE — ✅ DONE, TEN PACKAGES LIVE (2026-08-01)
 

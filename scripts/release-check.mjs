@@ -49,11 +49,18 @@ const packAll = (repo, out) => {
   })
 }
 
+// --prefer-online: npm's local metadata cache can lag a fresh publish by minutes, which is exactly
+// when this mode runs. A version that cannot be fetched is a FAILURE to report, not a crash.
 const fetchAll = (specs, out) => {
   mkdirSync(out, { recursive: true })
-  return specs.map((spec) => {
-    const [{ filename, name, version }] = JSON.parse(run('npm', ['pack', spec, '--json', '--pack-destination', out], out))
-    return { name, tgz: join(out, filename), version }
+  return specs.flatMap((spec) => {
+    try {
+      const [{ filename, name, version }] = JSON.parse(run('npm', ['pack', spec, '--json', '--prefer-online', '--pack-destination', out], out))
+      return [{ name, tgz: join(out, filename), version }]
+    } catch (error) {
+      fail(spec, `cannot be fetched from npm: ${error.stderr?.match(/npm error (?!A complete).*/u)?.[0] ?? error.message}`)
+      return []
+    }
   })
 }
 
