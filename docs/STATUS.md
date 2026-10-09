@@ -165,9 +165,11 @@ Fixing it surfaced a second bug: once the core's types are inlined, the `.d.ts` 
   Measured: a clean pnpm consumer of `sbg-ecom-nodered@1.0.0` on default settings resolved the BROKEN
   `sbg-ecom@1.0.0`; with `--config.minimum-release-age=0` it resolved 1.0.1. 1.0.1 clears the default
   on **2026-10-10 ~11:50 UTC**. A project that SETS `minimumReleaseAge` (like this repo, 7 days) is
-  strict: an exact pin to 1.0.1 FAILS to resolve until it is old enough. **For Tracker v3 now: pin
-  `@coremarine/sbg-ecom` to `1.0.1` and add `@coremarine/sbg-ecom@1.0.1` to its
-  `minimumReleaseAgeExclude`** (same for any other 1.0.1-round version it takes early).
+  strict: an exact pin to 1.0.1 FAILS to resolve until it is old enough. **For Tracker v3: pin
+  `@coremarine/sbg-ecom` to `1.0.1` and add `'@coremarine/*'` to its `minimumReleaseAgeExclude`** —
+  cru's rule since 2026-10-09: all CoreMarine packages are exempt from the cooldown. This repo carries
+  that line in `pnpm-workspace.yaml`; proven to turn `ERR_PNPM_NO_MATURE_MATCHING_VERSION` into a
+  clean install of the hours-old 1.0.1.
 - Release check fixed after its first registry run: an unfetchable version is now a reported failure
   (it used to crash), and registry mode passes `--prefer-online` to beat npm's local metadata cache.
 - Still cru's: `release-check` as a required status check on `main`; the Node-RED flow-library

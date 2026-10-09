@@ -146,6 +146,10 @@ compromised new release of a dependency reach an install without anyone choosing
 - **`minimumReleaseAge: 10080`** in `pnpm-workspace.yaml` — a 7-day cooldown: pnpm refuses any version
   younger than that, so pick "the newest release at least 7 days old". An urgent fix goes into
   `minimumReleaseAgeExclude` as one `name@version`, deliberately, with a reason.
+- **`@coremarine/*` is excluded from the cooldown** (cru, 2026-10-09): we publish our own packages via
+  OIDC with provenance, so a cooldown only delays our own fixes. Proven: under a strict 7-day cooldown
+  a fresh `sbg-ecom@1.0.1` fails with `ERR_PNPM_NO_MATURE_MATCHING_VERSION`; with the exclusion it
+  installs. **Every consumer of `@coremarine/*` (Tracker) should carry the same exclusion.**
 
 **What pins cannot do — know this before relying on them:**
 

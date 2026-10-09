@@ -69,3 +69,10 @@ overrides:
 # docs/TOOLING.md §"Exact pins". To take an urgent fix sooner, add that one
 # name@version to minimumReleaseAgeExclude — deliberately, with a reason.
 minimumReleaseAge: 10080
+# Our own packages are exempt (cru, 2026-10-09): we publish them ourselves through OIDC
+# trusted publishing with provenance, so the cooldown guards against nothing for them —
+# it only delays our own fixes (sbg-ecom 1.0.1 fixed a broken 1.0.0; a 7-day wait would
+# have kept consumers on the broken release). Consumers of @coremarine/* (Tracker) should
+# carry the same line.
+minimumReleaseAgeExclude:
+  - '@coremarine/*'
