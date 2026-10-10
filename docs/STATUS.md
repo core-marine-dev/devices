@@ -10,7 +10,10 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
-> **Last updated:** 2026-10-10 — **🔧 THE 6.0.2 ROUND IS BUILT, GATED AND COMMITTED LOCALLY; NOT PUSHED.**
+> **Last updated:** 2026-10-10 — **✅ THE 6.0.2 ROUND IS LIVE: TEN PACKAGES PUBLISHED AND VERIFIED FROM npm**
+> (PR [#79](https://github.com/core-marine-dev/devices/pull/79), merge `b05fd28`; all eleven workflows green;
+> `release:check -- --registry` → ✅ 10, library types checked). Remaining manual step: "request refresh"
+> on the five flow-library pages (they still show the August versions). Earlier note, kept:
 > cru published `@schemasjs/validator` 2.0.7 + `@schemasjs/valibot-numbers` 1.1.3, which fix SchemasJS's
 > broken `.d.ts`; all ten packages take them as a patch (6.0.2 / 3.0.2 / 2.0.2 / 1.0.2). **➡️ Read §"🔧 THE
 > 6.0.2 ROUND" first.** ⛔ Waits for cru's "publish" (he runs `git push` himself — auto mode blocks it).
@@ -70,7 +73,7 @@
 > `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
 > with **no gate at all**, which is how `0.0.2` reached npm untested.
 
-# 🔧 THE 6.0.2 ROUND — 2026-10-10 — READY, NOT PUBLISHED
+# 🔧 THE 6.0.2 ROUND — 2026-10-10 — ✅ PUBLISHED
 
 **Why:** SchemasJS's published `.d.ts` (`@schemasjs/validator` ≤ 2.0.6) did not compile for a consumer that
 type-checks libraries (`skipLibCheck: false`): TS2307 (an unconditional `zod` import; zod is an OPTIONAL
@@ -115,8 +118,15 @@ eleven · `--frozen-lockfile` clean. `pnpm run release:check` → ✅ 10 package
 hours-old 2.0.7 / 1.1.3 fail to install (`ERR_PNPM_NO_MATURE_MATCHING_VERSION`) until 2026-10-17.
 npm and pnpm-default consumers are unaffected.
 
-**Publish plan (cru runs each step):** push `dev` → PR `dev` → `main` → merge → `pnpm run release:check --
---registry` with the ten new versions.
+**Published 2026-10-10:** cru pushed `e4f7074`, opened PR #79, merged → `b05fd28`; all eleven workflows
+green; all ten versions served by npm at 14:56 UTC; `pnpm run release:check -- --registry` with the ten
+new versions → ✅ 10 packages pass, npm and pnpm, library `.d.ts` type-checked.
+
+**Node-RED flow library — a STANDING step after every release.** It has not followed npm by itself since
+April 2020 (Node-RED docs: resubmit, or "request refresh" on the node's page while logged in). The
+August "pending" step had in fact been done: all five wrappers are listed — but still at their August
+versions (nmea/norsub 6.0.0, septentrio 2.0.0, tblive 3.0.0, sbg 1.0.0 = the broken one). cru refreshes
+each page after every release: flows.nodered.org/node/@coremarine/<wrapper>.
 
 The rest is still open from below: still to come after the cooldown — js-yaml 5.4.3 (10-12),
 typescript-eslint 8.71.1 (10-12), vite 8.3.4 (10-15), node-red 5.0.8 (10-15); TypeScript 7 still blocked.
