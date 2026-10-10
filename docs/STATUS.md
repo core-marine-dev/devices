@@ -10,6 +10,11 @@
 > the session: limits hit without warning. Keeping "Where we are now", "Next steps" and "HEAD"
 > current is the entire purpose of this file.
 >
+> **Last updated:** 2026-10-10 — **🔧 THE 6.0.2 ROUND IS BUILT, GATED AND COMMITTED LOCALLY; NOT PUSHED.**
+> cru published `@schemasjs/validator` 2.0.7 + `@schemasjs/valibot-numbers` 1.1.3, which fix SchemasJS's
+> broken `.d.ts`; all ten packages take them as a patch (6.0.2 / 3.0.2 / 2.0.2 / 1.0.2). **➡️ Read §"🔧 THE
+> 6.0.2 ROUND" first.** ⛔ Waits for cru's "publish" (he runs `git push` himself — auto mode blocks it).
+>
 > **Last updated:** 2026-10-09 — **✅ THE 1.0.1 ROUND IS LIVE: TEN PACKAGES PUBLISHED AND VERIFIED FROM
 > npm.** PR [#78](https://github.com/core-marine-dev/devices/pull/78) merged as `c1fdc61` (11:48 UTC); all
 > eleven workflows green on `main`; `pnpm run release:check -- --registry` with the ten new versions →
@@ -65,7 +70,58 @@
 > `sbg-ecom-nodered.yml` had its test job AND its `needs: test` commented out — so its publish job ran
 > with **no gate at all**, which is how `0.0.2` reached npm untested.
 
-# 🔧 THE 1.0.1 ROUND — 2026-10-09 — READY, NOT PUBLISHED
+# 🔧 THE 6.0.2 ROUND — 2026-10-10 — READY, NOT PUBLISHED
+
+**Why:** SchemasJS's published `.d.ts` (`@schemasjs/validator` ≤ 2.0.6) did not compile for a consumer that
+type-checks libraries (`skipLibCheck: false`): TS2307 (an unconditional `zod` import; zod is an OPTIONAL
+peer) and TS2314 (`v.BaseSchema` without its three type arguments). Every one of our five libraries
+re-exposes those types. cru fixed SchemasJS and published **validator 2.0.7** + **valibot-numbers 1.1.3**
+(2026-10-10 14:41 UTC). Verified before taking them: 2.0.7 type-checks cleanly with valibot only, zod
+only, both, and neither. Its runtime also changed — `ValibotValidator` now validates through Standard
+Schema (`schema['~standard'].validate`) — and every suite is unchanged, so no parse result or error moved.
+
+**What changed**
+
+| package | library | wrapper |
+| --- | --- | --- |
+| `nmea-parser` | 6.0.1 → **6.0.2** | 6.0.1 → **6.0.2** |
+| `norsub-emru` | 6.0.1 → **6.0.2** | 6.0.1 → **6.0.2** |
+| `thelmabiotel-tblive` | 3.0.1 → **3.0.2** | 3.0.1 → **3.0.2** |
+| `septentrio-sbf` | 2.0.1 → **2.0.2** | 2.0.1 → **2.0.2** |
+| `sbg-ecom` | 1.0.1 → **1.0.2** | 1.0.1 → **1.0.2** |
+
+- `@schemasjs/validator` 2.0.5 → **2.0.7** (core, nmea, norsub, tblive, septentrio, sbg);
+  `@schemasjs/valibot-numbers` 1.1.1 → **1.1.3** (core, nmea, norsub, tblive). The wrappers change only
+  their version: their exact `workspace:*` pin forces a republish whenever their library changes.
+- **Cooldown exemption, EXACT versions only**: `@schemasjs/validator@2.0.7` and
+  `@schemasjs/valibot-numbers@1.1.3` in `minimumReleaseAgeExclude`. The `@schemasjs/*` scope is NOT
+  exempt — those releases carry no npm provenance. **Remove both lines after 2026-10-17.**
+- eslint 10.11.0 → **10.12.0** (the only other upgrade past the cooldown today).
+- ⚠️ **pnpm stays 12.8.2.** 12.9.0 cleared the cooldown, but on this machine it breaks: it ships its
+  `pnpm` entry as a native ELF binary and the pnpm 11 launcher that switches versions from
+  `packageManager` imports it as JS (`SyntaxError: Invalid or unexpected token`). Retry with a newer
+  12.x, or after updating the global pnpm.
+- **Release check is stricter:** the consumer `tsc --strict` no longer passes `--skipLibCheck`, so every
+  shipped `.d.ts` — ours and our dependencies' — must compile. Negative proof: `release:check --
+  --registry @coremarine/nmea-parser@6.0.1` → 4 failures (TS2307 + TS2314, npm and pnpm).
+
+**Evidence (2026-10-10, from scratch):** gate exit 0 — core 43 · nmea 135 · norsub 55 · septentrio 221 ·
+tblive 260 · sbg 112 · wrappers 28 / 37 / 66 / 45 / 64 · eslint clean · `tsc --noEmit` clean in all
+eleven · `--frozen-lockfile` clean. `pnpm run release:check` → ✅ 10 packages pass (no skipLibCheck).
+`pnpm audit` → 1 (the known dev-only `http-cache-semantics`; scheduled task fires 2026-10-11).
+
+**⚠️ Consumers with a STRICT cooldown (one they configured themselves, e.g. Tracker if it mirrors this
+repo):** our exact pins to 2.0.7 / 1.1.3 will FAIL to install (`ERR_PNPM_NO_MATURE_MATCHING_VERSION`)
+until 2026-10-17 unless they exempt those two versions too — or `@schemasjs/*`. Consumers on pnpm's
+default (non-strict, 1 day) or npm are unaffected.
+
+**Publish plan (cru runs each step):** push `dev` → PR `dev` → `main` → merge → `pnpm run release:check --
+--registry` with the ten new versions.
+
+The rest is still open from below: still to come after the cooldown — js-yaml 5.4.3 (10-12),
+typescript-eslint 8.71.1 (10-12), vite 8.3.4 (10-15), node-red 5.0.8 (10-15); TypeScript 7 still blocked.
+
+# 🔧 THE 1.0.1 ROUND — 2026-10-09 — ✅ PUBLISHED
 
 ## What broke
 
