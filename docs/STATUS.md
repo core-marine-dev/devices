@@ -93,9 +93,9 @@ Schema (`schema['~standard'].validate`) — and every suite is unchanged, so no 
 - `@schemasjs/validator` 2.0.5 → **2.0.7** (core, nmea, norsub, tblive, septentrio, sbg);
   `@schemasjs/valibot-numbers` 1.1.1 → **1.1.3** (core, nmea, norsub, tblive). The wrappers change only
   their version: their exact `workspace:*` pin forces a republish whenever their library changes.
-- **Cooldown exemption, EXACT versions only**: `@schemasjs/validator@2.0.7` and
-  `@schemasjs/valibot-numbers@1.1.3` in `minimumReleaseAgeExclude`. The `@schemasjs/*` scope is NOT
-  exempt — those releases carry no npm provenance. **Remove both lines after 2026-10-17.**
+- **Cooldown: the whole `@schemasjs/*` scope is exempt**, like `@coremarine/*` (cru, 2026-10-10: he
+  creates and maintains both — SchemasJS as `crisconru`, devices and Tracker as CoreMarine — so the
+  7-day wait guards against nothing and only delays his own fixes).
 - eslint 10.11.0 → **10.12.0** (the only other upgrade past the cooldown today).
 - ⚠️ **pnpm stays 12.8.2.** 12.9.0 cleared the cooldown, but on this machine it breaks: it ships its
   `pnpm` entry as a native ELF binary and the pnpm 11 launcher that switches versions from
@@ -110,10 +110,10 @@ tblive 260 · sbg 112 · wrappers 28 / 37 / 66 / 45 / 64 · eslint clean · `tsc
 eleven · `--frozen-lockfile` clean. `pnpm run release:check` → ✅ 10 packages pass (no skipLibCheck).
 `pnpm audit` → 1 (the known dev-only `http-cache-semantics`; scheduled task fires 2026-10-11).
 
-**⚠️ Consumers with a STRICT cooldown (one they configured themselves, e.g. Tracker if it mirrors this
-repo):** our exact pins to 2.0.7 / 1.1.3 will FAIL to install (`ERR_PNPM_NO_MATURE_MATCHING_VERSION`)
-until 2026-10-17 unless they exempt those two versions too — or `@schemasjs/*`. Consumers on pnpm's
-default (non-strict, 1 day) or npm are unaffected.
+**⚠️ Tracker (or any consumer that sets its own `minimumReleaseAge`) must carry BOTH exemptions —
+`'@coremarine/*'` and `'@schemasjs/*'` in `minimumReleaseAgeExclude`** — or our exact pins to the
+hours-old 2.0.7 / 1.1.3 fail to install (`ERR_PNPM_NO_MATURE_MATCHING_VERSION`) until 2026-10-17.
+npm and pnpm-default consumers are unaffected.
 
 **Publish plan (cru runs each step):** push `dev` → PR `dev` → `main` → merge → `pnpm run release:check --
 --registry` with the ten new versions.

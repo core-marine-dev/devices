@@ -69,16 +69,11 @@ overrides:
 # docs/TOOLING.md §"Exact pins". To take an urgent fix sooner, add that one
 # name@version to minimumReleaseAgeExclude — deliberately, with a reason.
 minimumReleaseAge: 10080
-# Our own packages are exempt (cru, 2026-10-09): we publish them ourselves through OIDC
-# trusted publishing with provenance, so the cooldown guards against nothing for them —
-# it only delays our own fixes (sbg-ecom 1.0.1 fixed a broken 1.0.0; a 7-day wait would
-# have kept consumers on the broken release). Consumers of @coremarine/* (Tracker) should
-# carry the same line.
+# cru's own packages are exempt: he creates and maintains BOTH scopes — @coremarine
+# (devices, Tracker) and @schemasjs (SchemasJS, published as crisconru) — so the cooldown
+# guards against nothing for them; it only delays his own fixes (sbg-ecom 1.0.1 fixed a
+# broken 1.0.0; SchemasJS validator 2.0.7 fixed a .d.ts every consumer tripped on).
+# Consumers of these packages (Tracker) should carry the same two lines.
 minimumReleaseAgeExclude:
   - '@coremarine/*'
-  # cru's own SchemasJS releases of 2026-10-10, taken early on his word: they fix the
-  # published .d.ts that failed `skipLibCheck: false` for every consumer (TS2307 'zod',
-  # TS2314 BaseSchema). Exact versions only — the scope is NOT exempt, because these
-  # releases carry no npm provenance. Remove once older than 7 days (2026-10-17).
-  - '@schemasjs/validator@2.0.7'
-  - '@schemasjs/valibot-numbers@1.1.3'
+  - '@schemasjs/*'

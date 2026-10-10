@@ -9,7 +9,7 @@
 | Test (libraries) | Vitest 5.0.3 | root `vitest.config.ts` aggregates per-package configs via `test.projects`. Vitest 5 made `vite` a REQUIRED peer, so `vite` 8.3.2 is a root devDependency — listed explicitly so it is pinned, not auto-installed from a range |
 | Test (Node-RED) | `node:test` + `node-red-node-test-helper` | run through `tsx`; `node:assert/strict` throughout. **Mocha is gone** from every wrapper (dropped 2026-08-01). ⚠️ `tsx` strips types WITHOUT checking them, so a green suite proves nothing about types — see the typecheck note under CI. |
 | Lint/format | ESLint 10 (flat config) | `@stylistic` (house style: no-semi, single-quotes, 2-space, K&R) + `eslint-plugin-sonarjs` (code quality: complexity, cognitive-load, etc.) + `eslint-plugin-perfectionist` (import ordering). See [`eslint.config.js`](../eslint.config.js). Mirrors the Tracker repo setup. |
-| Runtime validation | Valibot 1.5.0 via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` 2.0.7 + `@schemasjs/valibot-numbers` 1.1.3 (2026-10-10: the first versions whose `.d.ts` compiles with `skipLibCheck: false`; taken early via exact cooldown exemptions). valibot is a REGULAR exact dependency everywhere — never a peer; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
+| Runtime validation | Valibot 1.5.0 via [SchemasJS](https://github.com/crisconru/schemasjs) | `@schemasjs/validator` 2.0.7 + `@schemasjs/valibot-numbers` 1.1.3 (2026-10-10: the first versions whose `.d.ts` compiles with `skipLibCheck: false`). valibot is a REGULAR exact dependency everywhere — never a peer; keeps us validator-agnostic (Zod swappable). septentrio-sbf & sbg-ecom have NO validation yet |
 | TypeScript | **6.0.3 — and this is the ceiling** | root tsconfig: clean modern config (`moduleResolution: bundler`, `types: ["node"]`). ⛔ **TypeScript 7 is NOT possible yet**, see below. 6.0.3 is the newest release `typescript-eslint` accepts (`>=4.8.4 <6.1.0`), and no 6.1.x exists, so we are already at the top of the supported range. |
 | Node | **>= 22** (`engines.node`, uniform across all 11 packages) | CI tests **22.x + 24.x** — the two current LTS lines (Jod and Krypton) — and publishes on **24**. Node 26 exists but is not LTS yet, so it is deliberately not in the matrix. |
 
@@ -146,10 +146,10 @@ compromised new release of a dependency reach an install without anyone choosing
 - **`minimumReleaseAge: 10080`** in `pnpm-workspace.yaml` — a 7-day cooldown: pnpm refuses any version
   younger than that, so pick "the newest release at least 7 days old". An urgent fix goes into
   `minimumReleaseAgeExclude` as one `name@version`, deliberately, with a reason.
-- **`@coremarine/*` is excluded from the cooldown** (cru, 2026-10-09): we publish our own packages via
-  OIDC with provenance, so a cooldown only delays our own fixes. Proven: under a strict 7-day cooldown
+- **`@coremarine/*` and `@schemasjs/*` are excluded from the cooldown** (cru, 2026-10-09 / 10-10): he
+  creates and maintains both scopes (SchemasJS as `crisconru`), so a cooldown only delays his own fixes. Proven: under a strict 7-day cooldown
   a fresh `sbg-ecom@1.0.1` fails with `ERR_PNPM_NO_MATURE_MATCHING_VERSION`; with the exclusion it
-  installs. **Every consumer of `@coremarine/*` (Tracker) should carry the same exclusion.**
+  installs. **Every consumer (Tracker) should carry both exclusions.**
 
 **What pins cannot do — know this before relying on them:**
 
