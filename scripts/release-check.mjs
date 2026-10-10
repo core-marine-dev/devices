@@ -188,7 +188,9 @@ const checkConsumer = (manager, dir, tarballs) => {
   JSON.parse(run('node', ['consumer.mjs'], dir).trim().split('\n').at(-1)).forEach((problem) => fail(manager, problem))
   writeFileSync(join(dir, 'types.ts'), `type IsAny<T> = 0 extends (1 & T) ? true : false\n${consumerTypes(libraries)}\n`)
   try {
-    run('npx', ['tsc', '--noEmit', '--strict', '--skipLibCheck', '--module', 'nodenext', '--moduleResolution', 'nodenext', 'types.ts'], dir)
+    // NO --skipLibCheck: every shipped .d.ts — ours AND our dependencies' — must compile for a consumer
+    // that type-checks libraries. @schemasjs/validator < 2.0.7 failed this (TS2307 'zod', TS2314).
+    run('npx', ['tsc', '--noEmit', '--strict', '--module', 'nodenext', '--moduleResolution', 'nodenext', 'types.ts'], dir)
   } catch (error) {
     error.stdout.trim().split('\n').forEach((line) => fail(manager, `tsc: ${line}`))
   }

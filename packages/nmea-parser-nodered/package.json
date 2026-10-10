@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/nmea-parser-nodered",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "author": "CoreMarine",
   "license": "MIT",
   "description": "Node-RED component to read NMEA 0183 sentences as CMA",

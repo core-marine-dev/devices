@@ -76,3 +76,9 @@ minimumReleaseAge: 10080
 # carry the same line.
 minimumReleaseAgeExclude:
   - '@coremarine/*'
+  # cru's own SchemasJS releases of 2026-10-10, taken early on his word: they fix the
+  # published .d.ts that failed `skipLibCheck: false` for every consumer (TS2307 'zod',
+  # TS2314 BaseSchema). Exact versions only — the scope is NOT exempt, because these
+  # releases carry no npm provenance. Remove once older than 7 days (2026-10-17).
+  - '@schemasjs/validator@2.0.7'
+  - '@schemasjs/valibot-numbers@1.1.3'
