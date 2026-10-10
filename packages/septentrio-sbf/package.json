@@ -1,6 +1,6 @@
 {
   "name": "@coremarine/septentrio-sbf",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "CoreMarine",
   "description": "Library to parse SBF (Septentrio Binary Format) data from Septentrio GNSS receivers, with every documented block decoded",
   "license": "MIT",
@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@coremarine/nmea-parser": "workspace:*",
-    "@schemasjs/validator": "2.0.5",
+    "@schemasjs/validator": "2.0.7",
     "crc": "4.3.2"
   },
   "devDependencies": {

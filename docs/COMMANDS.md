@@ -35,7 +35,7 @@ a range or a peer in a published manifest (exact pins only), an import of a PRIV
 an unexpected file in a tarball, `import()`/`require()` failing, any parser that cannot fake → parse
 round-trip through the shared `DeviceParser` interface, a wrapper that does not register its nodes, a
 package resolving to a version other than the one under test, or parse output typed `any` in a consumer
-`tsc --strict`. ~20 s. CI runs it on every PR into `main` (`release-check.yml`).
+`tsc --strict` — run WITHOUT `skipLibCheck`, so every shipped `.d.ts` (ours and our dependencies') must compile. ~20 s. CI runs it on every PR into `main` (`release-check.yml`).
 
 ## Local CI (act) — run workflows locally before pushing
 

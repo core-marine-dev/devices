@@ -69,3 +69,11 @@ overrides:
 # docs/TOOLING.md §"Exact pins". To take an urgent fix sooner, add that one
 # name@version to minimumReleaseAgeExclude — deliberately, with a reason.
 minimumReleaseAge: 10080
+# cru's own packages are exempt: he creates and maintains BOTH scopes — @coremarine
+# (devices, Tracker) and @schemasjs (SchemasJS, published as crisconru) — so the cooldown
+# guards against nothing for them; it only delays his own fixes (sbg-ecom 1.0.1 fixed a
+# broken 1.0.0; SchemasJS validator 2.0.7 fixed a .d.ts every consumer tripped on).
+# Consumers of these packages (Tracker) should carry the same two lines.
+minimumReleaseAgeExclude:
+  - '@coremarine/*'
+  - '@schemasjs/*'

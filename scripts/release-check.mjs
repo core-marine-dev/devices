@@ -49,11 +49,18 @@ const packAll = (repo, out) => {
   })
 }
 
+// --prefer-online: npm's local metadata cache can lag a fresh publish by minutes, which is exactly
+// when this mode runs. A version that cannot be fetched is a FAILURE to report, not a crash.
 const fetchAll = (specs, out) => {
   mkdirSync(out, { recursive: true })
-  return specs.map((spec) => {
-    const [{ filename, name, version }] = JSON.parse(run('npm', ['pack', spec, '--json', '--pack-destination', out], out))
-    return { name, tgz: join(out, filename), version }
+  return specs.flatMap((spec) => {
+    try {
+      const [{ filename, name, version }] = JSON.parse(run('npm', ['pack', spec, '--json', '--prefer-online', '--pack-destination', out], out))
+      return [{ name, tgz: join(out, filename), version }]
+    } catch (error) {
+      fail(spec, `cannot be fetched from npm: ${error.stderr?.match(/npm error (?!A complete).*/u)?.[0] ?? error.message}`)
+      return []
+    }
   })
 }
 
@@ -181,7 +188,9 @@ const checkConsumer = (manager, dir, tarballs) => {
   JSON.parse(run('node', ['consumer.mjs'], dir).trim().split('\n').at(-1)).forEach((problem) => fail(manager, problem))
   writeFileSync(join(dir, 'types.ts'), `type IsAny<T> = 0 extends (1 & T) ? true : false\n${consumerTypes(libraries)}\n`)
   try {
-    run('npx', ['tsc', '--noEmit', '--strict', '--skipLibCheck', '--module', 'nodenext', '--moduleResolution', 'nodenext', 'types.ts'], dir)
+    // NO --skipLibCheck: every shipped .d.ts — ours AND our dependencies' — must compile for a consumer
+    // that type-checks libraries. @schemasjs/validator < 2.0.7 failed this (TS2307 'zod', TS2314).
+    run('npx', ['tsc', '--noEmit', '--strict', '--module', 'nodenext', '--moduleResolution', 'nodenext', 'types.ts'], dir)
   } catch (error) {
     error.stdout.trim().split('\n').forEach((line) => fail(manager, `tsc: ${line}`))
   }
