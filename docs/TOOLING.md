@@ -146,6 +146,11 @@ compromised new release of a dependency reach an install without anyone choosing
 - **`minimumReleaseAge: 10080`** in `pnpm-workspace.yaml` — a 7-day cooldown: pnpm refuses any version
   younger than that, so pick "the newest release at least 7 days old". An urgent fix goes into
   `minimumReleaseAgeExclude` as one `name@version`, deliberately, with a reason.
+- **A SECURITY FIX overrides the cooldown** (cru, 2026-10-10: "because of the cooldown I cannot fix a
+  severe issue? bad policy"). When an advisory's fix is younger than 7 days, review the exact fixing
+  version — publisher, `npm diff` against the previous version, no new install scripts or deps — then
+  exempt THAT version in `minimumReleaseAgeExclude` (with the review written next to it) and pin it.
+  First use: `http-cache-semantics@4.3.0` (GHSA-ch52-4w7c-c8xp), reviewed and taken the same day.
 - **`@coremarine/*` and `@schemasjs/*` are excluded from the cooldown** (cru, 2026-10-09 / 10-10): he
   creates and maintains both scopes (SchemasJS as `crisconru`), so a cooldown only delays his own fixes. Proven: under a strict 7-day cooldown
   a fresh `sbg-ecom@1.0.1` fails with `ERR_PNPM_NO_MATURE_MATCHING_VERSION`; with the exclusion it

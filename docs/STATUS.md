@@ -13,7 +13,9 @@
 > **Last updated:** 2026-10-10 — **✅ THE 6.0.2 ROUND IS LIVE: TEN PACKAGES PUBLISHED AND VERIFIED FROM npm**
 > (PR [#79](https://github.com/core-marine-dev/devices/pull/79), merge `b05fd28`; all eleven workflows green;
 > `release:check -- --registry` → ✅ 10, library types checked). Remaining manual step: "request refresh"
-> on the five flow-library pages (they still show the August versions). Earlier note, kept:
+> on the five flow-library pages — DONE by cru, verified (all five show 6.0.2 / 3.0.2 / 2.0.2 / 1.0.2).
+> **`pnpm audit`: no known vulnerabilities** — http-cache-semantics 4.3.0 taken inside the cooldown under the
+> new security-fix rule (`docs/TOOLING.md` §"Exact pins"). Earlier note, kept:
 > cru published `@schemasjs/validator` 2.0.7 + `@schemasjs/valibot-numbers` 1.1.3, which fix SchemasJS's
 > broken `.d.ts`; all ten packages take them as a patch (6.0.2 / 3.0.2 / 2.0.2 / 1.0.2). **➡️ Read §"🔧 THE
 > 6.0.2 ROUND" first.** ⛔ Waits for cru's "publish" (he runs `git push` himself — auto mode blocks it).
@@ -111,7 +113,15 @@ Schema (`schema['~standard'].validate`) — and every suite is unchanged, so no 
 **Evidence (2026-10-10, from scratch):** gate exit 0 — core 43 · nmea 135 · norsub 55 · septentrio 221 ·
 tblive 260 · sbg 112 · wrappers 28 / 37 / 66 / 45 / 64 · eslint clean · `tsc --noEmit` clean in all
 eleven · `--frozen-lockfile` clean. `pnpm run release:check` → ✅ 10 packages pass (no skipLibCheck).
-`pnpm audit` → 1 (the known dev-only `http-cache-semantics`; scheduled task fires 2026-10-11).
+`pnpm audit` → 1 (the dev-only `http-cache-semantics`) — then fixed the same day: see below.
+
+**Security fixes override the cooldown (cru, 2026-10-10).** `http-cache-semantics` (GHSA-ch52-4w7c-c8xp,
+HIGH: one user can be served another's cached response; ← got ← node-red, dev-only) had a single fix,
+4.3.0, inside the cooldown until 2026-10-11 02:56 UTC. cru: a cooldown that blocks a security fix is a
+bad policy. Reviewed 4.3.0 (sole long-time maintainer, `index.js`-only ~40-line fix, no install scripts,
+no deps), exempted that exact version, pinned it as an override → **`pnpm audit`: no known
+vulnerabilities**; all five wrapper suites (real node-red) green. The 2026-10-11 scheduled task was
+deleted — nothing left for it. Dev-only, so nothing to publish.
 
 **⚠️ Tracker (or any consumer that sets its own `minimumReleaseAge`) must carry BOTH exemptions —
 `'@coremarine/*'` and `'@schemasjs/*'` in `minimumReleaseAgeExclude`** — or our exact pins to the
@@ -119,7 +129,7 @@ hours-old 2.0.7 / 1.1.3 fail to install (`ERR_PNPM_NO_MATURE_MATCHING_VERSION`) 
 npm and pnpm-default consumers are unaffected.
 
 **Published 2026-10-10:** cru pushed `e4f7074`, opened PR #79, merged → `b05fd28`; all eleven workflows
-green; all ten versions served by npm at 14:56 UTC; `pnpm run release:check -- --registry` with the ten
+green; all ten versions served by npm at 14:56 UTC; flow-library pages refreshed by cru and verified; `pnpm run release:check -- --registry` with the ten
 new versions → ✅ 10 packages pass, npm and pnpm, library `.d.ts` type-checked.
 
 **Node-RED flow library — a STANDING step after every release.** It has not followed npm by itself since
